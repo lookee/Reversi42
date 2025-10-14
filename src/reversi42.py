@@ -34,7 +34,7 @@ size = 8
 
 g = Game(size)
 
-players={'B': HumanPlayer(), 'W': AIPlayer(6)}
+players={'B': HumanPlayer(), 'W': AIPlayer(8)}
 
 c = BoardControl(size,size)
 
