@@ -1,9 +1,10 @@
 -------------------------------------------------------------
 
 Reversi42
-release: 0.1.0
+release: 0.1.1
 
-relased: 2011-03-07
+released: 2011-03-07
+updated: 2024-01-XX (Python 3 conversion)
 
 Copyright (C) 2011 Luca Amore <luca.amore at gmail.com>
 
@@ -11,7 +12,128 @@ http://www.lucaamore.com
 
 -------------------------------------------------------------
 
-based on:
+DESCRIPTION
+
+Reversi42 is a complete implementation of the classic Reversi (Othello) board game 
+written in Python. The game features:
+
+- Full GUI implementation using Pygame
+- AI opponent with configurable difficulty levels
+- Multiple player types (Human, AI, Random)
+- Complete game logic with move validation
+- Alpha-beta pruning AI strategy
+- ASCII and graphical board representation
+- Game history tracking
+
+GAME FEATURES
+
+- 8x8 standard Reversi board
+- Real-time move validation
+- Visual indication of available moves
+- Turn-based gameplay with automatic switching
+- Win/loss detection and scoring
+- Undo functionality
+- Configurable AI depth (difficulty levels)
+
+PLAYER TYPES
+
+1. HumanPlayer: Interactive player using mouse clicks
+2. AIPlayer: Intelligent AI using alpha-beta pruning
+3. Monkey: Random move selection for testing
+
+AI STRATEGY
+
+The AI uses advanced techniques including:
+- Alpha-beta pruning for efficient search
+- Position evaluation based on mobility and corners
+- Move ordering with priority matrix
+- Depth-limited search with configurable levels
+
+REQUIREMENTS
+
+- Python 3.6 or higher
+- Pygame library for GUI
+
+Install Pygame:
+```bash
+pip install pygame
+```
+
+INSTALLATION
+
+1. Clone or download the repository
+2. Install Pygame if not already installed
+3. Run the game using one of the methods below
+
+RUNNING THE GAME
+
+Method 1 - Using the main entry point:
+```bash
+python3 reversi42
+```
+
+Method 2 - Using the module entry point:
+```bash
+python3 src/reversi42.py
+```
+
+Method 3 - As a module:
+```bash
+python3 -m src.reversi42
+```
+
+GAME CONTROLS
+
+- Mouse: Click on available moves to place pieces
+- ESC or Q: Quit the game
+- The game automatically handles turn switching
+
+PROJECT STRUCTURE
+
+```
+Reversi42/
+├── src/
+│   ├── Reversi/
+│   │   ├── Game.py          # Core game logic
+│   │   └── __init__.py
+│   ├── Board/
+│   │   ├── BoardModel.py    # Board data model
+│   │   ├── BoardView.py     # Pygame GUI rendering
+│   │   ├── BoardControl.py  # Input handling
+│   │   └── __init__.py
+│   ├── AI/
+│   │   ├── Strategy.py      # AI algorithm implementation
+│   │   └── __init__.py
+│   ├── Players/
+│   │   ├── Player.py        # Base player class
+│   │   ├── HumanPlayer.py   # Human player implementation
+│   │   ├── AIPlayer.py      # AI player wrapper
+│   │   ├── Monkey.py        # Random player
+│   │   └── __init__.py
+│   └── reversi42.py         # Main entry point
+├── reversi42                # Executable entry point
+├── README                   # This file
+└── COPYING                  # License information
+```
+
+CHANGELOG
+
+Version 0.1.1 (2024-01-XX)
+- Converted from Python 2 to Python 3
+- Fixed all print statements to use print() function
+- Updated time.clock() to time.perf_counter()
+- Fixed integer division operations
+- Updated import statements for Python 3 compatibility
+- Fixed indentation and method signature issues
+- Improved error handling and module structure
+
+Version 0.1.0 (2011-03-07)
+- Initial release with full game implementation
+- Pygame-based GUI
+- AI opponent with alpha-beta pruning
+- Complete Reversi game logic
+
+BASED ON
 
 python-pygame - SDL bindings for games development in Python
 
@@ -38,13 +160,17 @@ http://www.lucaamore.com
 -------------------------------------------------------------
 RESOURCES
 
-for more information about Reversi, visit:
-
+For more information about Reversi, visit:
 http://en.wikipedia.org/wiki/Reversi
+
+Official Othello rules and strategies:
+http://www.fngo.it
 
 -------------------------------------------------------------
 
-thanks to: 
+ACKNOWLEDGMENTS
+
+Thanks to: 
 Donato Barnaba  
 Federazione Italiana Gioco Othello (FNGO)
 http://www.fngo.it
@@ -52,4 +178,4 @@ for his great support
 
 -------------------------------------------------------------
 
-Have fun!
+Have fun playing Reversi42!
