@@ -1,1 +1,8 @@
+__pycache__/
 *.pyc
+*.pyo
+*.DS_Store
+pygame-env/
+.venv/
+.env/
+
