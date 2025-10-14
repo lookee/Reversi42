@@ -124,7 +124,7 @@ class BoardView(object):
                 intersection_x = self.marginx + hoshi_x * self.stepx
                 intersection_y = self.marginy + hoshi_y * self.stepy
                 # Draw a small black circle at the intersection
-                pygame.draw.circle(screen, self.hoshiColor, (intersection_x, intersection_y), 2)
+                pygame.draw.circle(screen, self.hoshiColor, (intersection_x, intersection_y), 4)
 
     def update(self):
         # Draw last move indicator before updating display
