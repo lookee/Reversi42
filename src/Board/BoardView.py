@@ -115,12 +115,16 @@ class BoardView(object):
             pygame.draw.lines(screen, self.lineColor, False, [start, end], 1)
             
         # Add hoshi points (reference dots) - 4 corners for 8x8 board
+        # Hoshi points should be at the intersections of the 3rd and 6th lines (both horizontal and vertical)
         if self.sizex == 8 and self.sizey == 8:
-            hoshi_positions = [(2, 2), (5, 2), (2, 5), (5, 5)]  # 3rd and 6th positions (0-indexed)
+            # Positions for 8x8 board: intersections of 3rd and 6th lines (0-indexed)
+            hoshi_positions = [(2, 2), (5, 2), (2, 5), (5, 5)]  # (3,3), (6,3), (3,6), (6,6) in 1-indexed
             for hoshi_x, hoshi_y in hoshi_positions:
-                center_x = self.marginx + hoshi_x * self.stepx + self.stepx // 2
-                center_y = self.marginy + hoshi_y * self.stepy + self.stepy // 2
-                pygame.draw.circle(screen, self.hoshiColor, (center_x, center_y), 3)
+                # Position at the intersection of grid lines, not at the center of squares
+                intersection_x = self.marginx + hoshi_x * self.stepx
+                intersection_y = self.marginy + hoshi_y * self.stepy
+                # Draw a small black circle at the intersection
+                pygame.draw.circle(screen, self.hoshiColor, (intersection_x, intersection_y), 2)
 
     def update(self):
         # Draw last move indicator before updating display
