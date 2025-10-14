@@ -31,22 +31,28 @@ class BoardView(object):
         self.heigth = heigth
         self.caption = "Reversi42"
 
-        # colors
-        self.bgColor            = (  0,     102,     51)
-        self.lineColor          = (255,     255,    255)
+        # colors - updated to match the reference image
+        self.bgColor            = (  0,      80,      40)  # Darker green background
+        self.lineColor          = (  0,       0,      0)   # Black grid lines
         self.boxColor           = (  0,       0,      0)
-        self.shadowColor        = ( 51,      68,     51)
+        self.shadowColor        = ( 40,      60,     40)
         self.whitePieceColor    = (255,     255,    255)
         self.blackPieceColor    = (  0,       0,      0)
-        self.canMoveColor       = ( 10,     112,     61)
-        self.whiteMoveColor     = ( 14,     175,     94)
-        self.blackMoveColor     = (  6,      66,     36)
+        self.lastMoveColor      = (255,       0,      0)   # Red dot for last move
+        self.hoshiColor         = (  0,       0,      0)   # Black dots for hoshi points
+        self.canMoveColor       = (200,     200,    200)   # Light gray for possible moves
+        self.whiteMoveColor     = (220,     220,    220)   # Light gray for white possible moves
+        self.blackMoveColor     = (180,     180,    180)   # Darker gray for black possible moves
 
         self.stepx = self.width // self.sizex
         self.stepy = self.heigth // self.sizey
 
         self.marginx = (self.width % self.sizex) // 2
         self.marginy = (self.heigth % self.sizey) // 2
+        
+        # Track last move position for red dot indicator
+        self.lastMoveX = None
+        self.lastMoveY = None
        
         self.__init_screen()
         self.__init_grid()
@@ -107,8 +113,18 @@ class BoardView(object):
             start = (0 + self.marginx, self.stepy * n + self.marginy)
             end   = (self.sizex * self.stepx + self.marginx, self.stepy * n + self.marginy)
             pygame.draw.lines(screen, self.lineColor, False, [start, end], 1)
+            
+        # Add hoshi points (reference dots) - 4 corners for 8x8 board
+        if self.sizex == 8 and self.sizey == 8:
+            hoshi_positions = [(2, 2), (5, 2), (2, 5), (5, 5)]  # 3rd and 6th positions (0-indexed)
+            for hoshi_x, hoshi_y in hoshi_positions:
+                center_x = self.marginx + hoshi_x * self.stepx + self.stepx // 2
+                center_y = self.marginy + hoshi_y * self.stepy + self.stepy // 2
+                pygame.draw.circle(screen, self.hoshiColor, (center_x, center_y), 3)
 
     def update(self):
+        # Draw last move indicator before updating display
+        self.drawLastMoveIndicator()
         pygame.display.update()
 
     def unfillBox(self, bx, by):
@@ -116,7 +132,7 @@ class BoardView(object):
         rect = Rect(self.stepx * bx + 2 + self.marginx, self.stepy * by + 2 + self.marginy, self.stepx - 3, self.stepy - 3)
         self.screen.fill(self.bgColor,rect)     
 
-    def fillBox(self, bx, by, color, shadow=True):
+    def fillBox(self, bx, by, color, shadow=True, hollow=False):
 
         radius = int((self.stepy-10) // 2)
         posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
@@ -124,14 +140,19 @@ class BoardView(object):
 
         self.unfillBox(bx, by)
 
-        # antialiased filled circle shadow
-        if shadow:
-            pygame.gfxdraw.aacircle(self.screen, int(posx+2), int(posy+1), radius, self.shadowColor)
-            pygame.gfxdraw.filled_circle(self.screen, int(posx+2), int(posy+1), radius, self.shadowColor)
+        if hollow:
+            # Draw hollow circle for possible moves
+            pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, color)
+            pygame.draw.circle(self.screen, color, (posx, posy), radius, 2)
+        else:
+            # antialiased filled circle shadow
+            if shadow:
+                pygame.gfxdraw.aacircle(self.screen, int(posx+2), int(posy+1), radius, self.shadowColor)
+                pygame.gfxdraw.filled_circle(self.screen, int(posx+2), int(posy+1), radius, self.shadowColor)
 
-        # antialiased filled circle
-        pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, color)
-        pygame.gfxdraw.filled_circle(self.screen, posx, posy, radius, color)
+            # antialiased filled circle
+            pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, color)
+            pygame.gfxdraw.filled_circle(self.screen, posx, posy, radius, color)
 
     def setBox(self, bx, by, color, shadow=False):
         self.fillBox(bx, by, color, shadow)
@@ -142,14 +163,26 @@ class BoardView(object):
     def setBoxBlack(self, bx, by):
         self.setBox(bx, by, self.blackPieceColor, True)
 
+    def setLastMove(self, bx, by):
+        """Set the position of the last move and draw a red dot"""
+        self.lastMoveX = bx
+        self.lastMoveY = by
+
+    def drawLastMoveIndicator(self):
+        """Draw red dot on the last move position"""
+        if self.lastMoveX is not None and self.lastMoveY is not None:
+            posx = int(self.marginx + self.stepx * self.lastMoveX + self.stepx // 2)
+            posy = int(self.marginy + self.stepy * self.lastMoveY + self.stepy // 2)
+            pygame.draw.circle(self.screen, self.lastMoveColor, (posx, posy), 4)
+
     def setCanMove(self, bx, by):
-        self.setBox(bx, by, self.canMoveColor, False)
+        self.fillBox(bx, by, self.canMoveColor, False, True)
 
     def setCanMoveBlack(self, bx, by):
-        self.setBox(bx, by, self.blackMoveColor, False)
+        self.fillBox(bx, by, self.blackMoveColor, False, True)
 
     def setCanMoveWhite(self, bx, by):
-        self.setBox(bx, by, self.whiteMoveColor, False)
+        self.fillBox(bx, by, self.whiteMoveColor, False, True)
 
     def unsetBox(self, bx, by):
         self.unfillBox(bx, by)

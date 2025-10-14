@@ -78,6 +78,9 @@ while 1:
         # move
         g.move(move)
 
+        # set last move indicator for visual display
+        c.setLastMove(move.get_x(), move.get_y())
+
         # update game history
         if turn == 'B':
             # is a black move

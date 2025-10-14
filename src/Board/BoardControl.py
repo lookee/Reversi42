@@ -111,6 +111,10 @@ class BoardControl(object):
     def setCanMove(self, bx, by, turn):
         self.model.setPoint(bx-1,by-1, turn.lower())
 
+    def setLastMove(self, bx, by):
+        """Set the last move position for red dot indicator"""
+        self.view.setLastMove(bx-1, by-1)  # Convert from 1-indexed to 0-indexed
+
     def cursorHand(self):
         self.view.cursorHand()
 
