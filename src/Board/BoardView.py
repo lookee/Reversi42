@@ -42,11 +42,11 @@ class BoardView(object):
         self.whiteMoveColor     = ( 14,     175,     94)
         self.blackMoveColor     = (  6,      66,     36)
 
-        self.stepx = self.width / self.sizex
-        self.stepy = self.heigth / self.sizey
+        self.stepx = self.width // self.sizex
+        self.stepy = self.heigth // self.sizey
 
-        self.marginx = (self.width % self.sizex)  / 2
-        self.marginy = (self.heigth % self.sizey) / 2
+        self.marginx = (self.width % self.sizex) // 2
+        self.marginy = (self.heigth % self.sizey) // 2
        
         self.__init_screen()
         self.__init_grid()
@@ -97,16 +97,16 @@ class BoardView(object):
         for n in range(0,self.sizex + 1):
 
             # grid: vertical lines
-	        start = (self.stepx * n + self.marginx, 0 + self.marginy)
-	        end   = (self.stepx * n + self.marginx, self.sizey * self.stepy + self.marginy)
-	        pygame.draw.lines(screen, self.lineColor, False, [start, end], 1)
+            start = (self.stepx * n + self.marginx, 0 + self.marginy)
+            end   = (self.stepx * n + self.marginx, self.sizey * self.stepy + self.marginy)
+            pygame.draw.lines(screen, self.lineColor, False, [start, end], 1)
 
         for n in range(0,self.sizey + 1):
 
             # grid: horizontal lines
-	        start = (0 + self.marginx, self.stepy * n + self.marginy)
-	        end   = (self.sizex * self.stepx + self.marginx, self.stepy * n + self.marginy)
-	        pygame.draw.lines(screen, self.lineColor, False, [start, end], 1)
+            start = (0 + self.marginx, self.stepy * n + self.marginy)
+            end   = (self.sizex * self.stepx + self.marginx, self.stepy * n + self.marginy)
+            pygame.draw.lines(screen, self.lineColor, False, [start, end], 1)
 
     def update(self):
         pygame.display.update()
@@ -118,20 +118,20 @@ class BoardView(object):
 
     def fillBox(self, bx, by, color, shadow=True):
 
-        radius = (self.stepy-10) / 2
-        posx = self.marginx + self.stepx * bx + self.stepx /2 
-        posy = self.marginy + self.stepy * by + self.stepy /2
+        radius = int((self.stepy-10) // 2)
+        posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
+        posy = int(self.marginy + self.stepy * by + self.stepy // 2)
 
         self.unfillBox(bx, by)
 
         # antialiased filled circle shadow
         if shadow:
-            pygame.gfxdraw.aacircle(self.screen, posx+2 ,posy+1, radius, self.shadowColor)
-            pygame.gfxdraw.filled_circle(self.screen, posx+2 ,posy+1, radius, self.shadowColor)
+            pygame.gfxdraw.aacircle(self.screen, int(posx+2), int(posy+1), radius, self.shadowColor)
+            pygame.gfxdraw.filled_circle(self.screen, int(posx+2), int(posy+1), radius, self.shadowColor)
 
         # antialiased filled circle
-        pygame.gfxdraw.aacircle(self.screen, posx ,posy, radius, color)
-        pygame.gfxdraw.filled_circle(self.screen, posx ,posy, radius, color)
+        pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, color)
+        pygame.gfxdraw.filled_circle(self.screen, posx, posy, radius, color)
 
     def setBox(self, bx, by, color, shadow=False):
         self.fillBox(bx, by, color, shadow)
@@ -159,17 +159,17 @@ class BoardView(object):
         self.setBox(bx,by)
 
     def setPointBlack(self, x, y, color):
-        self.setPoint(self, x, y, self.blackPieceColor)
+        self.setPoint(x, y, self.blackPieceColor)
 
-    def setPointWhite(x, y, color):
-        self.setPoint(self. x, y, self.whitePieceColor)
+    def setPointWhite(self, x, y, color):
+        self.setPoint(x, y, self.whitePieceColor)
 
-    def unsetPoint(x, y):
+    def unsetPoint(self, x, y):
         (bx, by) = self.point2Box(x, y)
         self.unsetBox(bx,by)
     
     def point2Box(self, x, y):
-        bx = (x - self.marginx) / self.stepx
-        by = (y - self.marginy) / self.stepy
+        bx = int((x - self.marginx) // self.stepx)
+        by = int((y - self.marginy) // self.stepy)
         return (bx, by)
 

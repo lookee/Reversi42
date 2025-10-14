@@ -38,11 +38,11 @@ class HumanPlayer(Player):
             y = control.by + 1
 
             move = Move(x,y)
-            print "move: %s" %move
+            print("move: %s" %move)
 
             if game.valid_move(move):
                 break
             else:
-                print "This move is not valid!"
+                print("This move is not valid!")
 
         return move

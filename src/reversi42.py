@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #------------------------------------------------------------------------
 #    Copyright (C) 2011 Luca Amore <luca.amore at gmail.com>
@@ -16,6 +16,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Reversi42.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from Reversi.Game import Game
 from Reversi.Game import Move
@@ -43,7 +47,7 @@ while 1:
 
     player = players[turn]
 
-    print "%s is moving..." % player.get_name()
+    print(f"{player.get_name()} is moving...")
 
     moves = g.get_move_list()
     
@@ -54,7 +58,7 @@ while 1:
 
         # show all available moves
         for move in (moves):
-            print move
+            print(move)
             c.setCanMove(move.get_x(),move.get_y(),turn)
 
         # render board
@@ -65,8 +69,8 @@ while 1:
         g.view()
 
         # history and last move
-        print "\ngame history:\n%s\n" % game_history
-        print "last move: %s" % last_move
+        print(f"\ngame history:\n{game_history}\n")
+        print(f"last move: {last_move}")
 
         # get move
         move = player.get_move(g,moves,c)
@@ -84,11 +88,11 @@ while 1:
 
         game_history += last_move
 
-        print "move: %s" %move
+        print(f"move: {move}")
 
     else:
         g.pass_turn()
-        print "%s is passing" % player.get_name()
+        print(f"{player.get_name()} is passing")
 
     if g.is_finish():
         break
@@ -101,4 +105,4 @@ c.renderModel()
 g.view()
 g.result()
 
-print "\ngame history:\n%s\n" % game_history
+print(f"\ngame history:\n{game_history}\n")

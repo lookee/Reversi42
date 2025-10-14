@@ -57,7 +57,7 @@ class Game(object):
         self.matrix = [['.' for row in range(self.size+2)] for col in range(self.size+2)]
 
         # board start position
-        center = size/2 - 1 + 1
+        center = size//2 - 1 + 1
         self.matrix[center][center] = self.matrix[center+1][center+1] = 'W'
         self.matrix[center+1][center] = self.matrix[center][center+1] = 'B'
 
@@ -94,7 +94,7 @@ class Game(object):
             for xx in range(0,self.size+2):
                 line += self.matrix[yy][xx]
 
-            print line
+            print(line)
 
     def get_view(self):
         """get the simplest string rappresentation of board status"""
@@ -138,7 +138,7 @@ class Game(object):
 
     def view(self):
         """print to stdout the simplest rappresentation of board status"""
-        print self.get_view();
+        print(self.get_view());
 
     def export_str(self):
         """export the board status into a string"""
@@ -412,7 +412,7 @@ class Game(object):
 
     def result(self):
         """print last result on game ended"""
-        print self.get_result()
+        print(self.get_result())
 
 if __name__ == "__main__":
 
@@ -422,20 +422,20 @@ if __name__ == "__main__":
 
         g.view()
         
-        print "all available moves:"
+        print("all available moves:")
         moves = g.get_move_list()
 
         for move in (moves):
-            print move
+            print(move)
 
-        print "next move"
+        print("next move")
         x = input("move x : ")
         y = input("move y : ")
 
         move = Move(x,y)
         g.move(move)
         
-        print "your last move %s" % move
+        print("your last move %s" % move)
 
         if g.is_finish():
             break

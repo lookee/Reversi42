@@ -119,7 +119,7 @@ class Strategy(object):
         self.nodes = 0
         self.pruning = 0
 
-        time_start = time.clock()
+        time_start = time.perf_counter()
 
         best_value = -INFINITY
         best_move = None
@@ -150,14 +150,14 @@ class Strategy(object):
                 best_move = move
 
             # print statistics
-            time_diff = time.clock() - time_start
+            time_diff = time.perf_counter() - time_start
 
             if time_diff > 0:
                 time_rate = self.nodes / time_diff
             else:
                 time_rate = 0
 
-            print "move: %s value: %8d best: %8d nodes: %8d pruning: %8d time: %5d rate %.02f [nodes/s]" \
-                 %(move, value, best_value, self.nodes, self.pruning, time_diff, time_rate)
+            print("move: %s value: %8d best: %8d nodes: %8d pruning: %8d time: %5d rate %.02f [nodes/s]" \
+                 %(move, value, best_value, self.nodes, self.pruning, time_diff, time_rate))
 
         return best_move

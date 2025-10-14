@@ -19,8 +19,8 @@
 import pygame
 from pygame.locals import *
 
-from BoardView import BoardView
-from BoardModel import BoardModel
+from Board.BoardView import BoardView
+from Board.BoardModel import BoardModel
 
 class BoardControl(object):
 
