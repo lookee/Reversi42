@@ -138,6 +138,15 @@ class Strategy(object):
             
         move_list_sorted = sorted(move_list_sorted, key=lambda row: row[0], reverse=False)
         
+        # Print header for statistics
+        print("\n" + "="*80)
+        print("🤖 AI REASONING STATISTICS")
+        print("="*80)
+        print(f"{'Move':<8} {'Value':<10} {'Best':<10} {'Nodes':<10} {'Pruning':<10} {'Time(s)':<10} {'Rate':<12}")
+        print("-"*80)
+        
+        move_count = 0
+        
         # deep explore all available moves
         for m in (move_list_sorted):
             v, move = m
@@ -151,13 +160,40 @@ class Strategy(object):
 
             # print statistics
             time_diff = time.perf_counter() - time_start
+            move_count += 1
 
             if time_diff > 0:
                 time_rate = self.nodes / time_diff
             else:
                 time_rate = 0
 
-            print("move: %s value: %8d best: %8d nodes: %8d pruning: %8d time: %5d rate %.02f [nodes/s]" \
-                 %(move, value, best_value, self.nodes, self.pruning, time_diff, time_rate))
+            # Format statistics with better alignment and symbols
+            move_str = str(move)
+            value_str = f"{value:>8d}"
+            best_str = f"{best_value:>8d}"
+            nodes_str = f"{self.nodes:>8d}"
+            pruning_str = f"{self.pruning:>8d}"
+            time_str = f"{time_diff:>8.3f}"
+            rate_str = f"{time_rate:>10.0f}"
+            
+            # Add visual indicator for best move so far
+            if value == best_value and best_move == move:
+                move_str = f"⭐ {move_str}"
+                value_str = f"🏆 {value_str}"
+            
+            print(f"{move_str:<10} {value_str:<10} {best_str:<10} {nodes_str:<10} {pruning_str:<10} {time_str:<10} {rate_str:<12}")
+        
+        # Print summary statistics
+        time_total = time.perf_counter() - time_start
+        print("-"*80)
+        print(f"📊 SUMMARY:")
+        print(f"   • Total moves evaluated: {move_count}")
+        print(f"   • Total nodes analyzed: {self.nodes:,}")
+        print(f"   • Pruning operations: {self.pruning:,}")
+        print(f"   • Total time: {time_total:.3f} seconds")
+        if time_total > 0:
+            print(f"   • Average rate: {self.nodes/time_total:,.0f} nodes/second")
+        print(f"   • Selected move: {best_move} (value: {best_value})")
+        print("="*80 + "\n")
 
         return best_move
