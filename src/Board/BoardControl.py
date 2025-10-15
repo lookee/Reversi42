@@ -32,16 +32,29 @@ class BoardControl(object):
         self.model = BoardModel(sizex,sizey)
 
         self.keyPressed = False
-        #self.action()
+        self.cursor_mode = False  # Whether we're in cursor navigation mode
+        self.should_exit = False  # Flag to signal exit
+        
+        # Initialize cursor to center of board
+        self.view.setCursor(sizex // 2, sizey // 2)
 
     def action(self):
-
+        """Non-blocking action method that processes events once"""
         self.waitInput = True
         self.bx = self.by = None
-
-        while self.waitInput:
-            for event in pygame.event.get():
-                self.handleEvent(event)
+        
+        # Process all pending events
+        for event in pygame.event.get():
+            self.handleEvent(event)
+    
+    def check_events(self):
+        """Check for events without setting waitInput - used during AI turns"""
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                self.should_exit = True
+            elif event.type == KEYDOWN:
+                if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                    self.should_exit = True
 
     def handleEvent(self, event):
 
@@ -61,10 +74,38 @@ class BoardControl(object):
     def handleKeyEvents(self, event):
 
         if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
-            self.triggerEnd()
+            self.should_exit = True
+            self.waitInput = False
+        elif event.key == pygame.K_c:
+            # Toggle cursor mode
+            self.cursor_mode = not self.cursor_mode
+            if self.cursor_mode:
+                # Set cursor to center of board
+                self.view.setCursor(self.sizex // 2, self.sizey // 2)
+            # Redraw board to show/hide cursor
+            self.redrawBoard()
+        elif self.cursor_mode:
+            # Handle cursor navigation
+            if event.key == pygame.K_UP:
+                self.view.moveCursor(0, -1)
+                self.redrawBoard()  # Redraw to clear old cursor
+            elif event.key == pygame.K_DOWN:
+                self.view.moveCursor(0, 1)
+                self.redrawBoard()  # Redraw to clear old cursor
+            elif event.key == pygame.K_LEFT:
+                self.view.moveCursor(-1, 0)
+                self.redrawBoard()  # Redraw to clear old cursor
+            elif event.key == pygame.K_RIGHT:
+                self.view.moveCursor(1, 0)
+                self.redrawBoard()  # Redraw to clear old cursor
+            elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                # Select current cursor position
+                self.bx, self.by = self.view.getCursorPosition()
+                self.waitInput = False
 
     def triggerEnd(self):
-        exit()
+        self.should_exit = True
+        self.waitInput = False
 
     def handleMouseButtonEvents(self, event):
 
@@ -79,6 +120,8 @@ class BoardControl(object):
                 self.waitInput = False;
                 self.bx = bx
                 self.by = by
+                # Update cursor position when clicking
+                self.view.setCursor(bx, by)
 
     def renderModel(self):
 
@@ -96,7 +139,7 @@ class BoardControl(object):
                 else:
                     self.view.unsetBox(x,y)
 
-        self.view.update()
+        self.view.update(self.cursor_mode)
 
     def importModel(self,model):
         for y in range(self.sizey):
@@ -120,3 +163,8 @@ class BoardControl(object):
 
     def cursorWait(self):
         self.view.cursorWait()
+    
+    def redrawBoard(self):
+        """Redraw the board to clear old cursor and redraw current state"""
+        # Redraw the model (pieces and possible moves)
+        self.renderModel()

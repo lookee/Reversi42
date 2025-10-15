@@ -78,14 +78,7 @@ def main():
     last_move = None
     
     # Game loop
-    clock = pygame.time.Clock()
-    running = True
-    
-    while running:
-        # Check if game is finished
-        if g.is_finish():
-            break
-            
+    while True:
         turn = g.get_turn()
         player = players[turn]
         
@@ -125,12 +118,6 @@ def main():
             # Get move
             move = player.get_move(g, moves, c)
             
-            # Check if player wants to exit
-            if move is None:
-                print("Game exited by user.")
-                running = False
-                break
-            
             # Move
             g.move(move)
             
@@ -152,47 +139,27 @@ def main():
         else:
             g.pass_turn()
             print(f"{player.get_name()} is passing")
-            
-            # Check if both players have no moves (game over)
-            next_moves = g.get_move_list()
-            if len(next_moves) == 0:
-                print("No moves available for either player. Game over!")
-                break
         
-        # Check for exit events during AI turns
-        c.check_events()
-        if c.should_exit:
-            print("Game exited by user.")
-            running = False
+        if g.is_finish():
             break
-        
-        clock.tick(60)  # Limit to 60 FPS
     
     # Print results
-    if not g.is_finish():
-        print("Game was exited by user.")
-    else:
-        c.importModel(g.export_str())
-        c.renderModel()
-        
-        g.view()
-        g.result()
-        
-        print(f"\ngame history:\n{game_history}\n")
-        
-        # Wait for user to close the window
-        print("Game finished! Close the window to exit.")
-        while True:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    break
-            else:
-                clock.tick(60)
-                continue
-            break
+    c.importModel(g.export_str())
+    c.renderModel()
     
-    pygame.quit()
-    sys.exit()
+    g.view()
+    g.result()
+    
+    print(f"\ngame history:\n{game_history}\n")
+    
+    # Wait for user to close the window
+    print("Game finished! Close the window to exit.")
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+        pygame.time.wait(100)
 
 if __name__ == "__main__":
     main()

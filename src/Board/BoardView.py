@@ -43,6 +43,7 @@ class BoardView(object):
         self.canMoveColor       = (200,     200,    200)   # Light gray for possible moves
         self.whiteMoveColor     = (220,     220,    220)   # Light gray for white possible moves
         self.blackMoveColor     = (180,     180,    180)   # Darker gray for black possible moves
+        self.cursorColor        = (255,     255,      0)   # Yellow for cursor highlight
 
         self.stepx = self.width // self.sizex
         self.stepy = self.heigth // self.sizey
@@ -53,10 +54,14 @@ class BoardView(object):
         # Track last move position for red dot indicator
         self.lastMoveX = None
         self.lastMoveY = None
+        
+        # Track cursor position for navigation
+        self.cursorX = 0
+        self.cursorY = 0
        
         self.__init_screen()
         self.__init_grid()
-        self.update()
+        self.update(False)
 
     def cursorHand(self):
         
@@ -126,9 +131,11 @@ class BoardView(object):
                 # Draw a small black circle at the intersection
                 pygame.draw.circle(screen, self.hoshiColor, (intersection_x, intersection_y), 4)
 
-    def update(self):
+    def update(self, cursor_mode=False):
         # Draw last move indicator before updating display
         self.drawLastMoveIndicator()
+        # Draw cursor only if in cursor mode
+        self.drawCursor(cursor_mode)
         pygame.display.update()
 
     def unfillBox(self, bx, by):
@@ -180,13 +187,37 @@ class BoardView(object):
             pygame.draw.circle(self.screen, self.lastMoveColor, (posx, posy), 4)
 
     def setCanMove(self, bx, by):
-        self.fillBox(bx, by, self.canMoveColor, False, True)
+        # Make smaller circles for possible moves
+        radius = int((self.stepy-10) // 4)  # Smaller radius
+        posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
+        posy = int(self.marginy + self.stepy * by + self.stepy // 2)
+        
+        self.unfillBox(bx, by)
+        # Draw smaller hollow circle for possible moves
+        pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, self.canMoveColor)
+        pygame.draw.circle(self.screen, self.canMoveColor, (posx, posy), radius, 2)
 
     def setCanMoveBlack(self, bx, by):
-        self.fillBox(bx, by, self.blackMoveColor, False, True)
+        # Make smaller circles for possible moves
+        radius = int((self.stepy-10) // 4)  # Smaller radius
+        posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
+        posy = int(self.marginy + self.stepy * by + self.stepy // 2)
+        
+        self.unfillBox(bx, by)
+        # Draw smaller hollow circle for possible moves
+        pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, self.blackMoveColor)
+        pygame.draw.circle(self.screen, self.blackMoveColor, (posx, posy), radius, 2)
 
     def setCanMoveWhite(self, bx, by):
-        self.fillBox(bx, by, self.whiteMoveColor, False, True)
+        # Make smaller circles for possible moves
+        radius = int((self.stepy-10) // 4)  # Smaller radius
+        posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
+        posy = int(self.marginy + self.stepy * by + self.stepy // 2)
+        
+        self.unfillBox(bx, by)
+        # Draw smaller hollow circle for possible moves
+        pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, self.whiteMoveColor)
+        pygame.draw.circle(self.screen, self.whiteMoveColor, (posx, posy), radius, 2)
 
     def unsetBox(self, bx, by):
         self.unfillBox(bx, by)
@@ -209,4 +240,46 @@ class BoardView(object):
         bx = int((x - self.marginx) // self.stepx)
         by = int((y - self.marginy) // self.stepy)
         return (bx, by)
+    
+    def setCursor(self, bx, by):
+        """Set cursor position"""
+        self.cursorX = bx
+        self.cursorY = by
+    
+    def drawCursor(self, cursor_mode=False):
+        """Draw yellow rectangle around cursor position"""
+        if cursor_mode and 0 <= self.cursorX < self.sizex and 0 <= self.cursorY < self.sizey:
+            # Draw yellow rectangle around the cursor position
+            rect_x = self.marginx + self.cursorX * self.stepx + 2
+            rect_y = self.marginy + self.cursorY * self.stepy + 2
+            rect_width = self.stepx - 4
+            rect_height = self.stepy - 4
+            
+            pygame.draw.rect(self.screen, self.cursorColor, 
+                           (rect_x, rect_y, rect_width, rect_height), 3)
+    
+    def moveCursor(self, dx, dy):
+        """Move cursor by dx, dy"""
+        old_x = self.cursorX
+        old_y = self.cursorY
+        
+        new_x = self.cursorX + dx
+        new_y = self.cursorY + dy
+        
+        # Keep cursor within bounds
+        if 0 <= new_x < self.sizex:
+            self.cursorX = new_x
+        if 0 <= new_y < self.sizey:
+            self.cursorY = new_y
+        
+        # If cursor moved, we need to redraw the board to clear the old cursor
+        if old_x != self.cursorX or old_y != self.cursorY:
+            # Clear the old cursor position by redrawing the cell
+            self.unfillBox(old_x, old_y)
+            # Redraw any piece or move indicator that was there
+            # This will be handled by the calling code
+    
+    def getCursorPosition(self):
+        """Get current cursor position"""
+        return (self.cursorX, self.cursorY)
 

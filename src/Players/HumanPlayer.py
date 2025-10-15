@@ -21,6 +21,8 @@ from Reversi.Game import Move
 from Players.Player import Player
 
 import random
+import pygame
+from pygame.locals import *
 
 class HumanPlayer(Player):
 
@@ -28,21 +30,36 @@ class HumanPlayer(Player):
         self.name = name
 
     def get_move(self, game, moves, control):
-
-        while 1:
-
-            control.cursorHand()
+        control.cursorHand()
+        control.waitInput = True
+        control.bx = control.by = None
+        
+        clock = pygame.time.Clock()
+        
+        while control.waitInput and not control.should_exit:
+            # Process events
             control.action()
             
-            x = control.bx + 1
-            y = control.by + 1
-
-            move = Move(x,y)
-            print("move: %s" %move)
-
-            if game.valid_move(move):
-                break
-            else:
-                print("This move is not valid!")
-
-        return move
+            # Check if user wants to exit
+            if control.should_exit:
+                return None
+            
+            # Check if we have a move
+            if control.bx is not None and control.by is not None:
+                x = control.bx + 1
+                y = control.by + 1
+                move = Move(x, y)
+                print("move: %s" % move)
+                
+                if game.valid_move(move):
+                    control.waitInput = False
+                    return move
+                else:
+                    print("This move is not valid!")
+                    control.bx = control.by = None  # Reset for next attempt
+            
+            # Update display
+            control.view.update(control.cursor_mode)
+            clock.tick(60)  # Limit to 60 FPS
+        
+        return None
