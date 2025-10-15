@@ -1,10 +1,10 @@
 -------------------------------------------------------------
 
 Reversi42
-release: 0.1.2
+release: 0.1.3
 
 released: 2011-03-07
-updated: 2024-01-XX (Python 3 conversion)
+updated: 2025-10-14 (Python 3 conversion)
 
 Copyright (C) 2011 Luca Amore <luca.amore at gmail.com>
 
