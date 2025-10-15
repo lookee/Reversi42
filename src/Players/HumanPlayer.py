@@ -32,7 +32,7 @@ class HumanPlayer(Player):
     def get_move(self, game, moves, control):
         control.cursorHand()
         control.waitInput = True
-        control.bx = control.by = None
+        control.resetSelection()  # Reset any previous selection
         
         clock = pygame.time.Clock()
         

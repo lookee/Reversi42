@@ -41,7 +41,7 @@ class BoardControl(object):
     def action(self):
         """Non-blocking action method that processes events once"""
         self.waitInput = True
-        self.bx = self.by = None
+        # Don't reset bx, by here - they might have been set by ENTER/SPACE
         
         # Process all pending events
         for event in pygame.event.get():
@@ -101,7 +101,7 @@ class BoardControl(object):
             elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                 # Select current cursor position
                 self.bx, self.by = self.view.getCursorPosition()
-                self.waitInput = False
+                # Don't set waitInput = False here, let HumanPlayer handle validation
 
     def triggerEnd(self):
         self.should_exit = True
@@ -168,3 +168,7 @@ class BoardControl(object):
         """Redraw the board to clear old cursor and redraw current state"""
         # Redraw the model (pieces and possible moves)
         self.renderModel()
+    
+    def resetSelection(self):
+        """Reset the current move selection"""
+        self.bx = self.by = None
