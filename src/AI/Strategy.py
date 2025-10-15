@@ -178,10 +178,13 @@ class Strategy(object):
             
             # Add visual indicator for best move so far
             if value == best_value and best_move == move:
-                move_str = f"⭐ {move_str}"
-                value_str = f"🏆 {value_str}"
+                move_str = f"⭐{move_str}"
+                #value_str = f"🏆{value_str}"
+            else:
+                move_str = f"🚫{move_str}"
+                #value_str = f"🏆{value_str}"
             
-            print(f"{move_str:<10} {value_str:<10} {best_str:<10} {nodes_str:<10} {pruning_str:<10} {time_str:<10} {rate_str:<12}")
+            print(f"{move_str:<8} {value_str:<10} {best_str:<10} {nodes_str:<10} {pruning_str:<10} {time_str:<10} {rate_str:<12}")
         
         # Print summary statistics
         time_total = time.perf_counter() - time_start
