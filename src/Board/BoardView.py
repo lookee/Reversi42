@@ -23,7 +23,7 @@ from sys import exit
 
 class BoardView(object):
 
-    def __init__(self, sizex=64, sizey=48, width=800, heigth=600):
+    def __init__(self, sizex=64, sizey=48, width=480, heigth=400):
 
         self.sizex = sizex
         self.sizey = sizey

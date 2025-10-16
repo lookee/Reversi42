@@ -186,6 +186,7 @@ class Strategy(object):
         
         # Print summary statistics
         time_total = time.perf_counter() - time_start
+        
         print("-"*80)
         print(f"📊 SUMMARY:")
         print(f"   • Total moves evaluated: {move_count}")
