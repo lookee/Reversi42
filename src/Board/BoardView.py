@@ -32,7 +32,7 @@ class BoardView(object):
         self.caption = "Reversi42"
 
         # colors - updated to match the reference image
-        self.bgColor            = (  0,      80,      40)  # Darker green background
+        self.bgColor            = (  0,     108,     85)  # Darker green background
         self.lineColor          = (  0,       0,      0)   # Black grid lines
         self.boxColor           = (  0,       0,      0)
         self.shadowColor        = ( 40,      60,     40)
@@ -110,14 +110,14 @@ class BoardView(object):
             # grid: vertical lines
             start = (self.stepx * n + self.marginx, 0 + self.marginy)
             end   = (self.stepx * n + self.marginx, self.sizey * self.stepy + self.marginy)
-            pygame.draw.lines(screen, self.lineColor, False, [start, end], 1)
+            pygame.draw.lines(screen, self.lineColor, False, [start, end], 2)
 
         for n in range(0,self.sizey + 1):
 
             # grid: horizontal lines
             start = (0 + self.marginx, self.stepy * n + self.marginy)
             end   = (self.sizex * self.stepx + self.marginx, self.stepy * n + self.marginy)
-            pygame.draw.lines(screen, self.lineColor, False, [start, end], 1)
+            pygame.draw.lines(screen, self.lineColor, False, [start, end], 2)
             
         # Add hoshi points (reference dots) - 4 corners for 8x8 board
         # Hoshi points should be at the intersections of the 3rd and 6th lines (both horizontal and vertical)
@@ -158,8 +158,8 @@ class BoardView(object):
         else:
             # antialiased filled circle shadow
             if shadow:
-                pygame.gfxdraw.aacircle(self.screen, int(posx+2), int(posy+1), radius, self.shadowColor)
-                pygame.gfxdraw.filled_circle(self.screen, int(posx+2), int(posy+1), radius, self.shadowColor)
+                pygame.gfxdraw.aacircle(self.screen, int(posx+2), int(posy+2), radius, self.shadowColor)
+                pygame.gfxdraw.filled_circle(self.screen, int(posx+2), int(posy+2), radius, self.shadowColor)
 
             # antialiased filled circle
             pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, color)

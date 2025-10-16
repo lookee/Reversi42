@@ -356,7 +356,7 @@ class Menu:
     def run(self):
         """Run the menu system"""
         # Show splash screen first
-        self.show_splash_screen()
+        #self.show_splash_screen()
         
         clock = pygame.time.Clock()
         running = True
