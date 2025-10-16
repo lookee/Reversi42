@@ -99,7 +99,7 @@ def main():
             
             # Show all available moves
             for move in moves:
-                print(move)
+                # print(f"move: {move}")
                 c.setCanMove(move.get_x(), move.get_y(), turn)
             
             # Render board
@@ -107,7 +107,7 @@ def main():
             c.cursorWait()
             
             # Render ascii board
-            g.view()
+            # g.view()
             
             # History and last move
             print(f"\ngame history:\n{game_history}\n")

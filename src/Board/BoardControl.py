@@ -28,7 +28,7 @@ class BoardControl(object):
 
         self.sizex = sizex
         self.sizey = sizey
-        self.view = BoardView(sizex,sizey,600,480)
+        self.view = BoardView(sizex,sizey,800,600)
         self.model = BoardModel(sizex,sizey)
 
         self.keyPressed = False
