@@ -39,15 +39,29 @@ PLAYER TYPES
 
 1. HumanPlayer: Interactive player using mouse clicks
 2. AIPlayer: Intelligent AI using alpha-beta pruning
-3. Monkey: Random move selection for testing
+3. GreedyPlayer: Always chooses the move that captures the most pieces immediately
+4. Monkey: Random move selection for testing
 
 AI STRATEGY
 
 The AI uses advanced techniques including:
 - Alpha-beta pruning for efficient search
-- Position evaluation based on mobility and corners
+- Modular position evaluation system (pluggable evaluators)
 - Move ordering with priority matrix
 - Depth-limited search with configurable levels
+- Transposition tables for position caching
+
+EVALUATORS
+
+The game features a modular evaluation system with multiple strategies:
+
+1. StandardEvaluator: Original evaluation with mobility and corner control
+2. SimpleEvaluator: Basic piece count for testing
+3. AdvancedEvaluator: Weighted positions with dynamic game phase evaluation
+4. GreedyEvaluator: Maximizes immediate piece count (short-sighted strategy)
+
+Each evaluator can be combined with any AI engine, allowing for easy
+experimentation and development of custom evaluation strategies
 
 REQUIREMENTS
 
@@ -94,22 +108,37 @@ PROJECT STRUCTURE
 Reversi42/
 ├── src/
 │   ├── Reversi/
-│   │   ├── Game.py          # Core game logic
+│   │   ├── Game.py              # Core game logic
 │   │   └── __init__.py
 │   ├── Board/
-│   │   ├── BoardModel.py    # Board data model
-│   │   ├── BoardView.py     # Pygame GUI rendering
-│   │   ├── BoardControl.py  # Input handling
+│   │   ├── BoardModel.py        # Board data model
+│   │   ├── BoardView.py         # Pygame GUI rendering
+│   │   ├── BoardControl.py      # Input handling
 │   │   └── __init__.py
 │   ├── AI/
-│   │   ├── Strategy.py      # AI algorithm implementation
+│   │   ├── GameEngine.py        # Base class for AI engines
+│   │   ├── MinimaxEngine.py     # Minimax with alpha-beta pruning
+│   │   ├── RandomEngine.py      # Random move selection
+│   │   ├── HeuristicEngine.py   # Heuristic-based engine
+│   │   ├── Evaluator.py         # Base class for evaluators
+│   │   ├── StandardEvaluator.py # Standard evaluation function
+│   │   ├── SimpleEvaluator.py   # Simple piece count evaluator
+│   │   ├── AdvancedEvaluator.py # Advanced weighted evaluator
+│   │   ├── GreedyEvaluator.py   # Greedy piece count evaluator
 │   │   └── __init__.py
 │   ├── Players/
-│   │   ├── Player.py        # Base player class
-│   │   ├── HumanPlayer.py   # Human player implementation
-│   │   ├── AIPlayer.py      # AI player wrapper
-│   │   ├── Monkey.py        # Random player
+│   │   ├── Player.py            # Base player class
+│   │   ├── HumanPlayer.py       # Human player implementation
+│   │   ├── AIPlayer.py          # AI player wrapper
+│   │   ├── GreedyPlayer.py      # Greedy player (maximizes immediate captures)
+│   │   ├── Monkey.py            # Random player
+│   │   ├── PlayerFactory.py     # Factory for creating players
 │   │   └── __init__.py
+│   ├── examples/
+│   │   ├── evaluator_comparison.py  # Demo of different evaluators
+│   │   ├── greedy_player_demo.py    # Demo of greedy strategy
+│   │   └── modular_players_example.py  # Demo of player modularity
+│   ├── Menu.py              # Menu system
 │   └── reversi42.py         # Main entry point
 ├── reversi42                # Executable entry point
 ├── README                   # This file

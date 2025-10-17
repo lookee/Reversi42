@@ -19,9 +19,14 @@ from Players.Player import Player
 from Players.HumanPlayer import HumanPlayer
 from Players.AIPlayer import AIPlayer
 from Players.Monkey import Monkey
+from Players.GreedyPlayer import GreedyPlayer
 from AI.MinimaxEngine import MinimaxEngine
 from AI.RandomEngine import RandomEngine
 from AI.HeuristicEngine import HeuristicEngine
+from AI.StandardEvaluator import StandardEvaluator
+from AI.SimpleEvaluator import SimpleEvaluator
+from AI.AdvancedEvaluator import AdvancedEvaluator
+from AI.GreedyEvaluator import GreedyEvaluator
 
 class PlayerFactory:
     """
@@ -34,6 +39,7 @@ class PlayerFactory:
         'Human': HumanPlayer,
         'AI': AIPlayer,
         'Monkey': Monkey,
+        'Greedy': GreedyPlayer,
     }
     
     # Registry of available AI engines
@@ -41,6 +47,14 @@ class PlayerFactory:
         'Minimax': MinimaxEngine,
         'Random': RandomEngine,
         'Heuristic': HeuristicEngine,
+    }
+    
+    # Registry of available evaluators
+    EVALUATORS = {
+        'Standard': StandardEvaluator,
+        'Simple': SimpleEvaluator,
+        'Advanced': AdvancedEvaluator,
+        'Greedy': GreedyEvaluator,
     }
     
     @classmethod
@@ -65,30 +79,38 @@ class PlayerFactory:
         return player_class(**kwargs)
     
     @classmethod
-    def create_ai_player(cls, engine_type='Minimax', difficulty=6, **kwargs):
+    def create_ai_player(cls, engine_type='Minimax', difficulty=6, evaluator_type='Standard', **kwargs):
         """
-        Create an AI player with the specified engine.
+        Create an AI player with the specified engine and evaluator.
         
         Args:
             engine_type (str): Type of AI engine to use
             difficulty (int): Difficulty level (depth for minimax)
+            evaluator_type (str): Type of evaluator to use
             **kwargs: Additional arguments for player creation
             
         Returns:
             AIPlayer: The created AI player instance
             
         Raises:
-            ValueError: If engine type is not supported
+            ValueError: If engine type or evaluator type is not supported
         """
         if engine_type not in cls.AI_ENGINES:
             raise ValueError(f"Unsupported engine type: {engine_type}")
+        
+        if evaluator_type not in cls.EVALUATORS:
+            raise ValueError(f"Unsupported evaluator type: {evaluator_type}")
+        
+        # Create evaluator instance
+        evaluator_class = cls.EVALUATORS[evaluator_type]
+        evaluator = evaluator_class()
         
         # Create AI player with custom engine
         player = AIPlayer(difficulty)
         
         # Replace the default engine with the specified one
         engine_class = cls.AI_ENGINES[engine_type]
-        player.engine = engine_class()
+        player.engine = engine_class(evaluator=evaluator)
         player.name = f"{engine_type}AI{difficulty}"
         
         return player
@@ -134,3 +156,24 @@ class PlayerFactory:
             engine_class: Class that implements the engine
         """
         cls.AI_ENGINES[name] = engine_class
+    
+    @classmethod
+    def get_available_evaluators(cls):
+        """
+        Get list of available evaluators.
+        
+        Returns:
+            list: List of available evaluator type names
+        """
+        return list(cls.EVALUATORS.keys())
+    
+    @classmethod
+    def register_evaluator(cls, name, evaluator_class):
+        """
+        Register a new evaluator.
+        
+        Args:
+            name (str): Name of the evaluator
+            evaluator_class: Class that implements the evaluator
+        """
+        cls.EVALUATORS[name] = evaluator_class

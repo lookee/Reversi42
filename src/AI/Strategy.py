@@ -18,17 +18,15 @@
 
 from Reversi.Game import Game
 from Reversi.Game import Move
-from AI.GameEngine import GameEngine
 import time
 import sys
 
 INFINITY = 10000
 
-class MinimaxEngine(GameEngine):
+class MinimaxEngine(object):
 
-    def __init__(self, evaluator=None):
-        super().__init__("MinimaxEngine", evaluator)
-        
+    def __init__(self):
+
         # init:
         # alfa-beta priority sorting:
         #
@@ -107,7 +105,7 @@ class MinimaxEngine(GameEngine):
 
         # evaluate position
         if (depth == 0):
-            return self.evaluator.evaluate(game)
+            return game.evaluate()
 
         # searching all available moves
         move_list = game.get_move_list()

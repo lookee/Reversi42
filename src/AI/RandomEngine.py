@@ -25,8 +25,8 @@ class RandomEngine(GameEngine):
     A simple random move engine for demonstration purposes.
     """
     
-    def __init__(self):
-        super().__init__("RandomEngine")
+    def __init__(self, evaluator=None):
+        super().__init__("RandomEngine", evaluator)
     
     def get_best_move(self, game, depth):
         """

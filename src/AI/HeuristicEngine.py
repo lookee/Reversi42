@@ -24,8 +24,8 @@ class HeuristicEngine(GameEngine):
     A heuristic-based engine that uses simple evaluation functions.
     """
     
-    def __init__(self):
-        super().__init__("HeuristicEngine")
+    def __init__(self, evaluator=None):
+        super().__init__("HeuristicEngine", evaluator)
         
         # Corner positions (highest priority)
         self.corners = [(1,1), (1,8), (8,1), (8,8)]

@@ -18,6 +18,7 @@
 from abc import ABC, abstractmethod
 from Reversi.Game import Game
 from Reversi.Game import Move
+from AI.StandardEvaluator import StandardEvaluator
 
 class GameEngine(ABC):
     """
@@ -25,10 +26,12 @@ class GameEngine(ABC):
     This provides a common interface for different AI strategies.
     """
     
-    def __init__(self, name="GameEngine"):
+    def __init__(self, name="GameEngine", evaluator=None):
         self.name = name
         self.nodes = 0
         self.pruning = 0
+        # Use StandardEvaluator as default if no evaluator provided
+        self.evaluator = evaluator if evaluator is not None else StandardEvaluator()
     
     @abstractmethod
     def get_best_move(self, game, depth):

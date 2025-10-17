@@ -56,7 +56,7 @@ class Menu:
         self.white_difficulty = 6
         
         # Player types
-        self.player_types = ["Human", "AI", "Monkey"]
+        self.player_types = ["Human", "AI", "Greedy", "Monkey"]
         self.difficulties = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         
         # Submenu state
