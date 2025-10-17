@@ -1,0 +1,101 @@
+# Reversi42 Opening Book
+# Format: NAME | MOVES
+# Lines starting with # are comments
+# Moves are in format: C4, d3, etc. (uppercase=black, lowercase=white)
+
+# Diagonal Opening (most popular)
+Diagonal Opening | F5d6C3
+Diagonal - C5 Variant | F5d6C5
+Diagonal - C4 Variant | F5d6C4
+Diagonal - E6 Variant | F5d6E6
+Diagonal - f6 Line | F5f6E6
+Diagonal - f6-D6 | F5f6D6
+Diagonal - f6-F4 | F5f6F4
+
+# Perpendicular/Parallel Opening
+Perpendicular - E3 | F5f4E3
+Perpendicular - E6 | F5f4E6
+Perpendicular - D3 | F5f4D3
+Parallel Opening | F5d6C4d3
+Parallel - f4 Line | F5d6C4f4
+
+# Tiger Opening
+Tiger Opening | F5f6E6f4
+Tiger - d6 Variant | F5d6C5f4
+Tiger - d3 Line | F5d6C5d3
+
+# Buffalo/Cow Opening
+Buffalo Opening | F5f6E6d6
+Cow Opening | F5d6C5f6
+
+# Rose Opening (Mimura)
+Rose Opening | F5d6C3d3
+Rose - e3 Variant | F5d6C3e3
+
+# Raccoon Opening
+Raccoon Opening | F5f4E3d3
+Raccoon - c4 Line | F5f4E3c4
+
+# Brightwell Opening
+Brightwell Opening | F5f4E3f3
+
+# Heath Opening
+Heath Opening | F5d6E6d7
+
+# Inoue Opening
+Inoue Opening | F5f6D6c5
+
+# Tanida Opening
+Tanida Opening | F5f4D3c5
+
+# Quick responses to common openings
+Diagonal Response - C5 | F5f6E6f4C5
+Diagonal Response - C3 | F5f6E6f4C3
+Tiger Defense - E6 | F5d6C5f4E6
+Tiger Defense - F6 | F5d6C5f4F6
+Tiger Defense - C6 | F5d6C5f4C6
+Tiger Defense - D3 | F5d6C5f4D3
+
+# Extended sequences (8-12 moves)
+Diagonal Extended - f3 | F5d6C5f4F6f3
+Diagonal Extended - g5 | F5d6C5f4F6g5
+Tiger Counter - b4 | F5f6E6f4C5b4
+Diagonal Counter - d3 | F5f6E6f4C3d3
+Rose Extended - b3 | F5d6C3d3C4b3
+Rose Extended - c5 | F5d6C3d3C4c5
+Raccoon Extended | F5f4E3d3C3c4
+
+# Strong defensive responses
+Diagonal Defense - C3 | F5d6C4d3C3
+Buffalo Defense - C6 | F5f6E6d6C6
+Cow Defense - E7 | F5d6C5f6E7
+
+# Aggressive sequences
+Diagonal Attack - b6 | F5f6E6f4C5b6
+Tiger Attack | F5d6C5f4F6f3E3
+Buffalo Attack | F5f6E6d6C6c5
+
+# Early corner pressure
+Rose Corner Attack | F5d6C3d3C4b3D2
+Diagonal Corner | F5f6E6f4C5b4C6
+
+# Balanced development
+Diagonal Balance | F5d6C5f4F6g5E6
+Buffalo Balance | F5f6E6f4C3d3E3
+
+# Modern theory lines
+Modern Diagonal | F5d6C5f4F6f3E3d3
+Modern Tiger | F5f6E6f4C5b6C6b5
+Modern Rose | F5d6C3d3C4c5B4b5
+
+# Counter-gambits
+Diagonal Counter-Gambit | F5d6C4f4C5
+Buffalo Counter-Gambit | F5f6D6e3C5
+
+# Positional setups
+Diagonal Positional | F5d6C5f4E3
+Buffalo Positional | F5f6E6d6C5
+
+# Rare but strong
+Rose Rare Line | F5d6C3e3D3
+Perpendicular Rare | F5f4E3f6E6

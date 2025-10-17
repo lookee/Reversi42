@@ -195,7 +195,7 @@ class MinimaxEngine(GameEngine):
         # In a full implementation, you'd analyze which pieces become stable
         return 0  # Placeholder for now
 
-    def get_best_move(self, game, depth):
+    def get_best_move(self, game, depth, player_name=None):
 
         self.nodes = 0
         self.pruning = 0
@@ -217,9 +217,18 @@ class MinimaxEngine(GameEngine):
         # Enhanced move ordering
         move_list_sorted = self.order_moves(move_list, game)
         
+        # Calculate game progress
+        current_move = game.turn_cnt + 1
+        max_moves = game.cells_cnt  # 64 for 8x8 board
+        progress_pct = (current_move / max_moves) * 100
+        
         # Print header for statistics
         print("\n" + "="*80)
-        print("🤖 AI REASONING STATISTICS")
+        if player_name:
+            print(f"🤖 AI REASONING STATISTICS - {player_name}")
+        else:
+            print("🤖 AI REASONING STATISTICS")
+        print(f"Move: {current_move}/{max_moves} ({progress_pct:.1f}% complete)")
         print("="*80)
         print(f"{'Move':<8} {'Value':<10} {'Best':<10} {'Nodes':<10} {'Pruning':<10} {'Time(s)':<10} {'Rate':<12}")
         print("-"*80)
@@ -232,11 +241,7 @@ class MinimaxEngine(GameEngine):
             value = -self.alfabeta(game, depth-1, -INFINITY, -best_value)
             game.undo_move()
 
-            if value > best_value or best_move == None:
-                best_value = value
-                best_move = move
-
-            # print statistics
+            # print statistics BEFORE updating best_value
             time_diff = time.perf_counter() - time_start
             move_count += 1
 
@@ -248,19 +253,25 @@ class MinimaxEngine(GameEngine):
             # Format statistics with better alignment and symbols
             move_str = str(move)
             value_str = f"{value:>8d}"
-            best_str = f"{best_value:>8d}"
+            best_str = f"{best_value:>8d}"  # This shows the best BEFORE this move
             nodes_str = f"{self.nodes:>8d}"
             pruning_str = f"{self.pruning:>8d}"
             time_str = f"{time_diff:>8.3f}"
             rate_str = f"{time_rate:>10.0f}"
             
             # Add visual indicator for best move so far
-            if value == best_value and best_move == move:
+            is_new_best = (value > best_value or best_move == None)
+            if is_new_best:
                 move_str = f"⭐{move_str}"
             else:
                 move_str = f"🚫{move_str}"
 
             print(f"{move_str:<8} {value_str:<10} {best_str:<10} {nodes_str:<10} {pruning_str:<10} {time_str:<10} {rate_str:<12}")
+            
+            # Update best value and move AFTER printing
+            if value > best_value or best_move == None:
+                best_value = value
+                best_move = move
         
         # Print summary statistics
         time_total = time.perf_counter() - time_start

@@ -27,6 +27,16 @@ class Move(object):
 
     def __str__(self):
         return self.get_move()
+    
+    def __eq__(self, other):
+        """Compare moves for equality"""
+        if not isinstance(other, Move):
+            return False
+        return self.x == other.x and self.y == other.y
+    
+    def __hash__(self):
+        """Make Move hashable for use in sets/dicts"""
+        return hash((self.x, self.y))
 
     def get_x(self):
         return self.x
@@ -49,6 +59,9 @@ class Game(object):
 
         self.turn_cnt = 0
         self.board_position_stack = []
+        
+        # Game history for opening book (case-sensitive: uppercase=black, lowercase=white)
+        self.history = ""
 
         # first move
         self.turn = 'B'
@@ -307,6 +320,14 @@ class Game(object):
 
         # move counter
         self.turn_cnt += 1
+        
+        # Update game history for opening book
+        # Format: uppercase for black, lowercase for white
+        move_str = str(move)
+        if self.turn == 'B':
+            self.history += move_str.upper()
+        else:
+            self.history += move_str.lower()
 
         # switch turn player
         self.switch_player()
@@ -331,6 +352,10 @@ class Game(object):
         self.import_str(previus_move)
         self.switch_player()
         self.turn_cnt -= 1
+        
+        # Remove last move from history (2 characters: letter+digit)
+        if len(self.history) >= 2:
+            self.history = self.history[:-2]
 
     def get_current_player(self):
         """get the player of the current move"""
@@ -361,7 +386,7 @@ class Game(object):
                             if self.matrix[yy][dx] == self.turn:
                                 out -= 3
                             else:
-                                out +=3
+                                out += 3
                         if self.matrix[yy][xx] != '.':                        
                             if self.matrix[dy][xx] == self.turn:
                                 out -= 3

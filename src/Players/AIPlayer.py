@@ -47,6 +47,6 @@ class AIPlayer(Player):
 
     def get_move(self, game, moves, control):
 
-        move = self.engine.get_best_move(game, self.deep)
+        move = self.engine.get_best_move(game, self.deep, player_name=self.name)
 
         return move

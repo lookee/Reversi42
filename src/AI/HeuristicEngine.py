@@ -49,13 +49,14 @@ class HeuristicEngine(GameEngine):
             [ 0, 1, 8, 7, 6, 6, 7, 8, 1 ], 
         ]
     
-    def get_best_move(self, game, depth):
+    def get_best_move(self, game, depth, player_name=None):
         """
         Get the best move using heuristic evaluation.
         
         Args:
             game: The current game state
             depth: Search depth (ignored for heuristic engine)
+            player_name: Optional name of the player for display
             
         Returns:
             Move: The best move found using heuristics

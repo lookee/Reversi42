@@ -58,7 +58,7 @@ class HeuristicPlayer(Player):
             Move: The best move found using heuristics
         """
         # Depth parameter is ignored by HeuristicEngine
-        move = self.engine.get_best_move(game, depth=1)
+        move = self.engine.get_best_move(game, depth=1, player_name=self.name)
         return move
     
     def get_name(self):

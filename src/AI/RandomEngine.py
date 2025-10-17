@@ -28,13 +28,14 @@ class RandomEngine(GameEngine):
     def __init__(self, evaluator=None):
         super().__init__("RandomEngine", evaluator)
     
-    def get_best_move(self, game, depth):
+    def get_best_move(self, game, depth, player_name=None):
         """
         Get a random move from available moves.
         
         Args:
             game: The current game state
             depth: Search depth (ignored for random engine)
+            player_name: Optional name of the player for display
             
         Returns:
             Move: A random move from available moves

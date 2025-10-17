@@ -40,6 +40,9 @@ def create_player(player_type, difficulty=6, engine_type='Minimax'):
     try:
         if player_type == "AI":
             return PlayerFactory.create_ai_player(engine_type, difficulty)
+        elif player_type == "AI with Opening Book":
+            # Create AIPlayerBook with specified difficulty
+            return PlayerFactory.create_player(player_type, deep=difficulty)
         else:
             return PlayerFactory.create_player(player_type)
     except ValueError as e:

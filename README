@@ -44,9 +44,10 @@ added easily by defining their metadata - the menu auto-generates options.
 Available Players:
 1. HumanPlayer: Interactive player using mouse clicks
 2. AIPlayer: Intelligent AI using alpha-beta pruning (configurable difficulty 1-10)
-3. HeuristicPlayer: Fast AI using simple heuristics without deep search
-4. GreedyPlayer: Always chooses the move that captures the most pieces immediately
-5. Monkey: Random move selection for testing
+3. AIPlayerBook: AI with opening book support - uses theory in early game, then minimax
+4. HeuristicPlayer: Fast AI using simple heuristics without deep search
+5. GreedyPlayer: Always chooses the move that captures the most pieces immediately
+6. Monkey: Random move selection for testing
 
 Disabled (development):
 - NetworkPlayer: Play against remote opponents (not yet implemented)
@@ -61,6 +62,7 @@ The AI uses advanced techniques including:
 - Move ordering with priority matrix
 - Depth-limited search with configurable levels
 - Transposition tables for position caching
+- Opening book support (Trie-based, O(m) lookup)
 
 EVALUATORS
 
@@ -158,6 +160,23 @@ Games are saved in XOT (eXtended Othello Transcript) format:
 - Human-readable text format
 - Compatible with analysis tools
 
+OPENING BOOK
+
+The game includes an opening book system for stronger early-game play:
+
+- **Location**: Books/opening_book.txt
+- **Format**: Simple text format with move sequences (e.g., "F5d6C3")
+- **Structure**: Trie-based for O(m) lookup efficiency
+- **Usage**: AIPlayerBook automatically consults the book
+- **Theory**: Includes classic Reversi openings (Diagonal, Tiger, Buffalo, etc.)
+- **Performance**: Book moves are nearly instant (<< 1ms)
+- **Fallback**: Uses minimax engine when out of book
+
+The opening book contains 57+ opening lines covering the most important
+early-game sequences in Reversi theory.
+
+See Books/README.md for details on adding custom openings.
+
 PROJECT STRUCTURE
 
 ```
@@ -176,6 +195,7 @@ Reversi42/
 │   │   ├── MinimaxEngine.py     # Minimax with alpha-beta pruning
 │   │   ├── RandomEngine.py      # Random move selection
 │   │   ├── HeuristicEngine.py   # Heuristic-based engine
+│   │   ├── OpeningBook.py       # Opening book management (Trie-based)
 │   │   ├── Evaluator.py         # Base class for evaluators
 │   │   ├── StandardEvaluator.py # Standard evaluation function
 │   │   ├── SimpleEvaluator.py   # Simple piece count evaluator
@@ -186,6 +206,7 @@ Reversi42/
 │   │   ├── Player.py            # Base player class (with metadata system)
 │   │   ├── HumanPlayer.py       # Human player implementation
 │   │   ├── AIPlayer.py          # AI player wrapper
+│   │   ├── AIPlayerBook.py      # AI with opening book support
 │   │   ├── HeuristicPlayer.py   # Heuristic player (fast, simple heuristics)
 │   │   ├── GreedyPlayer.py      # Greedy player (maximizes immediate captures)
 │   │   ├── Monkey.py            # Random player
@@ -197,10 +218,11 @@ Reversi42/
 │   │   ├── evaluator_comparison.py  # Demo of different evaluators
 │   │   ├── greedy_player_demo.py    # Demo of greedy strategy
 │   │   ├── heuristic_player_demo.py # Demo of heuristic strategy
+│   │   ├── opening_book_demo.py     # Demo of opening book system
 │   │   └── modular_players_example.py  # Demo of player modularity
 │   ├── Menu.py              # Menu system
 │   ├── GameOver.py          # Game over screen
-│   ├── PauseMenu.py         # Pause menu (with save/load/undo)
+│   ├── PauseMenu.py         # Pause menu (with save/load)
 │   ├── GameIO.py            # Save/Load in XOT format
 │   └── reversi42.py         # Main entry point
 ├── tournament/
@@ -216,6 +238,9 @@ Reversi42/
 │   ├── README.md
 │   ├── .gitignore
 │   └── *.xot (saved games in XOT format)
+├── Books/                   # Opening book library
+│   ├── opening_book.txt     # Main opening book (57+ lines)
+│   └── README.md            # Opening book documentation
 ├── build/                   # Build scripts for distribution
 │   ├── build_all.sh         # Master build script
 │   ├── build_windows.sh     # Windows build

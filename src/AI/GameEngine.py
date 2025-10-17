@@ -34,13 +34,14 @@ class GameEngine(ABC):
         self.evaluator = evaluator if evaluator is not None else StandardEvaluator()
     
     @abstractmethod
-    def get_best_move(self, game, depth):
+    def get_best_move(self, game, depth, player_name=None):
         """
         Get the best move for the current position.
         
         Args:
             game: The current game state
             depth: Search depth
+            player_name: Optional name of the player for display
             
         Returns:
             Move: The best move found
