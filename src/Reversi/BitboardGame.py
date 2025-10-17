@@ -20,15 +20,18 @@ class BitboardGame:
     
     # Pre-computed masks and shift tables
     # Directions: N, NE, E, SE, S, SW, W, NW
+    # NOTE: Masks are applied BEFORE shift to prevent edge wrapping
+    # For left shifts (+): mask out bits that would go beyond board (right/bottom edges)
+    # For right shifts (-): mask out bits that would come from beyond board (left/top edges)
     DIRECTIONS = [
-        (-8, 0x00FFFFFFFFFFFFFF),  # North
-        (-7, 0x007F7F7F7F7F7F7F),  # NE
-        (1,  0x7F7F7F7F7F7F7F7F),  # East
-        (9,  0x7F7F7F7F7F7F7F00),  # SE
-        (8,  0xFFFFFFFFFFFFFF00),  # South
-        (7,  0xFEFEFEFEFEFEFE00),  # SW
-        (-1, 0xFEFEFEFEFEFEFEFE),  # West
-        (-9, 0x00FEFEFEFEFEFEFE),  # NW
+        (-8, 0xFFFFFFFFFFFFFF00),  # North: mask row 1 (bits 0-7)
+        (-7, 0xFEFEFEFEFEFEFE00),  # NE: mask row 1 AND col H
+        (1,  0x7F7F7F7F7F7F7F7F),  # East: mask col H
+        (9,  0x007F7F7F7F7F7F7F),  # SE: mask row 8 AND col H  
+        (8,  0x00FFFFFFFFFFFFFF),  # South: mask row 8 (bits 56-63)
+        (7,  0x00FEFEFEFEFEFEFE),  # SW: mask row 8 AND col A
+        (-1, 0xFEFEFEFEFEFEFEFE),  # West: mask col A
+        (-9, 0xFEFEFEFEFEFEFE00),  # NW: mask row 1 AND col A
     ]
     
     @classmethod
@@ -141,12 +144,15 @@ class BitboardGame:
             return self.white, self.black
     
     def _shift(self, board, direction, mask):
-        """Shift bitboard in a direction with edge wrapping prevention"""
+        """Shift bitboard in a direction with edge wrapping prevention
+        
+        IMPORTANT: Mask must be applied BEFORE shift to prevent edge wrap.
+        """
         shift_amount, edge_mask = direction
         if shift_amount > 0:
-            return (board << shift_amount) & edge_mask
+            return (board & edge_mask) << shift_amount
         else:
-            return (board >> -shift_amount) & edge_mask
+            return (board & edge_mask) >> -shift_amount
     
     def get_valid_moves(self):
         """

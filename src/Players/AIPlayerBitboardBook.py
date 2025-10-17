@@ -26,7 +26,7 @@ class AIPlayerBitboardBook(Player):
     PLAYER_METADATA = {
         'display_name': 'AI Bitboard with Book (Fastest)',
         'description': 'Ultra-fast bitboard AI with opening book. Perfect for deep analysis and tournaments.',
-        'enabled': False,  # DISABLED: Bitboard has bugs, uses standard engine (use AIPlayerBook instead)
+        'enabled': True,  # ENABLED: Bitboard bugs fixed!
         'parameters': {
             'difficulty': {
                 'type': int,

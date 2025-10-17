@@ -22,7 +22,7 @@ class AIPlayerBitboard(Player):
     PLAYER_METADATA = {
         'display_name': 'AI Bitboard (Ultra-Fast)',
         'description': 'Ultra-fast AI using bitboard representation. 50-100x faster than standard AI.',
-        'enabled': False,  # DISABLED: Has bugs in late-game positions (move 55+)
+        'enabled': True,  # ENABLED: Late-game bugs fixed!
         'parameters': {
             'difficulty': {
                 'type': int,
