@@ -114,39 +114,54 @@ class Game(object):
 
         out = ""
         out += "\n"
-        out += "turn  : %-02s   moves : %-02d\n" % (self.turn, self.turn_cnt)
-        out += "black : %-02d   white : %-02d\n" % (self.black_cnt,self.white_cnt)
+        
+        # Compact header
+        out += "─" * 40 + "\n"
+        out += "  Turn: %-2s   ●:%2d  ○:%2d   Move:%2d\n" % (
+            self.turn, self.black_cnt, self.white_cnt, self.turn_cnt
+        )
+        out += "─" * 40 + "\n"
         out += "\n"
 
-        header = "  "
-        for n in range(1,self.limit):
-            header += "|%2s" % ROWNAME[n]
-        header += "|"
-        out += header + "\n"
+        # Compact column headers
+        out += "   "
+        for n in range(1, self.limit):
+            out += " " + ROWNAME[n]
+        out += "\n"
 
-        hr = '--' + '+--' * self.size + "+\n"
+        # Top border
+        out += "  ┌" + "─" * (self.size * 2 - 1) + "┐\n"
 
-        out += hr
-
-        cnt = 0
-        for yy in range(1,self.limit):
-            line = ""
-            for xx in range(1,self.limit):
+        # Board rows
+        for yy in range(1, self.limit):
+            out += str(yy) + " │"
+            for xx in range(1, self.limit):
                 cell = self.matrix[yy][xx]
-
-                line += '|'
+                
                 if cell == '.':
-                    line += '  '
+                    out += '·'
                 elif cell == 'W':
-                    line += '()'
+                    out += '○'
                 elif cell == 'B':
-                    line += '##'
-                else :
-                    raise NameError("cell %s unknow" %cell)
+                    out += '●'
+                else:
+                    raise NameError("cell %s unknow" % cell)
+                
+                # Add space between cells except at the end
+                if xx < self.limit - 1:
+                    out += ' '
+            
+            out += "│ " + str(yy) + "\n"
 
-            line += "|"
-            out += str(yy) + " " + line + "\n"
-            out += hr
+        # Bottom border
+        out += "  └" + "─" * (self.size * 2 - 1) + "┘\n"
+        
+        # Column headers at bottom
+        out += "   "
+        for n in range(1, self.limit):
+            out += " " + ROWNAME[n]
+        out += "\n"
+        
         return out
 
     def view(self):

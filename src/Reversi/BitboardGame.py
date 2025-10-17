@@ -316,25 +316,48 @@ class BitboardGame:
         return '\n'.join(result)
     
     def view(self):
-        """Print board to console"""
-        print("\n  A B C D E F G H")
-        print("  ---------------")
+        """Print board to console with elegant compact layout"""
+        print()
+        
+        # Compact header
+        print("─" * 40)
+        print("  Turn: %-2s   ●:%2d  ○:%2d   Move:%2d" % (
+            self.turn, self.black_cnt, self.white_cnt, self.turn_cnt
+        ))
+        print("─" * 40)
+        print()
+        
+        # Compact column headers
+        print("    A B C D E F G H")
+        
+        # Top border
+        print("  ┌" + "─" * 15 + "┐")
+        
+        # Board rows
         for row in range(8):
-            print(f"{row + 1}|", end='')
+            print(f"{row + 1} │", end='')
             for col in range(8):
                 bit = row * 8 + col
                 mask = 1 << bit
                 if self.black & mask:
-                    print('● ', end='')
+                    print('●', end='')
                 elif self.white & mask:
-                    print('○ ', end='')
+                    print('○', end='')
                 else:
-                    print('· ', end='')
-            print(f"|{row + 1}")
-        print("  ---------------")
-        print("  A B C D E F G H")
-        print(f"\nBlack: {self.black_cnt}  White: {self.white_cnt}")
-        print(f"Turn: {self.turn}  Move: {self.turn_cnt}\n")
+                    print('·', end='')
+                
+                # Space between cells except at the end
+                if col < 7:
+                    print(' ', end='')
+            
+            print(f"│ {row + 1}")
+        
+        # Bottom border
+        print("  └" + "─" * 15 + "┘")
+        
+        # Column headers at bottom
+        print("    A B C D E F G H")
+        print()
     
     def get_zobrist_hash(self):
         """Get Zobrist hash for transposition table (to be implemented)"""
