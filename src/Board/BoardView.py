@@ -58,6 +58,11 @@ class BoardView(object):
         self.header_font = pygame.font.Font(None, 32)
         self.header_height = 50  # Height reserved for header
         
+        # Font for board coordinates
+        self.coord_font = pygame.font.Font(None, 22)
+        self.coord_color = (180, 200, 185)  # Elegant soft mint
+        self.coord_margin = 25  # Space reserved for coordinates
+        
         # Player information
         self.black_player_name = "Black"
         self.white_player_name = "White"
@@ -81,21 +86,29 @@ class BoardView(object):
         self.update(False)
     
     def calculateDimensions(self):
-        """Calculate dynamic dimensions based on current window size"""
-        # Reserve space for header
-        board_height = self.heigth - self.header_height
+        """Calculate dynamic dimensions with space for coordinates"""
+        # Reserve space for header and coordinates
+        board_height = self.heigth - self.header_height - self.coord_margin * 2
+        board_width = self.width - self.coord_margin * 2
         
         # Calculate cell size to fit the board
-        self.stepx = self.width // self.sizex
+        self.stepx = board_width // self.sizex
         self.stepy = board_height // self.sizey
         
-        # Calculate margins to center the board
-        self.marginx = (self.width % self.sizex) // 2
-        self.marginy = self.header_height + (board_height % self.sizey) // 2
+        # Make cells square (use smallest dimension)
+        cell_size = min(self.stepx, self.stepy)
+        self.stepx = cell_size
+        self.stepy = cell_size
         
-        # Calculate line width based on cell size (proportional to smallest dimension)
-        min_step = min(self.stepx, self.stepy)
-        self.line_width = max(1, min(4, min_step // 25))  # Between 1 and 4 pixels
+        # Calculate margins to center the board (with coordinate space)
+        board_pixel_width = self.stepx * self.sizex
+        board_pixel_height = self.stepy * self.sizey
+        
+        self.marginx = self.coord_margin + (self.width - self.coord_margin * 2 - board_pixel_width) // 2
+        self.marginy = self.header_height + self.coord_margin + (self.heigth - self.header_height - self.coord_margin * 2 - board_pixel_height) // 2
+        
+        # Calculate line width based on cell size
+        self.line_width = max(1, min(4, cell_size // 25))
     
     def resize(self, new_width, new_height):
         """Handle window resize"""
@@ -108,6 +121,9 @@ class BoardView(object):
         
         # Resize the screen
         self.screen = pygame.display.set_mode((self.width, self.heigth), pygame.RESIZABLE)
+        
+        # Fill background first to avoid black areas
+        self.screen.fill(self.bgColor)
         
         # Redraw everything
         self.__init_grid()
@@ -182,6 +198,48 @@ class BoardView(object):
                 # Draw with anti-aliasing for smooth appearance
                 pygame.gfxdraw.filled_circle(screen, intersection_x, intersection_y, hoshi_radius, self.hoshiColor)
                 pygame.gfxdraw.aacircle(screen, intersection_x, intersection_y, hoshi_radius, self.hoshiColor)
+        
+        # Draw elegant coordinate labels
+        self.drawCoordinates()
+    
+    def drawCoordinates(self):
+        """Draw elegant coordinate labels (A-H, 1-8) with professional styling"""
+        if self.sizex != 8 or self.sizey != 8:
+            return  # Only for standard 8x8 board
+        
+        # Column letters (A-H)
+        letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        
+        for i, letter in enumerate(letters):
+            x_center = self.marginx + i * self.stepx + self.stepx // 2
+            
+            # Top coordinates
+            y_top = self.marginy - 10
+            text = self.coord_font.render(letter, True, self.coord_color)
+            text_rect = text.get_rect(center=(x_center, y_top))
+            self.screen.blit(text, text_rect)
+            
+            # Bottom coordinates
+            y_bottom = self.marginy + self.sizey * self.stepy + 10
+            text = self.coord_font.render(letter, True, self.coord_color)
+            text_rect = text.get_rect(center=(x_center, y_bottom))
+            self.screen.blit(text, text_rect)
+        
+        # Row numbers (1-8)
+        for i in range(1, 9):
+            y_center = self.marginy + (i - 1) * self.stepy + self.stepy // 2
+            
+            # Left coordinates
+            x_left = self.marginx - 12
+            text = self.coord_font.render(str(i), True, self.coord_color)
+            text_rect = text.get_rect(center=(x_left, y_center))
+            self.screen.blit(text, text_rect)
+            
+            # Right coordinates
+            x_right = self.marginx + self.sizex * self.stepx + 12
+            text = self.coord_font.render(str(i), True, self.coord_color)
+            text_rect = text.get_rect(center=(x_right, y_center))
+            self.screen.blit(text, text_rect)
 
     def update(self, cursor_mode=False):
         # Draw header with player info
