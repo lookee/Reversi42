@@ -100,7 +100,7 @@ class BoardControl(object):
             # Redraw board to show/hide cursor
             self.redrawBoard()
         elif self.cursor_mode:
-            # Handle cursor navigation
+            # Handle cursor navigation when in cursor mode
             if event.key == pygame.K_UP:
                 self.view.moveCursor(0, -1)
                 self.redrawBoard()  # Redraw to clear old cursor
@@ -109,10 +109,10 @@ class BoardControl(object):
                 self.redrawBoard()  # Redraw to clear old cursor
             elif event.key == pygame.K_LEFT:
                 self.view.moveCursor(-1, 0)
-                self.redrawBoard()  # Redraw to clear old cursor
+                self.redrawBoard()
             elif event.key == pygame.K_RIGHT:
                 self.view.moveCursor(1, 0)
-                self.redrawBoard()  # Redraw to clear old cursor
+                self.redrawBoard()
             elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                 # Select current cursor position
                 self.bx, self.by = self.view.getCursorPosition()
@@ -199,3 +199,7 @@ class BoardControl(object):
     def setPlayerNames(self, black_name, white_name):
         """Set the player names for display in the header"""
         self.view.setPlayerNames(black_name, white_name)
+    
+    def setCurrentTurn(self, turn):
+        """Set whose turn it is for the turn indicator"""
+        self.view.setCurrentTurn(turn)

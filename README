@@ -30,9 +30,10 @@ GAME FEATURES
 - 8x8 standard Reversi board
 - Real-time move validation
 - Visual indication of available moves
+- Turn indicator in header (small yellow dot below active player)
 - Turn-based gameplay with automatic switching
 - Win/loss detection and scoring
-- Undo functionality
+- Save/Load functionality (XOT format)
 - Configurable AI depth (difficulty levels)
 
 PLAYER TYPES
@@ -126,8 +127,27 @@ See tournament/README.md for complete documentation.
 GAME CONTROLS
 
 - Mouse: Click on available moves to place pieces
-- ESC or Q: Quit the game
-- The game automatically handles turn switching
+- C key: Toggle cursor navigation mode
+- Arrow keys: Move cursor (when in cursor mode)
+- ENTER/SPACE: Select move at cursor
+- ESC: Open pause menu (save/load/quit)
+- Q: Quick exit (no pause menu)
+
+PAUSE MENU (ESC during game)
+
+- Resume Game: Continue playing
+- Save Game: Save to XOT format
+- Load Game: Load from saved game
+- Return to Menu: Abandon game
+- Exit Game: Quit application
+
+SAVE/LOAD SYSTEM
+
+Games are saved in XOT (eXtended Othello Transcript) format:
+- Stored in saves/ directory
+- Contains move history and board state
+- Human-readable text format
+- Compatible with analysis tools
 
 PROJECT STRUCTURE
 
@@ -171,7 +191,8 @@ Reversi42/
 │   │   └── modular_players_example.py  # Demo of player modularity
 │   ├── Menu.py              # Menu system
 │   ├── GameOver.py          # Game over screen
-│   ├── PauseMenu.py         # Pause menu
+│   ├── PauseMenu.py         # Pause menu (with save/load/undo)
+│   ├── GameIO.py            # Save/Load in XOT format
 │   └── reversi42.py         # Main entry point
 ├── tournament/
 │   ├── tournament.py        # Tournament system
@@ -182,6 +203,10 @@ Reversi42/
 │   └── reports/             # Tournament reports directory
 │       ├── README.md
 │       └── tournament_report_*.txt (auto-generated)
+├── saves/                   # Saved games directory
+│   ├── README.md
+│   ├── .gitignore
+│   └── *.xot (saved games in XOT format)
 ├── reversi42                # Executable entry point
 ├── README                   # This file
 ├── ADDING_PLAYERS.md        # Guide for adding custom players

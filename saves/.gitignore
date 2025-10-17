@@ -1,0 +1,7 @@
+# Ignore all saved games
+*.xot
+
+# But keep this directory
+!.gitignore
+!README.md
+

@@ -59,6 +59,7 @@ class BoardView(object):
         self.white_player_name = "White"
         self.black_count = 2
         self.white_count = 2
+        self.current_turn = 'B'  # Track whose turn it is
         
         # Calculate dynamic dimensions
         self.calculateDimensions()
@@ -345,6 +346,10 @@ class BoardView(object):
         self.black_count = black_count
         self.white_count = white_count
     
+    def setCurrentTurn(self, turn):
+        """Set whose turn it is (B or W)"""
+        self.current_turn = turn
+    
     def drawHeader(self):
         """Draw the header with player names and piece counts"""
         # Clear header area
@@ -356,31 +361,52 @@ class BoardView(object):
         right_x = self.width - 20
         center_y = self.header_height // 2
         piece_radius = 12
-        piece_spacing = 25  # Increased spacing between piece and text
+        piece_spacing = 25
+        indicator_radius = 5  # Small yellow dot for turn indicator
+        indicator_spacing = 15  # Distance from text
+        
+        # Text color is always white (no color change)
+        text_color = self.whitePieceColor
         
         # Draw black player info (left side)
-        # First draw the black piece
+        # Draw the black piece
         piece_x = left_x
         piece_y = center_y
         pygame.gfxdraw.filled_circle(self.screen, piece_x, piece_y, piece_radius, self.blackPieceColor)
         pygame.gfxdraw.aacircle(self.screen, piece_x, piece_y, piece_radius, self.blackPieceColor)
         
-        # Then draw the text after the piece
+        # Draw the text after the piece
         black_text = f"{self.black_player_name}: {self.black_count}"
-        black_surface = self.header_font.render(black_text, True, self.whitePieceColor)
+        black_surface = self.header_font.render(black_text, True, text_color)
         black_rect = black_surface.get_rect()
         black_rect.midleft = (left_x + piece_radius + piece_spacing, center_y)
         self.screen.blit(black_surface, black_rect)
         
+        # Draw turn indicator for black (small yellow dot to the right of text)
+        if self.current_turn == 'B':
+            indicator_x = black_rect.right + indicator_spacing
+            indicator_y = center_y
+            pygame.gfxdraw.filled_circle(self.screen, indicator_x, indicator_y, indicator_radius, self.cursorColor)
+            pygame.gfxdraw.aacircle(self.screen, indicator_x, indicator_y, indicator_radius, self.cursorColor)
+        
         # Draw white player info (right side)
-        # First draw the text
+        # Prepare white text
         white_text = f"{self.white_player_name}: {self.white_count}"
-        white_surface = self.header_font.render(white_text, True, self.whitePieceColor)
+        white_surface = self.header_font.render(white_text, True, text_color)
         white_rect = white_surface.get_rect()
         white_rect.midright = (right_x - piece_radius - piece_spacing, center_y)
+        
+        # Draw turn indicator for white first (to the left of text, before it)
+        if self.current_turn == 'W':
+            indicator_x = white_rect.left - indicator_spacing
+            indicator_y = center_y
+            pygame.gfxdraw.filled_circle(self.screen, indicator_x, indicator_y, indicator_radius, self.cursorColor)
+            pygame.gfxdraw.aacircle(self.screen, indicator_x, indicator_y, indicator_radius, self.cursorColor)
+        
+        # Draw the text
         self.screen.blit(white_surface, white_rect)
         
-        # Then draw the white piece after the text
+        # Draw the white piece after the text
         piece_x = right_x
         piece_y = center_y
         pygame.gfxdraw.filled_circle(self.screen, piece_x, piece_y, piece_radius, self.whitePieceColor)

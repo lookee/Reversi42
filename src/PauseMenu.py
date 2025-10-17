@@ -48,7 +48,6 @@ class PauseMenu:
         # Menu items
         self.menu_items = [
             "Resume Game",
-            "Undo Last Move",
             "Save Game",
             "Load Game",
             "Return to Menu",
@@ -64,9 +63,9 @@ class PauseMenu:
         overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
         
-        # Draw pause menu box (larger for more options)
+        # Draw pause menu box
         menu_width = 450
-        menu_height = 450
+        menu_height = 400
         menu_x = (self.width - menu_width) // 2
         menu_y = (self.height - menu_height) // 2
         
@@ -107,8 +106,6 @@ class PauseMenu:
                 item = self.menu_items[self.current_selection]
                 if item == "Resume Game":
                     return "resume"
-                elif item == "Undo Last Move":
-                    return "undo"
                 elif item == "Save Game":
                     return "save"
                 elif item == "Load Game":
@@ -139,8 +136,6 @@ class PauseMenu:
             if abs(mouse_y - item_y) < 22 and menu_x < mouse_x < menu_x + menu_width:
                 if item == "Resume Game":
                     return "resume"
-                elif item == "Undo Last Move":
-                    return "undo"
                 elif item == "Save Game":
                     return "save"
                 elif item == "Load Game":
@@ -154,7 +149,7 @@ class PauseMenu:
     def handle_mouse_motion(self, pos):
         """Handle mouse motion for hover effects"""
         menu_width = 450
-        menu_height = 450
+        menu_height = 400
         menu_x = (self.width - menu_width) // 2
         menu_y = (self.height - menu_height) // 2
         

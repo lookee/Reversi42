@@ -105,7 +105,7 @@ def handle_load_game():
         input("Press ENTER to continue...")
         return None
 
-def handle_pause_menu_action(action, g, c, game_history, players, move_stack):
+def handle_pause_menu_action(action, g, c, game_history, players):
     """
     Handle actions from pause menu.
     
@@ -117,20 +117,6 @@ def handle_pause_menu_action(action, g, c, game_history, players, move_stack):
     """
     if action == "resume":
         return (True, "resume", game_history)
-    
-    elif action == "undo":
-        if len(move_stack) > 0:
-            # Undo last move
-            g.undo_move()
-            move_stack.pop()
-            # Remove last 2 characters from history (one move)
-            if len(game_history) >= 2:
-                game_history = game_history[:-2]
-            print("✓ Last move undone")
-        else:
-            print("✗ No moves to undo")
-        input("Press ENTER to continue...")
-        return (True, None, game_history)
     
     elif action == "save":
         handle_save_game(g, players['B'].get_name(), players['W'].get_name(), game_history)
@@ -196,7 +182,6 @@ def run_game(menu_result, loaded_game_data=None):
     c.setPlayerNames(players['B'].get_name(), players['W'].get_name())
     
     last_move = None
-    move_stack = []  # Track moves for undo
     
     # Game loop
     clock = pygame.time.Clock()
@@ -223,6 +208,9 @@ def run_game(menu_result, loaded_game_data=None):
                 # print(f"move: {move}")
                 c.setCanMove(move.get_x(), move.get_y(), turn)
             
+            # Set current turn for indicator
+            c.setCurrentTurn(turn)
+            
             # Render board
             c.renderModel()
             c.cursorWait()
@@ -239,9 +227,9 @@ def run_game(menu_result, loaded_game_data=None):
                 print("\nControls:")
                 print("- Click to select a move")
                 print("- Press 'C' to toggle cursor navigation mode")
-                print("- Use arrow keys to move cursor")
-                print("- Press ENTER or SPACE to select move at cursor")
-                print("- Press ESC or Q to quit")
+                print("- Arrow keys: Move cursor (in cursor mode)")
+                print("- ENTER or SPACE: Select move at cursor")
+                print("- ESC: Pause menu (save/load), Q: Quit")
             
             # Get move
             move = player.get_move(g, moves, c)
@@ -254,7 +242,7 @@ def run_game(menu_result, loaded_game_data=None):
                 
                 # Handle pause menu action
                 continue_game, action_result, game_history = handle_pause_menu_action(
-                    pause_result, g, c, game_history, players, move_stack
+                    pause_result, g, c, game_history, players
                 )
                 
                 if not continue_game:
@@ -285,7 +273,6 @@ def run_game(menu_result, loaded_game_data=None):
             
             # Move
             g.move(move)
-            move_stack.append(move)  # Track for undo
             
             # Set last move indicator for visual display
             c.setLastMove(move.get_x(), move.get_y())
@@ -323,7 +310,7 @@ def run_game(menu_result, loaded_game_data=None):
             
             # Handle pause menu action
             continue_game, action_result, game_history = handle_pause_menu_action(
-                pause_result, g, c, game_history, players, move_stack
+                pause_result, g, c, game_history, players
             )
             
             if not continue_game:
