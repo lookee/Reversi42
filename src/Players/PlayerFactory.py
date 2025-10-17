@@ -20,6 +20,7 @@ from Players.HumanPlayer import HumanPlayer
 from Players.AIPlayer import AIPlayer
 from Players.AIPlayerBook import AIPlayerBook
 from Players.AIPlayerBitboard import AIPlayerBitboard
+from Players.AIPlayerBitboardBook import AIPlayerBitboardBook
 from Players.Monkey import Monkey
 from Players.GreedyPlayer import GreedyPlayer
 from Players.HeuristicPlayer import HeuristicPlayer
@@ -46,6 +47,7 @@ class PlayerFactory:
         AIPlayer,
         AIPlayerBook,
         AIPlayerBitboard,
+        AIPlayerBitboardBook,
         HeuristicPlayer,
         GreedyPlayer,
         Monkey,
