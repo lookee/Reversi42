@@ -59,9 +59,9 @@ class Menu:
         
         # Player selections - defaults
         self.black_player = "Human"
-        self.white_player = "AI with Opening Book"
-        self.black_difficulty = 6
-        self.white_difficulty = 6
+        self.white_player = "AI Bitboard with Book (Fastest)"
+        self.black_difficulty = 5
+        self.white_difficulty = 5
         
         # Get player types and descriptions from PlayerFactory metadata
         self.player_types = PlayerFactory.get_available_player_types()

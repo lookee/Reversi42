@@ -210,8 +210,6 @@ def run_game(menu_result, loaded_game_data=None):
         
         moves = g.get_move_list()
         
-        print(f"[DEBUG] Turn {turn}, moves available: {len(moves)}")
-        
         if len(moves) > 0:
             # Import board position
             c.importModel(g.export_str())
@@ -349,10 +347,6 @@ def run_game(menu_result, loaded_game_data=None):
         # Removed duplicate check - already handled above
         
         clock.tick(60)  # Limit to 60 FPS
-    
-    # Debug: print end state
-    print(f"\n[DEBUG] Loop ended. game_ended={game_ended}, g.is_finish()={g.is_finish()}")
-    print(f"[DEBUG] Piece counts: Black={g.black_cnt}, White={g.white_cnt}, Total={g.black_cnt + g.white_cnt}")
     
     # Handle game finish
     if game_ended or g.is_finish():
