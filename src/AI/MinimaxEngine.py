@@ -18,15 +18,17 @@
 
 from Reversi.Game import Game
 from Reversi.Game import Move
+from AI.GameEngine import GameEngine
 import time
 import sys
 
 INFINITY = 10000
 
-class Strategy(object):
+class MinimaxEngine(GameEngine):
 
     def __init__(self):
-
+        super().__init__("MinimaxEngine")
+        
         # init:
         # alfa-beta priority sorting:
         #

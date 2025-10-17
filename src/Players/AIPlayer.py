@@ -18,7 +18,7 @@
 
 from Reversi.Game import Game
 from Reversi.Game import Move
-from AI.Strategy import Strategy
+from AI.MinimaxEngine import MinimaxEngine
 from Players.Player import Player
 
 class AIPlayer(Player):
@@ -26,10 +26,10 @@ class AIPlayer(Player):
     def __init__(self, deep = 6):
         self.name='AIPlayer%d' %deep
         self.deep = deep
-        self.strategy = Strategy()
+        self.engine = MinimaxEngine()
 
     def get_move(self, game, moves, control):
 
-        move = self.strategy.get_best_move(game, self.deep)
+        move = self.engine.get_best_move(game, self.deep)
 
         return move

@@ -27,23 +27,21 @@ from pygame.locals import *
 from Reversi.Game import Game
 from Reversi.Game import Move
 
+from Players.PlayerFactory import PlayerFactory
 from Players.HumanPlayer import HumanPlayer
-from Players.AIPlayer import AIPlayer
-from Players.Monkey import Monkey
-
 from Board.BoardControl import BoardControl
 from Menu import Menu
 
-def create_player(player_type, difficulty=6):
-    """Create a player instance based on type and difficulty"""
-    if player_type == "Human":
-        return HumanPlayer()
-    elif player_type == "AI":
-        return AIPlayer(difficulty)
-    elif player_type == "Monkey":
-        return Monkey()
-    else:
-        return HumanPlayer()  # Default fallback
+def create_player(player_type, difficulty=6, engine_type='Minimax'):
+    """Create a player instance using the PlayerFactory"""
+    try:
+        if player_type == "AI":
+            return PlayerFactory.create_ai_player(engine_type, difficulty)
+        else:
+            return PlayerFactory.create_player(player_type)
+    except ValueError as e:
+        print(f"Error creating player: {e}")
+        return PlayerFactory.create_player("Human")  # Default fallback
 
 def main():
     # Initialize pygame

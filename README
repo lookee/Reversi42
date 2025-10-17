@@ -116,22 +116,7 @@ Reversi42/
 └── COPYING                  # License information
 ```
 
-CHANGELOG
 
-Version 0.1.1 (2024-01-XX)
-- Converted from Python 2 to Python 3
-- Fixed all print statements to use print() function
-- Updated time.clock() to time.perf_counter()
-- Fixed integer division operations
-- Updated import statements for Python 3 compatibility
-- Fixed indentation and method signature issues
-- Improved error handling and module structure
-
-Version 0.1.0 (2011-03-07)
-- Initial release with full game implementation
-- Pygame-based GUI
-- AI opponent with alpha-beta pruning
-- Complete Reversi game logic
 
 BASED ON
 
@@ -175,6 +160,10 @@ Donato Barnaba
 Federazione Italiana Gioco Othello (FNGO)
 http://www.fngo.it
 for his great support
+
+Thanks to:
+PointyStone3 project (https://github.com/jonkr2/PointyStone3)
+for the opening book data used in this implementation
 
 -------------------------------------------------------------
 
