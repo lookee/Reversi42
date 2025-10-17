@@ -1,0 +1,17 @@
+REVERSI42 - QUICK BUILD GUIDE
+
+1. Install dependencies:
+   pip install -r build/requirements-build.txt
+
+2. Verify setup:
+   ./build/test_build_setup.sh
+
+3. Build:
+   ./build/build_all.sh  (auto-detect)
+   
+   Or specific platform:
+   ./build/build_macos.sh
+   ./build/build_linux_deb.sh
+   ./build/build_windows.sh
+
+See BUILD.md for complete documentation.

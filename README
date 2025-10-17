@@ -86,9 +86,18 @@ pip install pygame
 
 INSTALLATION
 
+From Source:
 1. Clone or download the repository
 2. Install Pygame if not already installed
 3. Run the game using one of the methods below
+
+Pre-built Binaries:
+- Windows: Download Reversi42.exe from releases
+- Linux: Download and install .deb package
+- macOS: Download and install .app or .dmg
+
+Building from Source:
+See BUILD.md for instructions on creating distributable packages
 
 RUNNING THE GAME
 
@@ -207,8 +216,17 @@ Reversi42/
 │   ├── README.md
 │   ├── .gitignore
 │   └── *.xot (saved games in XOT format)
+├── build/                   # Build scripts for distribution
+│   ├── build_all.sh         # Master build script
+│   ├── build_windows.sh     # Windows build
+│   ├── build_linux_deb.sh   # Linux DEB build
+│   ├── build_macos.sh       # macOS build
+│   ├── requirements-build.txt # Build dependencies
+│   ├── README.md            # Build documentation
+│   └── QUICKSTART.txt       # Quick build guide
 ├── reversi42                # Executable entry point
 ├── README                   # This file
+├── BUILD.md                 # Complete build documentation
 ├── ADDING_PLAYERS.md        # Guide for adding custom players
 └── COPYING                  # License information
 ```

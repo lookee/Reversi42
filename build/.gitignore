@@ -1,0 +1,16 @@
+# Ignore PyInstaller build artifacts
+# Note: We use pyinstaller_build/ to avoid conflicts with build/ scripts directory
+pyinstaller_build/
+dist/
+*.spec
+
+# Ignore distribution packages
+*.deb
+*.dmg
+*.zip
+*.exe
+*.app
+
+# Ignore package directories
+reversi42_*/
+

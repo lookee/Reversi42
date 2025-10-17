@@ -1,0 +1,3 @@
+([('Reversi42',
+   '/Users/lucaamore/Documents/devel/Reversi42/dist/Reversi42',
+   'EXECUTABLE')],)
