@@ -35,11 +35,15 @@ The game features a **metadata-driven player system** that automatically generat
 
 1. **Human** - Interactive player using mouse or keyboard
 2. **AIPlayer** - Advanced AI with alpha-beta pruning (difficulty 1-10)
-3. **AIPlayerBook** - AI with opening book support + minimax search
-4. **AIPlayerBitboard** - Ultra-fast AI using bitboard representation (10-15x faster!)
-5. **HeuristicPlayer** - Fast AI using position heuristics
-6. **GreedyPlayer** - Maximizes immediate piece captures
-7. **Monkey** - Random move selection (for testing)
+3. **AIPlayerBook** - AI with opening book support + minimax search ⭐ **RECOMMENDED**
+4. **HeuristicPlayer** - Fast AI using position heuristics
+5. **GreedyPlayer** - Maximizes immediate piece captures
+6. **Monkey** - Random move selection (for testing)
+
+### Experimental (Disabled)
+
+- **AIPlayerBitboard** - Bitboard AI (disabled: bugs in late-game)
+- **AIPlayerBitboardBook** - Bitboard + Book (disabled: uses bitboard internally)
 
 *See `ADDING_PLAYERS.md` for creating custom player types*
 
