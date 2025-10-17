@@ -130,21 +130,28 @@ class BoardControl(object):
                 # Don't set waitInput = False here, let HumanPlayer handle validation
 
     def renderModel(self):
-
+        # Count pieces while rendering
+        black_count = 0
+        white_count = 0
+        
         for x in range(self.sizex):
             for y in range(self.sizey):
                 cell = self.model.getPoint(x,y)
                 if cell == 'W':
                     self.view.setBoxWhite(x,y)
+                    white_count += 1
                 elif cell == 'B':
                     self.view.setBoxBlack(x,y)
+                    black_count += 1
                 elif cell == 'w':
                     self.view.setCanMoveWhite(x,y)
                 elif cell == 'b':
                     self.view.setCanMoveBlack(x,y)
                 else:
                     self.view.unsetBox(x,y)
-
+        
+        # Update piece counts in the view
+        self.view.setPlayerCounts(black_count, white_count)
         self.view.update(self.cursor_mode)
 
     def importModel(self,model):
@@ -178,3 +185,7 @@ class BoardControl(object):
     def resetSelection(self):
         """Reset the current move selection"""
         self.bx = self.by = None
+    
+    def setPlayerNames(self, black_name, white_name):
+        """Set the player names for display in the header"""
+        self.view.setPlayerNames(black_name, white_name)

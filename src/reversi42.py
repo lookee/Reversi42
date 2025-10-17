@@ -31,6 +31,7 @@ from Players.PlayerFactory import PlayerFactory
 from Players.HumanPlayer import HumanPlayer
 from Board.BoardControl import BoardControl
 from Menu import Menu
+from GameOver import GameOver
 
 def create_player(player_type, difficulty=6, engine_type='Minimax'):
     """Create a player instance using the PlayerFactory"""
@@ -43,23 +44,14 @@ def create_player(player_type, difficulty=6, engine_type='Minimax'):
         print(f"Error creating player: {e}")
         return PlayerFactory.create_player("Human")  # Default fallback
 
-def main():
-    # Initialize pygame
-    pygame.init()
-    
-    # Show menu and get player selections
-    menu = Menu()
-    result = menu.run()
-    
-    if result == "exit":
-        pygame.quit()
-        sys.exit()
+def run_game(menu_result):
+    """Run a single game with the given player settings"""
     
     # Extract player settings
-    black_player_type = result["black_player"]
-    white_player_type = result["white_player"]
-    black_difficulty = result["black_difficulty"]
-    white_difficulty = result["white_difficulty"]
+    black_player_type = menu_result["black_player"]
+    white_player_type = menu_result["white_player"]
+    black_difficulty = menu_result["black_difficulty"]
+    white_difficulty = menu_result["white_difficulty"]
     
     # Create players
     players = {
@@ -71,6 +63,9 @@ def main():
     size = 8
     g = Game(size)
     c = BoardControl(size, size)
+    
+    # Set player names in the board view
+    c.setPlayerNames(players['B'].get_name(), players['W'].get_name())
     
     game_history = ""
     last_move = None
@@ -166,28 +161,53 @@ def main():
         
         clock.tick(60)  # Limit to 60 FPS
     
-    # Print results
-    if not g.is_finish():
-        print("Game was exited by user.")
-    else:
+    # Handle game finish
+    if g.is_finish():
+        # Update final board state
         c.importModel(g.export_str())
         c.renderModel()
         
+        # Print results to console
         g.view()
+        result = g.get_result()
         g.result()
-        
         print(f"\ngame history:\n{game_history}\n")
         
-        # Wait for user to close the window
-        print("Game finished! Close the window to exit.")
-        while True:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    break
-            else:
-                clock.tick(60)
-                continue
-            break
+        # Show game over screen
+        game_over = GameOver()
+        game_over.set_results(
+            winner=result,
+            black_name=players['B'].get_name(),
+            white_name=players['W'].get_name(),
+            black_score=g.black_cnt,
+            white_score=g.white_cnt
+        )
+        return game_over.run()  # Returns "menu" or "exit"
+    else:
+        print("Game was exited by user.")
+        return "menu"  # Default to menu if game exited early
+
+def main():
+    """Main game loop - handles menu and multiple games"""
+    # Initialize pygame
+    pygame.init()
+    
+    keep_running = True
+    
+    while keep_running:
+        # Show menu
+        menu = Menu()
+        result = menu.run()
+        
+        if result == "exit":
+            keep_running = False
+        else:
+            # Run game with selected settings
+            game_result = run_game(result)
+            
+            if game_result == "exit":
+                keep_running = False
+            # If game_result is "menu", loop continues to show menu again
     
     pygame.quit()
     sys.exit()

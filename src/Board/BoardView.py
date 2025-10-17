@@ -49,6 +49,17 @@ class BoardView(object):
         self.min_width = 400
         self.min_height = 300
         
+        # Initialize header settings first (before calculateDimensions)
+        pygame.font.init()
+        self.header_font = pygame.font.Font(None, 32)
+        self.header_height = 50  # Height reserved for header
+        
+        # Player information
+        self.black_player_name = "Black"
+        self.white_player_name = "White"
+        self.black_count = 2
+        self.white_count = 2
+        
         # Calculate dynamic dimensions
         self.calculateDimensions()
         
@@ -66,13 +77,16 @@ class BoardView(object):
     
     def calculateDimensions(self):
         """Calculate dynamic dimensions based on current window size"""
+        # Reserve space for header
+        board_height = self.heigth - self.header_height
+        
         # Calculate cell size to fit the board
         self.stepx = self.width // self.sizex
-        self.stepy = self.heigth // self.sizey
+        self.stepy = board_height // self.sizey
         
         # Calculate margins to center the board
         self.marginx = (self.width % self.sizex) // 2
-        self.marginy = (self.heigth % self.sizey) // 2
+        self.marginy = self.header_height + (board_height % self.sizey) // 2
     
     def resize(self, new_width, new_height):
         """Handle window resize"""
@@ -159,6 +173,8 @@ class BoardView(object):
                 pygame.draw.circle(screen, self.hoshiColor, (intersection_x, intersection_y), 4)
 
     def update(self, cursor_mode=False):
+        # Draw header with player info
+        self.drawHeader()
         # Draw last move indicator before updating display
         self.drawLastMoveIndicator()
         # Draw cursor only if in cursor mode
@@ -309,4 +325,60 @@ class BoardView(object):
     def getCursorPosition(self):
         """Get current cursor position"""
         return (self.cursorX, self.cursorY)
+    
+    def setPlayerNames(self, black_name, white_name):
+        """Set the names of the players"""
+        self.black_player_name = black_name
+        self.white_player_name = white_name
+    
+    def setPlayerCounts(self, black_count, white_count):
+        """Set the piece counts for both players"""
+        self.black_count = black_count
+        self.white_count = white_count
+    
+    def drawHeader(self):
+        """Draw the header with player names and piece counts"""
+        # Clear header area
+        header_rect = pygame.Rect(0, 0, self.width, self.header_height)
+        self.screen.fill(self.bgColor, header_rect)
+        
+        # Calculate positions
+        left_x = 20
+        right_x = self.width - 20
+        center_y = self.header_height // 2
+        piece_radius = 12
+        piece_spacing = 25  # Increased spacing between piece and text
+        
+        # Draw black player info (left side)
+        # First draw the black piece
+        piece_x = left_x
+        piece_y = center_y
+        pygame.gfxdraw.filled_circle(self.screen, piece_x, piece_y, piece_radius, self.blackPieceColor)
+        pygame.gfxdraw.aacircle(self.screen, piece_x, piece_y, piece_radius, self.blackPieceColor)
+        
+        # Then draw the text after the piece
+        black_text = f"{self.black_player_name}: {self.black_count}"
+        black_surface = self.header_font.render(black_text, True, self.whitePieceColor)
+        black_rect = black_surface.get_rect()
+        black_rect.midleft = (left_x + piece_radius + piece_spacing, center_y)
+        self.screen.blit(black_surface, black_rect)
+        
+        # Draw white player info (right side)
+        # First draw the text
+        white_text = f"{self.white_player_name}: {self.white_count}"
+        white_surface = self.header_font.render(white_text, True, self.whitePieceColor)
+        white_rect = white_surface.get_rect()
+        white_rect.midright = (right_x - piece_radius - piece_spacing, center_y)
+        self.screen.blit(white_surface, white_rect)
+        
+        # Then draw the white piece after the text
+        piece_x = right_x
+        piece_y = center_y
+        pygame.gfxdraw.filled_circle(self.screen, piece_x, piece_y, piece_radius, self.whitePieceColor)
+        pygame.gfxdraw.aacircle(self.screen, piece_x, piece_y, piece_radius, self.blackPieceColor)
+        
+        # Draw a separator line
+        pygame.draw.line(self.screen, self.lineColor, 
+                        (0, self.header_height - 2), 
+                        (self.width, self.header_height - 2), 2)
 

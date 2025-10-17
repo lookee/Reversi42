@@ -46,6 +46,7 @@ class Menu:
             "Black Player",
             "White Player", 
             "Start Game",
+            "Help",
             "Exit"
         ]
         
@@ -59,10 +60,21 @@ class Menu:
         self.player_types = ["Human", "AI", "Greedy", "Monkey"]
         self.difficulties = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         
+        # Player descriptions
+        self.player_descriptions = {
+            "Human": "Interactive player using mouse/keyboard",
+            "AI": "Intelligent AI with minimax alpha-beta pruning",
+            "Greedy": "Always captures maximum pieces immediately",
+            "Monkey": "Random move selection for testing"
+        }
+        
         # Submenu state
         self.in_submenu = False
         self.submenu_type = None  # "black_player", "white_player", "black_difficulty", "white_difficulty"
         self.submenu_selection = 0
+        
+        # Help screen state
+        self.in_help = False
         
         # Load splash screen
         self.splash_image = None
@@ -197,6 +209,12 @@ class Menu:
             option_text = self.menu_font.render(option, True, color)
             option_rect = option_text.get_rect(center=(self.width//2, start_y + i * option_spacing))
             self.screen.blit(option_text, option_rect)
+            
+            # Show description for player types
+            if "player" in self.submenu_type and option in self.player_descriptions:
+                desc_text = self.small_font.render(self.player_descriptions[option], True, self.text_color)
+                desc_rect = desc_text.get_rect(center=(self.width//2, start_y + i * option_spacing + 20))
+                self.screen.blit(desc_text, desc_rect)
         
         # Instructions with better positioning
         instructions = [
@@ -209,6 +227,63 @@ class Menu:
             inst_text = self.small_font.render(instruction, True, self.text_color)
             inst_rect = inst_text.get_rect(center=(self.width//2, self.height - 60 + i * 18))
             self.screen.blit(inst_text, inst_rect)
+    
+    def draw_help(self):
+        """Draw the help screen"""
+        self.screen.fill(self.bg_color)
+        
+        # Title
+        title_text = self.title_font.render("Help", True, self.title_color)
+        title_rect = title_text.get_rect(center=(self.width//2, 60))
+        self.screen.blit(title_text, title_rect)
+        
+        # Help content
+        help_sections = [
+            ("PLAYER TYPES", [
+                "Human: Play using mouse clicks or keyboard arrows",
+                "AI: Intelligent computer player with configurable difficulty",
+                "Greedy: Always captures the maximum pieces immediately",
+                "Monkey: Random move selection (for testing)"
+            ]),
+            ("GAME CONTROLS", [
+                "Mouse: Click on valid moves to place your piece",
+                "C key: Toggle cursor navigation mode",
+                "Arrow keys: Move cursor (when in cursor mode)",
+                "ENTER/SPACE: Select move at cursor position",
+                "ESC or Q: Quit the game"
+            ]),
+            ("HOW TO PLAY", [
+                "Goal: Have the most pieces of your color on the board",
+                "Players alternate turns placing pieces",
+                "Pieces flip opponent's pieces between your pieces",
+                "Game ends when board is full or no moves available"
+            ])
+        ]
+        
+        y_pos = 130
+        section_spacing = 15
+        line_spacing = 22
+        
+        for section_title, section_lines in help_sections:
+            # Draw section title
+            section_surface = self.menu_font.render(section_title, True, self.selected_color)
+            section_rect = section_surface.get_rect(center=(self.width//2, y_pos))
+            self.screen.blit(section_surface, section_rect)
+            y_pos += 35
+            
+            # Draw section content
+            for line in section_lines:
+                line_surface = self.small_font.render(line, True, self.text_color)
+                line_rect = line_surface.get_rect(center=(self.width//2, y_pos))
+                self.screen.blit(line_surface, line_rect)
+                y_pos += line_spacing
+            
+            y_pos += section_spacing
+        
+        # Back instruction
+        back_text = self.small_font.render("Press ESC or ENTER to go back", True, self.selected_color)
+        back_rect = back_text.get_rect(center=(self.width//2, self.height - 30))
+        self.screen.blit(back_text, back_rect)
     
     def handle_mouse_click(self, event):
         """Handle mouse click events"""
@@ -226,6 +301,8 @@ class Menu:
                         self.current_selection = i
                         if item == "Start Game":
                             return "start_game"
+                        elif item == "Help":
+                            self.in_help = True
                         elif item == "Exit":
                             return "exit"
                         elif item == "Black Player":
@@ -281,7 +358,12 @@ class Menu:
     def handle_key_event(self, event):
         """Handle keyboard events"""
         if event.type == KEYDOWN:
-            if not self.in_submenu:
+            if self.in_help:
+                # Handle help screen keys
+                if event.key == K_ESCAPE or event.key == K_RETURN:
+                    self.in_help = False
+                return None
+            elif not self.in_submenu:
                 return self.handle_main_menu_key(event)
             else:
                 return self.handle_submenu_key(event)
@@ -305,6 +387,8 @@ class Menu:
                 self.submenu_selection = self.player_types.index(self.white_player)
             elif self.menu_items[self.current_selection] == "Start Game":
                 return "start_game"
+            elif self.menu_items[self.current_selection] == "Help":
+                self.in_help = True
             elif self.menu_items[self.current_selection] == "Exit":
                 return "exit"
         elif event.key == K_ESCAPE:
@@ -389,7 +473,9 @@ class Menu:
                         return "exit"
             
             # Draw current screen
-            if self.in_submenu:
+            if self.in_help:
+                self.draw_help()
+            elif self.in_submenu:
                 self.draw_submenu()
             else:
                 self.draw_menu()
