@@ -330,6 +330,11 @@ class BoardView(object):
         """Get current cursor position"""
         return (self.cursorX, self.cursorY)
     
+    def refresh(self):
+        """Completely refresh the screen (useful after overlays like pause menu)"""
+        self.screen.fill(self.bgColor)
+        self.__init_grid()
+    
     def setPlayerNames(self, black_name, white_name):
         """Set the names of the players"""
         self.black_player_name = black_name

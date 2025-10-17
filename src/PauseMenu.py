@@ -48,6 +48,9 @@ class PauseMenu:
         # Menu items
         self.menu_items = [
             "Resume Game",
+            "Undo Last Move",
+            "Save Game",
+            "Load Game",
             "Return to Menu",
             "Exit Game"
         ]
@@ -61,9 +64,9 @@ class PauseMenu:
         overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
         
-        # Draw pause menu box
-        menu_width = 400
-        menu_height = 350
+        # Draw pause menu box (larger for more options)
+        menu_width = 450
+        menu_height = 450
         menu_x = (self.width - menu_width) // 2
         menu_y = (self.height - menu_height) // 2
         
@@ -74,28 +77,18 @@ class PauseMenu:
         
         # Draw title
         title_text = self.title_font.render("GAME PAUSED", True, self.title_color)
-        title_rect = title_text.get_rect(center=(self.width // 2, menu_y + 60))
+        title_rect = title_text.get_rect(center=(self.width // 2, menu_y + 70))
         self.screen.blit(title_text, title_rect)
         
-        # Draw warning message
-        warning_text = self.menu_font.render("Abandon current game?", True, self.text_color)
-        warning_rect = warning_text.get_rect(center=(self.width // 2, menu_y + 110))
-        self.screen.blit(warning_text, warning_rect)
-        
         # Draw menu items
-        start_y = menu_y + 160
-        item_spacing = 50
+        start_y = menu_y + 140
+        item_spacing = 45  # Spacing for menu items
         
         for i, item in enumerate(self.menu_items):
             color = self.selected_color if i == self.current_selection else self.text_color
             
-            # Draw selection indicator
-            if i == self.current_selection:
-                indicator = "► "
-            else:
-                indicator = "  "
-            
-            item_text = self.menu_font.render(indicator + item, True, color)
+            # Draw menu item without indicator
+            item_text = self.menu_font.render(item, True, color)
             item_rect = item_text.get_rect(center=(self.width // 2, start_y + i * item_spacing))
             self.screen.blit(item_text, item_rect)
         
@@ -111,11 +104,18 @@ class PauseMenu:
                 self.current_selection = (self.current_selection + 1) % len(self.menu_items)
                 return None
             elif event.key == K_RETURN:
-                if self.current_selection == 0:
+                item = self.menu_items[self.current_selection]
+                if item == "Resume Game":
                     return "resume"
-                elif self.current_selection == 1:
+                elif item == "Undo Last Move":
+                    return "undo"
+                elif item == "Save Game":
+                    return "save"
+                elif item == "Load Game":
+                    return "load"
+                elif item == "Return to Menu":
                     return "menu"
-                elif self.current_selection == 2:
+                elif item == "Exit Game":
                     return "exit"
             elif event.key == K_ESCAPE:
                 return "resume"  # ESC again resumes the game
@@ -123,43 +123,49 @@ class PauseMenu:
     
     def handle_mouse_click(self, pos):
         """Handle mouse clicks on menu items"""
-        menu_width = 400
-        menu_height = 350
+        menu_width = 450
+        menu_height = 450
         menu_x = (self.width - menu_width) // 2
         menu_y = (self.height - menu_height) // 2
         
-        start_y = menu_y + 160
-        item_spacing = 50
+        start_y = menu_y + 140
+        item_spacing = 45
         
         mouse_x, mouse_y = pos
         
         for i, item in enumerate(self.menu_items):
             item_y = start_y + i * item_spacing
             # Check if click is within the item area
-            if abs(mouse_y - item_y) < 25 and menu_x < mouse_x < menu_x + menu_width:
-                if i == 0:
+            if abs(mouse_y - item_y) < 22 and menu_x < mouse_x < menu_x + menu_width:
+                if item == "Resume Game":
                     return "resume"
-                elif i == 1:
+                elif item == "Undo Last Move":
+                    return "undo"
+                elif item == "Save Game":
+                    return "save"
+                elif item == "Load Game":
+                    return "load"
+                elif item == "Return to Menu":
                     return "menu"
-                elif i == 2:
+                elif item == "Exit Game":
                     return "exit"
         return None
     
     def handle_mouse_motion(self, pos):
         """Handle mouse motion for hover effects"""
-        menu_width = 400
-        menu_height = 350
+        menu_width = 450
+        menu_height = 450
         menu_x = (self.width - menu_width) // 2
         menu_y = (self.height - menu_height) // 2
         
-        start_y = menu_y + 160
-        item_spacing = 50
+        start_y = menu_y + 140
+        item_spacing = 45
         
         mouse_x, mouse_y = pos
         
         for i, item in enumerate(self.menu_items):
             item_y = start_y + i * item_spacing
-            if abs(mouse_y - item_y) < 25 and menu_x < mouse_x < menu_x + menu_width:
+            if abs(mouse_y - item_y) < 22 and menu_x < mouse_x < menu_x + menu_width:
                 self.current_selection = i
                 return
     
