@@ -55,8 +55,19 @@ class BoardView(object):
         
         # Initialize header settings first (before calculateDimensions)
         pygame.font.init()
-        self.header_font = pygame.font.Font(None, 32)
-        self.header_height = 50  # Height reserved for header
+        self.header_height = 80  # Increased height for tournament style
+        
+        # Professional tournament-style fonts
+        self.player_name_font = pygame.font.Font(None, 28)  # Player names
+        self.score_font = pygame.font.Font(None, 52)  # Large scores
+        self.label_font = pygame.font.Font(None, 20)  # Small labels
+        
+        # Header colors (elegant dark green, professional)
+        self.header_bg = (0, 65, 50)  # Dark forest green (darker than board)
+        self.header_accent = (0, 85, 65)  # Slightly lighter green for accents
+        self.header_text = (230, 235, 230)  # Off-white text
+        self.header_label = (160, 180, 170)  # Soft mint labels
+        self.turn_indicator = (255, 215, 0)  # Gold dot for active player
         
         # Font for board coordinates
         self.coord_font = pygame.font.Font(None, 22)
@@ -69,6 +80,13 @@ class BoardView(object):
         self.black_count = 2
         self.white_count = 2
         self.current_turn = 'B'  # Track whose turn it is
+        
+        # Timer tracking (for tournament mode)
+        import time
+        self.game_start_time = time.time()
+        self.black_total_time = 0.0
+        self.white_total_time = 0.0
+        self.current_move_start = time.time()
         
         # Calculate dynamic dimensions
         self.calculateDimensions()
@@ -534,69 +552,131 @@ class BoardView(object):
         self.current_turn = turn
     
     def drawHeader(self):
-        """Draw the header with player names and piece counts"""
-        # Clear header area
+        """Draw professional tournament-style header"""
+        import time
+        
+        # Draw header background with solid dark green color
         header_rect = pygame.Rect(0, 0, self.width, self.header_height)
-        self.screen.fill(self.bgColor, header_rect)
+        self.screen.fill(self.header_bg, header_rect)
         
-        # Calculate positions
-        left_x = 20
-        right_x = self.width - 20
-        center_y = self.header_height // 2
-        piece_radius = 12
-        piece_spacing = 25
-        indicator_radius = 5  # Small yellow dot for turn indicator
-        indicator_spacing = 15  # Distance from text
+        # Calculate layout
+        margin = 30
+        center_x = self.width // 2
+        piece_radius = 16
         
-        # Text color is always white (no color change)
-        text_color = self.whitePieceColor
+        # === LEFT SIDE - BLACK PLAYER ===
+        left_x = margin
+        piece_y = self.header_height // 2
         
-        # Draw black player info (left side)
-        # Draw the black piece
-        piece_x = left_x
-        piece_y = center_y
-        pygame.gfxdraw.filled_circle(self.screen, piece_x, piece_y, piece_radius, self.blackPieceColor)
-        pygame.gfxdraw.aacircle(self.screen, piece_x, piece_y, piece_radius, self.blackPieceColor)
+        # Black piece (larger, 3D)
+        self._draw_header_piece(left_x + piece_radius, piece_y, piece_radius, 'B')
         
-        # Draw the text after the piece
-        black_text = f"{self.black_player_name}: {self.black_count}"
-        black_surface = self.header_font.render(black_text, True, text_color)
-        black_rect = black_surface.get_rect()
-        black_rect.midleft = (left_x + piece_radius + piece_spacing, center_y)
-        self.screen.blit(black_surface, black_rect)
+        # Player name (above score)
+        name_y = 18
+        name_text = self.player_name_font.render(self.black_player_name, True, self.header_label)
+        name_rect = name_text.get_rect(midleft=(left_x + piece_radius * 2 + 15, name_y))
+        self.screen.blit(name_text, name_rect)
         
-        # Draw turn indicator for black (small yellow dot to the right of text)
+        # Turn indicator (yellow dot) next to name
         if self.current_turn == 'B':
-            indicator_x = black_rect.right + indicator_spacing
-            indicator_y = center_y
-            pygame.gfxdraw.filled_circle(self.screen, indicator_x, indicator_y, indicator_radius, self.cursorColor)
-            pygame.gfxdraw.aacircle(self.screen, indicator_x, indicator_y, indicator_radius, self.cursorColor)
+            dot_x = name_rect.right + 12
+            dot_y = name_y
+            dot_radius = 6
+            # Glow effect
+            for i in range(3):
+                glow_radius = dot_radius + i * 2
+                alpha = 80 - i * 25
+                pygame.gfxdraw.filled_circle(self.screen, dot_x, dot_y, glow_radius, (*self.turn_indicator, alpha))
+            # Main dot
+            pygame.gfxdraw.filled_circle(self.screen, dot_x, dot_y, dot_radius, self.turn_indicator)
+            pygame.gfxdraw.aacircle(self.screen, dot_x, dot_y, dot_radius, self.turn_indicator)
         
-        # Draw white player info (right side)
-        # Prepare white text
-        white_text = f"{self.white_player_name}: {self.white_count}"
-        white_surface = self.header_font.render(white_text, True, text_color)
-        white_rect = white_surface.get_rect()
-        white_rect.midright = (right_x - piece_radius - piece_spacing, center_y)
+        # Score (large, prominent)
+        score_y = 50
+        score_text = self.score_font.render(str(self.black_count), True, self.header_text)
+        score_rect = score_text.get_rect(midleft=(left_x + piece_radius * 2 + 15, score_y))
+        self.screen.blit(score_text, score_rect)
         
-        # Draw turn indicator for white first (to the left of text, before it)
+        # === RIGHT SIDE - WHITE PLAYER ===
+        right_x = self.width - margin
+        
+        # White piece
+        self._draw_header_piece(right_x - piece_radius, piece_y, piece_radius, 'W')
+        
+        # Player name (above score, right-aligned)
+        name_text = self.player_name_font.render(self.white_player_name, True, self.header_label)
+        name_rect = name_text.get_rect(midright=(right_x - piece_radius * 2 - 15, name_y))
+        self.screen.blit(name_text, name_rect)
+        
+        # Turn indicator (yellow dot) next to name (on the left of the text)
         if self.current_turn == 'W':
-            indicator_x = white_rect.left - indicator_spacing
-            indicator_y = center_y
-            pygame.gfxdraw.filled_circle(self.screen, indicator_x, indicator_y, indicator_radius, self.cursorColor)
-            pygame.gfxdraw.aacircle(self.screen, indicator_x, indicator_y, indicator_radius, self.cursorColor)
+            dot_x = name_rect.left - 12
+            dot_y = name_y
+            dot_radius = 6
+            # Glow effect
+            for i in range(3):
+                glow_radius = dot_radius + i * 2
+                alpha = 80 - i * 25
+                pygame.gfxdraw.filled_circle(self.screen, dot_x, dot_y, glow_radius, (*self.turn_indicator, alpha))
+            # Main dot
+            pygame.gfxdraw.filled_circle(self.screen, dot_x, dot_y, dot_radius, self.turn_indicator)
+            pygame.gfxdraw.aacircle(self.screen, dot_x, dot_y, dot_radius, self.turn_indicator)
         
-        # Draw the text
-        self.screen.blit(white_surface, white_rect)
+        # Score (large, prominent, right-aligned)
+        score_text = self.score_font.render(str(self.white_count), True, self.header_text)
+        score_rect = score_text.get_rect(midright=(right_x - piece_radius * 2 - 15, score_y))
+        self.screen.blit(score_text, score_rect)
         
-        # Draw the white piece after the text
-        piece_x = right_x
-        piece_y = center_y
-        pygame.gfxdraw.filled_circle(self.screen, piece_x, piece_y, piece_radius, self.whitePieceColor)
-        pygame.gfxdraw.aacircle(self.screen, piece_x, piece_y, piece_radius, self.blackPieceColor)
+        # === CENTER - VS and Game Info ===
+        # VS text
+        vs_font = pygame.font.Font(None, 32)
+        vs_text = vs_font.render("VS", True, self.header_label)
+        vs_rect = vs_text.get_rect(center=(center_x, self.header_height // 2))
+        self.screen.blit(vs_text, vs_rect)
         
-        # Draw a separator line
-        pygame.draw.line(self.screen, self.lineColor, 
-                        (0, self.header_height - 2), 
-                        (self.width, self.header_height - 2), 2)
+        # Game time (below VS)
+        elapsed = time.time() - self.game_start_time
+        minutes = int(elapsed // 60)
+        seconds = int(elapsed % 60)
+        time_text = self.label_font.render(f"{minutes:02d}:{seconds:02d}", True, self.header_label)
+        time_rect = time_text.get_rect(center=(center_x, self.header_height - 15))
+        self.screen.blit(time_text, time_rect)
+        
+        # Draw elegant separator line with shadow
+        sep_y = self.header_height - 3
+        # Shadow
+        pygame.draw.line(self.screen, (0, 0, 0), (0, sep_y + 1), (self.width, sep_y + 1), 2)
+        # Main line
+        pygame.draw.line(self.screen, self.header_accent, (0, sep_y), (self.width, sep_y), 3)
+    
+    def _draw_header_piece(self, x, y, radius, player):
+        """Draw a piece in the header with 3D effect"""
+        if player == 'B':
+            base_color = self.blackPieceColor
+            highlight = (60, 60, 70)
+        else:
+            base_color = self.whitePieceColor
+            highlight = (255, 255, 255)
+        
+        # Shadow
+        shadow_offset = 2
+        pygame.gfxdraw.filled_circle(self.screen, x + shadow_offset, y + shadow_offset, 
+                                     radius, (0, 0, 0, 100))
+        
+        # Gradient for 3D effect
+        for r in range(radius, max(0, radius - 6), -1):
+            if player == 'B':
+                brightness = 15 + int((radius - r) * 6)
+                color = (brightness, brightness, brightness + 5)
+            else:
+                brightness = 248 - int((radius - r) * 2)
+                color = (brightness, brightness, min(250, brightness + 2))
+            pygame.gfxdraw.filled_circle(self.screen, x, y, r, color)
+        
+        # Anti-aliased edge
+        pygame.gfxdraw.aacircle(self.screen, x, y, radius, base_color)
+        
+        # Outline ring for definition
+        if player == 'W':
+            pygame.gfxdraw.aacircle(self.screen, x, y, radius + 1, (200, 200, 205))
 
