@@ -45,11 +45,12 @@ class BoardView(object):
         self.blackMoveColor     = (180,     180,    180)   # Darker gray for black possible moves
         self.cursorColor        = (255,     255,      0)   # Yellow for cursor highlight
 
-        self.stepx = self.width // self.sizex
-        self.stepy = self.heigth // self.sizey
-
-        self.marginx = (self.width % self.sizex) // 2
-        self.marginy = (self.heigth % self.sizey) // 2
+        # Minimum window size
+        self.min_width = 400
+        self.min_height = 300
+        
+        # Calculate dynamic dimensions
+        self.calculateDimensions()
         
         # Track last move position for red dot indicator
         self.lastMoveX = None
@@ -60,6 +61,32 @@ class BoardView(object):
         self.cursorY = 0
        
         self.__init_screen()
+        self.__init_grid()
+        self.update(False)
+    
+    def calculateDimensions(self):
+        """Calculate dynamic dimensions based on current window size"""
+        # Calculate cell size to fit the board
+        self.stepx = self.width // self.sizex
+        self.stepy = self.heigth // self.sizey
+        
+        # Calculate margins to center the board
+        self.marginx = (self.width % self.sizex) // 2
+        self.marginy = (self.heigth % self.sizey) // 2
+    
+    def resize(self, new_width, new_height):
+        """Handle window resize"""
+        # Ensure minimum size
+        self.width = max(new_width, self.min_width)
+        self.heigth = max(new_height, self.min_height)
+        
+        # Recalculate dimensions
+        self.calculateDimensions()
+        
+        # Resize the screen
+        self.screen = pygame.display.set_mode((self.width, self.heigth), pygame.RESIZABLE)
+        
+        # Redraw everything
         self.__init_grid()
         self.update(False)
 
@@ -96,7 +123,7 @@ class BoardView(object):
     def __init_screen(self):
         pygame.init()
 
-        self.screen = pygame.display.set_mode((self.width,self.heigth), 0, 32)
+        self.screen = pygame.display.set_mode((self.width,self.heigth), pygame.RESIZABLE, 32)
         pygame.display.set_caption(self.caption)
 
         self.screen.fill(self.bgColor)

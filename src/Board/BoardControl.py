@@ -52,6 +52,9 @@ class BoardControl(object):
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.should_exit = True
+            elif event.type == pygame.VIDEORESIZE:
+                # Handle window resize
+                self.view.resize(event.w, event.h)
             elif event.type == KEYDOWN:
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
                     self.should_exit = True
@@ -60,8 +63,10 @@ class BoardControl(object):
 
         if event.type == QUIT:
             self.triggerEnd()
-
-        if event.type == MOUSEBUTTONDOWN:
+        elif event.type == pygame.VIDEORESIZE:
+            # Handle window resize
+            self.view.resize(event.w, event.h)
+        elif event.type == MOUSEBUTTONDOWN:
             self.handleMouseButtonEvents(event)
 
         if event.type == KEYUP:
@@ -116,12 +121,13 @@ class BoardControl(object):
 
         if bx in range(self.sizex) and by in range(self.sizey):
 
-            if event.button == 1:
-                self.waitInput = False;
+            if event.button == 1:  # Left click
+                print(f"Mouse click at ({bx}, {by})")
                 self.bx = bx
                 self.by = by
                 # Update cursor position when clicking
                 self.view.setCursor(bx, by)
+                # Don't set waitInput = False here, let HumanPlayer handle validation
 
     def renderModel(self):
 

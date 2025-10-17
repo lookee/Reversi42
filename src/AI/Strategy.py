@@ -19,6 +19,7 @@
 from Reversi.Game import Game
 from Reversi.Game import Move
 import time
+import sys
 
 INFINITY = 10000
 
@@ -59,18 +60,48 @@ class Strategy(object):
             [ 0, 8, 9, 7, 4, 4, 7, 9, 8 ], 
             [ 0, 1, 8, 7, 6, 6, 7, 8, 1 ], 
         ]
+        
+        # Transposition table for caching positions
+        self.transposition_table = {}
+        
+        # Move ordering cache
+        self.move_cache = {}
+        
+        # Corner positions (highest priority)
+        self.corners = [(1,1), (1,8), (8,1), (8,8)]
+        
+        # Edge positions (medium priority)
+        self.edges = [(1,2), (1,3), (1,4), (1,5), (1,6), (1,7),
+                      (2,1), (3,1), (4,1), (5,1), (6,1), (7,1),
+                      (2,8), (3,8), (4,8), (5,8), (6,8), (7,8),
+                      (8,2), (8,3), (8,4), (8,5), (8,6), (8,7)]
+
+    def get_position_hash(self, game):
+        """Generate a hash for the current position"""
+        return hash(game.export_str() + str(game.get_turn()))
 
     def alfabeta(self, game, depth, alfa, beta):
-
-        # best value
-        best_value = -INFINITY
 
         # nodes counter
         self.nodes += 1
 
-        # check win
+        # Check transposition table
+        position_hash = self.get_position_hash(game)
+        if position_hash in self.transposition_table:
+            stored_depth, stored_value, stored_type = self.transposition_table[position_hash]
+            if stored_depth >= depth:
+                if stored_type == 'exact':
+                    return stored_value
+                elif stored_type == 'lower' and stored_value >= beta:
+                    return stored_value
+                elif stored_type == 'upper' and stored_value <= alfa:
+                    return stored_value
+
+        # check win/loss
         if game.check_lost():
             return -INFINITY
+        if game.check_win():
+            return INFINITY
 
         # evaluate position
         if (depth == 0):
@@ -81,43 +112,93 @@ class Strategy(object):
 
         # handle no move
         if (len(move_list) == 0):
-        # pass turn
             game.pass_turn()
             value = -self.alfabeta(game, depth-1, -beta, -alfa) 
             game.undo_move()
             return value
 
-        # sort move list with a weighted matrix
-        move_list_sorted =  [];
-        for move in move_list:
-            move_list_sorted.append((self.priority[move.y][move.x], move))
-            
-        move_list_sorted = sorted(move_list_sorted, key=lambda row: row[0], reverse=False)
+        # Enhanced move ordering
+        move_list_sorted = self.order_moves(move_list, game)
+        
+        best_value = -INFINITY
+        best_move = None
+        original_alfa = alfa
       
         # deep explore all available moves
-        for m in (move_list_sorted):
-            v, move = m
-
+        for move in move_list_sorted:
             game.move(move)
             value = -self.alfabeta(game, depth-1, -beta, -alfa)
             game.undo_move()
 
             if value > best_value:
                 best_value = value
+                best_move = move
 
             if value > alfa:
                 alfa = value
 
             if alfa >= beta:
                 self.pruning += 1
-                break
+                # Store in transposition table
+                self.transposition_table[position_hash] = (depth, beta, 'lower')
+                return beta
+
+        # Store in transposition table
+        if best_value <= original_alfa:
+            self.transposition_table[position_hash] = (depth, best_value, 'upper')
+        elif best_value >= beta:
+            self.transposition_table[position_hash] = (depth, best_value, 'lower')
+        else:
+            self.transposition_table[position_hash] = (depth, best_value, 'exact')
 
         return best_value
+
+    def order_moves(self, move_list, game):
+        """Enhanced move ordering for better alpha-beta pruning"""
+        move_scores = []
+        
+        for move in move_list:
+            score = 0
+            
+            # Corner moves (highest priority)
+            if (move.x, move.y) in self.corners:
+                score += 1000
+            
+            # Edge moves (medium priority)
+            elif (move.x, move.y) in self.edges:
+                score += 100
+            
+            # Priority matrix
+            score += self.priority[move.y][move.x]
+            
+            # Mobility bonus (more moves after this move = better)
+            game.move(move)
+            mobility = len(game.get_move_list())
+            game.undo_move()
+            score += mobility * 10
+            
+            # Stability bonus (pieces that won't be flipped)
+            stability = self.calculate_stability(move, game)
+            score += stability * 5
+            
+            move_scores.append((score, move))
+        
+        # Sort by score (higher is better)
+        move_scores.sort(key=lambda x: x[0], reverse=True)
+        return [move for score, move in move_scores]
+
+    def calculate_stability(self, move, game):
+        """Calculate how stable a move is (pieces that won't be flipped)"""
+        # This is a simplified stability calculation
+        # In a full implementation, you'd analyze which pieces become stable
+        return 0  # Placeholder for now
 
     def get_best_move(self, game, depth):
 
         self.nodes = 0
         self.pruning = 0
+        # Clear transposition table for new search
+        self.transposition_table.clear()
 
         time_start = time.perf_counter()
 
@@ -131,12 +212,8 @@ class Strategy(object):
         if (len(move_list) == 0):
             return None 
 
-        # sort move list with a weighted matrix
-        move_list_sorted =  [];
-        for move in move_list:
-            move_list_sorted.append((self.priority[move.y][move.x], move))
-            
-        move_list_sorted = sorted(move_list_sorted, key=lambda row: row[0], reverse=False)
+        # Enhanced move ordering
+        move_list_sorted = self.order_moves(move_list, game)
         
         # Print header for statistics
         print("\n" + "="*80)
@@ -148,8 +225,7 @@ class Strategy(object):
         move_count = 0
         
         # deep explore all available moves
-        for m in (move_list_sorted):
-            v, move = m
+        for move in move_list_sorted:
             game.move(move)
             value = -self.alfabeta(game, depth-1, -INFINITY, -best_value)
             game.undo_move()
