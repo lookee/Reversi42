@@ -48,6 +48,7 @@ class AIPlayerBitboardBook(Player):
         """
         super().__init__()
         self.deep = deep
+        self.name = f"BitboardBook{deep}"  # Set name with depth
         self.show_book_options = show_book_options
         self.bitboard_engine = BitboardMinimaxEngine()
         self.standard_engine = MinimaxEngine()  # Fallback

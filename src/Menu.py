@@ -53,6 +53,7 @@ class Menu:
             "White Player", 
             "Start Game",
             "Help",
+            "About",
             "Exit"
         ]
         
@@ -83,6 +84,9 @@ class Menu:
         
         # Help screen state
         self.in_help = False
+        
+        # About screen state
+        self.in_about = False
         
         # Load splash screen
         self.splash_image = None
@@ -139,11 +143,11 @@ class Menu:
             
             if item == "Black Player":
                 text = f"Black Player: {self.black_player}"
-                if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
+                if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)", "AI Bitboard with Book (Fastest)"]:
                     text += f" (Level {self.black_difficulty})"
             elif item == "White Player":
                 text = f"White Player: {self.white_player}"
-                if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
+                if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)", "AI Bitboard with Book (Fastest)"]:
                     text += f" (Level {self.white_difficulty})"
             else:
                 text = item
@@ -260,12 +264,6 @@ class Menu:
                 "Arrow keys: Move cursor (when in cursor mode)",
                 "ENTER/SPACE: Select move at cursor position",
                 "ESC or Q: Quit the game"
-            ]),
-            ("HOW TO PLAY", [
-                "Goal: Have the most pieces of your color on the board",
-                "Players alternate turns placing pieces",
-                "Pieces flip opponent's pieces between your pieces",
-                "Game ends when board is full or no moves available"
             ])
         ]
         
@@ -274,6 +272,60 @@ class Menu:
         line_spacing = 22
         
         for section_title, section_lines in help_sections:
+            # Draw section title
+            section_surface = self.menu_font.render(section_title, True, self.selected_color)
+            section_rect = section_surface.get_rect(center=(self.width//2, y_pos))
+            self.screen.blit(section_surface, section_rect)
+            y_pos += 35
+            
+            # Draw section content
+            for line in section_lines:
+                line_surface = self.small_font.render(line, True, self.text_color)
+                line_rect = line_surface.get_rect(center=(self.width//2, y_pos))
+                self.screen.blit(line_surface, line_rect)
+                y_pos += line_spacing
+            
+            y_pos += section_spacing
+        
+        # Back instruction
+        back_text = self.small_font.render("Press ESC or ENTER to go back", True, self.selected_color)
+        back_rect = back_text.get_rect(center=(self.width//2, self.height - 30))
+        self.screen.blit(back_text, back_rect)
+    
+    def draw_about(self):
+        """Draw the about screen"""
+        self.screen.fill(self.bg_color)
+        
+        # Title
+        title_text = self.title_font.render("About Reversi42", True, self.title_color)
+        title_rect = title_text.get_rect(center=(self.width//2, 60))
+        self.screen.blit(title_text, title_rect)
+        
+        # About content
+        about_sections = [
+            ("GAME RULES", [
+                "Goal: Have the most pieces when the board fills",
+                "Players alternate placing pieces - must flip at least one",
+                "Flipped pieces are sandwiched between your pieces",
+                "Game ends when board is full or no moves available"
+            ]),
+            ("VERSION INFO", [
+                "Reversi42 v2.0 - Advanced Reversi/Othello with Bitboard Engine",
+                "Ultra-fast AI (50-100x faster) | 57 Opening Book moves",
+                "AI Difficulty levels 1-12 available"
+            ]),
+            ("COPYRIGHT", [
+                "Copyright (C) 2011-2025 Luca Amore | GNU GPL v3",
+                "Free software - you can redistribute it",
+                "Visit: github.com/reversi42"
+            ])
+        ]
+        
+        y_pos = 140
+        section_spacing = 15
+        line_spacing = 22
+        
+        for section_title, section_lines in about_sections:
             # Draw section title
             section_surface = self.menu_font.render(section_title, True, self.selected_color)
             section_rect = section_surface.get_rect(center=(self.width//2, y_pos))
@@ -312,6 +364,8 @@ class Menu:
                             return "start_game"
                         elif item == "Help":
                             self.in_help = True
+                        elif item == "About":
+                            self.in_about = True
                         elif item == "Exit":
                             return "exit"
                         elif item == "Black Player":
@@ -341,7 +395,7 @@ class Menu:
                             if self.submenu_type == "black_player":
                                 self.black_player = self.player_types[self.submenu_selection]
                                 # Ask for difficulty for AI players
-                                if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
+                                if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)", "AI Bitboard with Book (Fastest)"]:
                                     self.in_submenu = True
                                     self.submenu_type = "black_difficulty"
                                     self.submenu_selection = self.difficulties.index(self.black_difficulty)
@@ -350,7 +404,7 @@ class Menu:
                             elif self.submenu_type == "white_player":
                                 self.white_player = self.player_types[self.submenu_selection]
                                 # Ask for difficulty for AI players
-                                if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
+                                if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)", "AI Bitboard with Book (Fastest)"]:
                                     self.in_submenu = True
                                     self.submenu_type = "white_difficulty"
                                     self.submenu_selection = self.difficulties.index(self.white_difficulty)
@@ -373,6 +427,11 @@ class Menu:
                 # Handle help screen keys
                 if event.key == K_ESCAPE or event.key == K_RETURN:
                     self.in_help = False
+                return None
+            elif self.in_about:
+                # Handle about screen keys
+                if event.key == K_ESCAPE or event.key == K_RETURN:
+                    self.in_about = False
                 return None
             elif not self.in_submenu:
                 return self.handle_main_menu_key(event)
@@ -400,6 +459,8 @@ class Menu:
                 return "start_game"
             elif self.menu_items[self.current_selection] == "Help":
                 self.in_help = True
+            elif self.menu_items[self.current_selection] == "About":
+                self.in_about = True
             elif self.menu_items[self.current_selection] == "Exit":
                 return "exit"
         elif event.key == K_ESCAPE:
@@ -424,7 +485,7 @@ class Menu:
                 if self.submenu_type == "black_player":
                     self.black_player = self.player_types[self.submenu_selection]
                     # Ask for difficulty for AI players
-                    if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
+                    if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)", "AI Bitboard with Book (Fastest)"]:
                         self.in_submenu = True
                         self.submenu_type = "black_difficulty"
                         self.submenu_selection = self.difficulties.index(self.black_difficulty)
@@ -433,7 +494,7 @@ class Menu:
                 elif self.submenu_type == "white_player":
                     self.white_player = self.player_types[self.submenu_selection]
                     # Ask for difficulty for AI players
-                    if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
+                    if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)", "AI Bitboard with Book (Fastest)"]:
                         self.in_submenu = True
                         self.submenu_type = "white_difficulty"
                         self.submenu_selection = self.difficulties.index(self.white_difficulty)
@@ -492,6 +553,8 @@ class Menu:
             # Draw current screen
             if self.in_help:
                 self.draw_help()
+            elif self.in_about:
+                self.draw_about()
             elif self.in_submenu:
                 self.draw_submenu()
             else:
