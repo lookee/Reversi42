@@ -31,19 +31,23 @@ class BoardView(object):
         self.heigth = heigth
         self.caption = "Reversi42"
 
-        # colors - updated to match the reference image
-        self.bgColor            = (  0,     108,     85)  # Darker green background
-        self.lineColor          = (  0,       0,      0)   # Black grid lines
+        # Professional color palette - optimized for clarity and elegance
+        self.bgColor            = (  0,      95,     75)  # Rich forest green background
+        self.lineColor          = ( 15,      55,     45)  # Dark teal lines (not pure black)
         self.boxColor           = (  0,       0,      0)
-        self.shadowColor        = ( 40,      60,     40)
-        self.whitePieceColor    = (255,     255,    255)
-        self.blackPieceColor    = (  0,       0,      0)
-        self.lastMoveColor      = (255,       0,      0)   # Red dot for last move
-        self.hoshiColor         = (  0,       0,      0)   # Black dots for hoshi points
-        self.canMoveColor       = (200,     200,    200)   # Light gray for possible moves
-        self.whiteMoveColor     = (220,     220,    220)   # Light gray for white possible moves
-        self.blackMoveColor     = (180,     180,    180)   # Darker gray for black possible moves
-        self.cursorColor        = (255,     255,      0)   # Yellow for cursor highlight
+        self.shadowColor        = ( 25,      50,     40)  # Subtle shadow
+        
+        # Piece colors with improved contrast
+        self.whitePieceColor    = (248,     248,    250)  # Soft white (less harsh)
+        self.blackPieceColor    = ( 15,      15,     20)  # Deep black (not pure black)
+        
+        # UI accent colors
+        self.lastMoveColor      = (255,     180,     50)  # Golden amber for last move
+        self.hoshiColor         = ( 20,      70,     55)  # Subtle dark teal for hoshi
+        self.canMoveColor       = (180,     220,    190)  # Soft mint for possible moves
+        self.whiteMoveColor     = (200,     230,    210)  # Light mint for white moves
+        self.blackMoveColor     = (160,     200,    170)  # Darker mint for black moves
+        self.cursorColor        = (255,     215,      0)  # Pure gold for cursor
 
         # Minimum window size
         self.min_width = 400
@@ -165,17 +169,19 @@ class BoardView(object):
             end   = (self.sizex * self.stepx + self.marginx, self.stepy * n + self.marginy)
             pygame.draw.lines(screen, self.lineColor, False, [start, end], self.line_width)
             
-        # Add hoshi points (reference dots) - 4 corners for 8x8 board
-        # Hoshi points should be at the intersections of the 3rd and 6th lines (both horizontal and vertical)
+        # Add hoshi points (star points) with professional appearance
         if self.sizex == 8 and self.sizey == 8:
-            # Positions for 8x8 board: intersections of 3rd and 6th lines (0-indexed)
-            hoshi_positions = [(2, 2), (5, 2), (2, 5), (5, 5)]  # (3,3), (6,3), (3,6), (6,6) in 1-indexed
+            hoshi_positions = [(2, 2), (5, 2), (2, 5), (5, 5)]
             for hoshi_x, hoshi_y in hoshi_positions:
-                # Position at the intersection of grid lines, not at the center of squares
                 intersection_x = self.marginx + hoshi_x * self.stepx
                 intersection_y = self.marginy + hoshi_y * self.stepy
-                # Draw a small black circle at the intersection
-                pygame.draw.circle(screen, self.hoshiColor, (intersection_x, intersection_y), 4)
+                
+                # Calculate proportional radius
+                hoshi_radius = max(4, min(7, min(self.stepx, self.stepy) // 14))
+                
+                # Draw with anti-aliasing for smooth appearance
+                pygame.gfxdraw.filled_circle(screen, intersection_x, intersection_y, hoshi_radius, self.hoshiColor)
+                pygame.gfxdraw.aacircle(screen, intersection_x, intersection_y, hoshi_radius, self.hoshiColor)
 
     def update(self, cursor_mode=False):
         # Draw header with player info
@@ -187,9 +193,52 @@ class BoardView(object):
         pygame.display.update()
 
     def unfillBox(self, bx, by):
-
-        rect = Rect(self.stepx * bx + 2 + self.marginx, self.stepy * by + 2 + self.marginy, self.stepx - 3, self.stepy - 3)
-        self.screen.fill(self.bgColor,rect)     
+        """Clear a box and redraw grid lines for clean appearance"""
+        # Fill the entire cell area with background color
+        rect = Rect(
+            self.marginx + bx * self.stepx,
+            self.marginy + by * self.stepy,
+            self.stepx,
+            self.stepy
+        )
+        self.screen.fill(self.bgColor, rect)
+        
+        # Redraw the grid lines for this cell
+        # Left line
+        if bx == 0 or True:  # Always redraw left line
+            x = self.marginx + bx * self.stepx
+            start = (x, self.marginy + by * self.stepy)
+            end = (x, self.marginy + (by + 1) * self.stepy)
+            pygame.draw.line(self.screen, self.lineColor, start, end, self.line_width)
+        
+        # Right line
+        x = self.marginx + (bx + 1) * self.stepx
+        start = (x, self.marginy + by * self.stepy)
+        end = (x, self.marginy + (by + 1) * self.stepy)
+        pygame.draw.line(self.screen, self.lineColor, start, end, self.line_width)
+        
+        # Top line
+        if by == 0 or True:  # Always redraw top line
+            y = self.marginy + by * self.stepy
+            start = (self.marginx + bx * self.stepx, y)
+            end = (self.marginx + (bx + 1) * self.stepx, y)
+            pygame.draw.line(self.screen, self.lineColor, start, end, self.line_width)
+        
+        # Bottom line
+        y = self.marginy + (by + 1) * self.stepy
+        start = (self.marginx + bx * self.stepx, y)
+        end = (self.marginx + (bx + 1) * self.stepx, y)
+        pygame.draw.line(self.screen, self.lineColor, start, end, self.line_width)
+        
+        # Redraw hoshi point if this cell contains one
+        if self.sizex == 8 and self.sizey == 8:
+            hoshi_positions = [(2, 2), (5, 2), (2, 5), (5, 5)]
+            if (bx, by) in hoshi_positions:
+                intersection_x = self.marginx + bx * self.stepx
+                intersection_y = self.marginy + by * self.stepy
+                hoshi_radius = max(4, min(7, min(self.stepx, self.stepy) // 14))
+                pygame.gfxdraw.filled_circle(self.screen, intersection_x, intersection_y, hoshi_radius, self.hoshiColor)
+                pygame.gfxdraw.aacircle(self.screen, intersection_x, intersection_y, hoshi_radius, self.hoshiColor)     
 
     def fillBox(self, bx, by, color, shadow=True, hollow=False):
 
@@ -200,18 +249,39 @@ class BoardView(object):
         self.unfillBox(bx, by)
 
         if hollow:
-            # Draw hollow circle for possible moves
+            # Draw hollow circle for possible moves with anti-aliasing
             pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, color)
             pygame.draw.circle(self.screen, color, (posx, posy), radius, 2)
         else:
-            # antialiased filled circle shadow
+            # Draw shadow with soft edge
             if shadow:
-                pygame.gfxdraw.aacircle(self.screen, int(posx+2), int(posy+2), radius, self.shadowColor)
-                pygame.gfxdraw.filled_circle(self.screen, int(posx+2), int(posy+2), radius, self.shadowColor)
+                shadow_offset = 3
+                shadow_x = int(posx + shadow_offset)
+                shadow_y = int(posy + shadow_offset)
+                # Multi-layer shadow for smoother appearance
+                pygame.gfxdraw.filled_circle(self.screen, shadow_x, shadow_y, radius, self.shadowColor)
+                pygame.gfxdraw.aacircle(self.screen, shadow_x, shadow_y, radius, self.shadowColor)
 
-            # antialiased filled circle
+            # Draw main piece with gradient effect
+            # Create subtle gradient by drawing concentric circles
+            if color == self.whitePieceColor:
+                # White piece: bright in center, slightly darker at edge
+                for r in range(radius, max(0, radius - 8), -1):
+                    brightness = 248 - int((radius - r) * 2)
+                    gradient_color = (brightness, brightness, min(250, brightness + 2))
+                    pygame.gfxdraw.filled_circle(self.screen, posx, posy, r, gradient_color)
+            elif color == self.blackPieceColor:
+                # Black piece: subtle highlight in center
+                for r in range(radius, max(0, radius - 6), -1):
+                    darkness = 15 + int((radius - r) * 4)
+                    gradient_color = (darkness, darkness, darkness + 5)
+                    pygame.gfxdraw.filled_circle(self.screen, posx, posy, r, gradient_color)
+            else:
+                # Other colors: draw normally
+                pygame.gfxdraw.filled_circle(self.screen, posx, posy, radius, color)
+            
+            # Anti-aliased edge for crisp appearance
             pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, color)
-            pygame.gfxdraw.filled_circle(self.screen, posx, posy, radius, color)
 
     def setBox(self, bx, by, color, shadow=False):
         self.fillBox(bx, by, color, shadow)
@@ -228,44 +298,66 @@ class BoardView(object):
         self.lastMoveY = by
 
     def drawLastMoveIndicator(self):
-        """Draw red dot on the last move position"""
+        """Draw golden indicator on the last move position with glow"""
         if self.lastMoveX is not None and self.lastMoveY is not None:
             posx = int(self.marginx + self.stepx * self.lastMoveX + self.stepx // 2)
             posy = int(self.marginy + self.stepy * self.lastMoveY + self.stepy // 2)
-            pygame.draw.circle(self.screen, self.lastMoveColor, (posx, posy), 4)
+            
+            # Draw with anti-aliasing and subtle glow
+            radius = max(5, min(8, min(self.stepx, self.stepy) // 12))
+            
+            # Outer glow
+            glow_color = (255, 200, 80, 80)
+            for i in range(3):
+                glow_radius = radius + 2 + i * 2
+                pygame.gfxdraw.filled_circle(self.screen, posx, posy, glow_radius, (255, 200, 80, 40 - i * 10))
+            
+            # Main dot with anti-aliasing
+            pygame.gfxdraw.filled_circle(self.screen, posx, posy, radius, self.lastMoveColor)
+            pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, self.lastMoveColor)
 
     def setCanMove(self, bx, by):
-        # Make smaller circles for possible moves
-        radius = int((self.stepy-10) // 4)  # Smaller radius
+        """Draw possible move indicator with subtle style"""
+        radius = int((self.stepy-10) // 4)
         posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
         posy = int(self.marginy + self.stepy * by + self.stepy // 2)
         
         self.unfillBox(bx, by)
-        # Draw smaller hollow circle for possible moves
-        pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, self.canMoveColor)
-        pygame.draw.circle(self.screen, self.canMoveColor, (posx, posy), radius, 2)
+        
+        # Draw semi-transparent filled circle for better visibility
+        # Create surface with alpha
+        s = pygame.Surface((radius * 2 + 4, radius * 2 + 4), pygame.SRCALPHA)
+        pygame.gfxdraw.filled_circle(s, radius + 2, radius + 2, radius, (*self.canMoveColor, 180))
+        pygame.gfxdraw.aacircle(s, radius + 2, radius + 2, radius, self.canMoveColor)
+        self.screen.blit(s, (posx - radius - 2, posy - radius - 2))
 
     def setCanMoveBlack(self, bx, by):
-        # Make smaller circles for possible moves
-        radius = int((self.stepy-10) // 4)  # Smaller radius
+        """Draw possible move for black with subtle style"""
+        radius = int((self.stepy-10) // 4)
         posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
         posy = int(self.marginy + self.stepy * by + self.stepy // 2)
         
         self.unfillBox(bx, by)
-        # Draw smaller hollow circle for possible moves
-        pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, self.blackMoveColor)
-        pygame.draw.circle(self.screen, self.blackMoveColor, (posx, posy), radius, 2)
+        
+        # Semi-transparent indicator
+        s = pygame.Surface((radius * 2 + 4, radius * 2 + 4), pygame.SRCALPHA)
+        pygame.gfxdraw.filled_circle(s, radius + 2, radius + 2, radius, (*self.blackMoveColor, 200))
+        pygame.gfxdraw.aacircle(s, radius + 2, radius + 2, radius, self.blackMoveColor)
+        self.screen.blit(s, (posx - radius - 2, posy - radius - 2))
 
     def setCanMoveWhite(self, bx, by):
-        # Make smaller circles for possible moves
-        radius = int((self.stepy-10) // 4)  # Smaller radius
+        """Draw possible move for white with subtle style"""
+        radius = int((self.stepy-10) // 4)
         posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
         posy = int(self.marginy + self.stepy * by + self.stepy // 2)
         
         self.unfillBox(bx, by)
-        # Draw smaller hollow circle for possible moves
-        pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, self.whiteMoveColor)
-        pygame.draw.circle(self.screen, self.whiteMoveColor, (posx, posy), radius, 2)
+        
+        # Semi-transparent indicator
+        s = pygame.Surface((radius * 2 + 4, radius * 2 + 4), pygame.SRCALPHA)
+        pygame.gfxdraw.filled_circle(s, radius + 2, radius + 2, radius, (*self.whiteMoveColor, 200))
+        pygame.gfxdraw.aacircle(s, radius + 2, radius + 2, radius, self.whiteMoveColor)
+        self.screen.blit(s, (posx - radius - 2, posy - radius - 2))
 
     def unsetBox(self, bx, by):
         self.unfillBox(bx, by)
@@ -295,16 +387,22 @@ class BoardView(object):
         self.cursorY = by
     
     def drawCursor(self, cursor_mode=False):
-        """Draw yellow rectangle around cursor position"""
+        """Draw elegant golden cursor with rounded corners"""
         if cursor_mode and 0 <= self.cursorX < self.sizex and 0 <= self.cursorY < self.sizey:
-            # Draw yellow rectangle around the cursor position
-            rect_x = self.marginx + self.cursorX * self.stepx + 2
-            rect_y = self.marginy + self.cursorY * self.stepy + 2
-            rect_width = self.stepx - 4
-            rect_height = self.stepy - 4
+            rect_x = self.marginx + self.cursorX * self.stepx + 3
+            rect_y = self.marginy + self.cursorY * self.stepy + 3
+            rect_width = self.stepx - 6
+            rect_height = self.stepy - 6
             
-            pygame.draw.rect(self.screen, self.cursorColor, 
-                           (rect_x, rect_y, rect_width, rect_height), 3)
+            # Draw outer glow for visibility
+            glow_rect = pygame.Rect(rect_x - 2, rect_y - 2, rect_width + 4, rect_height + 4)
+            s = pygame.Surface((glow_rect.width, glow_rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(s, (*self.cursorColor, 60), s.get_rect(), width=6, border_radius=6)
+            self.screen.blit(s, glow_rect.topleft)
+            
+            # Main cursor border (thicker, rounded)
+            cursor_rect = pygame.Rect(rect_x, rect_y, rect_width, rect_height)
+            pygame.draw.rect(self.screen, self.cursorColor, cursor_rect, width=4, border_radius=4)
     
     def moveCursor(self, dx, dy):
         """Move cursor by dx, dy"""
