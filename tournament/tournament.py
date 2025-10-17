@@ -125,6 +125,11 @@ class Tournament:
                 evaluator_type=evaluator_type
             )
             player.name = name
+        elif player_type == "AIBook":
+            # Create AIPlayerBook with specified difficulty
+            from Players.AIPlayerBook import AIPlayerBook
+            player = AIPlayerBook(deep=difficulty)
+            player.name = name
         else:
             player = PlayerFactory.create_player(player_type)
             player.name = name
@@ -651,9 +656,23 @@ def main():
             name = f"Minimax-{evaluator}-{difficulty}"
             player_config = ("AI", name, difficulty, "Minimax", evaluator)
         
+        elif player_type == 'AI with Opening Book':
+            # AIPlayerBook with difficulty
+            while True:
+                try:
+                    difficulty = int(input("  Difficulty level (1-10): "))
+                    if 1 <= difficulty <= 10:
+                        break
+                    print("  Please enter a number between 1 and 10")
+                except ValueError:
+                    print("  Please enter a valid number")
+            
+            name = f"AIPlayerBook-{difficulty}"
+            player_config = ("AIBook", name, difficulty, "Minimax", "Standard")
+        
         else:
-            # Other player types
-            name = f"{player_type}Player"
+            # Other player types (Heuristic, Greedy, Monkey)
+            name = f"{player_type.replace(' ', '')}"
             player_config = (player_type, name, 1, player_type, "Standard")
         
         players_config.append(player_config)

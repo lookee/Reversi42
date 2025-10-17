@@ -16,13 +16,21 @@ sys.path.append(os.path.join(parent_dir, 'src'))
 # Import tournament system
 from tournament import Tournament
 
-# Quick tournament configuration
+# Quick tournament configuration - All available AI players with defaults
 players_config = [
-    # (type, name, difficulty, engine, evaluator)
-    ("AI", "Minimax-Std-4", 4, "Minimax", "Standard"),
-    ("AI", "Minimax-Adv-4", 4, "Minimax", "Advanced"),
+    # Standard AI with different evaluators
+    ("AI", "AIPlayer-Std-6", 6, "Minimax", "Standard"),
+    ("AI", "AIPlayer-Adv-6", 6, "Minimax", "Advanced"),
+    ("AI", "AIPlayer-Simple-6", 6, "Minimax", "Simple"),
+    ("AI", "AIPlayer-Greedy-6", 6, "Minimax", "Greedy"),
+    
+    # AI with Opening Book (NEW!)
+    ("AIBook", "AIPlayerBook-6", 6, "Minimax", "Standard"),
+    
+    # Specialized players
     ("Heuristic", "HeuristicPlayer", 1, "Heuristic", "Standard"),
-    ("Greedy", "GreedyPlayer", 1, "Minimax", "Standard"),
+    ("Greedy", "GreedyPlayer", 1, "Minimax", "Greedy"),
+    ("Monkey", "MonkeyPlayer", 1, "Random", "Standard"),
 ]
 
 games_per_matchup = 2  # 2 games per matchup (quick test)
