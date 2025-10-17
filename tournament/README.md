@@ -49,21 +49,27 @@ tournament/
 - ✅ Esecuzione veloce senza grafica
 - ✅ Timing preciso di ogni mossa
 - ✅ Report statistico dettagliato
+- ✅ Storico mosse completo (opzionale)
+- ✅ Discovery automatico dei player dai metadati
 
 ### AI Disponibili
+
+I tipi di AI disponibili vengono rilevati automaticamente dai metadati dei player:
 
 1. **Minimax** (Standard/Advanced/Greedy evaluator)
    - Difficoltà: 1-10
    - Ricerca alpha-beta completa
 
 2. **Heuristic**
-   - Euristiche semplici
+   - Euristiche semplici, veloce
 
 3. **Greedy**
    - Massimizza catture immediate
 
 4. **Monkey**
    - Mosse casuali (controllo)
+
+Il sistema rileva automaticamente tutti i player abilitati e li mostra nel menu interattivo.
 
 ### Report Generato
 
@@ -94,6 +100,11 @@ Il sistema genera automaticamente un report dettagliato con:
    - Giocatore più veloce
    - Giocatore più aggressivo
    - Insights strategici
+
+8. **Storico Mosse Completo** (opzionale)
+   - Notazione completa di tutte le partite
+   - Uppercase = mosse Nero, lowercase = mosse Bianco
+   - Utile per analisi post-torneo e replay
 
 ## Esempio Output
 

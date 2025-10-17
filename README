@@ -37,10 +37,20 @@ GAME FEATURES
 
 PLAYER TYPES
 
+The game features a metadata-driven player system. New player types can be
+added easily by defining their metadata - the menu auto-generates options.
+
+Available Players:
 1. HumanPlayer: Interactive player using mouse clicks
-2. AIPlayer: Intelligent AI using alpha-beta pruning
-3. GreedyPlayer: Always chooses the move that captures the most pieces immediately
-4. Monkey: Random move selection for testing
+2. AIPlayer: Intelligent AI using alpha-beta pruning (configurable difficulty 1-10)
+3. HeuristicPlayer: Fast AI using simple heuristics without deep search
+4. GreedyPlayer: Always chooses the move that captures the most pieces immediately
+5. Monkey: Random move selection for testing
+
+Disabled (development):
+- NetworkPlayer: Play against remote opponents (not yet implemented)
+
+See ADDING_PLAYERS.md for instructions on adding custom player types.
 
 AI STRATEGY
 
@@ -144,16 +154,20 @@ Reversi42/
 │   │   ├── GreedyEvaluator.py   # Greedy piece count evaluator
 │   │   └── __init__.py
 │   ├── Players/
-│   │   ├── Player.py            # Base player class
+│   │   ├── Player.py            # Base player class (with metadata system)
 │   │   ├── HumanPlayer.py       # Human player implementation
 │   │   ├── AIPlayer.py          # AI player wrapper
+│   │   ├── HeuristicPlayer.py   # Heuristic player (fast, simple heuristics)
 │   │   ├── GreedyPlayer.py      # Greedy player (maximizes immediate captures)
 │   │   ├── Monkey.py            # Random player
+│   │   ├── NetworkPlayer.py     # Network player (disabled, example)
+│   │   ├── CustomPlayerExample.py # Example of custom player with parameters
 │   │   ├── PlayerFactory.py     # Factory for creating players
 │   │   └── __init__.py
 │   ├── examples/
 │   │   ├── evaluator_comparison.py  # Demo of different evaluators
 │   │   ├── greedy_player_demo.py    # Demo of greedy strategy
+│   │   ├── heuristic_player_demo.py # Demo of heuristic strategy
 │   │   └── modular_players_example.py  # Demo of player modularity
 │   ├── Menu.py              # Menu system
 │   ├── GameOver.py          # Game over screen
@@ -170,6 +184,7 @@ Reversi42/
 │       └── tournament_report_*.txt (auto-generated)
 ├── reversi42                # Executable entry point
 ├── README                   # This file
+├── ADDING_PLAYERS.md        # Guide for adding custom players
 └── COPYING                  # License information
 ```
 

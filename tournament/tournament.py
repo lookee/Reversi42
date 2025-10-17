@@ -97,16 +97,18 @@ class PlayerStats:
 class Tournament:
     """Tournament manager and statistics"""
     
-    def __init__(self, players_config, games_per_matchup):
+    def __init__(self, players_config, games_per_matchup, include_move_history=False):
         """
         Initialize tournament
         
         Args:
             players_config: List of tuples (type, name, difficulty, engine, evaluator)
             games_per_matchup: Number of games per matchup (each color)
+            include_move_history: If True, include full move history in report
         """
         self.players_config = players_config
         self.games_per_matchup = games_per_matchup
+        self.include_move_history = include_move_history
         self.games = []
         self.player_stats = {}
         self.start_time = None
@@ -511,6 +513,28 @@ class Tournament:
         report.append(f"    • Most Aggressive: {most_aggressive.name} (avg score: {most_aggressive.total_score/most_aggressive.games_played:.2f})")
         
         report.append("")
+        
+        # Optional: Move History Section
+        if self.include_move_history:
+            report.append("─" * 80)
+            report.append("8. COMPLETE MOVE HISTORY")
+            report.append("─" * 80)
+            report.append("")
+            report.append("  Full game notation for all tournament games:")
+            report.append("  (Uppercase = Black moves, Lowercase = White moves)")
+            report.append("")
+            
+            for i, game in enumerate(self.games, 1):
+                report.append(f"  Game {i}: {game.black_player} (B) vs {game.white_player} (W)")
+                report.append(f"    Winner: {game.winner}")
+                report.append(f"    Score: {game.black_score}-{game.white_score}")
+                report.append(f"    Moves ({game.moves_count}): {game.game_history}")
+                report.append(f"    Duration: {game.duration:.3f}s")
+                report.append("")
+            
+            report.append(f"  Total games recorded: {len(self.games)}")
+            report.append("")
+        
         report.append("─" * 80)
         report.append("END OF REPORT")
         report.append("─" * 80)
@@ -544,24 +568,44 @@ class Tournament:
 
 
 def main():
-    """Main tournament setup"""
+    """Main tournament setup using player metadata"""
     print("\n" + "="*80)
     print("REVERSI42 TOURNAMENT SYSTEM")
     print("="*80)
     print()
     
+    # Get available players from metadata (excluding Human)
+    all_metadata = PlayerFactory.get_all_player_metadata()
+    
+    # Filter to only AI players (no Human)
+    ai_players_meta = {
+        name: meta for name, meta in all_metadata.items()
+        if meta['enabled'] and name != 'Human'
+    }
+    
+    # For AI players with evaluators, create variants
+    tournament_options = []
+    option_configs = []
+    
+    # Add Minimax variants
+    for evaluator in ['Standard', 'Advanced', 'Greedy']:
+        tournament_options.append(f"Minimax ({evaluator} evaluator)")
+        option_configs.append(('AI_variant', evaluator))
+    
+    # Add other players from metadata
+    for name, meta in ai_players_meta.items():
+        if name != 'AI':  # AI is handled above with variants
+            tournament_options.append(f"{name}: {meta['description']}")
+            option_configs.append((name, None))
+    
     # Get tournament configuration
     print("Configure your tournament:")
     print()
     
-    # Available players
+    # Display available players
     print("Available AI types:")
-    print("  1. Minimax (Standard evaluator)")
-    print("  2. Minimax (Advanced evaluator)")
-    print("  3. Minimax (Greedy evaluator)")
-    print("  4. Heuristic")
-    print("  5. Greedy")
-    print("  6. Monkey (Random)")
+    for i, option in enumerate(tournament_options, 1):
+        print(f"  {i}. {option}")
     print()
     
     # Get number of participants
@@ -583,15 +627,18 @@ def main():
         
         while True:
             try:
-                ai_type = int(input("  AI type (1-6): "))
-                if 1 <= ai_type <= 6:
+                ai_type = int(input(f"  AI type (1-{len(tournament_options)}): "))
+                if 1 <= ai_type <= len(tournament_options):
                     break
-                print("  Please enter a number between 1 and 6")
+                print(f"  Please enter a number between 1 and {len(tournament_options)}")
             except ValueError:
                 print("  Please enter a valid number")
         
-        if ai_type <= 3:
-            # Minimax
+        player_type, extra = option_configs[ai_type - 1]
+        
+        if player_type == 'AI_variant':
+            # Minimax with specific evaluator
+            evaluator = extra
             while True:
                 try:
                     difficulty = int(input("  Difficulty level (1-10): "))
@@ -601,31 +648,13 @@ def main():
                 except ValueError:
                     print("  Please enter a valid number")
             
-            engine = "Minimax"
-            if ai_type == 1:
-                evaluator = "Standard"
-            elif ai_type == 2:
-                evaluator = "Advanced"
-            else:
-                evaluator = "Greedy"
-            
             name = f"Minimax-{evaluator}-{difficulty}"
-            player_config = ("AI", name, difficulty, engine, evaluator)
-        
-        elif ai_type == 4:
-            # Heuristic
-            name = "HeuristicAI"
-            player_config = ("AI", name, 1, "Heuristic", "Standard")
-        
-        elif ai_type == 5:
-            # Greedy
-            name = "GreedyPlayer"
-            player_config = ("Greedy", name, 1, "Minimax", "Standard")
+            player_config = ("AI", name, difficulty, "Minimax", evaluator)
         
         else:
-            # Monkey
-            name = "MonkeyPlayer"
-            player_config = ("Monkey", name, 1, "Random", "Standard")
+            # Other player types
+            name = f"{player_type}Player"
+            player_config = (player_type, name, 1, player_type, "Standard")
         
         players_config.append(player_config)
         print(f"  Added: {name}")
@@ -641,6 +670,15 @@ def main():
         except ValueError:
             print("Please enter a valid number")
     
+    # Ask about move history
+    print()
+    while True:
+        include_history = input("Include complete move history in report? (y/n): ").strip().lower()
+        if include_history in ['y', 'n', 'yes', 'no']:
+            include_move_history = include_history in ['y', 'yes']
+            break
+        print("Please enter 'y' or 'n'")
+    
     # Calculate total games
     n = len(players_config)
     total_games = n * (n - 1) * games_per_matchup
@@ -651,12 +689,13 @@ def main():
     print(f"  Matchups: {n * (n - 1)}")
     print(f"  Games per matchup: {games_per_matchup}")
     print(f"  Total games: {total_games}")
+    print(f"  Include move history: {'Yes' if include_move_history else 'No'}")
     print()
     
     input("Press ENTER to start tournament...")
     
     # Run tournament
-    tournament = Tournament(players_config, games_per_matchup)
+    tournament = Tournament(players_config, games_per_matchup, include_move_history)
     tournament.run()
     
     # Generate and display report
@@ -668,6 +707,8 @@ def main():
     
     print("\nTournament completed successfully!")
     print(f"Detailed report saved to: {filename}")
+    if include_move_history:
+        print("Note: Report includes complete move history for all games")
 
 
 if __name__ == "__main__":

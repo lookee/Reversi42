@@ -25,8 +25,15 @@ import pygame
 from pygame.locals import *
 
 class HumanPlayer(Player):
+    
+    PLAYER_METADATA = {
+        'display_name': 'Human',
+        'description': 'Interactive player using mouse/keyboard',
+        'enabled': True,
+        'parameters': []  # No configurable parameters
+    }
 
-    def __init__(self,name='Human'):
+    def __init__(self, name='Human'):
         self.name = name
 
     def get_move(self, game, moves, control):

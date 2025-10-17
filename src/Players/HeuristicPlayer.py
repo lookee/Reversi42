@@ -18,31 +18,36 @@
 #------------------------------------------------------------------------
 
 from Players.Player import Player
-from Reversi.Game import Move
+from AI.HeuristicEngine import HeuristicEngine
 
-class GreedyPlayer(Player):
+class HeuristicPlayer(Player):
     """
-    Greedy player that always chooses the move that captures 
-    the maximum number of pieces immediately.
+    Heuristic player that uses simple heuristics without full minimax search.
     
-    This is a simple, short-sighted strategy that doesn't consider
-    long-term positional advantages or mobility. It's useful for
-    testing and as a baseline opponent.
+    This player uses the HeuristicEngine which evaluates moves based on:
+    - Corner and edge priorities
+    - Priority matrix scores
+    - Mobility (number of moves after placement)
+    - Piece count
+    
+    Faster than full Minimax but less sophisticated.
+    Good for medium difficulty opponents.
     """
     
     PLAYER_METADATA = {
-        'display_name': 'Greedy',
-        'description': 'Always captures maximum pieces immediately',
+        'display_name': 'Heuristic',
+        'description': 'Fast AI using simple heuristics (no deep search)',
         'enabled': True,
         'parameters': []  # No configurable parameters
     }
     
-    def __init__(self, name='Greedy'):
+    def __init__(self, name='Heuristic'):
         self.name = name
+        self.engine = HeuristicEngine()
     
     def get_move(self, game, moves, control):
         """
-        Select the move that flips the most opponent pieces.
+        Get move using heuristic evaluation.
         
         Args:
             game: Current game state
@@ -50,36 +55,11 @@ class GreedyPlayer(Player):
             control: Board control (for GUI updates, can be None)
             
         Returns:
-            Move: The move that captures the most pieces
+            Move: The best move found using heuristics
         """
-        if not moves:
-            return None
-        
-        best_move = None
-        max_flips = -1
-        
-        current_turn = game.get_turn()
-        
-        # Evaluate each move
-        for move in moves:
-            # Make the move
-            game.move(move)
-            
-            # Count how many pieces we have after this move
-            if current_turn == 'B':
-                piece_count = game.black_cnt
-            else:
-                piece_count = game.white_cnt
-            
-            # Undo the move
-            game.undo_move()
-            
-            # Check if this move gives us more pieces
-            if piece_count > max_flips:
-                max_flips = piece_count
-                best_move = move
-        
-        return best_move
+        # Depth parameter is ignored by HeuristicEngine
+        move = self.engine.get_best_move(game, depth=1)
+        return move
     
     def get_name(self):
         return self.name

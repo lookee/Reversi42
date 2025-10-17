@@ -20,6 +20,8 @@ from Players.HumanPlayer import HumanPlayer
 from Players.AIPlayer import AIPlayer
 from Players.Monkey import Monkey
 from Players.GreedyPlayer import GreedyPlayer
+from Players.HeuristicPlayer import HeuristicPlayer
+from Players.NetworkPlayer import NetworkPlayer
 from AI.MinimaxEngine import MinimaxEngine
 from AI.RandomEngine import RandomEngine
 from AI.HeuristicEngine import HeuristicEngine
@@ -32,14 +34,24 @@ class PlayerFactory:
     """
     Factory class for creating different types of players.
     This makes it easy to add new player types and engines.
+    
+    Player types are automatically discovered from their metadata.
     """
     
-    # Registry of available player types
+    # Registry of all player classes (including disabled ones)
+    ALL_PLAYER_CLASSES = [
+        HumanPlayer,
+        AIPlayer,
+        HeuristicPlayer,
+        GreedyPlayer,
+        Monkey,
+        NetworkPlayer,  # Disabled by default
+    ]
+    
+    # Build registry from metadata
     PLAYER_TYPES = {
-        'Human': HumanPlayer,
-        'AI': AIPlayer,
-        'Monkey': Monkey,
-        'Greedy': GreedyPlayer,
+        cls.PLAYER_METADATA['display_name']: cls
+        for cls in ALL_PLAYER_CLASSES
     }
     
     # Registry of available AI engines
@@ -118,12 +130,54 @@ class PlayerFactory:
     @classmethod
     def get_available_player_types(cls):
         """
-        Get list of available player types.
+        Get list of available (enabled) player types.
         
         Returns:
             list: List of available player type names
         """
+        return [
+            player_class.PLAYER_METADATA['display_name']
+            for player_class in cls.ALL_PLAYER_CLASSES
+            if player_class.PLAYER_METADATA['enabled']
+        ]
+    
+    @classmethod
+    def get_all_player_types(cls):
+        """
+        Get list of all player types (including disabled).
+        
+        Returns:
+            list: List of all player type names
+        """
         return list(cls.PLAYER_TYPES.keys())
+    
+    @classmethod
+    def get_player_metadata(cls, player_type):
+        """
+        Get metadata for a specific player type.
+        
+        Args:
+            player_type: Name of the player type
+            
+        Returns:
+            dict: Player metadata
+        """
+        if player_type in cls.PLAYER_TYPES:
+            return cls.PLAYER_TYPES[player_type].PLAYER_METADATA
+        return None
+    
+    @classmethod
+    def get_all_player_metadata(cls):
+        """
+        Get metadata for all player types.
+        
+        Returns:
+            dict: Dictionary mapping player type names to their metadata
+        """
+        return {
+            player_class.PLAYER_METADATA['display_name']: player_class.PLAYER_METADATA
+            for player_class in cls.ALL_PLAYER_CLASSES
+        }
     
     @classmethod
     def get_available_engines(cls):

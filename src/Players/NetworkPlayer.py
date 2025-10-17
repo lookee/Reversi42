@@ -25,6 +25,21 @@ class NetworkPlayer(Player):
     This demonstrates how easy it is to add new player types.
     """
     
+    PLAYER_METADATA = {
+        'display_name': 'Network',
+        'description': 'Play against remote opponent (not implemented)',
+        'enabled': False,  # Disabled - not fully implemented
+        'parameters': [
+            {
+                'name': 'server_url',
+                'display_name': 'Server URL',
+                'type': 'str',
+                'default': 'localhost:8080',
+                'description': 'URL of the game server'
+            }
+        ]
+    }
+    
     def __init__(self, name='NetworkPlayer', server_url=None):
         self.name = name
         self.server_url = server_url

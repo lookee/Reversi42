@@ -23,6 +23,13 @@ from Players.Player import Player
 import random
 
 class Monkey(Player):
+    
+    PLAYER_METADATA = {
+        'display_name': 'Monkey',
+        'description': 'Random move selection (for testing)',
+        'enabled': True,
+        'parameters': []  # No configurable parameters
+    }
 
     def __init__(self):
         self.name = 'Monkey'

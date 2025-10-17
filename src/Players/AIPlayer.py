@@ -22,9 +22,26 @@ from AI.MinimaxEngine import MinimaxEngine
 from Players.Player import Player
 
 class AIPlayer(Player):
+    
+    PLAYER_METADATA = {
+        'display_name': 'AI',
+        'description': 'Intelligent AI with minimax alpha-beta pruning',
+        'enabled': True,
+        'parameters': [
+            {
+                'name': 'difficulty',
+                'display_name': 'Difficulty Level',
+                'type': 'int',
+                'min': 1,
+                'max': 10,
+                'default': 6,
+                'description': 'Search depth (higher = stronger but slower)'
+            }
+        ]
+    }
 
-    def __init__(self, deep = 6):
-        self.name='AIPlayer%d' %deep
+    def __init__(self, deep=6):
+        self.name = 'AIPlayer%d' % deep
         self.deep = deep
         self.engine = MinimaxEngine()
 

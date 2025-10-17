@@ -21,11 +21,12 @@ players_config = [
     # (type, name, difficulty, engine, evaluator)
     ("AI", "Minimax-Std-4", 4, "Minimax", "Standard"),
     ("AI", "Minimax-Adv-4", 4, "Minimax", "Advanced"),
-    ("AI", "Minimax-Greedy-4", 4, "Minimax", "Greedy"),
+    ("Heuristic", "HeuristicPlayer", 1, "Heuristic", "Standard"),
     ("Greedy", "GreedyPlayer", 1, "Minimax", "Standard"),
 ]
 
 games_per_matchup = 2  # 2 games per matchup (quick test)
+include_move_history = True  # Include move history in report
 
 print("\n" + "="*80)
 print("QUICK TOURNAMENT - PRE-CONFIGURED")
@@ -35,12 +36,13 @@ for config in players_config:
     print(f"  - {config[1]}")
 print(f"\nGames per matchup: {games_per_matchup}")
 print(f"Total games: {len(players_config) * (len(players_config) - 1) * games_per_matchup}")
+print(f"Include move history: {'Yes' if include_move_history else 'No'}")
 print()
 
 input("Press ENTER to start...")
 
-# Run tournament
-tournament = Tournament(players_config, games_per_matchup)
+# Run tournament with move history
+tournament = Tournament(players_config, games_per_matchup, include_move_history)
 tournament.run()
 
 # Generate and display report
@@ -52,4 +54,6 @@ filename = tournament.save_report()
 
 print(f"\n✓ Tournament completed!")
 print(f"✓ Report saved to: {filename}")
+if include_move_history:
+    print(f"✓ Report includes complete move history for all {len(players_config) * (len(players_config) - 1) * games_per_matchup} games")
 

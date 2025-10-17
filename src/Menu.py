@@ -20,6 +20,12 @@ from pygame.locals import *
 import os
 import sys
 
+# Add src to path if needed
+if 'src' not in sys.path:
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
+
+from Players.PlayerFactory import PlayerFactory
+
 class Menu:
     def __init__(self, width=800, height=600):
         self.width = width
@@ -56,17 +62,19 @@ class Menu:
         self.black_difficulty = 6
         self.white_difficulty = 6
         
-        # Player types
-        self.player_types = ["Human", "AI", "Greedy", "Monkey"]
-        self.difficulties = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        # Get player types and descriptions from PlayerFactory metadata
+        self.player_types = PlayerFactory.get_available_player_types()
+        self.all_metadata = PlayerFactory.get_all_player_metadata()
         
-        # Player descriptions
+        # Build descriptions from metadata
         self.player_descriptions = {
-            "Human": "Interactive player using mouse/keyboard",
-            "AI": "Intelligent AI with minimax alpha-beta pruning",
-            "Greedy": "Always captures maximum pieces immediately",
-            "Monkey": "Random move selection for testing"
+            name: meta['description']
+            for name, meta in self.all_metadata.items()
+            if meta['enabled']
         }
+        
+        # Difficulties for AI players (can be extended by player metadata)
+        self.difficulties = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         
         # Submenu state
         self.in_submenu = False
@@ -237,14 +245,15 @@ class Menu:
         title_rect = title_text.get_rect(center=(self.width//2, 60))
         self.screen.blit(title_text, title_rect)
         
+        # Build player types list from metadata (only enabled players)
+        player_descriptions_list = []
+        for name in self.player_types:
+            if name in self.player_descriptions:
+                player_descriptions_list.append(f"{name}: {self.player_descriptions[name]}")
+        
         # Help content
         help_sections = [
-            ("PLAYER TYPES", [
-                "Human: Play using mouse clicks or keyboard arrows",
-                "AI: Intelligent computer player with configurable difficulty",
-                "Greedy: Always captures the maximum pieces immediately",
-                "Monkey: Random move selection (for testing)"
-            ]),
+            ("PLAYER TYPES", player_descriptions_list),
             ("GAME CONTROLS", [
                 "Mouse: Click on valid moves to place your piece",
                 "C key: Toggle cursor navigation mode",
