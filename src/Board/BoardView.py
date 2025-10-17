@@ -317,47 +317,74 @@ class BoardView(object):
             pygame.gfxdraw.aacircle(self.screen, posx, posy, radius, self.lastMoveColor)
 
     def setCanMove(self, bx, by):
-        """Draw possible move indicator with subtle style"""
+        """Draw possible move indicator with perfectly smooth anti-aliased edges"""
         radius = int((self.stepy-10) // 4)
         posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
         posy = int(self.marginy + self.stepy * by + self.stepy // 2)
         
         self.unfillBox(bx, by)
         
-        # Draw semi-transparent filled circle for better visibility
-        # Create surface with alpha
-        s = pygame.Surface((radius * 2 + 4, radius * 2 + 4), pygame.SRCALPHA)
-        pygame.gfxdraw.filled_circle(s, radius + 2, radius + 2, radius, (*self.canMoveColor, 180))
-        pygame.gfxdraw.aacircle(s, radius + 2, radius + 2, radius, self.canMoveColor)
-        self.screen.blit(s, (posx - radius - 2, posy - radius - 2))
+        # Use larger surface and pygame.draw.circle for better quality
+        surf_size = radius * 4  # Much larger to avoid artifacts
+        s = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
+        center = surf_size // 2
+        
+        # Draw filled circle using pygame.draw (better anti-aliasing than gfxdraw)
+        pygame.draw.circle(s, (*self.canMoveColor, 180), (center, center), radius)
+        
+        # Add manual anti-aliasing by drawing semi-transparent rings
+        for i in range(1, 4):
+            alpha = 180 - i * 50
+            if alpha > 0:
+                pygame.draw.circle(s, (*self.canMoveColor, alpha), (center, center), radius + i, 1)
+        
+        self.screen.blit(s, (posx - center, posy - center))
 
     def setCanMoveBlack(self, bx, by):
-        """Draw possible move for black with subtle style"""
+        """Draw possible move for black with perfectly smooth edges"""
         radius = int((self.stepy-10) // 4)
         posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
         posy = int(self.marginy + self.stepy * by + self.stepy // 2)
         
         self.unfillBox(bx, by)
         
-        # Semi-transparent indicator
-        s = pygame.Surface((radius * 2 + 4, radius * 2 + 4), pygame.SRCALPHA)
-        pygame.gfxdraw.filled_circle(s, radius + 2, radius + 2, radius, (*self.blackMoveColor, 200))
-        pygame.gfxdraw.aacircle(s, radius + 2, radius + 2, radius, self.blackMoveColor)
-        self.screen.blit(s, (posx - radius - 2, posy - radius - 2))
+        surf_size = radius * 4
+        s = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
+        center = surf_size // 2
+        
+        # Draw with smooth anti-aliasing
+        pygame.draw.circle(s, (*self.blackMoveColor, 200), (center, center), radius)
+        
+        # Manual anti-aliasing rings
+        for i in range(1, 4):
+            alpha = 200 - i * 50
+            if alpha > 0:
+                pygame.draw.circle(s, (*self.blackMoveColor, alpha), (center, center), radius + i, 1)
+        
+        self.screen.blit(s, (posx - center, posy - center))
 
     def setCanMoveWhite(self, bx, by):
-        """Draw possible move for white with subtle style"""
+        """Draw possible move for white with perfectly smooth edges"""
         radius = int((self.stepy-10) // 4)
         posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
         posy = int(self.marginy + self.stepy * by + self.stepy // 2)
         
         self.unfillBox(bx, by)
         
-        # Semi-transparent indicator
-        s = pygame.Surface((radius * 2 + 4, radius * 2 + 4), pygame.SRCALPHA)
-        pygame.gfxdraw.filled_circle(s, radius + 2, radius + 2, radius, (*self.whiteMoveColor, 200))
-        pygame.gfxdraw.aacircle(s, radius + 2, radius + 2, radius, self.whiteMoveColor)
-        self.screen.blit(s, (posx - radius - 2, posy - radius - 2))
+        surf_size = radius * 4
+        s = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
+        center = surf_size // 2
+        
+        # Draw with smooth anti-aliasing
+        pygame.draw.circle(s, (*self.whiteMoveColor, 200), (center, center), radius)
+        
+        # Manual anti-aliasing rings
+        for i in range(1, 4):
+            alpha = 200 - i * 50
+            if alpha > 0:
+                pygame.draw.circle(s, (*self.whiteMoveColor, alpha), (center, center), radius + i, 1)
+        
+        self.screen.blit(s, (posx - center, posy - center))
 
     def unsetBox(self, bx, by):
         self.unfillBox(bx, by)
