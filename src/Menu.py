@@ -139,11 +139,11 @@ class Menu:
             
             if item == "Black Player":
                 text = f"Black Player: {self.black_player}"
-                if self.black_player in ["AI", "AI with Opening Book"]:
+                if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
                     text += f" (Level {self.black_difficulty})"
             elif item == "White Player":
                 text = f"White Player: {self.white_player}"
-                if self.white_player in ["AI", "AI with Opening Book"]:
+                if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
                     text += f" (Level {self.white_difficulty})"
             else:
                 text = item
@@ -340,8 +340,8 @@ class Menu:
                         if "player" in self.submenu_type:
                             if self.submenu_type == "black_player":
                                 self.black_player = self.player_types[self.submenu_selection]
-                                # Ask for difficulty for AI players (both standard and with book)
-                                if self.black_player in ["AI", "AI with Opening Book"]:
+                                # Ask for difficulty for AI players
+                                if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
                                     self.in_submenu = True
                                     self.submenu_type = "black_difficulty"
                                     self.submenu_selection = self.difficulties.index(self.black_difficulty)
@@ -349,8 +349,8 @@ class Menu:
                                     self.in_submenu = False
                             elif self.submenu_type == "white_player":
                                 self.white_player = self.player_types[self.submenu_selection]
-                                # Ask for difficulty for AI players (both standard and with book)
-                                if self.white_player in ["AI", "AI with Opening Book"]:
+                                # Ask for difficulty for AI players
+                                if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
                                     self.in_submenu = True
                                     self.submenu_type = "white_difficulty"
                                     self.submenu_selection = self.difficulties.index(self.white_difficulty)
@@ -423,8 +423,8 @@ class Menu:
             if "player" in self.submenu_type:
                 if self.submenu_type == "black_player":
                     self.black_player = self.player_types[self.submenu_selection]
-                    # Ask for difficulty for AI players (both standard and with book)
-                    if self.black_player in ["AI", "AI with Opening Book"]:
+                    # Ask for difficulty for AI players
+                    if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
                         self.in_submenu = True
                         self.submenu_type = "black_difficulty"
                         self.submenu_selection = self.difficulties.index(self.black_difficulty)
@@ -432,8 +432,8 @@ class Menu:
                         self.in_submenu = False
                 elif self.submenu_type == "white_player":
                     self.white_player = self.player_types[self.submenu_selection]
-                    # Ask for difficulty for AI players (both standard and with book)
-                    if self.white_player in ["AI", "AI with Opening Book"]:
+                    # Ask for difficulty for AI players
+                    if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)"]:
                         self.in_submenu = True
                         self.submenu_type = "white_difficulty"
                         self.submenu_selection = self.difficulties.index(self.white_difficulty)

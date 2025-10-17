@@ -43,6 +43,9 @@ def create_player(player_type, difficulty=6, engine_type='Minimax'):
         elif player_type == "AI with Opening Book":
             # Create AIPlayerBook with specified difficulty
             return PlayerFactory.create_player(player_type, deep=difficulty)
+        elif player_type == "AI Bitboard (Ultra-Fast)":
+            # Create AIPlayerBitboard with specified difficulty
+            return PlayerFactory.create_player(player_type, deep=difficulty)
         else:
             return PlayerFactory.create_player(player_type)
     except ValueError as e:
@@ -189,10 +192,12 @@ def run_game(menu_result, loaded_game_data=None):
     # Game loop
     clock = pygame.time.Clock()
     running = True
+    game_ended = False  # Track if game ended naturally
     
     while running:
         # Check if game is finished
         if g.is_finish():
+            game_ended = True
             break
             
         turn = g.get_turn()
@@ -201,6 +206,8 @@ def run_game(menu_result, loaded_game_data=None):
         print(f"{player.get_name()} is moving...")
         
         moves = g.get_move_list()
+        
+        print(f"[DEBUG] Turn {turn}, moves available: {len(moves)}")
         
         if len(moves) > 0:
             # Import board position
@@ -300,10 +307,16 @@ def run_game(menu_result, loaded_game_data=None):
             next_moves = g.get_move_list()
             if len(next_moves) == 0:
                 print("No moves available for either player. Game over!")
+                game_ended = True  # Mark as naturally ended
                 break
         
         # Check for pause/exit events during AI turns
         c.check_events()
+        
+        # Don't exit if game just finished naturally
+        if c.should_exit and not g.is_finish():
+            print("Game exited by user during play.")
+            return "exit"
         
         # Handle pause request
         if c.should_pause:
@@ -330,14 +343,24 @@ def run_game(menu_result, loaded_game_data=None):
                 c.setCanMove(move.get_x(), move.get_y(), g.get_turn())
             c.renderModel()
         
-        if c.should_exit:
-            print("Game exited by user.")
-            return "exit"
+        # Removed duplicate check - already handled above
         
         clock.tick(60)  # Limit to 60 FPS
     
+    # Debug: print end state
+    print(f"\n[DEBUG] Loop ended. game_ended={game_ended}, g.is_finish()={g.is_finish()}")
+    print(f"[DEBUG] Piece counts: Black={g.black_cnt}, White={g.white_cnt}, Total={g.black_cnt + g.white_cnt}")
+    
     # Handle game finish
-    if g.is_finish():
+    if game_ended or g.is_finish():
+        print("\n🏁 Game finished! Showing results...")
+        
+        # Clear event queue to avoid immediate exit from GameOver screen
+        pygame.event.clear()
+        
+        # Wait a moment for any pending events to settle
+        pygame.time.wait(100)
+        
         # Update final board state
         c.importModel(g.export_str())
         c.renderModel()
@@ -349,15 +372,26 @@ def run_game(menu_result, loaded_game_data=None):
         print(f"\ngame history:\n{game_history}\n")
         
         # Show game over screen
-        game_over = GameOver()
-        game_over.set_results(
-            winner=result,
-            black_name=players['B'].get_name(),
-            white_name=players['W'].get_name(),
-            black_score=g.black_cnt,
-            white_score=g.white_cnt
-        )
-        return game_over.run()  # Returns "menu" or "exit"
+        print("Creating GameOver screen...")
+        try:
+            # Clear events again right before showing GameOver
+            pygame.event.clear()
+            
+            game_over = GameOver()
+            game_over.set_results(
+                winner=result,
+                black_name=players['B'].get_name(),
+                white_name=players['W'].get_name(),
+                black_score=g.black_cnt,
+                white_score=g.white_cnt
+            )
+            print("Showing GameOver screen...")
+            return game_over.run()  # Returns "menu" or "exit"
+        except Exception as e:
+            print(f"Error showing game over screen: {e}")
+            import traceback
+            traceback.print_exc()
+            return "menu"
     else:
         print("Game was exited by user.")
         return "menu"  # Default to menu if game exited early

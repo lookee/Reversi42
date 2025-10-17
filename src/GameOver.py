@@ -173,12 +173,24 @@ class GameOver:
     
     def run(self):
         """Run the game over screen"""
+        print("[GameOver] Starting game over screen...")
+        
+        # Draw immediately to show screen
+        self.draw()
+        pygame.display.flip()
+        
         clock = pygame.time.Clock()
         running = True
+        iteration = 0
         
         while running:
+            iteration += 1
+            if iteration == 1:
+                print(f"[GameOver] In event loop, iteration {iteration}")
+            
             for event in pygame.event.get():
                 if event.type == QUIT:
+                    print("[GameOver] QUIT event received, exiting...")
                     return "exit"
                 elif event.type == pygame.VIDEORESIZE:
                     self.width = event.w
@@ -192,11 +204,14 @@ class GameOver:
                     if event.button == 1:  # Left click
                         result = self.handle_mouse_click(event.pos)
                         if result:
+                            print(f"[GameOver] Mouse click result: {result}")
                             return result
                 elif event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
+                        print("[GameOver] ESC pressed, returning to menu...")
                         return "menu"
                     elif event.key == K_q:
+                        print("[GameOver] Q pressed, exiting...")
                         return "exit"
             
             self.draw()
