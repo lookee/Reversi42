@@ -56,9 +56,9 @@ class Menu:
             "Exit"
         ]
         
-        # Player selections
+        # Player selections - defaults
         self.black_player = "Human"
-        self.white_player = "AI"
+        self.white_player = "AI with Opening Book"
         self.black_difficulty = 6
         self.white_difficulty = 6
         
