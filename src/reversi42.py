@@ -32,6 +32,7 @@ from Players.HumanPlayer import HumanPlayer
 from Board.BoardControl import BoardControl
 from Menu import Menu
 from GameOver import GameOver
+from PauseMenu import PauseMenu
 
 def create_player(player_type, difficulty=6, engine_type='Minimax'):
     """Create a player instance using the PlayerFactory"""
@@ -118,11 +119,35 @@ def run_game(menu_result):
             # Get move
             move = player.get_move(g, moves, c)
             
+            # Check if player requested pause
+            if c.should_pause:
+                c.should_pause = False  # Reset flag
+                pause_menu = PauseMenu()
+                pause_result = pause_menu.run()
+                
+                if pause_result == "resume":
+                    # Continue playing - re-render the board
+                    c.importModel(g.export_str())
+                    for m in moves:
+                        c.setCanMove(m.get_x(), m.get_y(), turn)
+                    c.renderModel()
+                    continue  # Go back to get move again
+                elif pause_result == "menu":
+                    print("Game abandoned by user.")
+                    return "menu"
+                elif pause_result == "exit":
+                    print("Game exited by user.")
+                    return "exit"
+            
             # Check if player wants to exit
             if move is None:
-                print("Game exited by user.")
-                running = False
-                break
+                if c.should_exit:
+                    print("Game exited by user.")
+                    return "exit"
+                else:
+                    print("Game exited by user.")
+                    running = False
+                    break
             
             # Move
             g.move(move)
@@ -152,12 +177,33 @@ def run_game(menu_result):
                 print("No moves available for either player. Game over!")
                 break
         
-        # Check for exit events during AI turns
+        # Check for pause/exit events during AI turns
         c.check_events()
+        
+        # Handle pause request
+        if c.should_pause:
+            c.should_pause = False  # Reset flag
+            pause_menu = PauseMenu()
+            pause_result = pause_menu.run()
+            
+            if pause_result == "resume":
+                # Continue playing - re-render the board
+                c.importModel(g.export_str())
+                moves = g.get_move_list()
+                for move in moves:
+                    c.setCanMove(move.get_x(), move.get_y(), g.get_turn())
+                c.renderModel()
+                # Continue the loop
+            elif pause_result == "menu":
+                print("Game abandoned by user.")
+                return "menu"
+            elif pause_result == "exit":
+                print("Game exited by user.")
+                return "exit"
+        
         if c.should_exit:
             print("Game exited by user.")
-            running = False
-            break
+            return "exit"
         
         clock.tick(60)  # Limit to 60 FPS
     

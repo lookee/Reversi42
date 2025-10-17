@@ -96,6 +96,23 @@ Method 3 - As a module:
 python3 -m src.reversi42
 ```
 
+TOURNAMENT SYSTEM
+
+Run automated AI vs AI tournaments with comprehensive statistics:
+```bash
+cd tournament
+python3 tournament.py
+```
+
+Features:
+- Round-robin format (all vs all)
+- Detailed statistical analysis
+- Timing for every move
+- Comprehensive reports
+- Multiple AI types and difficulty levels
+
+See tournament/README.md for complete documentation.
+
 GAME CONTROLS
 
 - Mouse: Click on available moves to place pieces
@@ -139,7 +156,18 @@ Reversi42/
 │   │   ├── greedy_player_demo.py    # Demo of greedy strategy
 │   │   └── modular_players_example.py  # Demo of player modularity
 │   ├── Menu.py              # Menu system
+│   ├── GameOver.py          # Game over screen
+│   ├── PauseMenu.py         # Pause menu
 │   └── reversi42.py         # Main entry point
+├── tournament/
+│   ├── tournament.py        # Tournament system
+│   ├── quick_tournament.py  # Quick tournament example
+│   ├── README.md            # Tournament documentation
+│   ├── TOURNAMENT_README.md # Detailed tournament guide
+│   ├── TOURNAMENT_USAGE.txt # Quick usage guide
+│   └── reports/             # Tournament reports directory
+│       ├── README.md
+│       └── tournament_report_*.txt (auto-generated)
 ├── reversi42                # Executable entry point
 ├── README                   # This file
 └── COPYING                  # License information

@@ -1,0 +1,191 @@
+================================================================================
+REVERSI42 TOURNAMENT SYSTEM - QUICK START GUIDE
+================================================================================
+
+OVERVIEW
+--------
+The tournament system allows running automated AI vs AI tournaments with
+comprehensive statistical analysis. No graphics, maximum speed.
+
+BASIC USAGE
+-----------
+
+1. INTERACTIVE MODE (Recommended for first use)
+   
+   $ python3 tournament.py
+   
+   You will be prompted to:
+   - Choose number of players (2-10)
+   - Select AI type for each player
+   - Set difficulty levels
+   - Choose games per matchup (1-20)
+   
+   The system will then:
+   - Run all games automatically
+   - Display progress in real-time
+   - Generate comprehensive statistical report
+   - Save report to timestamped file
+
+
+2. QUICK TOURNAMENT (Pre-configured)
+   
+   $ python3 quick_tournament.py
+   
+   Runs a fast 4-player tournament:
+   - Minimax-Standard-4
+   - Minimax-Advanced-4
+   - Minimax-Greedy-4
+   - GreedyPlayer
+   
+   2 games per matchup = 24 total games
+   Takes approximately 1-2 minutes
+
+
+UNDERSTANDING THE REPORT
+-------------------------
+
+Section 1: TOURNAMENT OVERVIEW
+  - Total games, duration, averages
+  
+Section 2: OVERALL RANKINGS
+  - Players sorted by win rate
+  - W-L-D records and percentages
+  
+Section 3: DETAILED PLAYER ANALYSIS
+  - Performance breakdown by color
+  - Timing statistics (ms per move)
+  - Color advantage analysis
+  
+Section 4: HEAD-TO-HEAD MATRIX
+  - W-L-D for each matchup
+  - Easy comparison table
+  
+Section 5: GAME DURATION ANALYSIS
+  - Speed statistics
+  
+Section 6: MOVE COUNT ANALYSIS
+  - Game length statistics
+  
+Section 7: EXPERT ANALYSIS
+  - Tournament champion
+  - Key insights and recommendations
+  - Performance highlights
+
+
+WHAT TO LOOK FOR
+----------------
+
+1. WIN RATE
+   - Primary success metric
+   - Above 50% = better than average
+   - Consistent performance more valuable than lucky streaks
+
+2. COLOR BALANCE
+   - Good AI should perform similarly as Black and White
+   - Large difference (>10%) suggests strategic weakness
+   - Black typically has slight advantage in Reversi
+
+3. TIMING ANALYSIS
+   - Average move time shows thinking efficiency
+   - Standard deviation shows consistency
+   - Faster is better if win rate maintained
+
+4. HEAD-TO-HEAD
+   - Some matchups favor certain strategies
+   - Minimax-Advanced often beats Greedy
+   - Transitive property doesn't always hold
+
+5. SCORE AVERAGES
+   - Higher average score = more aggressive/successful
+   - Lower scores may indicate defensive play
+   - Context matters: winning by 1 or 30 still counts as 1 win
+
+
+EXAMPLE TOURNAMENT CONFIGURATIONS
+----------------------------------
+
+COMPETITIVE TOURNAMENT (Strong AIs)
+  4 players: Minimax depth 6-8, Standard/Advanced evaluators
+  10 games per matchup
+  Total: 120 games
+  Duration: ~10-15 minutes
+
+STRATEGY COMPARISON (Same depth, different evaluators)
+  4 players: All Minimax depth 6, vary evaluators
+  5 games per matchup
+  Total: 60 games
+  Duration: ~5-8 minutes
+
+DIFFICULTY LADDER (Same evaluator, different depths)
+  4 players: Minimax Standard, depths 4/6/8/10
+  3 games per matchup
+  Total: 36 games
+  Duration: ~3-5 minutes
+
+BASELINE TESTING (New AI vs established)
+  3 players: Your new AI + 2 reference AIs
+  10 games per matchup
+  Total: 60 games
+  Duration: ~5-10 minutes
+
+
+TIPS FOR BEST RESULTS
+----------------------
+
+1. Start Small
+   - Begin with 3-4 players and 2-3 games per matchup
+   - Verify everything works before large tournaments
+
+2. Fair Comparisons
+   - Compare same depth when testing evaluators
+   - Compare same evaluator when testing depths
+   - More games = more reliable statistics
+
+3. Interpreting Results
+   - Single games can be flukes
+   - 10+ games per matchup for reliable data
+   - Look at trends, not individual games
+
+4. Performance Testing
+   - Check timing stats to ensure reasonable speed
+   - Depth 10 may be too slow for tournaments
+   - Depth 4-6 good for quick iteration
+
+5. Statistical Significance
+   - Small win rate differences (<5%) may be noise
+   - Large sample sizes increase confidence
+   - Consider both win rate AND score averages
+
+
+OUTPUT FILES
+------------
+
+Reports are saved as: tournament_report_YYYYMMDD_HHMMSS.txt
+
+Contains:
+- Full tournament results
+- All statistics and analysis
+- Expert recommendations
+- Ready for sharing or archiving
+
+
+TROUBLESHOOTING
+---------------
+
+Q: Tournament is too slow
+A: Reduce difficulty levels or games per matchup
+
+Q: Want to test specific matchup
+A: Create tournament with just those 2 players
+
+Q: Need more statistical detail
+A: Edit tournament.py to add custom metrics
+
+Q: Want to export to spreadsheet
+A: Report is plain text, easy to parse
+
+
+For more details, see TOURNAMENT_README.md
+
+================================================================================
+

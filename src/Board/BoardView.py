@@ -87,6 +87,10 @@ class BoardView(object):
         # Calculate margins to center the board
         self.marginx = (self.width % self.sizex) // 2
         self.marginy = self.header_height + (board_height % self.sizey) // 2
+        
+        # Calculate line width based on cell size (proportional to smallest dimension)
+        min_step = min(self.stepx, self.stepy)
+        self.line_width = max(1, min(4, min_step // 25))  # Between 1 and 4 pixels
     
     def resize(self, new_width, new_height):
         """Handle window resize"""
@@ -151,14 +155,14 @@ class BoardView(object):
             # grid: vertical lines
             start = (self.stepx * n + self.marginx, 0 + self.marginy)
             end   = (self.stepx * n + self.marginx, self.sizey * self.stepy + self.marginy)
-            pygame.draw.lines(screen, self.lineColor, False, [start, end], 2)
+            pygame.draw.lines(screen, self.lineColor, False, [start, end], self.line_width)
 
         for n in range(0,self.sizey + 1):
 
             # grid: horizontal lines
             start = (0 + self.marginx, self.stepy * n + self.marginy)
             end   = (self.sizex * self.stepx + self.marginx, self.stepy * n + self.marginy)
-            pygame.draw.lines(screen, self.lineColor, False, [start, end], 2)
+            pygame.draw.lines(screen, self.lineColor, False, [start, end], self.line_width)
             
         # Add hoshi points (reference dots) - 4 corners for 8x8 board
         # Hoshi points should be at the intersections of the 3rd and 6th lines (both horizontal and vertical)

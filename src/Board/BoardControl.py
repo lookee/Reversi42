@@ -34,6 +34,7 @@ class BoardControl(object):
         self.keyPressed = False
         self.cursor_mode = False  # Whether we're in cursor navigation mode
         self.should_exit = False  # Flag to signal exit
+        self.should_pause = False  # Flag to signal pause request
         
         # Initialize cursor to center of board
         self.view.setCursor(sizex // 2, sizey // 2)
@@ -55,8 +56,12 @@ class BoardControl(object):
             elif event.type == pygame.VIDEORESIZE:
                 # Handle window resize
                 self.view.resize(event.w, event.h)
+                # Redraw the board content after resize
+                self.renderModel()
             elif event.type == KEYDOWN:
-                if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                if event.key == pygame.K_ESCAPE:
+                    self.should_pause = True
+                elif event.key == pygame.K_q:
                     self.should_exit = True
 
     def handleEvent(self, event):
@@ -66,6 +71,8 @@ class BoardControl(object):
         elif event.type == pygame.VIDEORESIZE:
             # Handle window resize
             self.view.resize(event.w, event.h)
+            # Redraw the board content after resize
+            self.renderModel()
         elif event.type == MOUSEBUTTONDOWN:
             self.handleMouseButtonEvents(event)
 
@@ -78,7 +85,10 @@ class BoardControl(object):
 
     def handleKeyEvents(self, event):
 
-        if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+        if event.key == pygame.K_ESCAPE:
+            self.should_pause = True
+            self.waitInput = False
+        elif event.key == pygame.K_q:
             self.should_exit = True
             self.waitInput = False
         elif event.key == pygame.K_c:

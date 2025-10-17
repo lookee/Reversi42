@@ -31,7 +31,7 @@ class GameOver:
         self.height = height
         self.screen = pygame.display.get_surface()
         if self.screen is None:
-            self.screen = pygame.display.set_mode((width, height))
+            self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
         
         pygame.display.set_caption("Reversi42 - Game Over")
         
@@ -180,6 +180,11 @@ class GameOver:
             for event in pygame.event.get():
                 if event.type == QUIT:
                     return "exit"
+                elif event.type == pygame.VIDEORESIZE:
+                    self.width = event.w
+                    self.height = event.h
+                    self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+                    self.draw()
                 elif event.type == MOUSEMOTION:
                     self.handle_mouse_motion(event.pos)
                     self.draw()

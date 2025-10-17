@@ -1,0 +1,6 @@
+# Ignore all tournament reports
+*.txt
+
+# But keep this directory
+!.gitignore
+

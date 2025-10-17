@@ -24,7 +24,7 @@ class Menu:
     def __init__(self, width=800, height=600):
         self.width = width
         self.height = height
-        self.screen = pygame.display.set_mode((width, height))
+        self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
         pygame.display.set_caption("Reversi42 - Menu")
         
         # Colors
@@ -449,6 +449,10 @@ class Menu:
             for event in pygame.event.get():
                 if event.type == QUIT:
                     return "exit"
+                elif event.type == pygame.VIDEORESIZE:
+                    self.width = event.w
+                    self.height = event.h
+                    self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
                 elif event.type == MOUSEBUTTONDOWN:
                     result = self.handle_mouse_click(event)
                     if result == "start_game":

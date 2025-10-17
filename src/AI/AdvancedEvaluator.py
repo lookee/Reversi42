@@ -94,8 +94,8 @@ class AdvancedEvaluator(Evaluator):
         
         score = 0
         
-        for y in range(1, game.sizey + 1):
-            for x in range(1, game.sizex + 1):
+        for y in range(1, game.size + 1):
+            for x in range(1, game.size + 1):
                 cell = game.matrix[y][x]
                 if cell != '.':
                     weight = self.position_weights[y][x]

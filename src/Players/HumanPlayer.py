@@ -36,12 +36,12 @@ class HumanPlayer(Player):
         
         clock = pygame.time.Clock()
         
-        while control.waitInput and not control.should_exit:
+        while control.waitInput and not control.should_exit and not control.should_pause:
             # Process events
             control.action()
             
-            # Check if user wants to exit
-            if control.should_exit:
+            # Check if user wants to pause or exit
+            if control.should_pause or control.should_exit:
                 return None
             
             # Check if we have a move
