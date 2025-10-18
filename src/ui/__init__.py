@@ -30,9 +30,9 @@ from .implementations.headless.input_handler import HeadlessInputHandler
 # from .implementations.terminal.view import TerminalView
 # from .implementations.headless.view import HeadlessView
 
-# Factories will be imported later
-# from .factories.view_factory import ViewFactory
-# from .factories.ui_factory import UIFactory
+# Factories
+from .factories.view_factory import ViewFactory
+from .factories.ui_factory import UIFactory
 
 __all__ = [
     # Core
@@ -55,9 +55,9 @@ __all__ = [
     # 'TerminalView',
     # 'HeadlessView',
     
-    # Factories - TODO: Add when implemented
-    # 'ViewFactory',
-    # 'UIFactory',
+    # Factories
+    'ViewFactory',
+    'UIFactory',
 ]
 
 __version__ = '3.1.0'
