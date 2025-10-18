@@ -17,15 +17,31 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 
 ### 🌟 What's New in 3.1.0
 
-- 🎨 **Modular View Architecture** - Pluggable UI system (Pygame/Terminal/Headless)
-- 🏆 **Tournament System Enhanced** - 12 pre-configured tournaments ready to run
-- 📊 **Tournament Configurations** - JSON-based reusable tournament setups
-- 🎮 **Interactive Tournament Selector** - Visual menu for easy tournament selection
-- 📚 **Complete Player Documentation** - 13 detailed guides in docs/players/
-- 🤖 **Grandmaster in Tournaments** - Full support for all advanced AI types
-- ⚡ **Batch Tournament Execution** - Run all tournaments with one command
-- 🖥️ **Terminal Mode** - Play with beautiful ASCII art (SSH-friendly)
-- 🚀 **Headless Mode** - Zero rendering for maximum tournament speed
+#### Modular View Architecture
+- 🎨 **3 View Types** - Pygame (GUI), Terminal (ASCII), Headless (no UI)
+- 🎮 **Command-line Selection** - `--view terminal|pygame|headless`
+- 🖥️ **Terminal Mode** - Pure ASCII art, works on any background
+- 🚀 **Headless Mode** - Zero rendering overhead for tournaments
+- 🔌 **Pluggable Design** - Easy to add new view types
+
+#### Terminal Mode Features
+- ⌨️ **Numbered Moves** - Select by number (1-4) or coordinates (D3)
+- 🎨 **Pure ASCII** - Works on white or black terminal backgrounds
+- 📊 **Compact Layout** - Minimal vertical space usage
+- 🌐 **SSH-Friendly** - Perfect for remote play
+- ✅ **All 10 Players** - Including Terminal Human Player
+
+#### Tournament System
+- 🏆 **12 Pre-configured Tournaments** - Ready to run
+- 📊 **JSON Configurations** - Reusable tournament setups
+- 🎮 **Interactive Selector** - Visual menu for tournament selection
+- 🤖 **Full AI Support** - Grandmaster, Parallel, all variants
+- ⚡ **Batch Execution** - Run all tournaments with one command
+
+#### Documentation
+- 📚 **13 Player Guides** - Complete documentation in docs/players/
+- 📖 **View Architecture** - Modular UI system documentation
+- 📝 **Tournament Guides** - Complete tournament system docs
 
 ### What's New in 3.0.0
 
@@ -353,12 +369,21 @@ python3 src/reversi42.py --view pygame
 - Click on highlighted squares to make moves
 - Hover over golden moves to see opening names (when Show Opening enabled)
 
-**Keyboard:**
+*Keyboard:*
 - `C` - Toggle cursor navigation mode
 - `Arrow Keys` - Move cursor (in cursor mode)
 - `ENTER/SPACE` - Select move at cursor
 - `ESC` - Pause menu (save/load/resume)
 - `Q` - Quick exit
+
+**Terminal Mode:**
+- Type coordinates: `D3`, `E4`, etc.
+- Or use numbers: `1`, `2`, `3` (from numbered move list)
+- `q` - Quit game
+- `h` - Show help
+
+**Headless Mode:**
+- No user controls (automated only)
 
 ### Menu Options
 
@@ -444,7 +469,7 @@ Reversi42/
 ├── saves/             # Saved games (XOT format)
 ├── build/             # Build scripts
 ├── CHANGELOG.md       # Version history ⭐ NEW
-├── VIEW_MODULARITY_IMPLEMENTATION.md  # View docs ⭐ NEW
+├── TERMINAL_MODE_COMPLETE.md          # Terminal mode implementation
 └── reversi42          # Executable wrapper
 ```
 
@@ -529,14 +554,12 @@ You should have received a copy of the GNU General Public License along with thi
 ### Technical Documentation
 - **[Features Guide](docs/FEATURES.md)** - Complete feature list
 - **[View Architecture](docs/VIEW_ARCHITECTURE.md)** - Modular view system (NEW in 3.1.0)
-- **[Running with Different Views](docs/RUNNING_WITH_DIFFERENT_VIEWS.md)** - Command-line view selection
-- **[View Implementation Guide](VIEW_MODULARITY_IMPLEMENTATION.md)** - Technical implementation details
+- **[Board Module](src/Board/README.md)** - Board and view components
 - **[Adding Players](docs/ADDING_PLAYERS.md)** - Custom player development
 - **[Bitboard Implementation](docs/BITBOARD_IMPLEMENTATION.md)** - Technical deep dive
 - **[Grandmaster AI](docs/GRANDMASTER_AI.md)** - Ultimate AI documentation
 - **[Strategy Improvements](docs/STRATEGY_IMPROVEMENTS.md)** - Advanced AI techniques
 - **[Parallel Engine](docs/HOW_TO_USE_PARALLEL.md)** - Multi-core usage guide
-- **[Project Reorganization](docs/PROJECT_REORGANIZATION.md)** - Codebase structure
 - **[Build Guide](BUILD.md)** - Building distributions
 - **[Changelog](CHANGELOG.md)** - Version history
 

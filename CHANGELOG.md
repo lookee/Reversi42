@@ -55,8 +55,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 #### Documentation
 - **docs/VIEW_ARCHITECTURE.md** - Complete architecture guide
-- **VIEW_MODULARITY_IMPLEMENTATION.md** - Implementation details
 - **src/Board/README.md** - Board module documentation
+- **TERMINAL_MODE_COMPLETE.md** - Terminal mode implementation summary
 
 #### Examples
 - **src/examples/terminal_mode_demo.py** - Terminal view demonstration

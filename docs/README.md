@@ -27,8 +27,8 @@ This directory contains detailed documentation for the Reversi42 project.
 
 ### Technical Documentation
 - **BITBOARD_IMPLEMENTATION.md** - Deep dive into bitboard representation
-- **PROJECT_REORGANIZATION.md** - Codebase structure and organization
 - **FEATURES.md** - Complete feature list and descriptions
+- **VIEW_ARCHITECTURE.md** - Modular view system architecture
 
 ## 🔗 Quick Links
 
@@ -58,7 +58,7 @@ Main documentation files are in the project root:
 | HOW_TO_USE_PARALLEL.md | Parallel engine usage | Users/Developers |
 | **Technical** | | |
 | BITBOARD_IMPLEMENTATION.md | Bitboard internals and algorithms | Advanced developers |
-| PROJECT_REORGANIZATION.md | Codebase structure | Contributors |
+| VIEW_ARCHITECTURE.md | View system architecture and design | Developers |
 | FEATURES.md | Complete feature list | Users/Contributors |
 
 ## 🎯 For New Users
@@ -95,12 +95,12 @@ When adding new documentation:
 docs/
 ├── README.md                      # This file (documentation index)
 ├── FEATURES.md                    # Complete feature list
+├── VIEW_ARCHITECTURE.md           # Modular view system architecture
 ├── ADDING_PLAYERS.md              # Player development guide
 ├── GRANDMASTER_AI.md              # Grandmaster AI documentation
 ├── STRATEGY_IMPROVEMENTS.md       # Advanced AI techniques
 ├── HOW_TO_USE_PARALLEL.md         # Parallel engine guide
 ├── BITBOARD_IMPLEMENTATION.md     # Bitboard technical details
-├── PROJECT_REORGANIZATION.md      # Codebase structure
 └── players/                       # Player documentation directory
     ├── README.md                  # Player overview and comparison
     ├── Player.md                  # Base player class

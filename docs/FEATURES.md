@@ -452,7 +452,7 @@ Complete technical documentation for each player type is available:
 - **[Grandmaster AI](GRANDMASTER_AI.md)** - Ultimate AI documentation
 - **[Strategy Improvements](STRATEGY_IMPROVEMENTS.md)** - Advanced AI techniques
 - **[Parallel Engine Guide](HOW_TO_USE_PARALLEL.md)** - Multi-core usage
-- **[Project Reorganization](PROJECT_REORGANIZATION.md)** - Codebase structure
+- **[View Architecture](VIEW_ARCHITECTURE.md)** - Modular view system
 
 ### System Documentation
 - **[Tournament System](../tournament/README.md)** - Tournament usage guide
