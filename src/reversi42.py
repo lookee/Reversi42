@@ -136,9 +136,8 @@ def handle_load_game():
     filename = saved_games[choice]
     
     try:
-        saves_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'saves')
-        filepath = os.path.join(saves_dir, filename)
-        game_data = GameIO.load_game(filepath)
+        # GameIO.load_game handles path construction
+        game_data = GameIO.load_game(filename)
         
         # Show success message
         msg_dialog = MessageDialog(

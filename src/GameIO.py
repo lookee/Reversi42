@@ -35,6 +35,19 @@ class GameIO:
     XOT_VERSION = "1.0"
     
     @staticmethod
+    def get_saves_directory():
+        """Get the saves directory path (creates if doesn't exist)"""
+        # Get project root directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(script_dir)  # Go up from src/
+        saves_dir = os.path.join(project_root, 'saves')
+        
+        # Create if doesn't exist
+        os.makedirs(saves_dir, exist_ok=True)
+        
+        return os.path.abspath(saves_dir)  # Normalize path
+    
+    @staticmethod
     def save_game(game, filename, black_player_name, white_player_name, move_history):
         """
         Save game to XOT format file.
@@ -50,9 +63,8 @@ class GameIO:
             str: Path to saved file
         """
         
-        # Ensure saves directory exists
-        saves_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'saves')
-        os.makedirs(saves_dir, exist_ok=True)
+        # Get saves directory (creates if needed)
+        saves_dir = GameIO.get_saves_directory()
         
         # Full path
         if not filename.endswith('.xot'):
@@ -69,10 +81,10 @@ class GameIO:
         content.append("[GAME]")
         content.append(f"Black={black_player_name}")
         content.append(f"White={white_player_name}")
-        content.append(f"Turn={game.get_turn()}")
+        content.append(f"Turn={game.turn}")
         content.append(f"BlackScore={game.black_cnt}")
         content.append(f"WhiteScore={game.white_cnt}")
-        content.append(f"Size={game.size}")
+        content.append(f"Size={game.size if hasattr(game, 'size') else 8}")
         content.append("")
         
         # Move history
@@ -102,11 +114,19 @@ class GameIO:
         Load game from XOT format file.
         
         Args:
-            filepath: Path to XOT file
+            filepath: Path to XOT file (can be absolute or just filename)
             
         Returns:
             dict: Game data with keys: move_history, turn, black_score, white_score, size
         """
+        
+        # If filepath is just a filename, prepend saves directory
+        if not os.path.isabs(filepath):
+            saves_dir = GameIO.get_saves_directory()
+            filepath = os.path.join(saves_dir, filepath)
+        
+        # Normalize path
+        filepath = os.path.abspath(filepath)
         
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"Save file not found: {filepath}")
@@ -180,13 +200,26 @@ class GameIO:
             directory: Directory to search (default: saves/)
             
         Returns:
-            list: List of .xot filenames
+            list: List of .xot filenames (sorted by modification time, newest first)
         """
         if directory is None:
-            directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'saves')
+            directory = GameIO.get_saves_directory()
         
         if not os.path.exists(directory):
             return []
         
-        return [f for f in os.listdir(directory) if f.endswith('.xot')]
+        # Get all .xot files with their modification times
+        xot_files = [f for f in os.listdir(directory) if f.endswith('.xot')]
+        
+        # Sort by modification time (newest first)
+        xot_files_with_time = []
+        for f in xot_files:
+            filepath = os.path.join(directory, f)
+            mtime = os.path.getmtime(filepath)
+            xot_files_with_time.append((f, mtime))
+        
+        # Sort by time (newest first)
+        xot_files_with_time.sort(key=lambda x: x[1], reverse=True)
+        
+        return [f for f, _ in xot_files_with_time]
 
