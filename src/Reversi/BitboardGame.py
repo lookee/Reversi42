@@ -370,6 +370,43 @@ class BitboardGame:
         # For now, use simple hash
         return hash((self.black, self.white, self.turn))
     
+    def import_game_state(self, game):
+        """
+        Import state from a traditional Game object.
+        
+        Args:
+            game: Traditional Game object with matrix representation
+        """
+        # Reset bitboards
+        self.black = 0
+        self.white = 0
+        
+        # Import board state from game matrix
+        for row in range(1, 9):  # Game uses 1-indexed matrix with borders
+            for col in range(1, 9):
+                cell = game.matrix[row][col]
+                if cell in ['B', 'W']:
+                    # Convert to bit position (0-63)
+                    bit = (row - 1) * 8 + (col - 1)
+                    mask = 1 << bit
+                    
+                    if cell == 'B':
+                        self.black |= mask
+                    else:  # 'W'
+                        self.white |= mask
+        
+        # Import game state
+        self.turn = game.turn
+        self.turn_cnt = game.turn_cnt
+        self.history = getattr(game, 'history', '')
+        
+        # Update piece counts
+        self.black_cnt = self._count_bits(self.black)
+        self.white_cnt = self._count_bits(self.white)
+        
+        # Update virtual matrix
+        self._create_virtual_matrix()
+    
     def clone(self):
         """Create a copy of the game state - O(1) with bitboards!"""
         new_game = BitboardGame()

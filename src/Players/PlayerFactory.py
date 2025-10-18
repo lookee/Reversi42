@@ -15,229 +15,103 @@
 #    along with Reversi42.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------
 
-from Players.Player import Player
-from Players.HumanPlayer import HumanPlayer
-from Players.AIPlayer import AIPlayer
-from Players.AIPlayerBook import AIPlayerBook
-from Players.AIPlayerBitboard import AIPlayerBitboard
-from Players.AIPlayerBitboardBook import AIPlayerBitboardBook
-from Players.AIPlayerBitboardBookParallel import AIPlayerBitboardBookParallel
-from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
+"""
+Player Factory - Backward Compatibility Wrapper
+
+This file maintains backward compatibility by delegating to the new
+modular architecture (PlayerFactoryV2).
+
+ALL AI PLAYERS now use the new architecture:
+- Players/ai/ai_player.py (ONE class with Dependency Injection)
+- AI/factory/engine_builder.py (Builder Pattern)
+- AI/features/ (Decorator Pattern)
+
+Legacy player files (AIPlayer.py, AIPlayerBook.py, etc.) have been REMOVED
+as they are now obsolete.
+
+Version: 3.2.0
+Architecture: Wrapper around PlayerFactoryV2
+"""
+
+# New architecture
+from Players.factory.player_factory_v2 import PlayerFactoryV2
+
+# Legacy players (still used)
 from Players.Monkey import Monkey
-from Players.GreedyPlayer import GreedyPlayer
-from Players.HeuristicPlayer import HeuristicPlayer
+from Players.HumanPlayer import HumanPlayer
 from Players.NetworkPlayer import NetworkPlayer
-from AI.MinimaxEngine import MinimaxEngine
-from AI.RandomEngine import RandomEngine
-from AI.HeuristicEngine import HeuristicEngine
-from AI.StandardEvaluator import StandardEvaluator
-from AI.SimpleEvaluator import SimpleEvaluator
-from AI.AdvancedEvaluator import AdvancedEvaluator
-from AI.GreedyEvaluator import GreedyEvaluator
+from Players.Player import Player
+
 
 class PlayerFactory:
     """
     Factory class for creating different types of players.
-    This makes it easy to add new player types and engines.
     
-    Player types are automatically discovered from their metadata.
+    This is now a WRAPPER around the new PlayerFactoryV2 architecture.
+    All functionality is delegated to the modular system.
+    
+    Maintains backward compatibility with existing code while using
+    the new enterprise architecture internally.
+    
+    Version: 3.2.0 - Refactored to use modular architecture
     """
     
-    # Registry of all player classes (including disabled ones)
-    ALL_PLAYER_CLASSES = [
-        HumanPlayer,
-        AIPlayer,
-        AIPlayerBook,
-        AIPlayerBitboard,
-        AIPlayerBitboardBook,
-        AIPlayerBitboardBookParallel,
-        AIPlayerGrandmaster,
-        HeuristicPlayer,
-        GreedyPlayer,
-        Monkey,
-        NetworkPlayer,  # Disabled by default
-    ]
-    
-    # Build registry from metadata
-    PLAYER_TYPES = {
-        cls.PLAYER_METADATA['display_name']: cls
-        for cls in ALL_PLAYER_CLASSES
-    }
-    
-    # Registry of available AI engines
-    AI_ENGINES = {
-        'Minimax': MinimaxEngine,
-        'Random': RandomEngine,
-        'Heuristic': HeuristicEngine,
-    }
-    
-    # Registry of available evaluators
-    EVALUATORS = {
-        'Standard': StandardEvaluator,
-        'Simple': SimpleEvaluator,
-        'Advanced': AdvancedEvaluator,
-        'Greedy': GreedyEvaluator,
-    }
-    
-    @classmethod
-    def create_player(cls, player_type, **kwargs):
+    @staticmethod
+    def create_player(player_type, **kwargs):
         """
-        Create a player of the specified type.
+        Create a player by type name.
+        Delegates to PlayerFactoryV2.
         
         Args:
-            player_type (str): Type of player to create
-            **kwargs: Additional arguments for player creation
-            
-        Returns:
-            Player: The created player instance
-            
-        Raises:
-            ValueError: If player type is not supported
-        """
-        if player_type not in cls.PLAYER_TYPES:
-            raise ValueError(f"Unsupported player type: {player_type}")
+            player_type: Display name of player type
+            **kwargs: Additional parameters (deep, show_book_options, etc.)
         
-        player_class = cls.PLAYER_TYPES[player_type]
-        return player_class(**kwargs)
-    
-    @classmethod
-    def create_ai_player(cls, engine_type='Minimax', difficulty=6, evaluator_type='Standard', **kwargs):
+        Returns:
+            Player instance
         """
-        Create an AI player with the specified engine and evaluator.
+        return PlayerFactoryV2.create_player(player_type, **kwargs)
+    
+    @staticmethod
+    def create_ai_player(engine_type='Minimax', difficulty=6):
+        """
+        Create an AI player with specified engine and difficulty.
+        Delegates to PlayerFactoryV2.
         
         Args:
-            engine_type (str): Type of AI engine to use
-            difficulty (int): Difficulty level (depth for minimax)
-            evaluator_type (str): Type of evaluator to use
-            **kwargs: Additional arguments for player creation
-            
-        Returns:
-            AIPlayer: The created AI player instance
-            
-        Raises:
-            ValueError: If engine type or evaluator type is not supported
-        """
-        if engine_type not in cls.AI_ENGINES:
-            raise ValueError(f"Unsupported engine type: {engine_type}")
-        
-        if evaluator_type not in cls.EVALUATORS:
-            raise ValueError(f"Unsupported evaluator type: {evaluator_type}")
-        
-        # Create evaluator instance
-        evaluator_class = cls.EVALUATORS[evaluator_type]
-        evaluator = evaluator_class()
-        
-        # Create AI player with custom engine
-        player = AIPlayer(difficulty)
-        
-        # Replace the default engine with the specified one
-        engine_class = cls.AI_ENGINES[engine_type]
-        player.engine = engine_class(evaluator=evaluator)
-        player.name = f"{engine_type}AI{difficulty}"
-        
-        return player
-    
-    @classmethod
-    def get_available_player_types(cls):
-        """
-        Get list of available (enabled) player types.
+            engine_type: Type of engine ('Minimax', 'Bitboard', 'Grandmaster')
+            difficulty: Difficulty level (depth)
         
         Returns:
-            list: List of available player type names
+            AI player instance
         """
-        return [
-            player_class.PLAYER_METADATA['display_name']
-            for player_class in cls.ALL_PLAYER_CLASSES
-            if player_class.PLAYER_METADATA['enabled']
-        ]
+        return PlayerFactoryV2.create_ai_player(engine_type, difficulty)
     
-    @classmethod
-    def get_all_player_types(cls):
+    @staticmethod
+    def get_player_metadata(player_type):
         """
-        Get list of all player types (including disabled).
-        
-        Returns:
-            list: List of all player type names
-        """
-        return list(cls.PLAYER_TYPES.keys())
-    
-    @classmethod
-    def get_player_metadata(cls, player_type):
-        """
-        Get metadata for a specific player type.
+        Get metadata for a player type.
+        Delegates to PlayerFactoryV2.
         
         Args:
-            player_type: Name of the player type
-            
+            player_type: Player type name
+        
         Returns:
             dict: Player metadata
         """
-        if player_type in cls.PLAYER_TYPES:
-            return cls.PLAYER_TYPES[player_type].PLAYER_METADATA
-        return None
+        return PlayerFactoryV2.get_player_metadata(player_type)
     
-    @classmethod
-    def get_all_player_metadata(cls):
+    @staticmethod
+    def list_available_players():
         """
-        Get metadata for all player types.
+        List all available player types.
+        Delegates to PlayerFactoryV2.
         
         Returns:
-            dict: Dictionary mapping player type names to their metadata
+            dict: Available players with metadata
         """
-        return {
-            player_class.PLAYER_METADATA['display_name']: player_class.PLAYER_METADATA
-            for player_class in cls.ALL_PLAYER_CLASSES
-        }
-    
-    @classmethod
-    def get_available_engines(cls):
-        """
-        Get list of available AI engines.
-        
-        Returns:
-            list: List of available engine type names
-        """
-        return list(cls.AI_ENGINES.keys())
-    
-    @classmethod
-    def register_player_type(cls, name, player_class):
-        """
-        Register a new player type.
-        
-        Args:
-            name (str): Name of the player type
-            player_class: Class that implements the player
-        """
-        cls.PLAYER_TYPES[name] = player_class
-    
-    @classmethod
-    def register_engine(cls, name, engine_class):
-        """
-        Register a new AI engine.
-        
-        Args:
-            name (str): Name of the engine
-            engine_class: Class that implements the engine
-        """
-        cls.AI_ENGINES[name] = engine_class
-    
-    @classmethod
-    def get_available_evaluators(cls):
-        """
-        Get list of available evaluators.
-        
-        Returns:
-            list: List of available evaluator type names
-        """
-        return list(cls.EVALUATORS.keys())
-    
-    @classmethod
-    def register_evaluator(cls, name, evaluator_class):
-        """
-        Register a new evaluator.
-        
-        Args:
-            name (str): Name of the evaluator
-            evaluator_class: Class that implements the evaluator
-        """
-        cls.EVALUATORS[name] = evaluator_class
+        return PlayerFactoryV2.list_available_players()
+
+
+# Populate AVAILABLE_PLAYERS as class attribute for backward compatibility
+# This is accessed by existing code as PlayerFactory.AVAILABLE_PLAYERS
+PlayerFactory.AVAILABLE_PLAYERS = PlayerFactory.list_available_players()

@@ -64,14 +64,16 @@ class Menu:
         self.show_opening = MenuConfig.DEFAULT_SHOW_OPENING
         
         # Get player types and descriptions from PlayerFactory metadata
-        self.player_types = PlayerFactory.get_available_player_types()
-        self.all_metadata = PlayerFactory.get_all_player_metadata()
+        # Get available players from factory (backward compatible)
+        available = PlayerFactory.list_available_players()
+        self.player_types = list(available.keys())
+        self.all_metadata = available  # This is already the full metadata dict
         
         # Build descriptions from metadata
         self.player_descriptions = {
-            name: meta['description']
+            name: meta.get('description', f'{name} player')
             for name, meta in self.all_metadata.items()
-            if meta['enabled']
+            if meta.get('enabled', True)  # Default to enabled if not specified
         }
         
         # Difficulties for AI players from config

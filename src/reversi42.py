@@ -539,7 +539,8 @@ def main():
             
             # Get all available players from metadata (same as Pygame menu)
             # But replace Human Player with Terminal Human
-            all_metadata = PlayerFactory.get_all_player_metadata()
+            # Get all player metadata from new factory
+            all_metadata = PlayerFactory.list_available_players()
             
             # Import TerminalHumanPlayer from new location
             from ui.implementations.terminal import TerminalHumanPlayer
@@ -547,7 +548,7 @@ def main():
             
             enabled_players = {}
             for name, meta in all_metadata.items():
-                if meta['enabled']:
+                if meta.get('enabled', True):  # Default to enabled if not specified
                     if name == 'Human Player':
                         # Replace with Terminal Human
                         enabled_players['Terminal Human'] = terminal_human_meta
@@ -559,7 +560,7 @@ def main():
             for name, meta in enabled_players.items():
                 player_options.append({
                     'name': name,
-                    'description': meta['description'],
+                    'description': meta.get('description', f'{name} player'),
                     'has_difficulty': len(meta.get('parameters', [])) > 0
                 })
             

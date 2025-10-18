@@ -45,7 +45,8 @@ def demonstrate_player_creation():
     
     # 4. Show available types
     print("\n4. Available player types:")
-    for player_type in PlayerFactory.get_available_player_types():
+    available = PlayerFactory.list_available_players()
+    for player_type in available.keys():
         print(f"   - {player_type}")
     
     print("\n5. Available AI engines:")
