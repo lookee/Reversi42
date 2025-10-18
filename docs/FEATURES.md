@@ -135,6 +135,24 @@
 - Benchmarking tool
 - Comic relief value
 
+### 📚 Detailed Player Documentation
+
+Complete technical documentation for each player type is available:
+
+- **[Player Types Overview](players/README.md)** - Comprehensive comparison and selection guide
+- **[Base Player Class](players/Player.md)** - Foundation and architecture
+- **[Human Player](players/HumanPlayer.md)** - Interactive controls and features
+- **[Random Chaos](players/Monkey.md)** - Random generator implementation
+- **[Greedy Goblin](players/GreedyPlayer.md)** - Greedy algorithm details
+- **[Heuristic Scout](players/HeuristicPlayer.md)** - Heuristic evaluation system
+- **[Alpha-Beta AI](players/AIPlayer.md)** - Minimax with pruning
+- **[Opening Scholar](players/AIPlayerBook.md)** - Opening book integration
+- **[Bitboard Blitz](players/AIPlayerBitboard.md)** - Bitboard implementation
+- **[The Oracle](players/AIPlayerBitboardBook.md)** - Combined bitboard + book
+- **[Parallel Oracle](players/AIPlayerBitboardBookParallel.md)** - Multi-core processing
+- **[Grandmaster](players/AIPlayerGrandmaster.md)** - Ultimate AI with all features
+- **[Network Player](players/NetworkPlayer.md)** - Network play concepts
+
 ---
 
 ### Opening Book Features (v3.0.0)
@@ -386,12 +404,28 @@
 
 ## 📖 Documentation
 
-- `README.md` - Main documentation (this file)
-- `FEATURES.md` - Complete feature list
-- `ADDING_PLAYERS.md` - Custom player development guide
-- `BUILD.md` - Build and distribution guide
-- `BITBOARD_IMPLEMENTATION.md` - Bitboard technical details
-- `tournament/README.md` - Tournament system guide
+### Core Documentation
+- **[README.md](../README.md)** - Main project overview
+- **[FEATURES.md](FEATURES.md)** - Complete feature list (this file)
+- **[BUILD.md](../BUILD.md)** - Build and distribution guide
+
+### Player Documentation
+- **[Player Types Overview](players/README.md)** - Complete player comparison and guide
+- **[Individual Player Guides](players/)** - Detailed docs for each player type
+  - Base Player, Human Player, AI Players (8 types), Network Player
+- **[Adding Players](ADDING_PLAYERS.md)** - Custom player development guide
+
+### AI & Technical Documentation
+- **[Bitboard Implementation](BITBOARD_IMPLEMENTATION.md)** - Bitboard technical deep dive
+- **[Grandmaster AI](GRANDMASTER_AI.md)** - Ultimate AI documentation
+- **[Strategy Improvements](STRATEGY_IMPROVEMENTS.md)** - Advanced AI techniques
+- **[Parallel Engine Guide](HOW_TO_USE_PARALLEL.md)** - Multi-core usage
+- **[Project Reorganization](PROJECT_REORGANIZATION.md)** - Codebase structure
+
+### System Documentation
+- **[Tournament System](../tournament/README.md)** - Tournament usage guide
+- **[Opening Books](../Books/README.md)** - Opening book format
+- **[Save Files](../saves/README.md)** - Save file format (XOT)
 
 ---
 

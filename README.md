@@ -147,7 +147,25 @@ The game features a **metadata-driven player system** with 8 distinct playing st
 
 **For Speed Testing:** Bitboard Blitz vs The Oracle (tournament mode)
 
-*See `ADDING_PLAYERS.md` for creating custom player types*
+*See [ADDING_PLAYERS.md](docs/ADDING_PLAYERS.md) for creating custom player types*
+
+### 📚 Detailed Player Documentation
+
+Complete documentation for each player type is available in the `docs/players/` directory:
+
+- **[Player Types Overview](docs/players/README.md)** - Complete guide and comparison
+- **[Base Player Class](docs/players/Player.md)** - Foundation for all players
+- **[Human Player](docs/players/HumanPlayer.md)** - Interactive gameplay
+- **[Random Chaos](docs/players/Monkey.md)** - Random move generator
+- **[Greedy Goblin](docs/players/GreedyPlayer.md)** - Maximize immediate captures
+- **[Heuristic Scout](docs/players/HeuristicPlayer.md)** - Fast positional evaluation
+- **[Alpha-Beta AI](docs/players/AIPlayer.md)** - Classic minimax implementation
+- **[Opening Scholar](docs/players/AIPlayerBook.md)** - AI with opening book
+- **[Bitboard Blitz](docs/players/AIPlayerBitboard.md)** - Ultra-fast bitboard engine
+- **[The Oracle](docs/players/AIPlayerBitboardBook.md)** - Bitboard + opening book
+- **[Parallel Oracle](docs/players/AIPlayerBitboardBookParallel.md)** - Multi-core AI
+- **[Grandmaster](docs/players/AIPlayerGrandmaster.md)** - Ultimate AI with all features
+- **[Network Player](docs/players/NetworkPlayer.md)** - Network play (not implemented)
 
 ---
 
@@ -332,6 +350,13 @@ Reversi42/
 │   ├── Players/       # Player implementations
 │   ├── examples/      # Demo scripts
 │   └── reversi42.py   # Main entry point
+├── docs/              # Documentation
+│   ├── players/       # Detailed player documentation
+│   ├── FEATURES.md    # Complete feature list
+│   ├── ADDING_PLAYERS.md
+│   ├── BITBOARD_IMPLEMENTATION.md
+│   ├── GRANDMASTER_AI.md
+│   └── STRATEGY_IMPROVEMENTS.md
 ├── tournament/        # Tournament system
 ├── Books/             # Opening book library
 ├── saves/             # Saved games (XOT format)
@@ -411,9 +436,24 @@ You should have received a copy of the GNU General Public License along with thi
 
 ---
 
-## 📚 Resources
+## 📚 Documentation
 
-**Learn More About Reversi:**
+### Player Documentation
+- **[Player Types Overview](docs/players/README.md)** - Complete player comparison and guide
+- **[Individual Player Docs](docs/players/)** - Detailed documentation for each player type
+
+### Technical Documentation
+- **[Features Guide](docs/FEATURES.md)** - Complete feature list
+- **[Adding Players](docs/ADDING_PLAYERS.md)** - Custom player development
+- **[Bitboard Implementation](docs/BITBOARD_IMPLEMENTATION.md)** - Technical deep dive
+- **[Grandmaster AI](docs/GRANDMASTER_AI.md)** - Ultimate AI documentation
+- **[Strategy Improvements](docs/STRATEGY_IMPROVEMENTS.md)** - Advanced AI techniques
+- **[Parallel Engine](docs/HOW_TO_USE_PARALLEL.md)** - Multi-core usage guide
+- **[Project Reorganization](docs/PROJECT_REORGANIZATION.md)** - Codebase structure
+- **[Build Guide](BUILD.md)** - Building distributions
+- **[Tournament System](tournament/README.md)** - Tournament usage
+
+### Learn More About Reversi
 - Wikipedia: http://en.wikipedia.org/wiki/Reversi
 - Official Othello: http://www.fngo.it
 - World Othello Federation: https://www.worldothello.org/
