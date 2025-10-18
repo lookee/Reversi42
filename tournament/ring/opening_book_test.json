@@ -1,0 +1,37 @@
+{
+  "name": "Opening Book Effectiveness Test",
+  "description": "Compare AI with and without opening book support",
+  "games_per_matchup": 5,
+  "include_move_history": true,
+  "players": [
+    {
+      "type": "AI",
+      "name": "Standard-NoBook-6",
+      "difficulty": 6,
+      "engine": "Minimax",
+      "evaluator": "Standard"
+    },
+    {
+      "type": "AIBook",
+      "name": "Standard-WithBook-6",
+      "difficulty": 6,
+      "engine": "Minimax",
+      "evaluator": "Standard"
+    },
+    {
+      "type": "AI",
+      "name": "Advanced-NoBook-6",
+      "difficulty": 6,
+      "engine": "Minimax",
+      "evaluator": "Advanced"
+    },
+    {
+      "type": "AIBook",
+      "name": "Advanced-WithBook-6",
+      "difficulty": 6,
+      "engine": "Minimax",
+      "evaluator": "Advanced"
+    }
+  ]
+}
+

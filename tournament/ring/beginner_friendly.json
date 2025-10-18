@@ -1,0 +1,49 @@
+{
+  "name": "Beginner Friendly Tournament",
+  "description": "Perfect for learning - features fast, easy-to-understand AI players",
+  "games_per_matchup": 3,
+  "include_move_history": false,
+  "players": [
+    {
+      "type": "Monkey",
+      "name": "Random-Baseline",
+      "difficulty": 1,
+      "engine": "Random",
+      "evaluator": "Standard",
+      "comment": "Pure random - easiest to beat"
+    },
+    {
+      "type": "Greedy",
+      "name": "Greedy-Easy",
+      "difficulty": 1,
+      "engine": "Minimax",
+      "evaluator": "Greedy",
+      "comment": "Greedy but predictable"
+    },
+    {
+      "type": "Heuristic",
+      "name": "Heuristic-Medium",
+      "difficulty": 1,
+      "engine": "Heuristic",
+      "evaluator": "Standard",
+      "comment": "Good learning opponent"
+    },
+    {
+      "type": "AI",
+      "name": "AlphaBeta-Easy-3",
+      "difficulty": 3,
+      "engine": "Minimax",
+      "evaluator": "Standard",
+      "comment": "Gentle AI introduction"
+    },
+    {
+      "type": "AI",
+      "name": "AlphaBeta-Medium-4",
+      "difficulty": 4,
+      "engine": "Minimax",
+      "evaluator": "Standard",
+      "comment": "Moderate challenge"
+    }
+  ]
+}
+

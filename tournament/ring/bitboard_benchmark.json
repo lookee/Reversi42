@@ -1,0 +1,57 @@
+{
+  "name": "Bitboard Speed Benchmark",
+  "description": "Showcase bitboard performance - all bitboard variants at increasing depths",
+  "games_per_matchup": 2,
+  "include_move_history": false,
+  "players": [
+    {
+      "type": "Bitboard",
+      "name": "Bitboard-8",
+      "difficulty": 8,
+      "engine": "Bitboard",
+      "evaluator": "Standard",
+      "comment": "Pure bitboard speed"
+    },
+    {
+      "type": "Bitboard",
+      "name": "Bitboard-10",
+      "difficulty": 10,
+      "engine": "Bitboard",
+      "evaluator": "Standard",
+      "comment": "Deeper search"
+    },
+    {
+      "type": "BitboardBook",
+      "name": "Oracle-8",
+      "difficulty": 8,
+      "engine": "Bitboard",
+      "evaluator": "Standard",
+      "comment": "Bitboard + opening book"
+    },
+    {
+      "type": "BitboardBook",
+      "name": "Oracle-10",
+      "difficulty": 10,
+      "engine": "Bitboard",
+      "evaluator": "Standard",
+      "comment": "Deep Oracle"
+    },
+    {
+      "type": "ParallelOracle",
+      "name": "ParallelOracle-9",
+      "difficulty": 9,
+      "engine": "ParallelBitboard",
+      "evaluator": "Standard",
+      "comment": "Multi-core power"
+    },
+    {
+      "type": "Grandmaster",
+      "name": "Grandmaster-10",
+      "difficulty": 10,
+      "engine": "Grandmaster",
+      "evaluator": "Advanced",
+      "comment": "Ultimate performance"
+    }
+  ]
+}
+

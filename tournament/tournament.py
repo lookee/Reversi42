@@ -20,6 +20,8 @@ import time
 from datetime import datetime, timedelta
 import statistics
 from collections import defaultdict
+import json
+import argparse
 
 class TournamentGame:
     """Single game statistics"""
@@ -97,7 +99,8 @@ class PlayerStats:
 class Tournament:
     """Tournament manager and statistics"""
     
-    def __init__(self, players_config, games_per_matchup, include_move_history=False):
+    def __init__(self, players_config, games_per_matchup, include_move_history=False, 
+                 name="Reversi42 Tournament", description=""):
         """
         Initialize tournament
         
@@ -105,7 +108,11 @@ class Tournament:
             players_config: List of tuples (type, name, difficulty, engine, evaluator)
             games_per_matchup: Number of games per matchup (each color)
             include_move_history: If True, include full move history in report
+            name: Tournament name
+            description: Tournament description
         """
+        self.name = name
+        self.description = description
         self.players_config = players_config
         self.games_per_matchup = games_per_matchup
         self.include_move_history = include_move_history
@@ -113,6 +120,85 @@ class Tournament:
         self.player_stats = {}
         self.start_time = None
         self.end_time = None
+    
+    @classmethod
+    def from_config_file(cls, config_path):
+        """
+        Create tournament from JSON configuration file
+        
+        Args:
+            config_path: Path to JSON configuration file
+            
+        Returns:
+            Tournament instance
+        """
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+        
+        # Parse players configuration
+        players_config = []
+        for player in config['players']:
+            player_tuple = (
+                player['type'],
+                player['name'],
+                player.get('difficulty', 1),
+                player.get('engine', 'Minimax'),
+                player.get('evaluator', 'Standard')
+            )
+            players_config.append(player_tuple)
+        
+        # Create tournament instance
+        return cls(
+            players_config=players_config,
+            games_per_matchup=config.get('games_per_matchup', 1),
+            include_move_history=config.get('include_move_history', False),
+            name=config.get('name', 'Reversi42 Tournament'),
+            description=config.get('description', '')
+        )
+    
+    def to_config_dict(self):
+        """
+        Convert tournament configuration to dictionary
+        
+        Returns:
+            Dictionary with tournament configuration
+        """
+        players = []
+        for player_tuple in self.players_config:
+            player_dict = {
+                'type': player_tuple[0],
+                'name': player_tuple[1],
+                'difficulty': player_tuple[2],
+                'engine': player_tuple[3],
+                'evaluator': player_tuple[4]
+            }
+            players.append(player_dict)
+        
+        return {
+            'name': self.name,
+            'description': self.description,
+            'players': players,
+            'games_per_matchup': self.games_per_matchup,
+            'include_move_history': self.include_move_history
+        }
+    
+    def save_config(self, filepath):
+        """
+        Save tournament configuration to JSON file
+        
+        Args:
+            filepath: Path where to save configuration
+        """
+        config = self.to_config_dict()
+        
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        
+        with open(filepath, 'w') as f:
+            json.dump(config, f, indent=2)
+        
+        print(f"Configuration saved to: {filepath}")
+        return filepath
         
     def create_player(self, config):
         """Create a player from configuration"""
@@ -129,6 +215,26 @@ class Tournament:
             # Create AIPlayerBook with specified difficulty
             from Players.AIPlayerBook import AIPlayerBook
             player = AIPlayerBook(deep=difficulty)
+            player.name = name
+        elif player_type == "Bitboard":
+            # Create AIPlayerBitboard (ultra-fast)
+            from Players.AIPlayerBitboard import AIPlayerBitboard
+            player = AIPlayerBitboard(deep=difficulty)
+            player.name = name
+        elif player_type == "BitboardBook":
+            # Create AIPlayerBitboardBook (The Oracle)
+            from Players.AIPlayerBitboardBook import AIPlayerBitboardBook
+            player = AIPlayerBitboardBook(deep=difficulty, show_book_options=False)
+            player.name = name
+        elif player_type == "ParallelOracle":
+            # Create AIPlayerBitboardBookParallel (Parallel Oracle)
+            from Players.AIPlayerBitboardBookParallel import AIPlayerBitboardBookParallel
+            player = AIPlayerBitboardBookParallel(deep=difficulty, show_book_options=False)
+            player.name = name
+        elif player_type == "Grandmaster":
+            # Create AIPlayerGrandmaster (Ultimate AI)
+            from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
+            player = AIPlayerGrandmaster(deep=difficulty, show_book_options=False)
             player.name = name
         else:
             player = PlayerFactory.create_player(player_type)
@@ -234,8 +340,10 @@ class Tournament:
         """Run the tournament"""
         self.start_time = datetime.now()
         print("\n" + "="*80)
-        print("REVERSI42 TOURNAMENT - STARTING")
+        print(f"{self.name.upper()}")
         print("="*80)
+        if self.description:
+            print(f"Description: {self.description}")
         print(f"Start time: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Players: {len(self.players_config)}")
         print(f"Games per matchup: {self.games_per_matchup}")
@@ -573,7 +681,69 @@ class Tournament:
 
 
 def main():
-    """Main tournament setup using player metadata"""
+    """Main tournament setup using player metadata or config file"""
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Reversi42 Tournament System')
+    parser.add_argument('--config', '-c', type=str, 
+                       help='Path to tournament configuration file (JSON)')
+    parser.add_argument('--save-config', type=str,
+                       help='Save current configuration to specified file')
+    args = parser.parse_args()
+    
+    # If config file provided, load and run tournament
+    if args.config:
+        print("\n" + "="*80)
+        print("REVERSI42 TOURNAMENT SYSTEM - LOADING FROM CONFIG")
+        print("="*80)
+        print(f"Configuration file: {args.config}")
+        print()
+        
+        try:
+            tournament = Tournament.from_config_file(args.config)
+            
+            print(f"Tournament: {tournament.name}")
+            if tournament.description:
+                print(f"Description: {tournament.description}")
+            print(f"Players: {len(tournament.players_config)}")
+            print(f"Games per matchup: {tournament.games_per_matchup}")
+            print()
+            
+            print("Configured players:")
+            for config in tournament.players_config:
+                print(f"  - {config[1]}")
+            print()
+            
+            input("Press ENTER to start tournament...")
+            
+            # Run tournament
+            tournament.run()
+            
+            # Generate and display report
+            report = tournament.generate_report()
+            print(report)
+            
+            # Save report
+            filename = tournament.save_report()
+            
+            print("\nTournament completed successfully!")
+            print(f"Detailed report saved to: {filename}")
+            if tournament.include_move_history:
+                print("Note: Report includes complete move history for all games")
+            
+            return
+            
+        except FileNotFoundError:
+            print(f"ERROR: Configuration file not found: {args.config}")
+            sys.exit(1)
+        except json.JSONDecodeError as e:
+            print(f"ERROR: Invalid JSON in configuration file: {e}")
+            sys.exit(1)
+        except Exception as e:
+            print(f"ERROR: Failed to load configuration: {e}")
+            sys.exit(1)
+    
+    # Otherwise, interactive configuration
     print("\n" + "="*80)
     print("REVERSI42 TOURNAMENT SYSTEM")
     print("="*80)
@@ -713,8 +883,22 @@ def main():
     
     input("Press ENTER to start tournament...")
     
+    # Get tournament name and description
+    print()
+    tournament_name = input("Tournament name (press ENTER for default): ").strip()
+    if not tournament_name:
+        tournament_name = "Reversi42 Tournament"
+    
+    tournament_desc = input("Tournament description (optional): ").strip()
+    
     # Run tournament
-    tournament = Tournament(players_config, games_per_matchup, include_move_history)
+    tournament = Tournament(players_config, games_per_matchup, include_move_history,
+                          name=tournament_name, description=tournament_desc)
+    
+    # Optionally save configuration
+    if args.save_config:
+        tournament.save_config(args.save_config)
+    
     tournament.run()
     
     # Generate and display report

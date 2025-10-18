@@ -1,0 +1,65 @@
+{
+  "name": "Tournament of Champions",
+  "description": "Epic battle - one representative from each AI category at their optimal depth",
+  "games_per_matchup": 7,
+  "include_move_history": true,
+  "players": [
+    {
+      "type": "Heuristic",
+      "name": "Heuristic-Champion",
+      "difficulty": 1,
+      "engine": "Heuristic",
+      "evaluator": "Standard",
+      "comment": "Fast Strategy Champion"
+    },
+    {
+      "type": "AI",
+      "name": "Minimax-Champion",
+      "difficulty": 7,
+      "engine": "Minimax",
+      "evaluator": "Advanced",
+      "comment": "Classic AI Champion"
+    },
+    {
+      "type": "AIBook",
+      "name": "OpeningBook-Champion",
+      "difficulty": 7,
+      "engine": "Minimax",
+      "evaluator": "Advanced",
+      "comment": "Opening Theory Champion"
+    },
+    {
+      "type": "Bitboard",
+      "name": "Speed-Champion",
+      "difficulty": 10,
+      "engine": "Bitboard",
+      "evaluator": "Standard",
+      "comment": "Speed Champion"
+    },
+    {
+      "type": "BitboardBook",
+      "name": "Hybrid-Champion",
+      "difficulty": 9,
+      "engine": "Bitboard",
+      "evaluator": "Standard",
+      "comment": "Hybrid Champion (Speed + Knowledge)"
+    },
+    {
+      "type": "ParallelOracle",
+      "name": "Parallel-Champion",
+      "difficulty": 9,
+      "engine": "ParallelBitboard",
+      "evaluator": "Standard",
+      "comment": "Multi-Core Champion"
+    },
+    {
+      "type": "Grandmaster",
+      "name": "Ultimate-Champion",
+      "difficulty": 10,
+      "engine": "Grandmaster",
+      "evaluator": "Advanced",
+      "comment": "ULTIMATE CHAMPION"
+    }
+  ]
+}
+
