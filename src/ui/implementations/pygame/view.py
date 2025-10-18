@@ -476,11 +476,15 @@ class PygameBoardView(AbstractBoardView):
     
     def setCanMoveBook(self, bx, by, opening_count=0):
         """Draw opening book move with golden highlighting, glow, and count badge"""
-        radius = int((self.stepy-10) // 4)
-        posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
-        posy = int(self.marginy + self.stepy * by + self.stepy // 2)
+        # bx, by are 1-indexed from BoardControl - convert to 0-indexed for Pygame
+        bx_0 = bx - 1
+        by_0 = by - 1
         
-        self.unfillBox(bx, by)
+        radius = int((self.stepy-10) // 4)
+        posx = int(self.marginx + self.stepx * bx_0 + self.stepx // 2)
+        posy = int(self.marginy + self.stepy * by_0 + self.stepy // 2)
+        
+        self.unfillBox(bx_0, by_0)
         
         surf_size = radius * 4
         s = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
