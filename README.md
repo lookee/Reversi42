@@ -2,7 +2,7 @@
 
 **Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning**
 
-Version: **3.0.0** 🚀  
+Version: **3.1.0** 🚀  
 Originally released: 2011-03-07  
 Major Update: 2025-10-18
 
@@ -13,9 +13,21 @@ Website: https://www.lucaamore.com
 
 ## 📖 Description
 
-Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ultra-fast bitboard AI, interactive opening book learning, and comprehensive competitive features. The **3.0.0 release** introduces production-ready bitboard engines with 50-100x performance improvements.
+Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ultra-fast bitboard AI, interactive opening book learning, and comprehensive competitive features. The **3.1.0 release** adds advanced tournament system with 12 pre-configured tournaments and comprehensive player documentation.
 
-### 🌟 What's New in 3.0.0
+### 🌟 What's New in 3.1.0
+
+- 🎨 **Modular View Architecture** - Pluggable UI system (Pygame/Terminal/Headless)
+- 🏆 **Tournament System Enhanced** - 12 pre-configured tournaments ready to run
+- 📊 **Tournament Configurations** - JSON-based reusable tournament setups
+- 🎮 **Interactive Tournament Selector** - Visual menu for easy tournament selection
+- 📚 **Complete Player Documentation** - 13 detailed guides in docs/players/
+- 🤖 **Grandmaster in Tournaments** - Full support for all advanced AI types
+- ⚡ **Batch Tournament Execution** - Run all tournaments with one command
+- 🖥️ **Terminal Mode** - Play with beautiful ASCII art (SSH-friendly)
+- 🚀 **Headless Mode** - Zero rendering for maximum tournament speed
+
+### What's New in 3.0.0
 
 - ⚡ **Bitboard Engine Production Ready** - Complete rewrite with fixed edge-wrapping bugs
 - 📚 **Interactive Opening Book** - Visual learning with golden move highlighting
@@ -26,15 +38,17 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 
 ### Key Features
 
-- 🎮 **Modern GUI** - Professional tournament-style interface with Pygame
+- 🎮 **Modular View System** - Play in GUI, Terminal, or Headless mode (NEW in 3.1.0)
+- 🎨 **Multiple UI Options** - Pygame (graphical), Terminal (ASCII), Headless (no rendering)
 - ⚡ **Ultra-Fast Bitboard AI** - 50-100x faster than standard implementation
 - 🤖 **Multiple AI Types** - From random to deep bitboard search (depth 1-12)
 - 📚 **Opening Book System** - 57+ classic openings with visual learning mode
-- 🏆 **Tournament System** - Automated competitions with detailed analytics
+- 🏆 **Tournament System** - 12 pre-configured tournaments, batch execution
 - 💾 **Save/Load** - XOT (eXtended Othello Transcript) format
-- 🎯 **Modular Design** - Metadata-driven player system
-- 🔄 **Resizable Window** - Adaptive graphics
+- 🎯 **Modular Design** - Metadata-driven player system, pluggable views
+- 🔄 **Resizable Window** - Adaptive graphics (Pygame mode)
 - 📊 **Real-time Statistics** - Move history, timing, book usage
+- 🖥️ **SSH-Friendly** - Play over SSH with terminal view
 
 ---
 
@@ -42,7 +56,7 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 
 The game features a **metadata-driven player system** with 8 distinct playing styles.
 
-### Complete Player Roster (v3.0.0)
+### Complete Player Roster (v3.1.0)
 
 | Player Name | Type | Engine | Speed | Depth | Opening Book | Best For |
 |------------|------|--------|-------|-------|--------------|----------|
@@ -233,23 +247,65 @@ When "Show Opening" is enabled in the menu:
 
 ## 🏆 Tournament System
 
-Run automated AI vs AI tournaments with comprehensive analysis:
+Comprehensive tournament system with **12 pre-configured tournaments** ready to run!
+
+### Quick Start - Interactive Tournament Selector ⭐
 
 ```bash
 cd tournament
-python3 tournament.py
+./select_tournament.sh
 ```
 
-### Features
+**Features:**
+- ✨ Visual menu with all 12 tournaments
+- 📊 Detailed info (players, games, runtime estimates)
+- 🎨 Color-coded categories (Quick/Elite/Ultimate/Easy/Test)
+- ✓ One-command tournament launch
+
+### Available Tournaments (12 Configurations)
+
+| Tournament | Players | Games | Time | Category |
+|------------|---------|-------|------|----------|
+| **Quick Tournament** | 9 | 144 | 10-15 min | ⚡ Best AI Showcase |
+| **Tournament of Champions** | 7 | 294 | 45-60 min | 🏆 Epic Battle |
+| **Grandmaster Challenge** | 6 | 150 | 30-45 min | 👑 Ultimate Test |
+| **Elite Tournament** | 5 | 100 | 20-30 min | 🏆 Top Tier |
+| **Beginner Friendly** | 5 | 60 | 3-5 min | 🎓 Learning |
+| **Rapid Fire** | 3 | 60 | 1-2 min | ⚡ Ultra Fast |
+| Plus 6 more specialized tournaments! | | | | |
+
+### Tournament System Features
 
 - **Round-Robin Format** - Every AI plays every other AI
 - **Both Colors** - Each matchup played as Black and White
+- **JSON Configuration** - Save and reuse tournament setups
 - **Detailed Statistics** - Win rates, scores, move times, color advantage
 - **Move History** - Optional complete game transcripts
+- **Interactive Selection** - Easy-to-use menu system
 - **Auto-Discovery** - Automatically finds all available AI types
-- **Reports** - Saved to `tournament/reports/` with timestamps
+- **Comprehensive Reports** - Saved to `tournament/reports/` with timestamps
 
-*See `tournament/README.md` for complete documentation*
+### Running Tournaments
+
+```bash
+# Interactive selector (recommended)
+./select_tournament.sh
+
+# Quick tournament
+./run_quick_tournament.sh
+
+# Specific configuration
+./run_tournament.sh elite_tournament.json
+
+# Interactive configuration
+python3 tournament.py
+```
+
+**Complete Documentation:**
+- **[Tournament System Guide](tournament/README.md)** - Complete overview
+- **[Tournament Configurations](tournament/ring/README.md)** - All 12 tournaments detailed
+- **[Tournaments Guide](tournament/TOURNAMENTS_GUIDE.md)** - Usage guide and tips
+- **[Configuration System](tournament/CONFIGURATION_SYSTEM.md)** - Technical reference
 
 ---
 
@@ -267,12 +323,29 @@ pip install pygame
 ### Running the Game
 
 ```bash
-# Main entry point
+# Default (Pygame graphical interface)
 ./reversi42
 
-# Or using Python
-python3 src/reversi42.py
+# Terminal mode (ASCII art - SSH friendly)
+./reversi42 --view terminal
+
+# Headless mode (no graphics - for testing)
+./reversi42 --view headless
+
+# Show available view types
+./reversi42 --list-views
+
+# Show version
+./reversi42 --version
+
+# Or using Python directly
+python3 src/reversi42.py --view pygame
 ```
+
+**View Options** (NEW in 3.1.0):
+- `--view pygame` (or `gui`) - Graphical interface [default]
+- `--view terminal` (or `console`) - ASCII art in terminal  
+- `--view headless` (or `none`) - No rendering (tournaments/testing)
 
 ### Game Controls
 
@@ -287,7 +360,7 @@ python3 src/reversi42.py
 - `ESC` - Pause menu (save/load/resume)
 - `Q` - Quick exit
 
-### Menu Options (NEW in 3.0.0)
+### Menu Options
 
 **Main Menu:**
 - Black Player (choose type and difficulty)
@@ -345,22 +418,33 @@ cd build
 Reversi42/
 ├── src/               # Source code
 │   ├── Reversi/       # Core game logic
-│   ├── Board/         # GUI and board rendering
+│   ├── Board/         # Modular view system (MVC) ⭐ NEW
+│   │   ├── AbstractBoardView.py     # View interface
+│   │   ├── PygameBoardView.py       # Pygame UI
+│   │   ├── TerminalBoardView.py     # ASCII art
+│   │   ├── HeadlessBoardView.py     # No rendering
+│   │   ├── ViewFactory.py           # View factory
+│   │   ├── BoardControl.py          # MVC Controller
+│   │   └── BoardModel.py            # MVC Model
 │   ├── AI/            # AI engines and evaluators
 │   ├── Players/       # Player implementations
 │   ├── examples/      # Demo scripts
 │   └── reversi42.py   # Main entry point
 ├── docs/              # Documentation
-│   ├── players/       # Detailed player documentation
+│   ├── players/       # Detailed player documentation (13 files)
+│   ├── VIEW_ARCHITECTURE.md  # View system docs ⭐ NEW
 │   ├── FEATURES.md    # Complete feature list
 │   ├── ADDING_PLAYERS.md
 │   ├── BITBOARD_IMPLEMENTATION.md
 │   ├── GRANDMASTER_AI.md
 │   └── STRATEGY_IMPROVEMENTS.md
-├── tournament/        # Tournament system
+├── tournament/        # Tournament system (12 configs)
+│   └── ring/          # Tournament configurations ⭐
 ├── Books/             # Opening book library
 ├── saves/             # Saved games (XOT format)
 ├── build/             # Build scripts
+├── CHANGELOG.md       # Version history ⭐ NEW
+├── VIEW_MODULARITY_IMPLEMENTATION.md  # View docs ⭐ NEW
 └── reversi42          # Executable wrapper
 ```
 
@@ -444,6 +528,9 @@ You should have received a copy of the GNU General Public License along with thi
 
 ### Technical Documentation
 - **[Features Guide](docs/FEATURES.md)** - Complete feature list
+- **[View Architecture](docs/VIEW_ARCHITECTURE.md)** - Modular view system (NEW in 3.1.0)
+- **[Running with Different Views](docs/RUNNING_WITH_DIFFERENT_VIEWS.md)** - Command-line view selection
+- **[View Implementation Guide](VIEW_MODULARITY_IMPLEMENTATION.md)** - Technical implementation details
 - **[Adding Players](docs/ADDING_PLAYERS.md)** - Custom player development
 - **[Bitboard Implementation](docs/BITBOARD_IMPLEMENTATION.md)** - Technical deep dive
 - **[Grandmaster AI](docs/GRANDMASTER_AI.md)** - Ultimate AI documentation
@@ -451,7 +538,13 @@ You should have received a copy of the GNU General Public License along with thi
 - **[Parallel Engine](docs/HOW_TO_USE_PARALLEL.md)** - Multi-core usage guide
 - **[Project Reorganization](docs/PROJECT_REORGANIZATION.md)** - Codebase structure
 - **[Build Guide](BUILD.md)** - Building distributions
-- **[Tournament System](tournament/README.md)** - Tournament usage
+- **[Changelog](CHANGELOG.md)** - Version history
+
+### Tournament System Documentation
+- **[Tournament System Guide](tournament/README.md)** - Complete tournament overview
+- **[Tournaments Guide](tournament/TOURNAMENTS_GUIDE.md)** - All 12 tournaments detailed
+- **[Tournament Configurations](tournament/ring/README.md)** - Configuration guide
+- **[Configuration System](tournament/CONFIGURATION_SYSTEM.md)** - Technical reference
 
 ### Learn More About Reversi
 - Wikipedia: http://en.wikipedia.org/wiki/Reversi

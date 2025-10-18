@@ -20,7 +20,7 @@ def run_command(cmd, description):
 def main():
     """Run all test suites"""
     print("="*80)
-    print("REVERSI42 TEST SUITE v3.0.0")
+    print("REVERSI42 TEST SUITE v3.1.0")
     print("="*80)
     
     all_passed = True

@@ -97,9 +97,9 @@ tournament/
 
 ## 🎯 Cosa Include
 
-### Funzionalità v3.0
+### Funzionalità v3.1
 
-- ✅ **12 Tornei Pre-Configurati** - Pronti all'uso in `ring/` ⭐ NEW
+- ✅ **12 Tornei Pre-Configurati** - Pronti all'uso in `ring/` ⭐
 - ✅ **Script Interattivo** - Menu visuale con `./select_tournament.sh` ⭐ NEW
 - ✅ **Sistema di Configurazione JSON** - Tornei riutilizzabili e condivisibili ⭐ NEW
 - ✅ **Script Shell** - Esecuzione rapida con `./run_tournament.sh`
@@ -573,5 +573,5 @@ nano ring/my_custom.json
 
 **Buon torneo!** 🏆
 
-*Reversi42 Tournament System v3.0 - 12 Pre-Configured Tournaments*
+*Reversi42 Tournament System v3.1.0 - 12 Pre-Configured Tournaments*
 

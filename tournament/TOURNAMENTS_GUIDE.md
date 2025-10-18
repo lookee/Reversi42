@@ -369,5 +369,5 @@ python3 tournament.py --save-config ring/my_config.json
 
 **Happy Tournament Playing!** 🏆
 
-*Reversi42 Tournament System v3.0 - 12 Pre-Configured Tournaments*
+*Reversi42 Tournament System v3.1.0 - 12 Pre-Configured Tournaments*
 

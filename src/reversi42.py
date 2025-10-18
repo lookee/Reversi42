@@ -19,6 +19,7 @@
 
 import sys
 import os
+import argparse
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import pygame
@@ -30,6 +31,10 @@ from Reversi.Game import Move
 from Players.PlayerFactory import PlayerFactory
 from Players.HumanPlayer import HumanPlayer
 from Board.BoardControl import BoardControl
+from Board.ViewFactory import ViewFactory
+from Board.PygameBoardView import PygameBoardView
+from Board.TerminalBoardView import TerminalBoardView
+from Board.HeadlessBoardView import HeadlessBoardView
 from Menu import Menu
 from GameOver import GameOver
 from PauseMenu import PauseMenu
@@ -195,26 +200,39 @@ def handle_pause_menu_action(action, g, c, game_history, players):
     
     return (True, None, game_history)
 
-def run_game(menu_result, loaded_game_data=None):
+def run_game(menu_result, loaded_game_data=None, view_class=None):
     """Run a single game with the given player settings or loaded data"""
     
-    # Extract player settings
-    black_player_type = menu_result["black_player"]
-    white_player_type = menu_result["white_player"]
-    black_difficulty = menu_result["black_difficulty"]
-    white_difficulty = menu_result["white_difficulty"]
+    # Get view class from parameter or global
+    if view_class is None:
+        view_class = globals().get('SELECTED_VIEW_CLASS', PygameBoardView)
+    
+    # Check if players are already created (terminal mode) or need creation (menu mode)
+    if isinstance(menu_result.get("black_player"), str):
+        # Menu mode - players are type strings, need to create them
+        black_player_type = menu_result["black_player"]
+        white_player_type = menu_result["white_player"]
+        black_difficulty = menu_result["black_difficulty"]
+        white_difficulty = menu_result["white_difficulty"]
+        
+        # Create players
+        players = {
+            'B': create_player(black_player_type, black_difficulty),
+            'W': create_player(white_player_type, white_difficulty)
+        }
+    else:
+        # Terminal mode - players are already created objects
+        players = {
+            'B': menu_result["black_player"],
+            'W': menu_result["white_player"]
+        }
+    
     show_opening = menu_result.get("show_opening", True)  # Default True
     
     # Load opening book if show_opening is enabled
     opening_book = None
     if show_opening:
         opening_book = get_default_opening_book()
-    
-    # Create players
-    players = {
-        'B': create_player(black_player_type, black_difficulty),
-        'W': create_player(white_player_type, white_difficulty)
-    }
     
     # Initialize game
     size = 8
@@ -239,7 +257,9 @@ def run_game(menu_result, loaded_game_data=None):
         g = Game(size)
         game_history = ""
     
-    c = BoardControl(size, size)
+    # Create BoardControl with selected view class
+    print(f"[INFO] Creating BoardControl with view: {view_class.__name__}")
+    c = BoardControl(size, size, view_class=view_class)
     
     # Set opening book in BoardControl if enabled
     if opening_book:
@@ -286,21 +306,27 @@ def run_game(menu_result, loaded_game_data=None):
             c.renderModel()
             c.cursorWait()
             
-            # Render ascii board
-            # g.view()
-            
-            # History and last move
-            print(f"\ngame history:\n{game_history}\n")
-            print(f"last move: {last_move}")
-            
-            # Instructions for cursor navigation
-            if isinstance(player, HumanPlayer):
-                print("\nControls:")
-                print("- Click to select a move")
-                print("- Press 'C' to toggle cursor navigation mode")
-                print("- Arrow keys: Move cursor (in cursor mode)")
-                print("- ENTER or SPACE: Select move at cursor")
-                print("- ESC: Pause menu (save/load), Q: Quit")
+            # Compact game info on single line
+            from Board.TerminalBoardView import TerminalBoardView
+            if isinstance(c.view, TerminalBoardView):
+                # For terminal mode: compact single-line info
+                if last_move:
+                    print(f"Last: {last_move}  |  History: {game_history if game_history else '(start)'}")
+                else:
+                    print(f"History: {game_history if game_history else '(start)'}")
+            else:
+                # For pygame mode: original verbose output
+                print(f"\ngame history:\n{game_history}\n")
+                print(f"last move: {last_move}")
+                
+                # Instructions for cursor navigation (pygame only)
+                if isinstance(player, HumanPlayer):
+                    print("\nControls:")
+                    print("- Click to select a move")
+                    print("- Press 'C' to toggle cursor navigation mode")
+                    print("- Arrow keys: Move cursor (in cursor mode)")
+                    print("- ENTER or SPACE: Select move at cursor")
+                    print("- ESC: Pause menu (save/load), Q: Quit")
             
             # Get move
             move = player.get_move(g, moves, c)
@@ -430,7 +456,13 @@ def run_game(menu_result, loaded_game_data=None):
         g.view()
         result = g.get_result()
         g.result()
-        print(f"\ngame history:\n{game_history}\n")
+        
+        # Compact history display for terminal mode
+        from Board.TerminalBoardView import TerminalBoardView
+        if isinstance(c.view, TerminalBoardView):
+            print(f"Final History: {game_history}")
+        else:
+            print(f"\ngame history:\n{game_history}\n")
         
         # Show game over screen
         print("Creating GameOver screen...")
@@ -459,16 +491,119 @@ def run_game(menu_result, loaded_game_data=None):
 
 def main():
     """Main game loop - handles menu and multiple games"""
+    # Get selected view class (from command line args)
+    view_class = globals().get('SELECTED_VIEW_CLASS', PygameBoardView)
+    
     # Initialize pygame
     pygame.init()
+    
+    # Check if using non-Pygame view
+    using_terminal = view_class == TerminalBoardView
     
     keep_running = True
     current_menu_result = None
     loaded_data = None
     
     while keep_running:
-        # Show menu (unless we're loading a game)
-        if loaded_data is None:
+        # For terminal mode, skip Pygame menu and use CLI config
+        if using_terminal and loaded_data is None:
+            print("\n" + "="*70)
+            print("TERMINAL MODE - GAME CONFIGURATION")
+            print("="*70)
+            
+            # Get all available players from metadata (same as Pygame menu)
+            # But replace Human Player with Terminal Human
+            all_metadata = PlayerFactory.get_all_player_metadata()
+            
+            # Import TerminalHumanPlayer and add it
+            from Players.TerminalHumanPlayer import TerminalHumanPlayer
+            terminal_human_meta = TerminalHumanPlayer.PLAYER_METADATA.copy()
+            
+            enabled_players = {}
+            for name, meta in all_metadata.items():
+                if meta['enabled']:
+                    if name == 'Human Player':
+                        # Replace with Terminal Human
+                        enabled_players['Terminal Human'] = terminal_human_meta
+                    else:
+                        enabled_players[name] = meta
+            
+            # Build player options list
+            player_options = []
+            for name, meta in enabled_players.items():
+                player_options.append({
+                    'name': name,
+                    'description': meta['description'],
+                    'has_difficulty': len(meta.get('parameters', [])) > 0
+                })
+            
+            # Display all available players
+            print("\nAvailable Players:")
+            for i, player in enumerate(player_options, 1):
+                print(f"  {i}. {player['name']:<25} - {player['description']}")
+            
+            # Get player selections
+            def select_player(color):
+                while True:
+                    try:
+                        choice = input(f"\n{color} player (1-{len(player_options)}): ").strip()
+                        if not choice:
+                            # Default: AI for terminal
+                            return create_player("Alpha-Beta AI", 6)
+                        
+                        idx = int(choice) - 1
+                        if 0 <= idx < len(player_options):
+                            player_info = player_options[idx]
+                            player_name = player_info['name']
+                            
+                            # Special case: Terminal Human
+                            if player_name == 'Terminal Human':
+                                from Players.TerminalHumanPlayer import TerminalHumanPlayer
+                                return TerminalHumanPlayer(name=f"{color}")
+                            
+                            # If player has difficulty parameter, ask for it
+                            if player_info['has_difficulty']:
+                                diff = input(f"  Difficulty level (1-10, default 6): ").strip()
+                                difficulty = int(diff) if diff else 6
+                                difficulty = max(1, min(12, difficulty))
+                            else:
+                                difficulty = 6
+                            
+                            return create_player(player_name, difficulty)
+                        else:
+                            print(f"  Invalid choice. Enter 1-{len(player_options)}")
+                    except ValueError:
+                        print("  Invalid input. Enter a number.")
+                    except Exception as e:
+                        print(f"  Error: {e}")
+            
+            # Select players
+            black_p = select_player("Black")
+            white_p = select_player("White")
+            
+            # Ask about opening book
+            show_book = input("\nShow opening book? (y/N): ").strip().lower()
+            show_opening = show_book in ['y', 'yes']
+            
+            print(f"\n✓ Black: {black_p.name}")
+            print(f"✓ White: {white_p.name}")
+            print(f"✓ Opening book: {'Enabled' if show_opening else 'Disabled'}")
+            print()
+            
+            # Create result matching menu structure
+            result = {
+                'action': 'start',
+                'black_player': black_p,
+                'white_player': white_p,
+                'black_difficulty': 6,
+                'white_difficulty': 6,
+                'show_opening': show_opening
+            }
+            
+            current_menu_result = result
+            
+        # Show Pygame menu for GUI mode
+        elif loaded_data is None:
             menu = Menu()
             result = menu.run()
             
@@ -478,8 +613,8 @@ def main():
             
             current_menu_result = result
         
-        # Run game with selected settings or loaded data
-        game_result = run_game(current_menu_result, loaded_data)
+        # Run game with selected settings or loaded data (pass view_class)
+        game_result = run_game(current_menu_result, loaded_data, view_class=view_class)
         loaded_data = None  # Reset after use
         
         # Handle game result
@@ -497,5 +632,112 @@ def main():
     pygame.quit()
     sys.exit()
 
+def parse_arguments():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(
+        description='Reversi42 - Ultra-Fast Reversi with Modular View System',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+View Types:
+  pygame   - Graphical interface with Pygame (default)
+  terminal - ASCII art in terminal (SSH-friendly)
+  headless - No rendering (maximum speed)
+
+Examples:
+  %(prog)s                    # Start with default Pygame view
+  %(prog)s --view terminal    # Use ASCII art terminal view
+  %(prog)s --view headless    # Headless mode (no graphics)
+  %(prog)s --list-views       # Show available view types
+
+Version 3.1.0 - Modular View Architecture
+        """
+    )
+    
+    parser.add_argument(
+        '--view', '-v',
+        type=str,
+        default='pygame',
+        choices=['pygame', 'terminal', 'headless', 'gui', 'console', 'none'],
+        help='View type to use (default: pygame)'
+    )
+    
+    parser.add_argument(
+        '--list-views',
+        action='store_true',
+        help='List available view types and exit'
+    )
+    
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='Reversi42 v3.1.0 - Modular View Architecture'
+    )
+    
+    return parser.parse_args()
+
 if __name__ == "__main__":
+    args = parse_arguments()
+    
+    # Handle --list-views
+    if args.list_views:
+        print("\n╔═══════════════════════════════════════════════════════════════╗")
+        print("║          REVERSI42 - AVAILABLE VIEW TYPES                     ║")
+        print("╚═══════════════════════════════════════════════════════════════╝\n")
+        
+        views_info = [
+            ("pygame (gui)", "Graphical interface with Pygame", "Interactive play, learning", "Default"),
+            ("terminal (console)", "ASCII art in terminal", "SSH sessions, terminal purists", ""),
+            ("headless (none)", "No rendering", "Tournaments, testing, maximum speed", ""),
+        ]
+        
+        for view, desc, use_case, note in views_info:
+            print(f"  {view:20} - {desc}")
+            print(f"  {'':20}   Use for: {use_case}")
+            if note:
+                print(f"  {'':20}   {note}")
+            print()
+        
+        print("Usage:")
+        print("  reversi42 --view pygame     # Default graphical mode")
+        print("  reversi42 --view terminal   # ASCII art mode")
+        print("  reversi42 --view headless   # No graphics (testing)")
+        print()
+        sys.exit(0)
+    
+    # Map view argument to view class
+    view_mapping = {
+        'pygame': PygameBoardView,
+        'gui': PygameBoardView,
+        'terminal': TerminalBoardView,
+        'console': TerminalBoardView,
+        'headless': HeadlessBoardView,
+        'none': HeadlessBoardView,
+    }
+    
+    selected_view = view_mapping.get(args.view, PygameBoardView)
+    
+    # Display startup message for non-pygame views
+    if args.view in ['terminal', 'console']:
+        print("\n" + "="*70)
+        print("REVERSI42 - TERMINAL MODE")
+        print("="*70)
+        print("\nASCII Art Terminal View - Keyboard Controls")
+        print("Note: Terminal mode is functional but experimental.")
+        print("For full GUI experience, use: reversi42 --view pygame")
+        print("="*70 + "\n")
+    
+    elif args.view in ['headless', 'none']:
+        print("\n" + "="*70)
+        print("REVERSI42 - HEADLESS MODE")
+        print("="*70)
+        print("\nHeadless mode is for automated testing/tournaments.")
+        print("No interactive play is available in this mode.")
+        print("For interactive play, use: reversi42 --view pygame")
+        print("="*70 + "\n")
+        sys.exit(0)
+    
+    # Store view class in a global for access in main()
+    global SELECTED_VIEW_CLASS
+    SELECTED_VIEW_CLASS = selected_view
+    
     main()

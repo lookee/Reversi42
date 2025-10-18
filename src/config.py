@@ -1,6 +1,6 @@
 """
 Reversi42 - Centralized Configuration
-Version 3.0.0
+Version 3.1.0
 
 All constants, defaults, and configuration values in one place.
 """
@@ -269,6 +269,6 @@ WHITE_MOVE = 'w'  # Possible move for white
 ROWNAME = ' ABCDEFGH'
 
 # Version
-VERSION = '3.0.0'
+VERSION = '3.1.0'
 VERSION_NAME = 'Bitboard Revolution'
 

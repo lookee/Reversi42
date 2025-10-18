@@ -16,6 +16,14 @@
 #    along with Reversi42.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------
 
+"""
+BoardControl - Controller for Board MVC Architecture
+
+Manages interaction between Model and View with support for multiple view types.
+
+Version: 3.1.0
+"""
+
 import pygame
 from pygame.locals import *
 
@@ -23,13 +31,39 @@ from Board.BoardView import BoardView
 from Board.BoardModel import BoardModel
 
 class BoardControl(object):
+    """
+    Board controller with pluggable view support.
+    
+    Supports dependency injection of view implementation:
+    - PygameBoardView (default) - Graphical Pygame UI
+    - TerminalBoardView - ASCII art terminal
+    - HeadlessBoardView - No rendering (tournaments)
+    - Custom views implementing AbstractBoardView
+    """
 
-    def __init__(self, sizex, sizey):
-
+    def __init__(self, sizex, sizey, view_class=None, view_args=None):
+        """
+        Initialize board control.
+        
+        Args:
+            sizex: Board width
+            sizey: Board height
+            view_class: View class to use (default: BoardView/PygameBoardView)
+            view_args: Additional arguments for view constructor (dict)
+        """
         self.sizex = sizex
         self.sizey = sizey
-        self.view = BoardView(sizex,sizey,800,600)
-        self.model = BoardModel(sizex,sizey)
+        
+        # Create view with dependency injection
+        if view_class is None:
+            view_class = BoardView  # Default to Pygame view
+        
+        if view_args is None:
+            view_args = {}
+        
+        # Create view instance
+        self.view = view_class(sizex, sizey, 800, 600, **view_args)
+        self.model = BoardModel(sizex, sizey)
 
         self.keyPressed = False
         self.cursor_mode = False  # Whether we're in cursor navigation mode
@@ -170,11 +204,14 @@ class BoardControl(object):
         self.view.update(self.cursor_mode)
         
         # Redraw opening book moves AFTER update (so they appear on top and don't get erased)
+        # Only for Pygame views (not terminal/headless)
         if self.show_opening and len(self.book_moves) > 0:
             for bx, by, count in self.book_moves:
                 self.view.setCanMoveBook(bx, by, count)
-            # Force display update to show the golden moves
-            pygame.display.update()
+            # Force display update to show the golden moves (only for Pygame)
+            if hasattr(self.view, 'screen') and self.view.screen is not None:
+                import pygame
+                pygame.display.update()
 
     def importModel(self,model):
         for y in range(self.sizey):

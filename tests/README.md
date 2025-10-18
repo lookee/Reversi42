@@ -33,7 +33,7 @@ python tests/test_parallel_engine.py
 python tests/test_tournament.py
 ```
 
-## ✅ Test Status (v3.0.0)
+## ✅ Test Status (v3.1.0)
 
 | Test Suite | Status | Tests | Pass Rate |
 |------------|--------|-------|-----------|

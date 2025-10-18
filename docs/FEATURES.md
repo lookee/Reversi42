@@ -1,4 +1,28 @@
-# Reversi42 - Feature List (v3.0.0)
+# Reversi42 - Feature List (v3.1.0)
+
+## 🌟 Version 3.1.0 - Tournament & Documentation Update (October 2025)
+
+### New in 3.1.0
+
+#### 🏆 Advanced Tournament System
+- **12 Pre-Configured Tournaments** - Ready-to-run tournament setups
+- **Interactive Tournament Selector** - Visual menu with tournament details
+- **JSON Configuration System** - Save, load, and share tournament setups
+- **Batch Tournament Execution** - Run all 1,120 games automatically
+- **Comprehensive Tournament Guide** - Complete documentation for all tournaments
+
+#### 📚 Complete Player Documentation
+- **13 Player Guides** - Detailed documentation in docs/players/
+- **Player Comparison Tables** - Easy selection guide
+- **Technical Deep Dives** - How each AI works internally
+- **Performance Benchmarks** - Speed and strength comparisons
+- **Usage Examples** - Code samples for each player type
+
+#### 🤖 Enhanced AI Support in Tournaments
+- **Grandmaster Support** - Full integration in tournament system
+- **Bitboard Variants** - All bitboard players supported
+- **Parallel Processing** - Multi-core AI in tournaments
+- **Advanced Configurations** - Elite, Champions, Challenge tournaments
 
 ## 🌟 Version 3.0.0 - Major Update (October 2025)
 
@@ -52,7 +76,7 @@
 
 ---
 
-### AI Players (v3.0.0)
+### AI Players (v3.1.0)
 
 #### 👤 Human Player
 **Interactive play with full controls**
@@ -155,7 +179,7 @@ Complete technical documentation for each player type is available:
 
 ---
 
-### Opening Book Features (v3.0.0)
+### Opening Book Features
 
 #### Visual Learning System
 - **Golden Move Highlighting**
@@ -380,6 +404,14 @@ Complete technical documentation for each player type is available:
 
 ## 🔄 Version History
 
+### v3.1.0 (October 2025) - "Tournament & Documentation"
+- 🏆 12 pre-configured tournaments with JSON configuration system
+- 📊 Interactive tournament selector with visual menu
+- 🤖 Full Grandmaster and advanced AI support in tournaments
+- 📚 Complete player documentation (13 detailed guides)
+- ⚡ Batch tournament execution (run all 1,120 games)
+- 🎯 Tournament categories: Showcase, Competitive, Analysis, Speed, Learning
+
 ### v3.0.0 (October 2025) - "Bitboard Revolution"
 - ⚡ Production-ready bitboard engine (50-100x faster)
 - 📚 Interactive opening book learning system
@@ -429,4 +461,4 @@ Complete technical documentation for each player type is available:
 
 ---
 
-**Reversi42 v3.0.0 - Where Speed Meets Intelligence** 🚀
+**Reversi42 v3.1.0 - Where Speed Meets Intelligence** 🚀

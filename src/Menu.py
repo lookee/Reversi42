@@ -136,7 +136,7 @@ class Menu:
         self.screen.blit(title_text, title_rect)
         
         # Subtitle
-        subtitle_text = self.subtitle_font.render("v3.0.0 - Bitboard Revolution", True, self.text_color)
+        subtitle_text = self.subtitle_font.render("v3.1.0 - Tournament & Documentation", True, self.text_color)
         subtitle_rect = subtitle_text.get_rect(center=(self.width//2, 90))
         self.screen.blit(subtitle_text, subtitle_rect)
         
@@ -362,7 +362,7 @@ class Menu:
                 "Game ends when board is full or no moves available"
             ]),
             ("VERSION INFO", [
-                "Reversi42 v3.0.0 - Ultra-Fast Bitboard AI with Opening Learning",
+                "Reversi42 v3.1.0 - Ultra-Fast Bitboard AI with Tournament System",
                 "Bitboard Engine: 50-100x faster | Opening Book: 57 moves",
                 "AI Depth 1-12 | Interactive Opening Tooltips"
             ]),

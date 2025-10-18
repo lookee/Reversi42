@@ -1,10 +1,10 @@
 # Adding New Player Types to Reversi42
 
-## Overview (Updated for v3.0.0)
+## Overview (Updated for v3.1.0)
 
 Reversi42 uses a **metadata-driven system** for player types. The menu automatically generates options based on player metadata, making it trivial to add new player types without touching menu code.
 
-**New in 3.0.0**: Bitboard players are now production-ready and available as templates for custom implementations.
+**New in 3.1.0**: Tournament system now supports all player types including Grandmaster. Complete player documentation available in docs/players/.
 
 ## Quick Start
 
@@ -49,7 +49,7 @@ class MyCustomPlayer(Player):
         return random.choice(moves)
 ```
 
-**Note**: In v3.0.0, the parameter format has been updated to use dict format (see existing players for examples).
+**Note**: In v3.1.0, the parameter format uses dict format (see existing players for examples).
 
 ### 2. Register in PlayerFactory
 
@@ -292,7 +292,7 @@ print(f"Selected: {move}")
 
 ---
 
-## Advanced: Creating Bitboard Players (v3.0.0)
+## Advanced: Creating Bitboard Players
 
 ### Example: Custom Bitboard Player
 
