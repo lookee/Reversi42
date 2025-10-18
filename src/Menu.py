@@ -316,9 +316,9 @@ class Menu:
                 "Game ends when board is full or no moves available"
             ]),
             ("VERSION INFO", [
-                "Reversi42 v2.0 - Advanced Reversi/Othello with Bitboard Engine",
-                "Ultra-fast AI (50-100x faster) | 57 Opening Book moves",
-                "AI Difficulty levels 1-12 available"
+                "Reversi42 v3.0.0 - Ultra-Fast Bitboard AI with Opening Learning",
+                "Bitboard Engine: 50-100x faster | Opening Book: 57 moves",
+                "AI Depth 1-12 | Interactive Opening Tooltips"
             ]),
             ("COPYRIGHT", [
                 "Copyright (C) 2011-2025 Luca Amore | GNU GPL v3",

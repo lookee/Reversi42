@@ -9,6 +9,7 @@ from AI.MinimaxEngine import MinimaxEngine
 from AI.OpeningBook import get_default_opening_book
 from Reversi.BitboardGame import BitboardGame
 from Reversi.Game import Move
+import random
 
 class AIPlayerBitboardBook(Player):
     """
@@ -132,8 +133,14 @@ class AIPlayerBitboardBook(Player):
                 print(f"\n⚡ Using book move (instant response)")
                 print(f"{'='*80}\n")
             
-            # Return first book move (could randomize if multiple)
-            return book_moves[0]
+            # Return random book move if multiple available (adds variety)
+            if len(book_moves) > 1:
+                chosen_move = random.choice(book_moves)
+                if self.show_book_options:
+                    print(f"📖 Randomly selected {chosen_move} from {len(book_moves)} book moves\n")
+                return chosen_move
+            else:
+                return book_moves[0]
         
         # Out of book - try bitboard engine first, fallback to standard if needed
         if self.show_book_options:

@@ -1,8 +1,10 @@
 # Adding New Player Types to Reversi42
 
-## Overview
+## Overview (Updated for v3.0.0)
 
-Reversi42 uses a metadata-driven system for player types. The menu automatically generates options based on player metadata, making it easy to add new player types without modifying menu code.
+Reversi42 uses a **metadata-driven system** for player types. The menu automatically generates options based on player metadata, making it trivial to add new player types without touching menu code.
+
+**New in 3.0.0**: Bitboard players are now production-ready and available as templates for custom implementations.
 
 ## Quick Start
 
@@ -13,6 +15,7 @@ Create a new file in `src/Players/`:
 ```python
 from Players.Player import Player
 from Reversi.Game import Move
+import random
 
 class MyCustomPlayer(Player):
     
@@ -21,27 +24,32 @@ class MyCustomPlayer(Player):
         'display_name': 'MyPlayer',
         'description': 'My custom AI strategy',
         'enabled': True,  # Set to False to hide from menu
-        'parameters': [
-            {
-                'name': 'difficulty',
-                'display_name': 'Difficulty',
-                'type': 'int',
+        'parameters': {
+            'difficulty': {
+                'type': int,
                 'min': 1,
                 'max': 10,
                 'default': 5,
                 'description': 'How strong the player is'
             }
-        ]
+        }
     }
     
-    def __init__(self, name='MyPlayer', difficulty=5):
-        self.name = name
-        self.difficulty = difficulty
+    def __init__(self, deep=5):
+        super().__init__()
+        self.deep = deep
+        self.name = f"MyPlayer{deep}"  # Name with difficulty
     
     def get_move(self, game, moves, control):
         # Your move selection logic here
-        return moves[0] if moves else None
+        if not moves:
+            return None
+        
+        # Example: random selection
+        return random.choice(moves)
 ```
+
+**Note**: In v3.0.0, the parameter format has been updated to use dict format (see existing players for examples).
 
 ### 2. Register in PlayerFactory
 
@@ -62,10 +70,13 @@ class PlayerFactory:
 ### 3. Done!
 
 Your player will automatically appear in:
-- ✓ Main menu player selection
-- ✓ Help screen with description
-- ✓ Tournament system
-- ✓ PlayerFactory API
+- ✅ Main menu player selection
+- ✅ Help screen with description
+- ✅ Tournament system
+- ✅ PlayerFactory API
+- ✅ Show Opening system (if applicable)
+
+**That's it!** The metadata-driven system handles everything else.
 
 ## Metadata Reference
 
@@ -278,6 +289,171 @@ print(f"Selected: {move}")
 3. **Test** programmatically
 4. **Enable** in metadata when ready
 5. **Done** - automatically in all menus!
+
+---
+
+## Advanced: Creating Bitboard Players (v3.0.0)
+
+### Example: Custom Bitboard Player
+
+For maximum performance, use bitboard representation:
+
+```python
+from Players.Player import Player
+from AI.BitboardMinimaxEngine import BitboardMinimaxEngine
+from Reversi.BitboardGame import BitboardGame
+
+class MyBitboardPlayer(Player):
+    PLAYER_METADATA = {
+        'display_name': 'MyBitboard AI',
+        'description': 'Custom bitboard implementation - 50x faster',
+        'enabled': True,
+        'parameters': {
+            'difficulty': {
+                'type': int,
+                'min': 1,
+                'max': 12,  # Bitboard allows deeper search
+                'default': 8,
+                'description': 'Search depth (1-12)'
+            }
+        }
+    }
+    
+    def __init__(self, deep=8):
+        super().__init__()
+        self.deep = deep
+        self.name = f'MyBitboard{deep}'
+        self.engine = BitboardMinimaxEngine()
+    
+    def get_move(self, game, moves, control):
+        if not moves:
+            return None
+        
+        # Convert to bitboard for speed
+        bitboard = self._convert_to_bitboard(game)
+        
+        # Use ultra-fast bitboard search
+        return self.engine.get_best_move(bitboard, self.deep, self.name)
+    
+    def _convert_to_bitboard(self, game):
+        """Convert standard Game to BitboardGame"""
+        bitboard = BitboardGame.create_empty()
+        
+        for y in range(1, 9):
+            for x in range(1, 9):
+                cell = game.matrix[y][x]
+                bit = (y - 1) * 8 + (x - 1)
+                
+                if cell == 'B':
+                    bitboard.black |= (1 << bit)
+                elif cell == 'W':
+                    bitboard.white |= (1 << bit)
+        
+        bitboard.turn = game.turn
+        bitboard.turn_cnt = game.turn_cnt
+        bitboard.history = game.history if hasattr(game, 'history') else ""
+        bitboard.black_cnt = bitboard._count_bits(bitboard.black)
+        bitboard.white_cnt = bitboard._count_bits(bitboard.white)
+        bitboard._create_virtual_matrix()
+        
+        return bitboard
+```
+
+### Example: Bitboard with Custom Opening Book
+
+```python
+from Players.AIPlayerBitboardBook import AIPlayerBitboardBook
+from AI.OpeningBook import OpeningBook
+import random
+
+class MyBookPlayer(AIPlayerBitboardBook):
+    def __init__(self, deep=6, custom_book_path=None):
+        super().__init__(deep, show_book_options=False)
+        
+        # Load custom opening book if provided
+        if custom_book_path:
+            self.opening_book = OpeningBook(custom_book_path)
+        
+        self.name = f'CustomBook{deep}'
+    
+    def get_move(self, game, moves, control):
+        # Your custom book selection logic here
+        # Example: Add weighting to prefer certain openings
+        book_moves = self.opening_book.get_book_moves(game.history)
+        
+        if book_moves:
+            # Custom logic: could weight by opening popularity, etc.
+            return random.choice(book_moves)
+        
+        # Fallback to parent implementation
+        return super().get_move(game, moves, control)
+```
+
+### Key Points for Bitboard Players
+
+1. **Performance**: 50-100x faster than standard
+2. **Depth**: Can search deeper (10-12 vs 6-8)
+3. **Conversion**: Must convert Game → BitboardGame
+4. **Virtual Matrix**: Create for evaluator compatibility
+5. **Validation**: Extensive test suite available (`test_bitboard_book.py`)
+
+---
+
+## Testing Your Player
+
+### Unit Testing
+
+```python
+# Test programmatically first
+from Players.PlayerFactory import PlayerFactory
+from Reversi.Game import Game
+
+# Create player
+player = PlayerFactory.create_player('MyPlayer', deep=7)
+
+# Test basic functionality
+g = Game(8)
+moves = g.get_move_list()
+move = player.get_move(g, moves, None)
+print(f"Selected: {move}")
+
+# Verify move is valid
+assert move in moves, "Invalid move returned!"
+```
+
+### Integration Testing
+
+```bash
+# Run comprehensive test suite
+python test_bitboard_book.py
+
+# Test tournament integration
+cd tournament
+python quick_tournament.py
+```
+
+### Performance Benchmarking
+
+```bash
+# Compare your player against others
+python src/examples/bitboard_benchmark.py
+```
+
+---
+
+## Real-World Examples
+
+### Simple: Random Player
+See: `src/Players/Monkey.py`
+
+### Intermediate: Heuristic Player  
+See: `src/Players/HeuristicPlayer.py`
+
+### Advanced: Standard AI
+See: `src/Players/AIPlayer.py`
+
+### Expert: Bitboard with Opening Book
+See: `src/Players/AIPlayerBitboardBook.py`
 
 ---
 
