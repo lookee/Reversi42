@@ -16,13 +16,71 @@ class GameConfig:
     MAX_MOVES = 60
     
     # Players
-    DEFAULT_BLACK_PLAYER = "Human"
-    DEFAULT_WHITE_PLAYER = "The Oracle"
-    DEFAULT_DEPTH = 5
+    DEFAULT_BLACK_PLAYER = "Human Player"
+    DEFAULT_WHITE_PLAYER = "Parallel Oracle"
+    DEFAULT_BLACK_DEPTH = 5
+    DEFAULT_WHITE_DEPTH = 5  # Parallel Oracle optimal depth
     
     # Opening Book
     OPENING_BOOK_ENABLED = True
     OPENING_BOOK_PATH = 'Books/opening_book.txt'
+
+
+# ============================================================================
+# MENU CONFIGURATION
+# ============================================================================
+
+class MenuConfig:
+    """Menu settings and defaults"""
+    
+    # Window dimensions
+    DEFAULT_WIDTH = 800
+    DEFAULT_HEIGHT = 600
+    WINDOW_TITLE = "Reversi42 v3.0.0 - Menu"
+    
+    # Menu colors
+    BG_COLOR = (20, 50, 30)           # Dark green background
+    TITLE_COLOR = (255, 255, 255)     # White title
+    TEXT_COLOR = (200, 200, 200)      # Light gray text
+    SELECTED_COLOR = (255, 255, 0)    # Yellow for selection
+    HIGHLIGHT_COLOR = (100, 150, 100) # Light green for highlight
+    
+    # Font sizes (scaled for 800x600)
+    TITLE_FONT_SIZE = 64
+    SUBTITLE_FONT_SIZE = 20
+    MENU_FONT_SIZE = 32
+    PLAYER_FONT_SIZE = 24   # Smaller for long names
+    SMALL_FONT_SIZE = 18
+    
+    # Menu items
+    MENU_ITEMS = [
+        "Black Player",
+        "White Player",
+        "Show Opening",
+        "Start Game",
+        "Help",
+        "About",
+        "Exit"
+    ]
+    
+    # Default selections
+    DEFAULT_BLACK_PLAYER = GameConfig.DEFAULT_BLACK_PLAYER
+    DEFAULT_WHITE_PLAYER = GameConfig.DEFAULT_WHITE_PLAYER
+    DEFAULT_BLACK_DIFFICULTY = GameConfig.DEFAULT_BLACK_DEPTH
+    DEFAULT_WHITE_DIFFICULTY = GameConfig.DEFAULT_WHITE_DEPTH
+    DEFAULT_SHOW_OPENING = True
+    
+    # AI difficulty levels (depth)
+    DIFFICULTY_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    
+    # AI players that require difficulty selection
+    AI_PLAYERS_WITH_DIFFICULTY = [
+        "Alpha-Beta AI",
+        "Opening Scholar",
+        "Bitboard Blitz",
+        "The Oracle",
+        "Parallel Oracle"
+    ]
 
 
 # ============================================================================

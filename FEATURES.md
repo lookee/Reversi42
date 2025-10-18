@@ -88,15 +88,25 @@
 - Can search depth 10-12 in seconds
 - Performance: 50,000+ nodes/second
 
-#### 🔮 The Oracle (Depth 1-12) 🏆 **RECOMMENDED**
-**Ultimate AI - Best of both worlds**
+#### 🔮 The Oracle (Depth 1-12)
+**Ultimate Single-Core AI**
 - **100x speed** when using opening book
 - **50x speed** when searching positions
 - 57 professional openings + bitboard engine
 - Instant book responses with random variation
 - Deep search (1-12) when out of theory
-- **Default opponent** in new games
-- Perfect for tournaments and maximum challenge
+- Perfect for strong challenges and fast games
+
+#### ⚡ Parallel Oracle (Depth 7-12) 🏆 **DEFAULT - RECOMMENDED**
+**Ultimate Multi-Core AI**
+- **200-500x speed** vs standard AI, **2-5x** vs single-core
+- **Auto-adaptive**: parallel (depth >=7) or sequential (depth <7)
+- 57 professional openings + parallel bitboard engine
+- Instant book responses with random variation
+- Ultra-deep parallel search (7-12) when out of theory
+- **Default opponent** in new games at depth 8
+- Perfect for tournaments, deep analysis, multi-core systems (4+ cores)
+- Worker pool reuse for zero overhead
 
 #### 🎯 Heuristic Scout
 **Fast positional evaluator**

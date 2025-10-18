@@ -25,49 +25,43 @@ if 'src' not in sys.path:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
 
 from Players.PlayerFactory import PlayerFactory
+from config import MenuConfig
 
 class Menu:
-    def __init__(self, width=800, height=600):
-        self.width = width
-        self.height = height
-        self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
-        pygame.display.set_caption("Reversi42 v3.0.0 - Menu")
+    def __init__(self, width=None, height=None):
+        # Use config defaults if not specified
+        self.width = width or MenuConfig.DEFAULT_WIDTH
+        self.height = height or MenuConfig.DEFAULT_HEIGHT
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+        pygame.display.set_caption(MenuConfig.WINDOW_TITLE)
         
-        # Colors
-        self.bg_color = (20, 50, 30)  # Dark green background
-        self.title_color = (255, 255, 255)  # White title
-        self.text_color = (200, 200, 200)  # Light gray text
-        self.selected_color = (255, 255, 0)  # Yellow for selection
-        self.highlight_color = (100, 150, 100)  # Light green for highlight
+        # Colors from config
+        self.bg_color = MenuConfig.BG_COLOR
+        self.title_color = MenuConfig.TITLE_COLOR
+        self.text_color = MenuConfig.TEXT_COLOR
+        self.selected_color = MenuConfig.SELECTED_COLOR
+        self.highlight_color = MenuConfig.HIGHLIGHT_COLOR
         
-        # Fonts (scaled for 800x600)
+        # Fonts from config
         pygame.font.init()
-        self.title_font = pygame.font.Font(None, 64)
-        self.subtitle_font = pygame.font.Font(None, 20)
-        self.menu_font = pygame.font.Font(None, 32)
-        self.player_font = pygame.font.Font(None, 24)  # Smaller for long names
-        self.small_font = pygame.font.Font(None, 18)
+        self.title_font = pygame.font.Font(None, MenuConfig.TITLE_FONT_SIZE)
+        self.subtitle_font = pygame.font.Font(None, MenuConfig.SUBTITLE_FONT_SIZE)
+        self.menu_font = pygame.font.Font(None, MenuConfig.MENU_FONT_SIZE)
+        self.player_font = pygame.font.Font(None, MenuConfig.PLAYER_FONT_SIZE)
+        self.small_font = pygame.font.Font(None, MenuConfig.SMALL_FONT_SIZE)
         
         # Menu state
         self.current_selection = 0
-        self.menu_items = [
-            "Black Player",
-            "White Player",
-            "Show Opening",
-            "Start Game",
-            "Help",
-            "About",
-            "Exit"
-        ]
+        self.menu_items = MenuConfig.MENU_ITEMS.copy()  # Copy to allow modifications
         
-        # Player selections - defaults
-        self.black_player = "Human Player"
-        self.white_player = "The Oracle"
-        self.black_difficulty = 5
-        self.white_difficulty = 5
+        # Player selections from config
+        self.black_player = MenuConfig.DEFAULT_BLACK_PLAYER
+        self.white_player = MenuConfig.DEFAULT_WHITE_PLAYER
+        self.black_difficulty = MenuConfig.DEFAULT_BLACK_DIFFICULTY
+        self.white_difficulty = MenuConfig.DEFAULT_WHITE_DIFFICULTY
         
-        # Opening book display option
-        self.show_opening = True  # Default: show opening book info
+        # Opening book display option from config
+        self.show_opening = MenuConfig.DEFAULT_SHOW_OPENING
         
         # Get player types and descriptions from PlayerFactory metadata
         self.player_types = PlayerFactory.get_available_player_types()
@@ -80,8 +74,8 @@ class Menu:
             if meta['enabled']
         }
         
-        # Difficulties for AI players (can be extended by player metadata)
-        self.difficulties = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        # Difficulties for AI players from config
+        self.difficulties = MenuConfig.DIFFICULTY_LEVELS
         
         # Submenu state
         self.in_submenu = False
@@ -202,7 +196,7 @@ class Menu:
         self.screen.blit(label_text, label_rect)
         
         # Player name with difficulty (smaller font to avoid truncation)
-        if player_name in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
+        if player_name in MenuConfig.AI_PLAYERS_WITH_DIFFICULTY:
             value_text = f"{player_name} (Level {difficulty})"
         else:
             value_text = player_name
@@ -474,7 +468,7 @@ class Menu:
                             if self.submenu_type == "black_player":
                                 self.black_player = self.player_types[self.submenu_selection]
                                 # Ask for difficulty for AI players
-                                if self.black_player in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
+                                if self.black_player in MenuConfig.AI_PLAYERS_WITH_DIFFICULTY:
                                     self.in_submenu = True
                                     self.submenu_type = "black_difficulty"
                                     self.submenu_selection = self.difficulties.index(self.black_difficulty)
@@ -483,7 +477,7 @@ class Menu:
                             elif self.submenu_type == "white_player":
                                 self.white_player = self.player_types[self.submenu_selection]
                                 # Ask for difficulty for AI players
-                                if self.white_player in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
+                                if self.white_player in MenuConfig.AI_PLAYERS_WITH_DIFFICULTY:
                                     self.in_submenu = True
                                     self.submenu_type = "white_difficulty"
                                     self.submenu_selection = self.difficulties.index(self.white_difficulty)
@@ -566,7 +560,7 @@ class Menu:
                 if self.submenu_type == "black_player":
                     self.black_player = self.player_types[self.submenu_selection]
                     # Ask for difficulty for AI players
-                    if self.black_player in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
+                    if self.black_player in MenuConfig.AI_PLAYERS_WITH_DIFFICULTY:
                         self.in_submenu = True
                         self.submenu_type = "black_difficulty"
                         self.submenu_selection = self.difficulties.index(self.black_difficulty)
@@ -575,7 +569,7 @@ class Menu:
                 elif self.submenu_type == "white_player":
                     self.white_player = self.player_types[self.submenu_selection]
                     # Ask for difficulty for AI players
-                    if self.white_player in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
+                    if self.white_player in MenuConfig.AI_PLAYERS_WITH_DIFFICULTY:
                         self.in_submenu = True
                         self.submenu_type = "white_difficulty"
                         self.submenu_selection = self.difficulties.index(self.white_difficulty)

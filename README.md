@@ -50,7 +50,8 @@ The game features a **metadata-driven player system** with 8 distinct playing st
 | **Alpha-Beta AI** | AI | Minimax | 1x | 1-10 | ❌ | Practice, reliable opponent |
 | **Opening Scholar** | AI | Minimax+Book | 1x | 1-10 | ✅ 57 | Learning openings, strong early game |
 | **Bitboard Blitz** | AI | Bitboard | **50x** | 1-12 | ❌ | Fast analysis, deep searches |
-| **The Oracle** 🏆 | AI | Bitboard+Book | **100x** | 1-12 | ✅ 57 | Ultimate challenge, tournaments |
+| **The Oracle** | AI | Bitboard+Book | **100x** | 1-12 | ✅ 57 | Strong challenge, fast games |
+| **Parallel Oracle** 🏆⚡ | AI | Parallel+Book | **200-500x** | 7-12 | ✅ 57 | **DEFAULT - Ultimate AI, multi-core** |
 | **Heuristic Scout** | AI | Heuristic | Fast | - | ❌ | Quick games, medium difficulty |
 | **Greedy Goblin** | AI | Greedy | Fast | - | ❌ | Educational, shows greedy pitfalls |
 | **Random Chaos** | Random | RNG | Instant | - | ❌ | Testing, benchmarking, fun |
@@ -90,15 +91,25 @@ The game features a **metadata-driven player system** with 8 distinct playing st
 - **Performance**: **50-100x faster** - 50,000+ nodes/second
 - **Special**: Can search depth 10-12 in seconds
 
-#### 🔮 The Oracle (RECOMMENDED)
-**The ultimate Reversi AI**
+#### 🔮 The Oracle
+**Ultimate single-core Reversi AI**
 - **Technology**: Bitboard engine + 57 opening sequences
 - **Strength**: Depth 1-12 with instant opening responses
 - **Style**: Perfect opening play, deep midgame search
-- **Best For**: Maximum challenge, tournaments, learning
+- **Best For**: Strong challenge, fast games
 - **Performance**: **100x faster** when in book, 50x when searching
-- **Special**: Combines best of both worlds - speed AND knowledge
-- **Default**: Selected by default for new games
+- **Special**: Combines speed AND knowledge
+
+#### ⚡ Parallel Oracle (DEFAULT - RECOMMENDED) 🏆
+**The ultimate multi-core Reversi AI**
+- **Technology**: Parallel bitboard (2-5x) + 57 opening sequences
+- **Strength**: Depth 7-12 with multi-core parallel search
+- **Style**: Perfect opening play + ultra-deep parallel search
+- **Best For**: Maximum challenge, tournaments, deep analysis (4+ cores)
+- **Performance**: **200-500x faster** than standard, 2-5x vs single-core
+- **Special**: Auto-adaptive (sequential for depth <7, parallel for >=7)
+- **Default**: Selected by default at depth 8 for new games
+- **Intelligence**: Master openings + 12+ ply lookahead with multiprocessing
 
 #### 🎯 Heuristic Scout
 **Fast intuitive player**

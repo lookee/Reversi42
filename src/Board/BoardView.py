@@ -738,9 +738,15 @@ class BoardView(object):
             self.opening_info_text = None
     
     def clear_tooltip_area(self):
-        """Clear the tooltip area completely"""
+        """Clear the tooltip area completely and redraw any coordinates that might have been covered"""
         if self.last_tooltip_rect:
+            # Clear the tooltip area
             pygame.draw.rect(self.screen, self.bgColor, self.last_tooltip_rect)
+            
+            # Redraw coordinates that might have been covered by the tooltip
+            # This prevents the coordinates from being erased when tooltip disappears
+            self.drawCoordinates()
+            
             self.last_tooltip_rect = None
     
     def draw_opening_info_fixed(self):
