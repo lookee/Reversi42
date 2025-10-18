@@ -89,6 +89,11 @@ class AIPlayerBitboardBook(Player):
         # Try opening book first
         book_moves = self.opening_book.get_book_moves(game_history)
         
+        # Filter book moves to only include valid moves for current position
+        if book_moves:
+            valid_book_moves = [m for m in book_moves if m in moves]
+            book_moves = valid_book_moves
+        
         if book_moves:
             self.book_hits += 1
             

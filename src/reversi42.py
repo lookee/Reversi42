@@ -49,7 +49,7 @@ def create_player(player_type, difficulty=6, engine_type='Minimax'):
             return PlayerFactory.create_player(player_type, deep=difficulty)
         elif player_type == "AI Bitboard with Book (Fastest)":
             # Create AIPlayerBitboardBook with specified difficulty
-            return PlayerFactory.create_player(player_type, deep=difficulty, show_book_options=False)
+            return PlayerFactory.create_player(player_type, deep=difficulty, show_book_options=True)
         else:
             return PlayerFactory.create_player(player_type)
     except ValueError as e:
