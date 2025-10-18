@@ -20,15 +20,18 @@ board_path = os.path.join(os.path.dirname(__file__), '../..')
 if board_path not in sys.path:
     sys.path.insert(0, board_path)
 
-# Import from existing Board module
+# Import from existing Board module and new ui module
 from Board.BoardModel import BoardModel
 from Board.BoardControl import BoardControl
 from Board.BoardView import BoardView
 from Board.PygameBoardView import PygameBoardView
-from Board.TerminalBoardView import TerminalBoardView
-from Board.HeadlessBoardView import HeadlessBoardView
+from ui.implementations.terminal import TerminalBoardView  # New location
+from ui.implementations.headless import HeadlessBoardView  # New location
 from Board.ViewFactory import ViewFactory
 from Board.AbstractBoardView import AbstractBoardView
+
+# Import TerminalHumanPlayer from new location
+from ui.implementations.terminal import TerminalHumanPlayer
 
 __all__ = [
     'BoardModel',
@@ -36,6 +39,7 @@ __all__ = [
     'BoardView',
     'PygameBoardView',
     'TerminalBoardView',
+    'TerminalHumanPlayer',
     'HeadlessBoardView',
     'ViewFactory',
     'AbstractBoardView',

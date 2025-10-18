@@ -33,8 +33,8 @@ from Players.HumanPlayer import HumanPlayer
 from Board.BoardControl import BoardControl
 from Board.ViewFactory import ViewFactory
 from Board.PygameBoardView import PygameBoardView
-from Board.TerminalBoardView import TerminalBoardView
-from Board.HeadlessBoardView import HeadlessBoardView
+from ui.implementations.terminal import TerminalBoardView  # New location
+from ui.implementations.headless import HeadlessBoardView  # New location
 from Menu import Menu
 from GameOver import GameOver
 from PauseMenu import PauseMenu
@@ -307,7 +307,7 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
             c.cursorWait()
             
             # Compact game info on single line
-            from Board.TerminalBoardView import TerminalBoardView
+            from ui.implementations.terminal import TerminalBoardView
             if isinstance(c.view, TerminalBoardView):
                 # For terminal mode: compact single-line info
                 if last_move:
@@ -458,7 +458,7 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
         g.result()
         
         # Compact history display for terminal mode
-        from Board.TerminalBoardView import TerminalBoardView
+        from ui.implementations.terminal import TerminalBoardView
         if isinstance(c.view, TerminalBoardView):
             print(f"Final History: {game_history}")
         else:
@@ -515,8 +515,8 @@ def main():
             # But replace Human Player with Terminal Human
             all_metadata = PlayerFactory.get_all_player_metadata()
             
-            # Import TerminalHumanPlayer and add it
-            from Players.TerminalHumanPlayer import TerminalHumanPlayer
+            # Import TerminalHumanPlayer from new location
+            from ui.implementations.terminal import TerminalHumanPlayer
             terminal_human_meta = TerminalHumanPlayer.PLAYER_METADATA.copy()
             
             enabled_players = {}
@@ -558,7 +558,7 @@ def main():
                             
                             # Special case: Terminal Human
                             if player_name == 'Terminal Human':
-                                from Players.TerminalHumanPlayer import TerminalHumanPlayer
+                                from ui.implementations.terminal import TerminalHumanPlayer
                                 return TerminalHumanPlayer(name=f"{color}")
                             
                             # If player has difficulty parameter, ask for it

@@ -11,53 +11,40 @@ Version: 3.1.0
 Architecture: Clean MVC with Dependency Inversion
 """
 
-# Core MVC components
+# Core MVC components (safe to import - no dependencies)
 from .core.model import BoardModel
 from .core.state import GameState
-from .core.controller import BoardController
 
-# Abstract interfaces
+# Abstract interfaces (safe to import - no dependencies)
 from .abstractions.view_interface import AbstractView
 from .abstractions.input_interface import AbstractInputHandler, InputEvent
 
-# Input handlers (concrete implementations)
-from .implementations.pygame.input_handler import PygameInputHandler
-from .implementations.terminal.input_handler import TerminalInputHandler
-from .implementations.headless.input_handler import HeadlessInputHandler
+# Lazy imports to avoid circular dependencies
+# Import implementations and factories only when needed
+# Users should import directly from submodules:
+#   from ui.implementations.pygame import PygameInputHandler
+#   from ui.implementations.terminal import TerminalBoardView
+#   from ui.factories.ui_factory import UIFactory
 
-# Views will be imported later when implemented
-# from .implementations.pygame.view import PygameView
-# from .implementations.terminal.view import TerminalView
-# from .implementations.headless.view import HeadlessView
-
-# Factories
-from .factories.view_factory import ViewFactory
-from .factories.ui_factory import UIFactory
+# Note: Controller imported separately to avoid circular deps
+# from .core.controller import BoardController
 
 __all__ = [
-    # Core
+    # Core (safe exports)
     'BoardModel',
     'GameState',
-    'BoardController',
     
-    # Abstractions
+    # Abstractions (safe exports)
     'AbstractView',
     'AbstractInputHandler',
     'InputEvent',
     
-    # Input Handlers
-    'PygameInputHandler',
-    'TerminalInputHandler',
-    'HeadlessInputHandler',
-    
-    # Views - TODO: Add when implemented
-    # 'PygameView',
-    # 'TerminalView',
-    # 'HeadlessView',
-    
-    # Factories
-    'ViewFactory',
-    'UIFactory',
+    # Note: Import implementations and factories directly:
+    #   from ui.implementations.pygame import PygameInputHandler
+    #   from ui.implementations.terminal import TerminalBoardView
+    #   from ui.implementations.headless import HeadlessInputHandler
+    #   from ui.factories.ui_factory import UIFactory
+    #   from ui.core.controller import BoardController
 ]
 
 __version__ = '3.1.0'

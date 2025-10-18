@@ -7,8 +7,7 @@ Version: 3.1.0
 """
 
 from .PygameBoardView import PygameBoardView
-from .TerminalBoardView import TerminalBoardView
-from .HeadlessBoardView import HeadlessBoardView
+# Lazy imports for TerminalBoardView and HeadlessBoardView to avoid circular dependencies
 
 
 class ViewFactory:
@@ -16,17 +15,25 @@ class ViewFactory:
     Factory for creating different view types.
     
     Makes it easy to switch between view implementations.
+    Uses lazy imports to avoid circular dependencies.
     """
     
-    # Registry of available views
-    VIEW_TYPES = {
-        'pygame': PygameBoardView,
-        'terminal': TerminalBoardView,
-        'headless': HeadlessBoardView,
-        'gui': PygameBoardView,  # Alias
-        'console': TerminalBoardView,  # Alias
-        'none': HeadlessBoardView,  # Alias
-    }
+    @staticmethod
+    def _get_view_class(view_type):
+        """Get view class with lazy import"""
+        if view_type in ('pygame', 'gui'):
+            return PygameBoardView
+        elif view_type in ('terminal', 'console'):
+            from ui.implementations.terminal import TerminalBoardView
+            return TerminalBoardView
+        elif view_type in ('headless', 'none'):
+            from ui.implementations.headless import HeadlessBoardView
+            return HeadlessBoardView
+        else:
+            return None
+    
+    # Legacy registry (deprecated - use _get_view_class)
+    VIEW_TYPES = None  # Disabled to force lazy loading
     
     @classmethod
     def create_view(cls, view_type='pygame', sizex=8, sizey=8, width=800, height=600, **kwargs):
@@ -49,11 +56,11 @@ class ViewFactory:
         """
         view_type = view_type.lower()
         
-        if view_type not in cls.VIEW_TYPES:
+        view_class = cls._get_view_class(view_type)
+        if view_class is None:
             raise ValueError(f"Unsupported view type: {view_type}. "
-                           f"Available: {list(cls.VIEW_TYPES.keys())}")
+                           f"Available: pygame, terminal, headless")
         
-        view_class = cls.VIEW_TYPES[view_type]
         return view_class(sizex, sizey, width, height, **kwargs)
     
     @classmethod
@@ -64,31 +71,24 @@ class ViewFactory:
         Returns:
             list: List of view type names
         """
-        return list(cls.VIEW_TYPES.keys())
+        return ['pygame', 'terminal', 'headless', 'gui', 'console', 'none']
     
-    @classmethod
-    def register_view(cls, name, view_class):
-        """
-        Register a custom view type.
-        
-        Args:
-            name: Name for the view type
-            view_class: Class implementing AbstractBoardView
-        """
-        cls.VIEW_TYPES[name] = view_class
+    # Note: register_view removed - use direct imports for custom views
 
 
 # Convenience functions
 
 def create_pygame_view(sizex=8, sizey=8):
     """Create default Pygame graphical view"""
-    return ViewFactory.create_view('pygame', sizex, sizey)
+    return PygameBoardView(sizex, sizey)
 
 def create_terminal_view(sizex=8, sizey=8):
     """Create ASCII art terminal view"""
-    return ViewFactory.create_view('terminal', sizex, sizey)
+    from ui.implementations.terminal import TerminalBoardView
+    return TerminalBoardView(sizex, sizey)
 
 def create_headless_view(sizex=8, sizey=8):
     """Create headless view (no rendering)"""
-    return ViewFactory.create_view('headless', sizex, sizey)
+    from ui.implementations.headless import HeadlessBoardView
+    return HeadlessBoardView(sizex, sizey)
 

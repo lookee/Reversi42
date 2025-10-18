@@ -14,10 +14,10 @@ import os
 # Add parent to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
-# For now, use legacy views from Board
-from Board.PygameBoardView import PygameBoardView
-from Board.TerminalBoardView import TerminalBoardView
-from Board.HeadlessBoardView import HeadlessBoardView
+# Import views from their proper locations
+from Board.PygameBoardView import PygameBoardView  # Legacy Pygame (not yet migrated)
+from ui.implementations.terminal.view import TerminalBoardView  # New Terminal
+from ui.implementations.headless.view import HeadlessBoardView  # New Headless
 
 
 class ViewFactory:
