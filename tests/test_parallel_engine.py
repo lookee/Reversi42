@@ -9,8 +9,8 @@ Usage:
 import sys
 import os
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+# Add src to path (now from tests/ subdirectory)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from Reversi.BitboardGame import BitboardGame
 from AI.ParallelBitboardMinimaxEngine import ParallelBitboardMinimaxEngine, benchmark_parallel_vs_sequential

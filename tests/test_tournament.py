@@ -5,7 +5,11 @@ Test Tournament System - Ultra Quick Test
 """
 
 import sys
-sys.path.append('src')
+import os
+
+# Add paths (now from tests/ subdirectory)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from tournament import Tournament
 

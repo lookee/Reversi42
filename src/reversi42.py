@@ -53,6 +53,9 @@ def create_player(player_type, difficulty=6, engine_type='Minimax'):
         elif player_type == "Parallel Oracle":
             # Create AIPlayerBitboardBookParallel with specified difficulty
             return PlayerFactory.create_player(player_type, deep=difficulty, show_book_options=True)
+        elif player_type == "Grandmaster":
+            # Create AIPlayerGrandmaster with specified difficulty
+            return PlayerFactory.create_player(player_type, deep=difficulty, show_book_options=True)
         else:
             return PlayerFactory.create_player(player_type)
     except ValueError as e:

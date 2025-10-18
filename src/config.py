@@ -79,7 +79,8 @@ class MenuConfig:
         "Opening Scholar",
         "Bitboard Blitz",
         "The Oracle",
-        "Parallel Oracle"
+        "Parallel Oracle",
+        "Grandmaster"
     ]
 
 

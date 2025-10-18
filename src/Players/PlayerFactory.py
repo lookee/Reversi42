@@ -22,6 +22,7 @@ from Players.AIPlayerBook import AIPlayerBook
 from Players.AIPlayerBitboard import AIPlayerBitboard
 from Players.AIPlayerBitboardBook import AIPlayerBitboardBook
 from Players.AIPlayerBitboardBookParallel import AIPlayerBitboardBookParallel
+from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
 from Players.Monkey import Monkey
 from Players.GreedyPlayer import GreedyPlayer
 from Players.HeuristicPlayer import HeuristicPlayer
@@ -50,6 +51,7 @@ class PlayerFactory:
         AIPlayerBitboard,
         AIPlayerBitboardBook,
         AIPlayerBitboardBookParallel,
+        AIPlayerGrandmaster,
         HeuristicPlayer,
         GreedyPlayer,
         Monkey,

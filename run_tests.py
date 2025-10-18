@@ -26,17 +26,21 @@ def main():
     all_passed = True
     
     # Run bitboard tests
-    if not run_command('python test_bitboard_book.py', 'Bitboard Implementation Tests'):
+    if not run_command('python tests/test_bitboard_book.py', 'Bitboard Implementation Tests'):
+        all_passed = False
+    
+    # Run parallel engine tests
+    if not run_command('python tests/test_parallel_engine.py', 'Parallel Engine Tests'):
         all_passed = False
     
     # Run tournament tests
-    if not run_command('python test_tournament.py', 'Tournament System Tests'):
+    if not run_command('python tests/test_tournament.py', 'Tournament System Tests'):
         all_passed = False
     
-    if not run_command('python tournament/test_move_history.py', 'Tournament Move History Tests'):
+    if not run_command('python tests/test_move_history.py', 'Tournament Move History Tests'):
         all_passed = False
     
-    if not run_command('python tournament/test_report_save.py', 'Tournament Report Tests'):
+    if not run_command('python tests/test_report_save.py', 'Tournament Report Tests'):
         all_passed = False
     
     # Summary
