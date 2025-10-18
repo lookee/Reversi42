@@ -94,6 +94,22 @@ class TerminalBoardView(AbstractBoardView):
         self.valid_moves_list = []
         self.use_color = True  # Can be disabled for non-color terminals
         self.last_output_lines = 0
+        self.move_count = 0  # Track move number
+        
+        # Game info
+        self.black_count = 2
+        self.white_count = 2
+        self.current_turn = 'B'
+        
+        # Player names
+        self.black_player_name = "Black"
+        self.white_player_name = "White"
+        
+        # Cursor and last move
+        self.cursorX = 0
+        self.cursorY = 0
+        self.last_move_x = -1
+        self.last_move_y = -1
     
     def initialize(self):
         """Initialize terminal (clear screen, setup)"""
@@ -128,19 +144,17 @@ class TerminalBoardView(AbstractBoardView):
         
         lines = []
         
-        # Header with player info
+        # Compact header with player info on one line
         # Convert turn to piece symbol (X for Black, O for White)
         turn_symbol = 'X' if self.current_turn == 'B' else 'O'
         
-        lines.append(f"\n{self.BOLD}═══════════════════════════════════════════════════════════════{self.RESET}")
-        lines.append(f"{self.BOLD}{self.BLACK_PIECE} {self.black_player_name}: {self.black_count}    " +
-                    f"{self.WHITE_PIECE} {self.white_player_name}: {self.white_count}    " +
-                    f"Turn: {self.YELLOW if self.current_turn == 'B' else self.CYAN}" +
-                    f"{turn_symbol}{self.RESET}")
-        lines.append(f"{self.BOLD}═══════════════════════════════════════════════════════════════{self.RESET}\n")
+        # Single line header with dividers
+        lines.append(f"\n{self.BOLD}Turn: {self.YELLOW if self.current_turn == 'B' else self.CYAN}{turn_symbol}{self.RESET}  │  " +
+                    f"{self.BLACK_PIECE} {self.black_count:>2}  {self.WHITE_PIECE} {self.white_count:>2}  │  " +
+                    f"Move #{self.move_count}{self.RESET}\n")
         
-        # Column headers (perfectly aligned with board columns)
-        col_header = "   " + "   ".join("ABCDEFGH"[:self.sizex])
+        # Column headers (top only, perfectly aligned)
+        col_header = "    " + " ".join("ABCDEFGH"[:self.sizex])
         lines.append(col_header)
         
         # Top border
@@ -274,6 +288,8 @@ class TerminalBoardView(AbstractBoardView):
         """Update player piece counts"""
         self.black_count = black_count
         self.white_count = white_count
+        # Update move count (total pieces - 4 starting pieces)
+        self.move_count = black_count + white_count - 4
     
     def setCanMoveBook(self, x: int, y: int, count: int):
         """Mark position as opening book move (terminal just marks as valid)"""
@@ -385,6 +401,8 @@ class TerminalBoardView(AbstractBoardView):
         """Set piece counts (compatibility)"""
         self.black_count = black_count
         self.white_count = white_count
+        # Update move count (total pieces - 4 starting pieces)
+        self.move_count = black_count + white_count - 4
     
     def setCurrentTurn(self, turn):
         """Set current turn (compatibility)"""

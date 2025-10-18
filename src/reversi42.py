@@ -32,12 +32,12 @@ from Players.PlayerFactory import PlayerFactory
 from Players.HumanPlayer import HumanPlayer
 from Board.BoardControl import BoardControl
 from Board.ViewFactory import ViewFactory
-from Board.PygameBoardView import PygameBoardView
+from Board.PygameBoardView import PygameBoardView  # Keep legacy for now (has dependencies)
 from ui.implementations.terminal import TerminalBoardView  # New location
 from ui.implementations.headless import HeadlessBoardView  # New location
-from Menu import Menu
-from GameOver import GameOver
-from PauseMenu import PauseMenu
+from ui.implementations.pygame.components.menu import Menu  # New location
+from ui.implementations.pygame.components.game_over import GameOver  # New location
+from ui.implementations.pygame.components.pause_menu import PauseMenu  # New location
 from GameIO import GameIO
 from AI.OpeningBook import get_default_opening_book
 
@@ -70,7 +70,7 @@ def create_player(player_type, difficulty=6, engine_type='Minimax'):
 def handle_save_game(game, black_player_name, white_player_name, game_history):
     """Handle game save with graphical dialog"""
     from datetime import datetime
-    from DialogBox import TextInputDialog, MessageDialog
+    from ui.implementations.pygame.components.dialog_box import TextInputDialog, MessageDialog
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     default_name = f"game_{timestamp}"
@@ -114,7 +114,7 @@ def handle_save_game(game, black_player_name, white_player_name, game_history):
 
 def handle_load_game():
     """Handle game load with graphical dialog - returns game data or None"""
-    from DialogBox import ListSelectDialog, MessageDialog
+    from ui.implementations.pygame.components.dialog_box import ListSelectDialog, MessageDialog
     
     saved_games = GameIO.list_saved_games()
     
@@ -288,7 +288,8 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
         turn = g.get_turn()
         player = players[turn]
         
-        print(f"{player.get_name()} is moving...")
+        # Compact player notification (inline with move later)
+        # print(f"{player.get_name()} is moving...")  # Moved to be inline
         
         moves = g.get_move_list()
         
@@ -315,9 +316,13 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
                 else:
                     print(f"History: {game_history if game_history else '(start)'}")
             else:
-                # For pygame mode: original verbose output
-                print(f"\ngame history:\n{game_history}\n")
-                print(f"last move: {last_move}")
+                # Pygame mode: compact single-line info
+                if last_move and game_history:
+                    print(f"Move: {last_move}  |  History: {game_history}")
+                elif game_history:
+                    print(f"History: {game_history}")
+                elif last_move:
+                    print(f"Move: {last_move}")
                 
                 # Instructions for cursor navigation (pygame only)
                 if isinstance(player, HumanPlayer):
@@ -329,7 +334,9 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
                     print("- ESC: Pause menu (save/load), Q: Quit")
             
             # Get move
+            print(f"[{player.get_name()}]", end=" ", flush=True)
             move = player.get_move(g, moves, c)
+            print(f"{move}", end="  ")
             
             # Check if player requested pause
             if c.should_pause:
@@ -386,7 +393,8 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
             
             game_history += last_move
             
-            print(f"move: {move}")
+            # Move already printed inline above with player name
+            # print(f"move: {move}")  # Removed - redundant
         
         else:
             g.pass_turn()
@@ -457,12 +465,12 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
         result = g.get_result()
         g.result()
         
-        # Compact history display for terminal mode
+        # Compact history display
         from ui.implementations.terminal import TerminalBoardView
         if isinstance(c.view, TerminalBoardView):
-            print(f"Final History: {game_history}")
+            print(f"\nFinal History: {game_history}")
         else:
-            print(f"\ngame history:\n{game_history}\n")
+            print(f"\n🏁 Game finished! Final History: {game_history}")
         
         # Show game over screen
         print("Creating GameOver screen...")
