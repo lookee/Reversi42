@@ -60,62 +60,104 @@ def create_player(player_type, difficulty=6, engine_type='Minimax'):
         return PlayerFactory.create_player("Human Player")  # Default fallback
 
 def handle_save_game(game, black_player_name, white_player_name, game_history):
-    """Handle game save"""
+    """Handle game save with graphical dialog"""
     from datetime import datetime
+    from DialogBox import TextInputDialog, MessageDialog
+    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     default_name = f"game_{timestamp}"
     
-    print(f"\nSaving game...")
-    print(f"Default filename: {default_name}.xot")
-    filename = input("Enter filename (or press ENTER for default): ").strip()
+    # Show text input dialog
+    dialog = TextInputDialog(
+        prompt="Enter filename to save:",
+        default_text=default_name
+    )
     
-    if not filename:
-        filename = default_name
+    filename = dialog.run()
+    
+    if filename is None or filename.strip() == "":
+        # User cancelled or empty
+        return False
+    
+    filename = filename.strip()
     
     try:
         filepath = GameIO.save_game(game, filename, black_player_name, white_player_name, game_history)
-        print(f"✓ Game saved to: {filepath}")
+        
+        # Show success message
+        msg_dialog = MessageDialog(
+            title="Save Successful",
+            message=f"Game saved to:\n{os.path.basename(filepath)}",
+            message_type="success"
+        )
+        msg_dialog.run()
+        
         return True
     except Exception as e:
-        print(f"✗ Error saving game: {e}")
+        # Show error message
+        msg_dialog = MessageDialog(
+            title="Save Error",
+            message=f"Error saving game:\n{str(e)}",
+            message_type="error"
+        )
+        msg_dialog.run()
+        
         return False
 
 def handle_load_game():
-    """Handle game load - returns game data or None"""
+    """Handle game load with graphical dialog - returns game data or None"""
+    from DialogBox import ListSelectDialog, MessageDialog
+    
     saved_games = GameIO.list_saved_games()
     
     if not saved_games:
-        print("\nNo saved games found.")
-        input("Press ENTER to continue...")
+        # Show "no games" message
+        msg_dialog = MessageDialog(
+            title="No Saved Games",
+            message="No saved games found.\nPlay a game and save it first!",
+            message_type="info"
+        )
+        msg_dialog.run()
         return None
     
-    print("\nAvailable saved games:")
-    for i, game_file in enumerate(saved_games, 1):
-        print(f"  {i}. {game_file}")
+    # Show selection dialog
+    dialog = ListSelectDialog(
+        title="Select game to load:",
+        items=saved_games,
+        allow_cancel=True
+    )
     
-    print(f"  0. Cancel")
+    choice = dialog.run()
     
-    while True:
-        try:
-            choice = int(input(f"\nSelect game to load (0-{len(saved_games)}): "))
-            if choice == 0:
-                return None
-            if 1 <= choice <= len(saved_games):
-                filename = saved_games[choice - 1]
-                break
-            print(f"Please enter a number between 0 and {len(saved_games)}")
-        except ValueError:
-            print("Please enter a valid number")
+    if choice is None:
+        # User cancelled
+        return None
+    
+    filename = saved_games[choice]
     
     try:
         saves_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'saves')
         filepath = os.path.join(saves_dir, filename)
         game_data = GameIO.load_game(filepath)
-        print(f"✓ Game loaded from: {filepath}")
+        
+        # Show success message
+        msg_dialog = MessageDialog(
+            title="Load Successful",
+            message=f"Game loaded from:\n{filename}",
+            message_type="success"
+        )
+        msg_dialog.run()
+        
         return game_data
     except Exception as e:
-        print(f"✗ Error loading game: {e}")
-        input("Press ENTER to continue...")
+        # Show error message
+        msg_dialog = MessageDialog(
+            title="Load Error",
+            message=f"Error loading game:\n{str(e)}",
+            message_type="error"
+        )
+        msg_dialog.run()
+        
         return None
 
 def handle_pause_menu_action(action, g, c, game_history, players):
@@ -133,7 +175,7 @@ def handle_pause_menu_action(action, g, c, game_history, players):
     
     elif action == "save":
         handle_save_game(g, players['B'].get_name(), players['W'].get_name(), game_history)
-        input("Press ENTER to continue...")
+        # No need for input() - dialog handles user interaction
         return (True, None, game_history)
     
     elif action == "load":
