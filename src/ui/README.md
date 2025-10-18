@@ -84,7 +84,7 @@ from ui.core.model import BoardModel
 from ui.core.state import GameState
 from ui.core.controller import BoardController
 from ui.implementations.pygame.input_handler import PygameInputHandler
-from Board.PygameBoardView import PygameBoardView
+from ui.implementations.pygame.view import PygameBoardView
 
 # Create components
 model = BoardModel(8, 8)

@@ -24,7 +24,7 @@ if board_path not in sys.path:
 from Board.BoardModel import BoardModel
 from Board.BoardControl import BoardControl
 from Board.BoardView import BoardView
-from Board.PygameBoardView import PygameBoardView
+from ui.implementations.pygame.view import PygameBoardView  # New location
 from ui.implementations.terminal import TerminalBoardView  # New location
 from ui.implementations.headless import HeadlessBoardView  # New location
 from Board.ViewFactory import ViewFactory

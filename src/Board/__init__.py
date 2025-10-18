@@ -13,12 +13,10 @@ from .BoardControl import BoardControl
 # Abstract interface
 from .AbstractBoardView import AbstractBoardView
 
-# View implementations
-from .PygameBoardView import PygameBoardView
-# TerminalBoardView: Use lazy import to avoid circular dependency
-# from ui.implementations.terminal import TerminalBoardView
-# HeadlessBoardView: Use lazy import for consistency
-# from ui.implementations.headless import HeadlessBoardView
+# View implementations - all use lazy import for consistency
+# PygameBoardView: lazy import
+# TerminalBoardView: lazy import
+# HeadlessBoardView: lazy import
 
 # Backward compatibility
 from .BoardView import BoardView
@@ -43,8 +41,11 @@ __all__ = [
 ]
 
 def __getattr__(name):
-    """Lazy imports for view implementations to avoid circular dependencies"""
-    if name == 'TerminalBoardView':
+    """Lazy imports for ALL view implementations to avoid circular dependencies"""
+    if name == 'PygameBoardView':
+        from ui.implementations.pygame.view import PygameBoardView
+        return PygameBoardView
+    elif name == 'TerminalBoardView':
         from ui.implementations.terminal import TerminalBoardView
         return TerminalBoardView
     elif name == 'HeadlessBoardView':

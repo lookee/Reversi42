@@ -148,13 +148,14 @@ class TerminalBoardView(AbstractBoardView):
         # Convert turn to piece symbol (X for Black, O for White)
         turn_symbol = 'X' if self.current_turn == 'B' else 'O'
         
-        # Single line header with dividers
+        # Single line header with dividers and colons for clarity
         lines.append(f"\n{self.BOLD}Turn: {self.YELLOW if self.current_turn == 'B' else self.CYAN}{turn_symbol}{self.RESET}  │  " +
-                    f"{self.BLACK_PIECE} {self.black_count:>2}  {self.WHITE_PIECE} {self.white_count:>2}  │  " +
+                    f"{self.BLACK_PIECE}: {self.black_count:>2}  {self.WHITE_PIECE}: {self.white_count:>2}  │  " +
                     f"Move #{self.move_count}{self.RESET}\n")
         
-        # Column headers (top only, perfectly aligned)
-        col_header = "    " + " ".join("ABCDEFGH"[:self.sizex])
+        # Column headers (top only, perfectly aligned with board cells)
+        # Each cell is 3 chars wide + 1 separator = 4 chars total
+        col_header = "    " + "   ".join("ABCDEFGH"[:self.sizex])
         lines.append(col_header)
         
         # Top border

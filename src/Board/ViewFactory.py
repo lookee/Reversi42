@@ -6,8 +6,7 @@ Simplifies view creation with sensible defaults.
 Version: 3.1.0
 """
 
-from .PygameBoardView import PygameBoardView
-# Lazy imports for TerminalBoardView and HeadlessBoardView to avoid circular dependencies
+# All views use lazy imports to avoid circular dependencies
 
 
 class ViewFactory:
@@ -22,6 +21,7 @@ class ViewFactory:
     def _get_view_class(view_type):
         """Get view class with lazy import"""
         if view_type in ('pygame', 'gui'):
+            from ui.implementations.pygame.view import PygameBoardView
             return PygameBoardView
         elif view_type in ('terminal', 'console'):
             from ui.implementations.terminal import TerminalBoardView
@@ -80,6 +80,7 @@ class ViewFactory:
 
 def create_pygame_view(sizex=8, sizey=8):
     """Create default Pygame graphical view"""
+    from ui.implementations.pygame.view import PygameBoardView
     return PygameBoardView(sizex, sizey)
 
 def create_terminal_view(sizex=8, sizey=8):

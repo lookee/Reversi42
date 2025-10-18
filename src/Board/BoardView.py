@@ -25,7 +25,12 @@ All new code should use PygameBoardView directly or the abstract interface.
 Version: 3.1.0
 """
 
-from .PygameBoardView import PygameBoardView
+# Lazy import to avoid circular dependencies
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+
+from ui.implementations.pygame.view import PygameBoardView
 
 # Backward compatibility: BoardView is now an alias for PygameBoardView
 BoardView = PygameBoardView

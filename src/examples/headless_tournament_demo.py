@@ -19,8 +19,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from Reversi.Game import Game
 from Board.BoardControl import BoardControl
-from Board.HeadlessBoardView import HeadlessBoardView
-from Board.PygameBoardView import PygameBoardView
+from ui.implementations.headless import HeadlessBoardView
+from ui.implementations.pygame.view import PygameBoardView
 from Players.AIPlayer import AIPlayer
 from Players.GreedyPlayer import GreedyPlayer
 

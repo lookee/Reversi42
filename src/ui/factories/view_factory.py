@@ -14,8 +14,8 @@ import os
 # Add parent to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
-# Import views from their proper locations
-from Board.PygameBoardView import PygameBoardView  # Legacy Pygame (not yet migrated)
+# Import views from their proper isolated locations
+from ui.implementations.pygame.view import PygameBoardView  # New Pygame
 from ui.implementations.terminal.view import TerminalBoardView  # New Terminal
 from ui.implementations.headless.view import HeadlessBoardView  # New Headless
 

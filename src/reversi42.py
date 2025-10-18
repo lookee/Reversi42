@@ -32,7 +32,7 @@ from Players.PlayerFactory import PlayerFactory
 from Players.HumanPlayer import HumanPlayer
 from Board.BoardControl import BoardControl
 from Board.ViewFactory import ViewFactory
-from Board.PygameBoardView import PygameBoardView  # Keep legacy for now (has dependencies)
+from ui.implementations.pygame.view import PygameBoardView  # New location
 from ui.implementations.terminal import TerminalBoardView  # New location
 from ui.implementations.headless import HeadlessBoardView  # New location
 from ui.implementations.pygame.components.menu import Menu  # New location

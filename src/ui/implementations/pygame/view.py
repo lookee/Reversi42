@@ -25,12 +25,17 @@ Implements the AbstractBoardView interface.
 Version: 3.1.0
 """
 
+import sys
+import os
+
+# Add path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+
 import pygame
 from pygame.locals import *
 from pygame.gfxdraw import *
-from sys import exit
 
-from .AbstractBoardView import AbstractBoardView
+from Board.AbstractBoardView import AbstractBoardView  # Use legacy for now
 
 
 class PygameBoardView(AbstractBoardView):
