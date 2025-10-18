@@ -204,6 +204,21 @@ class Tournament:
         """Create a player from configuration"""
         player_type, name, difficulty, engine_type, evaluator_type = config
         
+        # Direct class mapping for tournament player types
+        player_type_mapping = {
+            'AI': 'ai_custom',  # Use custom AI creation
+            'AIBook': 'aibook_custom',
+            'Bitboard': 'bitboard_custom',
+            'BitboardBook': 'bitboardbook_custom',
+            'ParallelOracle': 'parallel_custom',
+            'Grandmaster': 'grandmaster_custom',
+            'Monkey': 'Random Chaos',  # PlayerFactory display_name
+            'Greedy': 'Greedy Goblin',  # PlayerFactory display_name
+            'Heuristic': 'Heuristic Scout',  # PlayerFactory display_name
+            'Human': 'Human Player',  # PlayerFactory display_name
+        }
+        
+        # Handle custom AI types that need special initialization
         if player_type == "AI":
             player = PlayerFactory.create_ai_player(
                 engine_type=engine_type,
@@ -212,32 +227,29 @@ class Tournament:
             )
             player.name = name
         elif player_type == "AIBook":
-            # Create AIPlayerBook with specified difficulty
             from Players.AIPlayerBook import AIPlayerBook
-            player = AIPlayerBook(deep=difficulty)
+            player = AIPlayerBook(deep=difficulty, show_book_options=False)
             player.name = name
         elif player_type == "Bitboard":
-            # Create AIPlayerBitboard (ultra-fast)
             from Players.AIPlayerBitboard import AIPlayerBitboard
             player = AIPlayerBitboard(deep=difficulty)
             player.name = name
         elif player_type == "BitboardBook":
-            # Create AIPlayerBitboardBook (The Oracle)
             from Players.AIPlayerBitboardBook import AIPlayerBitboardBook
             player = AIPlayerBitboardBook(deep=difficulty, show_book_options=False)
             player.name = name
         elif player_type == "ParallelOracle":
-            # Create AIPlayerBitboardBookParallel (Parallel Oracle)
             from Players.AIPlayerBitboardBookParallel import AIPlayerBitboardBookParallel
             player = AIPlayerBitboardBookParallel(deep=difficulty, show_book_options=False)
             player.name = name
         elif player_type == "Grandmaster":
-            # Create AIPlayerGrandmaster (Ultimate AI)
             from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
             player = AIPlayerGrandmaster(deep=difficulty, show_book_options=False)
             player.name = name
         else:
-            player = PlayerFactory.create_player(player_type)
+            # Use PlayerFactory with display_name mapping
+            display_name = player_type_mapping.get(player_type, player_type)
+            player = PlayerFactory.create_player(display_name)
             player.name = name
         
         # Initialize stats
