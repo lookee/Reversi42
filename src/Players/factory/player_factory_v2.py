@@ -122,31 +122,41 @@ class PlayerFactoryV2:
         Returns:
             dict: Player metadata
         """
-        # Try to get from old PlayerFactory for compatibility
-        try:
-            from Players.PlayerFactory import PlayerFactory
-            return PlayerFactory.get_player_metadata(player_type)
-        except:
-            # Fallback to default
-            return {
-                'display_name': player_type,
-                'description': f'{player_type} player',
-                'enabled': True,
-                'parameters': []
-            }
+        # Check if Human Player
+        if player_type == 'Human Player':
+            from Players.HumanPlayer import HumanPlayer
+            return HumanPlayer.PLAYER_METADATA.copy()
+        
+        # Fallback to default
+        return {
+            'display_name': player_type,
+            'description': f'{player_type} player',
+            'enabled': True,
+            'parameters': []
+        }
     
     @classmethod
     def list_available_players(cls) -> Dict[str, Dict[str, Any]]:
         """
-        List all available players (backward compatible).
+        List all available players with metadata.
         
         Returns:
-            dict: Mapping of player types to metadata
+            Dict mapping player names to metadata
         """
-        try:
-            from Players.PlayerFactory import PlayerFactory
-            return PlayerFactory.AVAILABLE_PLAYERS
-        except:
-            # Fallback to presets
-            return {name: {'display_name': name} for name in cls.PRESET_MAPPING.keys()}
-
+        result = {}
+        
+        # Add Human Player FIRST
+        from Players.HumanPlayer import HumanPlayer
+        result['Human Player'] = HumanPlayer.PLAYER_METADATA.copy()
+        
+        # Add all AI presets
+        for preset_name in cls.PRESET_MAPPING.keys():
+            result[preset_name] = {
+                'display_name': preset_name,
+                'description': f'{preset_name} player',
+                'enabled': True,
+                'type': 'AI',
+                'parameters': []
+            }
+        
+        return result
