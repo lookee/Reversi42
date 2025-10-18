@@ -25,8 +25,8 @@ import random
 class Monkey(Player):
     
     PLAYER_METADATA = {
-        'display_name': 'Monkey',
-        'description': 'Random move selection (for testing)',
+        'display_name': 'Random Chaos',
+        'description': 'Random move generator - pure RNG for testing',
         'enabled': True,
         'parameters': []  # No configurable parameters
     }

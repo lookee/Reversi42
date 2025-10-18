@@ -27,8 +27,8 @@ from pygame.locals import *
 class HumanPlayer(Player):
     
     PLAYER_METADATA = {
-        'display_name': 'Human',
-        'description': 'Interactive player using mouse/keyboard',
+        'display_name': 'Human Player',
+        'description': 'You! Play with mouse or keyboard controls',
         'enabled': True,
         'parameters': []  # No configurable parameters
     }

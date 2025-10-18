@@ -35,8 +35,8 @@ class HeuristicPlayer(Player):
     """
     
     PLAYER_METADATA = {
-        'display_name': 'Heuristic',
-        'description': 'Fast AI using simple heuristics (no deep search)',
+        'display_name': 'Heuristic Scout',
+        'description': 'Fast heuristic AI - positional evaluation without deep search',
         'enabled': True,
         'parameters': []  # No configurable parameters
     }

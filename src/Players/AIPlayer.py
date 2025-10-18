@@ -24,8 +24,8 @@ from Players.Player import Player
 class AIPlayer(Player):
     
     PLAYER_METADATA = {
-        'display_name': 'AI',
-        'description': 'Intelligent AI with minimax alpha-beta pruning',
+        'display_name': 'Alpha-Beta AI',
+        'description': 'Classic minimax with alpha-beta pruning - solid and reliable',
         'enabled': True,
         'parameters': [
             {
@@ -41,8 +41,9 @@ class AIPlayer(Player):
     }
 
     def __init__(self, deep=6):
-        self.name = 'AIPlayer%d' % deep
-        self.deep = deep
+        self.depth = deep
+        self.deep = deep  # Keep for backwards compatibility
+        self.name = f'AlphaBeta{deep}'
         self.engine = MinimaxEngine()
 
     def get_move(self, game, moves, control):

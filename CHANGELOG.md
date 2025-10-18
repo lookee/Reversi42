@@ -53,15 +53,24 @@ Fixed Issues:
 
 ### 🎮 Player Updates
 
-#### Enabled Players (Production Ready)
-- ✅ **AIPlayerBitboard** - Now enabled (was disabled due to bugs)
-- ✅ **AIPlayerBitboardBook** - Now enabled and RECOMMENDED
-- 🎯 **Default Player** - Menu now defaults to BitboardBook at level 5
+#### Player Roster Redesign
+All players renamed for clarity and appeal:
+- **Human Player** - Clear identification of human player
+- **Alpha-Beta AI** - Classic minimax (was "AI Player")
+- **Opening Scholar** - Opening book specialist (was "AI with Opening Book")
+- **Bitboard Blitz** - Ultra-fast bitboard (was "AI Bitboard")
+- **The Oracle** - Ultimate AI (was "AI Bitboard with Book") 🏆 RECOMMENDED
+- **Heuristic Scout** - Fast heuristic (was "Heuristic Player")
+- **Greedy Goblin** - Greedy strategy (was "Greedy Player")
+- **Random Chaos** - Random moves (was "Monkey")
 
 #### Player Improvements
-- 📝 **Named Instances** - All AI players show depth in name (e.g., "BitboardBook6")
-- ⚙️ **Difficulty Selection** - Menu properly supports all AI types
-- 🎲 **Random Book Selection** - Adds variety when multiple openings available
+- 📝 **Clear Names** - Technology-based naming (Alpha-Beta, Bitboard, etc.)
+- 📖 **Detailed Descriptions** - What each AI is based on
+- ❌ **No Unicode Emojis** - Removed emoji from display names (caused rendering issues)
+- 🎯 **Default Player** - Menu defaults to The Oracle at level 5
+- ⚙️ **Difficulty Selection** - All AI types properly supported
+- 🎲 **Random Book Selection** - Variety in opening choices
 
 ### 🐛 Bug Fixes
 

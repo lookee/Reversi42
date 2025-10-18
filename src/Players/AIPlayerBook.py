@@ -24,8 +24,8 @@ class AIPlayerBook(Player):
     """
     
     PLAYER_METADATA = {
-        'display_name': 'AI with Opening Book',
-        'description': 'AI that uses opening theory from book, then minimax search. Very strong in early game.',
+        'display_name': 'Opening Scholar',
+        'description': 'Opening book AI - 57 master sequences + minimax search',
         'enabled': True,
         'parameters': {
             'difficulty': {
@@ -46,8 +46,9 @@ class AIPlayerBook(Player):
             deep: Search depth for minimax when out of book
             show_book_options: If True, show all available book moves when consulting book
         """
-        self.name = f'AIPlayerBook{deep}'
-        self.deep = deep
+        self.depth = deep
+        self.deep = deep  # Keep for backwards compatibility
+        self.name = f'Scholar{deep}'
         self.engine = MinimaxEngine()
         self.opening_book = get_default_opening_book()
         self.show_book_options = show_book_options  # Show all available openings

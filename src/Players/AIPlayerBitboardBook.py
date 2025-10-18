@@ -25,8 +25,8 @@ class AIPlayerBitboardBook(Player):
     """
     
     PLAYER_METADATA = {
-        'display_name': 'AI Bitboard with Book (Fastest)',
-        'description': 'Ultra-fast bitboard AI with opening book. Perfect for deep analysis and tournaments.',
+        'display_name': 'The Oracle',
+        'description': 'Ultimate AI - Bitboard speed (100x) + Opening book (57 sequences)',
         'enabled': True,  # ENABLED: Bitboard bugs fixed!
         'parameters': {
             'difficulty': {
@@ -48,8 +48,9 @@ class AIPlayerBitboardBook(Player):
             show_book_options: Show opening book information during play
         """
         super().__init__()
-        self.deep = deep
-        self.name = f"BitboardBook{deep}"  # Set name with depth
+        self.depth = deep
+        self.deep = deep  # Keep for backwards compatibility
+        self.name = f"Oracle{deep}"  # Set name with depth
         self.show_book_options = show_book_options
         self.bitboard_engine = BitboardMinimaxEngine()
         self.standard_engine = MinimaxEngine()  # Fallback

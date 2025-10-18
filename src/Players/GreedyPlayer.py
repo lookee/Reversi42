@@ -31,8 +31,8 @@ class GreedyPlayer(Player):
     """
     
     PLAYER_METADATA = {
-        'display_name': 'Greedy',
-        'description': 'Always captures maximum pieces immediately',
+        'display_name': 'Greedy Goblin',
+        'description': 'Greedy AI - always captures maximum pieces (educational)',
         'enabled': True,
         'parameters': []  # No configurable parameters
     }

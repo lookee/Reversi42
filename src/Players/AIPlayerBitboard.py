@@ -20,8 +20,8 @@ class AIPlayerBitboard(Player):
     """
     
     PLAYER_METADATA = {
-        'display_name': 'AI Bitboard (Ultra-Fast)',
-        'description': 'Ultra-fast AI using bitboard representation. 50-100x faster than standard AI.',
+        'display_name': 'Bitboard Blitz',
+        'description': 'Bitboard engine - 50-100x faster than standard AI',
         'enabled': True,  # ENABLED: Late-game bugs fixed!
         'parameters': {
             'difficulty': {
@@ -41,8 +41,9 @@ class AIPlayerBitboard(Player):
         Args:
             deep: Search depth (can be higher than standard AI due to speed)
         """
-        self.name = f'AIBitboard{deep}'
-        self.deep = deep
+        self.depth = deep
+        self.deep = deep  # Keep for backwards compatibility
+        self.name = f'Blitz{deep}'
         self.engine = BitboardMinimaxEngine()
         
         print(f"[{self.name}] Bitboard AI initialized - expect 50-100x speedup!")

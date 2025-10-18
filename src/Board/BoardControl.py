@@ -212,6 +212,37 @@ class BoardControl(object):
         """Set the player names for display in the header"""
         self.view.setPlayerNames(black_name, white_name)
     
+    def display_available_moves(self, game, moves, turn):
+        """
+        Display all available moves with optional opening book highlighting.
+        
+        Consolidates logic previously duplicated in multiple places.
+        Handles both normal moves and opening book golden highlighting.
+        
+        Args:
+            game: Current game state (for history)
+            moves: List of available moves
+            turn: Current player turn ('B' or 'W')
+        """
+        self.book_moves = []  # Reset book moves list
+        
+        if self.show_opening and self.opening_book:
+            # Check each move to see if it leads to an opening
+            for move in moves:
+                # Get all openings that include this move
+                openings = self.opening_book.get_openings_for_move(game.history, move)
+                
+                if openings:
+                    # This move leads to opening(s) - save for highlighting with count
+                    self.book_moves.append((move.get_x() - 1, move.get_y() - 1, len(openings)))
+                    self.setCanMove(move.get_x(), move.get_y(), turn)
+                else:
+                    self.setCanMove(move.get_x(), move.get_y(), turn)
+        else:
+            # No opening book - show all moves normally
+            for move in moves:
+                self.setCanMove(move.get_x(), move.get_y(), turn)
+    
     def setCurrentTurn(self, turn):
         """Set whose turn it is for the turn indicator"""
         self.view.setCurrentTurn(turn)

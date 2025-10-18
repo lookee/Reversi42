@@ -40,27 +40,101 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 
 ## 🎮 Player Types
 
-The game features a **metadata-driven player system** with automatic menu integration.
+The game features a **metadata-driven player system** with 8 distinct playing styles.
 
-### Available Players (v3.0.0)
+### Complete Player Roster (v3.0.0)
 
-1. **Human** - Interactive player with mouse/keyboard navigation
-2. **AI Player** - Advanced minimax with alpha-beta pruning (depth 1-10)
-3. **AI with Opening Book** - Minimax + 57 opening sequences ⭐
-4. **AI Bitboard (Ultra-Fast)** - 50-100x faster using bitboard representation (depth 1-12) ⚡
-5. **AI Bitboard with Book (Fastest)** - Ultimate AI: Bitboard speed + Opening book 🏆 **RECOMMENDED**
-6. **Heuristic Player** - Fast positional evaluation
-7. **Greedy Player** - Maximizes immediate captures
-8. **Monkey** - Random moves (for testing)
+| Player Name | Type | Engine | Speed | Depth | Opening Book | Best For |
+|------------|------|--------|-------|-------|--------------|----------|
+| **Human Player** | Human | Manual | - | - | ❌ | You! Interactive play with visual learning |
+| **Alpha-Beta AI** | AI | Minimax | 1x | 1-10 | ❌ | Practice, reliable opponent |
+| **Opening Scholar** | AI | Minimax+Book | 1x | 1-10 | ✅ 57 | Learning openings, strong early game |
+| **Bitboard Blitz** | AI | Bitboard | **50x** | 1-12 | ❌ | Fast analysis, deep searches |
+| **The Oracle** 🏆 | AI | Bitboard+Book | **100x** | 1-12 | ✅ 57 | Ultimate challenge, tournaments |
+| **Heuristic Scout** | AI | Heuristic | Fast | - | ❌ | Quick games, medium difficulty |
+| **Greedy Goblin** | AI | Greedy | Fast | - | ❌ | Educational, shows greedy pitfalls |
+| **Random Chaos** | Random | RNG | Instant | - | ❌ | Testing, benchmarking, fun |
 
-### Performance Comparison
+### Detailed Player Descriptions
 
-| Player Type | Speed | Depth | Opening Book |
-|------------|-------|-------|--------------|
-| AI Player | 1x | 1-10 | ❌ |
-| AI with Book | 1x | 1-10 | ✅ |
-| AI Bitboard | **50-100x** | 1-12 | ❌ |
-| **Bitboard with Book** | **50-100x** | 1-12 | ✅ |
+#### 👤 Human Player
+**You control the game!**
+- **Controls**: Mouse click or keyboard navigation (C + arrows)
+- **Features**: Opening book tooltips when enabled
+- **Learning**: See golden moves and opening names while you play
+- **Best For**: Everyone - this is you!
+
+#### 🤖 Alpha-Beta AI
+**Classic AI with proven minimax algorithm**
+- **Technology**: Alpha-beta pruning, transposition tables
+- **Strength**: Configurable depth 1-10
+- **Style**: Strategic, reliable, well-balanced
+- **Best For**: Learning AI basics, consistent practice opponent
+- **Performance**: ~2,000 nodes/second at depth 6
+
+#### 📚 Opening Scholar  
+**Master of opening theory**
+- **Technology**: 57 professional openings + minimax fallback
+- **Strength**: Instant in book, depth 1-10 when out
+- **Style**: Strong early game, follows master sequences
+- **Best For**: Learning openings, tournament preparation
+- **Special**: Randomly selects from multiple book options for variety
+- **Performance**: Instant book moves, standard speed out of book
+
+#### ⚡ Bitboard Blitz
+**Pure computational speed**
+- **Technology**: 64-bit bitboard representation
+- **Strength**: Depth 1-12 practical in real-time
+- **Style**: Aggressive deep searches, no opening knowledge
+- **Best For**: Analysis, deep tactical positions
+- **Performance**: **50-100x faster** - 50,000+ nodes/second
+- **Special**: Can search depth 10-12 in seconds
+
+#### 🔮 The Oracle (RECOMMENDED)
+**The ultimate Reversi AI**
+- **Technology**: Bitboard engine + 57 opening sequences
+- **Strength**: Depth 1-12 with instant opening responses
+- **Style**: Perfect opening play, deep midgame search
+- **Best For**: Maximum challenge, tournaments, learning
+- **Performance**: **100x faster** when in book, 50x when searching
+- **Special**: Combines best of both worlds - speed AND knowledge
+- **Default**: Selected by default for new games
+
+#### 🎯 Heuristic Scout
+**Fast intuitive player**
+- **Technology**: Positional heuristics, pattern recognition
+- **Strength**: Medium (no deep search)
+- **Style**: Quick decisions, position-based
+- **Best For**: Fast games, variety in play style
+- **Performance**: Instant moves
+
+#### 👹 Greedy Goblin
+**Educational opponent**
+- **Technology**: Immediate piece count maximization
+- **Strength**: Weak (short-sighted strategy)
+- **Style**: Always captures maximum pieces available
+- **Best For**: Beginners learning why greedy play fails
+- **Educational Value**: Shows importance of position over piece count
+- **Performance**: Instant moves
+
+#### 🎲 Random Chaos
+**Pure unpredictability**
+- **Technology**: Random number generator
+- **Strength**: None (random)
+- **Style**: Completely unpredictable
+- **Best For**: Testing, benchmarking, comic relief
+- **Performance**: Instant moves
+- **Warning**: Will make terrible moves!
+
+### Quick Comparison
+
+**For Beginners:** Start with Human Player vs Alpha-Beta AI (level 3-4)
+
+**For Learning:** Human Player vs Opening Scholar (level 5) + Show Opening enabled
+
+**For Challenge:** Human Player vs The Oracle (level 5-8)
+
+**For Speed Testing:** Bitboard Blitz vs The Oracle (tournament mode)
 
 *See `ADDING_PLAYERS.md` for creating custom player types*
 

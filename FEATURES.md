@@ -54,53 +54,76 @@
 
 ### AI Players (v3.0.0)
 
-#### Standard Players
-1. **Human** - Interactive play with full controls
-   - Mouse click selection
-   - Keyboard cursor navigation
-   - Opening book tooltips (when enabled)
+#### 👤 Human Player
+**Interactive play with full controls**
+- Mouse click selection on highlighted moves
+- Keyboard cursor navigation (C key + arrows)
+- Opening book tooltips when Show Opening enabled
+- Visual learning with golden move highlights
+- Real-time opening name display
 
-2. **AI Player** (Depth 1-10)
-   - Alpha-beta pruning minimax
-   - Transposition tables
-   - Move ordering optimization
-   - StandardEvaluator
+#### 🤖 Alpha-Beta AI (Depth 1-10)
+**Classic minimax with alpha-beta pruning**
+- Reliable and strategic play
+- Transposition tables for speed
+- Move ordering optimization
+- StandardEvaluator for position assessment
+- Performance: ~2,000 nodes/second
 
-3. **AI with Opening Book** ⭐
-   - 57 professional openings
-   - Minimax fallback
-   - Named opening sequences
-   - Depth 1-10
+#### 📚 Opening Scholar (Depth 1-10) ⭐
+**Master of opening theory**
+- 57 professional opening sequences memorized
+- Instant responses while in book
+- Random selection when multiple options available
+- Minimax search (depth 1-10) when out of book
+- Named opening sequences (Diagonal, Tiger, Buffalo, etc.)
+- Great for learning master-level openings
 
-#### Ultra-Fast Players (NEW in 3.0.0)
+#### ⚡ Bitboard Blitz (Depth 1-12) **NEW in 3.0.0**
+**Ultra-fast bitboard engine**
+- **50-100x performance boost** over standard AI
+- 64-bit bitboard representation
+- Depth 1-12 practical for real-time play
+- No opening book (pure calculation)
+- Can search depth 10-12 in seconds
+- Performance: 50,000+ nodes/second
 
-4. **AI Bitboard (Ultra-Fast)** ⚡
-   - 50-100x performance boost
-   - Bitboard representation
-   - Depth 1-12 practical
-   - No opening book
+#### 🔮 The Oracle (Depth 1-12) 🏆 **RECOMMENDED**
+**Ultimate AI - Best of both worlds**
+- **100x speed** when using opening book
+- **50x speed** when searching positions
+- 57 professional openings + bitboard engine
+- Instant book responses with random variation
+- Deep search (1-12) when out of theory
+- **Default opponent** in new games
+- Perfect for tournaments and maximum challenge
 
-5. **AI Bitboard with Book (Fastest)** 🏆 **RECOMMENDED**
-   - Ultimate combination
-   - 50-100x faster + 57 openings
-   - Instant book responses
-   - Deep search when out of book
-   - Depth 1-12
+#### 🎯 Heuristic Scout
+**Fast positional evaluator**
+- Heuristic-based position evaluation
+- No deep tree search (instant moves)
+- Pattern recognition for move selection
+- Good for quick games
+- Medium difficulty
 
-#### Specialized Players
+#### 👹 Greedy Goblin
+**Educational opponent**
+- Always maximizes immediate piece captures
+- No long-term planning
+- Shows why greedy strategy fails
+- Instant moves
+- Useful for teaching beginners
+- Demonstrates importance of position
 
-6. **Heuristic Player**
-   - Fast positional evaluation
-   - No deep search
-   - Good for quick games
-
-7. **Greedy Player**
-   - Maximizes immediate captures
-   - Educational: shows greedy pitfalls
-
-8. **Monkey**
-   - Random move selection
-   - Testing and benchmarking
+#### 🎲 Random Chaos
+**Pure randomness for testing**
+- Random move generator (RNG)
+- Zero strategy
+- Totally unpredictable
+- Instant moves
+- Testing AI performance
+- Benchmarking tool
+- Comic relief value
 
 ---
 
