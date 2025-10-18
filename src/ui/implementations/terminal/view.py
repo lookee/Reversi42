@@ -42,16 +42,16 @@ class TerminalBoardView(AbstractBoardView):
     RESET = '\033[0m' if USE_COLORS else ''
     BOLD = '\033[1m' if USE_COLORS else ''
     
-    # Pieces - Pure ASCII (no colors)
+    # Pieces - Using ● and ○ symbols
     if USE_COLORS:
         BLACK_PIECE = '\033[1;37m●\033[0m'  # Bold white circle
         WHITE_PIECE = '\033[1;90m○\033[0m'  # Bold gray open circle
         EMPTY = '\033[2;37m·\033[0m'  # Dim dot
     else:
-        # Pure ASCII - works on any background
-        BLACK_PIECE = 'X'  # X for black pieces
-        WHITE_PIECE = 'O'  # O for white pieces
-        EMPTY = '.'  # Dot for empty
+        # Pure symbols - works on any background
+        BLACK_PIECE = '●'  # Black filled circle
+        WHITE_PIECE = '○'  # White open circle
+        EMPTY = '·'  # Dot for empty
     
     # Backgrounds (only if colors enabled)
     BG_GREEN = '\033[42m' if USE_COLORS else ''
@@ -136,22 +136,23 @@ class TerminalBoardView(AbstractBoardView):
     
     def _draw_board(self):
         """Internal: Draw the board in beautiful ASCII"""
-        # Clear previous output
-        if self.last_output_lines > 0:
-            for _ in range(self.last_output_lines):
-                sys.stdout.write('\033[F')  # Move cursor up
-                sys.stdout.write('\033[K')  # Clear line
+        # Don't clear previous output - let terminal scroll naturally
+        # This keeps the board visible between moves for human players
         
         lines = []
         
         # Compact header with player info on one line
-        # Convert turn to piece symbol (X for Black, O for White)
-        turn_symbol = 'X' if self.current_turn == 'B' else 'O'
+        # Use ● for Black turn, ○ for White turn
+        turn_symbol = '●' if self.current_turn == 'B' else '○'
         
-        # Single line header with dividers and colons for clarity
-        lines.append(f"\n{self.BOLD}Turn: {self.YELLOW if self.current_turn == 'B' else self.CYAN}{turn_symbol}{self.RESET}  │  " +
-                    f"{self.BLACK_PIECE}: {self.black_count:>2}  {self.WHITE_PIECE}: {self.white_count:>2}  │  " +
-                    f"Move #{self.move_count}{self.RESET}\n")
+        # Header with horizontal lines and pipe separators
+        lines.append("")  # Empty line for spacing
+        lines.append("─" * 40)
+        lines.append(f"  Turn: {self.YELLOW if self.current_turn == 'B' else self.CYAN}{turn_symbol}{self.RESET}  |   " +
+                    f"●:{self.black_count:>2}  ○:{self.white_count:>2}  |  " +
+                    f"Move:{self.move_count}")
+        lines.append("─" * 40)
+        lines.append("")  # Empty line for spacing
         
         # Column headers (top only, perfectly aligned with board cells)
         # Each cell is 3 chars wide + 1 separator = 4 chars total
@@ -229,10 +230,10 @@ class TerminalBoardView(AbstractBoardView):
         bottom_line += self.BOX_BR
         lines.append(bottom_line)
         
-        # Print all lines
+        # Print all lines with extra spacing for readability
         output = '\n'.join(lines)
         print(output)
-        self.last_output_lines = len(lines)
+        print()  # Extra blank line for separation between turns
     
     def render_piece(self, x: int, y: int, color: str):
         """Render single piece"""

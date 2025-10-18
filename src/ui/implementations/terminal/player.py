@@ -69,6 +69,11 @@ class TerminalHumanPlayer(Player):
             
             # Print all moves on one line
             print(f"Valid moves: {' '.join(move_strs)}")
+            
+            # First move as default
+            first_move = moves[0]
+            first_col_letter = chr(ord('A') + first_move.x - 1)
+            default_move_str = f"{first_col_letter}{first_move.y}"
         else:
             print("\nNo valid moves available")
             return None
@@ -76,17 +81,19 @@ class TerminalHumanPlayer(Player):
         # Get input
         while True:
             try:
-                move_input = input(f"\nEnter move (D3 or 1-{len(moves)}): ").strip()
+                move_input = input(f"\nEnter move [{default_move_str}], 1-{len(moves)}, 0=Exit, M=Menu: ").strip()
                 
+                # If empty, use default (first move)
                 if not move_input:
-                    print("Please enter a move")
-                    continue
+                    print(f"✓ Playing default: {default_move_str}")
+                    return first_move
                 
                 move_input_upper = move_input.upper()
                 
-                if move_input_upper in ['Q', 'QUIT', 'EXIT']:
-                    print("Quitting game...")
-                    control.should_exit = True
+                # Check for menu
+                if move_input_upper in ['M', 'MENU']:
+                    print("\n✓ Returning to main menu...")
+                    control.should_return_to_menu = True
                     return None
                 
                 if move_input_upper in ['H', 'HELP', '?']:
@@ -96,6 +103,13 @@ class TerminalHumanPlayer(Player):
                 # Try to parse as number first
                 if move_input.isdigit():
                     move_num = int(move_input)
+                    
+                    # Check for "0" - exit game
+                    if move_num == 0:
+                        print("\n✓ Exiting game...")
+                        import sys
+                        sys.exit(0)
+                    
                     if 1 <= move_num <= len(moves):
                         selected_move = moves[move_num - 1]
                         col_letter = chr(ord('A') + selected_move.x - 1)

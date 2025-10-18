@@ -20,15 +20,23 @@
 BoardControl - Controller for Board MVC Architecture
 
 Manages interaction between Model and View with support for multiple view types.
+Now 100% framework-agnostic using InputHandler abstraction.
 
 Version: 3.1.0
+Architecture: Framework-independent controller
 """
-
-import pygame
-from pygame.locals import *
 
 from Board.BoardView import BoardView
 from Board.BoardModel import BoardModel
+from ui.abstractions.input_interface import InputEvent
+
+# Lazy import for pygame only when needed
+try:
+    import pygame
+    from pygame.locals import *
+    _PYGAME_AVAILABLE = True
+except ImportError:
+    _PYGAME_AVAILABLE = False
 
 class BoardControl(object):
     """
@@ -41,7 +49,7 @@ class BoardControl(object):
     - Custom views implementing AbstractBoardView
     """
 
-    def __init__(self, sizex, sizey, view_class=None, view_args=None):
+    def __init__(self, sizex, sizey, view_class=None, view_args=None, input_handler=None):
         """
         Initialize board control.
         
@@ -50,6 +58,7 @@ class BoardControl(object):
             sizey: Board height
             view_class: View class to use (default: BoardView/PygameBoardView)
             view_args: Additional arguments for view constructor (dict)
+            input_handler: Optional input handler (auto-created if None)
         """
         self.sizex = sizex
         self.sizey = sizey
@@ -69,6 +78,7 @@ class BoardControl(object):
         self.cursor_mode = False  # Whether we're in cursor navigation mode
         self.should_exit = False  # Flag to signal exit
         self.should_pause = False  # Flag to signal pause request
+        self.should_return_to_menu = False  # Flag to signal return to menu
         
         # Opening book support
         self.opening_book = None
@@ -77,106 +87,187 @@ class BoardControl(object):
         
         # Initialize cursor to center of board
         self.view.setCursor(sizex // 2, sizey // 2)
+        
+        # Create or use provided input handler
+        if input_handler is None:
+            # Auto-create appropriate input handler based on view type
+            self.input_handler = self._create_input_handler_for_view()
+        else:
+            self.input_handler = input_handler
+    
+    def _create_input_handler_for_view(self):
+        """Auto-create appropriate input handler based on view type"""
+        view_type = type(self.view).__name__
+        
+        if 'Pygame' in view_type:
+            from ui.implementations.pygame.input_handler import PygameInputHandler
+            return PygameInputHandler()
+        elif 'Terminal' in view_type:
+            from ui.implementations.terminal.input_handler import TerminalInputHandler
+            return TerminalInputHandler()
+        elif 'Headless' in view_type:
+            from ui.implementations.headless.input_handler import HeadlessInputHandler
+            return HeadlessInputHandler()
+        else:
+            # Default to pygame if unknown
+            if _PYGAME_AVAILABLE:
+                from ui.implementations.pygame.input_handler import PygameInputHandler
+                return PygameInputHandler()
+            else:
+                from ui.implementations.headless.input_handler import HeadlessInputHandler
+                return HeadlessInputHandler()
 
     def action(self):
         """Non-blocking action method that processes events once"""
         self.waitInput = True
         # Don't reset bx, by here - they might have been set by ENTER/SPACE
         
-        # Process all pending events
-        for event in pygame.event.get():
-            self.handleEvent(event)
+        # Process all pending events using InputHandler
+        events = self.input_handler.poll_events()
+        for event in events:
+            self.handleInputEvent(event)
     
     def check_events(self):
         """Check for events without setting waitInput - used during AI turns"""
-        for event in pygame.event.get():
-            if event.type == QUIT:
+        events = self.input_handler.poll_events()
+        for event in events:
+            event_type = event.get('type')
+            
+            if event_type == InputEvent.QUIT:
                 self.should_exit = True
-            elif event.type == pygame.VIDEORESIZE:
+            elif event_type == InputEvent.QUIT_DIRECT:
+                self.should_exit = True
+            elif event_type == InputEvent.RESIZE:
                 # Handle window resize
-                self.view.resize(event.w, event.h)
+                data = event.get('data', {})
+                self.view.resize(data.get('width', 800), data.get('height', 600))
                 # Redraw the board content after resize
                 self.renderModel()
-            elif event.type == KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.should_pause = True
-                elif event.key == pygame.K_q:
-                    self.should_exit = True
+            elif event_type == InputEvent.PAUSE:
+                self.should_pause = True
 
-    def handleEvent(self, event):
-
-        if event.type == QUIT:
+    def handleInputEvent(self, event):
+        """Handle framework-agnostic InputEvent"""
+        event_type = event.get('type')
+        
+        if event_type == InputEvent.QUIT:
             self.triggerEnd()
-        elif event.type == pygame.VIDEORESIZE:
-            # Handle window resize
-            self.view.resize(event.w, event.h)
-            # Redraw the board content after resize
-            self.renderModel()
-        elif event.type == MOUSEBUTTONDOWN:
-            self.handleMouseButtonEvents(event)
-
-        if event.type == KEYUP:
-            self.keyPressed = False
-
-        if event.type == KEYDOWN and not self.keyPressed:
-            self.keyPressed = True
-            self.handleKeyEvents(event)
-
-    def handleKeyEvents(self, event):
-
-        if event.key == pygame.K_ESCAPE:
-            self.should_pause = True
-            self.waitInput = False
-        elif event.key == pygame.K_q:
+        elif event_type == InputEvent.QUIT_DIRECT:
             self.should_exit = True
             self.waitInput = False
-        elif event.key == pygame.K_c:
-            # Toggle cursor mode
-            self.cursor_mode = not self.cursor_mode
-            if self.cursor_mode:
-                # Set cursor to center of board
-                self.view.setCursor(self.sizex // 2, self.sizey // 2)
-            # Redraw board to show/hide cursor
-            self.redrawBoard()
-        elif self.cursor_mode:
-            # Handle cursor navigation when in cursor mode
-            if event.key == pygame.K_UP:
-                self.view.moveCursor(0, -1)
-                self.redrawBoard()  # Redraw to clear old cursor
-            elif event.key == pygame.K_DOWN:
-                self.view.moveCursor(0, 1)
-                self.redrawBoard()  # Redraw to clear old cursor
-            elif event.key == pygame.K_LEFT:
-                self.view.moveCursor(-1, 0)
-                self.redrawBoard()
-            elif event.key == pygame.K_RIGHT:
-                self.view.moveCursor(1, 0)
-                self.redrawBoard()
-            elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                # Select current cursor position
-                self.bx, self.by = self.view.getCursorPosition()
-                # Don't set waitInput = False here, let HumanPlayer handle validation
+        elif event_type == InputEvent.RESIZE:
+            # Handle window resize
+            data = event.get('data', {})
+            self.view.resize(data.get('width', 800), data.get('height', 600))
+            self.renderModel()
+        elif event_type == InputEvent.CLICK:
+            self.handleMouseClick(event)
+        elif event_type == InputEvent.PAUSE:
+            self.should_pause = True
+            self.waitInput = False
+        elif event_type == InputEvent.TOGGLE_CURSOR:
+            self.handleToggleCursor()
+        elif event_type in (InputEvent.MOVE_UP, InputEvent.MOVE_DOWN, 
+                           InputEvent.MOVE_LEFT, InputEvent.MOVE_RIGHT):
+            self.handleCursorMove(event_type)
+        elif event_type == InputEvent.SELECT:
+            self.handleCursorSelect()
+    
+    def handleEvent(self, event):
+        """Legacy method for backward compatibility"""
+        # For backward compatibility with old code that might call this directly
+        if _PYGAME_AVAILABLE and hasattr(event, 'type'):
+            # This is a raw pygame event - handle with legacy methods
+            from pygame.locals import QUIT, KEYDOWN, KEYUP, MOUSEBUTTONDOWN, VIDEORESIZE
+            
+            if event.type == QUIT:
+                self.triggerEnd()
+            elif event.type == VIDEORESIZE:
+                self.view.resize(event.w, event.h)
+                self.renderModel()
+            elif event.type == MOUSEBUTTONDOWN:
+                self.handleMouseButtonEvents(event)
+            elif event.type == KEYUP:
+                self.keyPressed = False
+            elif event.type == KEYDOWN and not self.keyPressed:
+                self.keyPressed = True
+                self.handleKeyEventsLegacy(event)
+        else:
+            # Already an InputEvent dict
+            self.handleInputEvent(event)
+
+    def handleToggleCursor(self):
+        """Toggle cursor navigation mode"""
+        self.cursor_mode = not self.cursor_mode
+        if self.cursor_mode:
+            # Set cursor to center of board
+            self.view.setCursor(self.sizex // 2, self.sizey // 2)
+        # Redraw board to show/hide cursor
+        self.redrawBoard()
+    
+    def handleCursorMove(self, direction):
+        """Handle cursor movement"""
+        if not self.cursor_mode:
+            return
+        
+        if direction == InputEvent.MOVE_UP:
+            self.view.moveCursor(0, -1)
+        elif direction == InputEvent.MOVE_DOWN:
+            self.view.moveCursor(0, 1)
+        elif direction == InputEvent.MOVE_LEFT:
+            self.view.moveCursor(-1, 0)
+        elif direction == InputEvent.MOVE_RIGHT:
+            self.view.moveCursor(1, 0)
+        
+        self.redrawBoard()  # Redraw to show new cursor position
+    
+    def handleCursorSelect(self):
+        """Handle cursor selection (ENTER/SPACE)"""
+        if self.cursor_mode:
+            # Select current cursor position
+            self.bx, self.by = self.view.getCursorPosition()
+            # Don't set waitInput = False here, let HumanPlayer handle validation
+    
+    def handleKeyEvents(self, event):
+        """Legacy method for backward compatibility"""
+        # This is now handled by handleInputEvent
+        pass
 
     def triggerEnd(self):
         self.should_exit = True
         self.waitInput = False
 
-    def handleMouseButtonEvents(self, event):
-
-        (x,y) = event.pos
-        (bx,by) = self.view.point2Box(x,y)
-
-        #print "(x: %d, y: %d) -> (bx: %d, by: %d)" %(x,y,bx,by)
-
+    def handleMouseClick(self, event):
+        """Handle mouse click event (framework-agnostic)"""
+        data = event.get('data', {})
+        position = data.get('position')
+        
+        if position is None:
+            return
+        
+        (x, y) = position
+        (bx, by) = self.view.point2Box(x, y)
+        
         if bx in range(self.sizex) and by in range(self.sizey):
-
-            if event.button == 1:  # Left click
-                print(f"Mouse click at ({bx}, {by})")
-                self.bx = bx
-                self.by = by
-                # Update cursor position when clicking
-                self.view.setCursor(bx, by)
-                # Don't set waitInput = False here, let HumanPlayer handle validation
+            print(f"Mouse click at ({bx}, {by})")
+            self.bx = bx
+            self.by = by
+            # Update cursor position when clicking
+            self.view.setCursor(bx, by)
+            # Don't set waitInput = False here, let HumanPlayer handle validation
+    
+    def handleMouseButtonEvents(self, event):
+        """Legacy method - handles pygame mouse events"""
+        if hasattr(event, 'pos'):
+            (x, y) = event.pos
+            (bx, by) = self.view.point2Box(x, y)
+            
+            if bx in range(self.sizex) and by in range(self.sizey):
+                if event.button == 1:  # Left click
+                    print(f"Mouse click at ({bx}, {by})")
+                    self.bx = bx
+                    self.by = by
+                    self.view.setCursor(bx, by)
 
     def renderModel(self):
         # Count pieces while rendering

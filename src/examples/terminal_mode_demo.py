@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from Reversi.Game import Game
 from Board.BoardControl import BoardControl
-from Board.TerminalBoardView import TerminalBoardView
+from ui.implementations.terminal import TerminalBoardView
 from Players.HumanPlayer import HumanPlayer
 from Players.AIPlayer import AIPlayer
 

@@ -65,7 +65,9 @@ class PygameInputHandler(AbstractInputHandler):
                     if event.key == K_ESCAPE:
                         events.append({'type': InputEvent.PAUSE})
                     elif event.key == K_q:
-                        events.append({'type': InputEvent.QUIT})
+                        events.append({'type': InputEvent.QUIT_DIRECT})
+                    elif event.key == K_c:
+                        events.append({'type': InputEvent.TOGGLE_CURSOR})
                     elif event.key == K_UP:
                         events.append({'type': InputEvent.MOVE_UP})
                     elif event.key == K_DOWN:

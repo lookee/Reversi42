@@ -20,8 +20,8 @@ class InputEvent(Enum):
     Framework-agnostic event types that any input handler can emit.
     """
     QUIT = "quit"              # User wants to quit
-    PAUSE = "pause"            # User wants to pause
-    SELECT = "select"          # Select current cursor position
+    PAUSE = "pause"            # User wants to pause (ESC key)
+    SELECT = "select"          # Select current cursor position (ENTER/SPACE)
     CLICK = "click"            # Click at position
     HOVER = "hover"            # Hover over position
     MOVE_UP = "move_up"        # Move cursor up
@@ -30,6 +30,8 @@ class InputEvent(Enum):
     MOVE_RIGHT = "move_right"  # Move cursor right
     RESIZE = "resize"          # Window/terminal resized
     KEY_PRESS = "key_press"    # Generic key press
+    TOGGLE_CURSOR = "toggle_cursor"  # Toggle cursor mode (C key)
+    QUIT_DIRECT = "quit_direct"      # Direct quit (Q key)
 
 
 class AbstractInputHandler(ABC):

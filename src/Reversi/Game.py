@@ -111,55 +111,28 @@ class Game(object):
 
     def get_view(self):
         """get the simplest string rappresentation of board status"""
-
-        out = ""
-        out += "\n"
+        # Use common ASCII renderer for consistency
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
         
-        # Compact header
-        out += "─" * 40 + "\n"
-        out += "  Turn: %-2s   ●:%2d  ○:%2d   Move:%2d\n" % (
+        from ui.utils.ascii_board_renderer import ASCIIBoardRenderer
+        
+        out = "\n"
+        
+        # Header using common renderer
+        out += ASCIIBoardRenderer.render_header(
             self.turn, self.black_cnt, self.white_cnt, self.turn_cnt
-        )
-        out += "─" * 40 + "\n"
-        out += "\n"
-
-        # Compact column headers
-        out += "   "
-        for n in range(1, self.limit):
-            out += " " + ROWNAME[n]
-        out += "\n"
-
-        # Top border
-        out += "  ┌" + "─" * (self.size * 2 - 1) + "┐\n"
-
-        # Board rows
-        for yy in range(1, self.limit):
-            out += str(yy) + " │"
-            for xx in range(1, self.limit):
-                cell = self.matrix[yy][xx]
-                
-                if cell == '.':
-                    out += '·'
-                elif cell == 'W':
-                    out += '○'
-                elif cell == 'B':
-                    out += '●'
-                else:
-                    raise NameError("cell %s unknow" % cell)
-                
-                # Add space between cells except at the end
-                if xx < self.limit - 1:
-                    out += ' '
-            
-            out += "│ " + str(yy) + "\n"
-
-        # Bottom border
-        out += "  └" + "─" * (self.size * 2 - 1) + "┘\n"
+        ) + "\n\n"
         
-        # Column headers at bottom
-        out += "   "
-        for n in range(1, self.limit):
-            out += " " + ROWNAME[n]
+        # Board using common renderer (compact style)
+        # Convert matrix to simple format
+        board_str = ""
+        for yy in range(1, self.limit):
+            for xx in range(1, self.limit):
+                board_str += self.matrix[yy][xx]
+        
+        out += ASCIIBoardRenderer.render_board_compact(board_str, self.size)
         out += "\n"
         
         return out

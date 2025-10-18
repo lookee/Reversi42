@@ -310,11 +310,11 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
             # Compact game info on single line
             from ui.implementations.terminal import TerminalBoardView
             if isinstance(c.view, TerminalBoardView):
-                # For terminal mode: compact single-line info
+                # Terminal mode: single-line info with extra newline after for spacing
                 if last_move:
-                    print(f"Last: {last_move}  |  History: {game_history if game_history else '(start)'}")
+                    print(f"Last: {last_move}  |  History: {game_history if game_history else '(start)'}\n")
                 else:
-                    print(f"History: {game_history if game_history else '(start)'}")
+                    print(f"History: {game_history if game_history else '(start)'}\n")
             else:
                 # Pygame mode: compact single-line info
                 if last_move and game_history:
@@ -334,9 +334,18 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
                     print("- ESC: Pause menu (save/load), Q: Quit")
             
             # Get move
-            print(f"[{player.get_name()}]", end=" ", flush=True)
+            from ui.implementations.terminal import TerminalHumanPlayer
+            is_terminal_human = isinstance(player, TerminalHumanPlayer)
+            
+            if not is_terminal_human:
+                # For non-terminal players, show player name and move
+                print(f"[{player.get_name()}]", end=" ", flush=True)
+            
             move = player.get_move(g, moves, c)
-            print(f"{move}", end="  ")
+            
+            if not is_terminal_human:
+                # For non-terminal players, print move (terminal human already printed it)
+                print(f"{move}", end="  ")
             
             # Check if player requested pause
             if c.should_pause:
@@ -367,9 +376,12 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
                 c.renderModel()
                 continue  # Go back to get move again
             
-            # Check if player wants to exit
+            # Check if player wants to exit or return to menu
             if move is None:
-                if c.should_exit:
+                if c.should_return_to_menu:
+                    print("Returning to main menu...")
+                    return "menu"
+                elif c.should_exit:
                     print("Game exited by user.")
                     return "exit"
                 else:
@@ -461,38 +473,44 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
         c.renderModel()
         
         # Print results to console
-        g.view()
+        from ui.implementations.terminal import TerminalBoardView
+        
+        # For terminal mode: don't call g.view() (uses compact format)
+        # The detailed board is already shown by c.renderModel() above
+        if not isinstance(c.view, TerminalBoardView):
+            g.view()  # Only for Pygame/other modes
+        
         result = g.get_result()
         g.result()
         
         # Compact history display
-        from ui.implementations.terminal import TerminalBoardView
         if isinstance(c.view, TerminalBoardView):
             print(f"\nFinal History: {game_history}")
         else:
             print(f"\n🏁 Game finished! Final History: {game_history}")
         
-        # Show game over screen
-        print("Creating GameOver screen...")
-        try:
-            # Clear events again right before showing GameOver
-            pygame.event.clear()
-            
-            game_over = GameOver()
-            game_over.set_results(
-                winner=result,
-                black_name=players['B'].get_name(),
-                white_name=players['W'].get_name(),
-                black_score=g.black_cnt,
-                white_score=g.white_cnt
-            )
-            print("Showing GameOver screen...")
-            return game_over.run()  # Returns "menu" or "exit"
-        except Exception as e:
-            print(f"Error showing game over screen: {e}")
-            import traceback
-            traceback.print_exc()
-            return "menu"
+        # Show game over screen (only for Pygame mode)
+        if not isinstance(c.view, TerminalBoardView):
+            print("Creating GameOver screen...")
+            try:
+                # Clear events again right before showing GameOver
+                pygame.event.clear()
+                
+                game_over = GameOver()
+                game_over.set_results(
+                    winner=result,
+                    black_name=players['B'].get_name(),
+                    white_name=players['W'].get_name(),
+                    black_score=g.black_cnt,
+                    white_score=g.white_cnt
+                )
+                print("Showing GameOver screen...")
+                return game_over.run()  # Returns "menu" or "exit"
+            except Exception as e:
+                print(f"Error showing game over screen: {e}")
+                import traceback
+                traceback.print_exc()
+                return "menu"
     else:
         print("Game was exited by user.")
         return "menu"  # Default to menu if game exited early
@@ -545,21 +563,31 @@ def main():
                     'has_difficulty': len(meta.get('parameters', [])) > 0
                 })
             
-            # Display all available players
-            print("\nAvailable Players:")
-            for i, player in enumerate(player_options, 1):
-                print(f"  {i}. {player['name']:<25} - {player['description']}")
-            
             # Get player selections
             def select_player(color):
                 while True:
                     try:
-                        choice = input(f"\n{color} player (1-{len(player_options)}): ").strip()
+                        # Always display player list when asking
+                        print("\nAvailable Players:")
+                        print(f"  0. {'Exit Game':<25} - Quit completely")
+                        for i, player in enumerate(player_options, 1):
+                            print(f"  {i}. {player['name']:<25} - {player['description']}")
+                        
+                        choice = input(f"\n{color} player (0=Exit, 1-{len(player_options)}): ").strip()
                         if not choice:
                             # Default: AI for terminal
                             return create_player("Alpha-Beta AI", 6)
                         
-                        idx = int(choice) - 1
+                        idx = int(choice)
+                        
+                        # Check for exit
+                        if idx == 0:
+                            print("\n✓ Exiting game...")
+                            import sys
+                            sys.exit(0)
+                        
+                        # Adjust for 1-based index
+                        idx -= 1
                         if 0 <= idx < len(player_options):
                             player_info = player_options[idx]
                             player_name = player_info['name']
