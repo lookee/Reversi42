@@ -92,6 +92,7 @@ class TerminalBoardView(AbstractBoardView):
         # State
         self.board_state = [[' ' for _ in range(sizex)] for _ in range(sizey)]
         self.valid_moves_list = []
+        self.book_moves_list = []  # Track opening book moves separately
         self.use_color = True  # Can be disabled for non-color terminals
         self.last_output_lines = 0
         self.move_count = 0  # Track move number
@@ -181,6 +182,15 @@ class TerminalBoardView(AbstractBoardView):
                                            m[1] - 1 if hasattr(m, 'y') else m[1]) 
                                           for m in self.valid_moves_list]
                 
+                # Check if this is an opening book move
+                is_book_move = False
+                book_count = 0
+                for bx, by, count in self.book_moves_list:
+                    if (bx == x + 1 and by == y + 1) or (bx == x and by == y):
+                        is_book_move = True
+                        book_count = count
+                        break
+                
                 # Check if this is the last move
                 is_last_move = (self.last_move_x == x + 1 and self.last_move_y == y + 1) or \
                               (self.last_move_x == x and self.last_move_y == y)
@@ -193,8 +203,14 @@ class TerminalBoardView(AbstractBoardView):
                     cell = f" {self.BLACK_PIECE} "
                 elif piece == 'W':
                     cell = f" {self.WHITE_PIECE} "
+                elif is_book_move:
+                    # Opening book move - highlight with special marker
+                    # Use X for book moves (clear and distinct from pieces)
+                    marker = 'X'
+                    # Use yellow to indicate opening book (like Pygame golden moves)
+                    cell = f" {self.YELLOW if self.YELLOW else ''}{marker}{self.RESET if self.RESET else ''} "
                 elif piece in ['b', 'w'] or is_valid_move:  # b/w are valid move markers
-                    # Valid move marker (use * for ASCII mode, ⊡ for color mode)
+                    # Regular valid move marker
                     marker = '*' if not self.USE_COLORS else '⊡'
                     cell = f" {self.GREEN}{marker}{self.RESET} "
                 else:
@@ -294,11 +310,10 @@ class TerminalBoardView(AbstractBoardView):
         self.move_count = black_count + white_count - 4
     
     def setCanMoveBook(self, x: int, y: int, count: int):
-        """Mark position as opening book move (terminal just marks as valid)"""
-        # In terminal, just mark as valid move (no special book highlighting)
+        """Mark position as opening book move with special highlighting"""
+        # Track book moves separately for special rendering
         if 0 <= y < len(self.board_state) and 0 <= x < len(self.board_state[0]):
-            # Keep existing marker if it's a valid move
-            pass
+            self.book_moves_list.append((x, y, count))  # Track for highlighting
     
     def unfillBox(self, x: int, y: int):
         """Clear a box (alias for unsetBox)"""

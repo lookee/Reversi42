@@ -558,10 +558,14 @@ def main():
             # Build player options list
             player_options = []
             for name, meta in enabled_players.items():
+                # AI players have difficulty, Human players don't
+                is_ai_player = (name != 'Terminal Human' and name != 'Human Player' and 
+                               meta.get('type', 'AI') == 'AI')
+                
                 player_options.append({
                     'name': name,
                     'description': meta.get('description', f'{name} player'),
-                    'has_difficulty': len(meta.get('parameters', [])) > 0
+                    'has_difficulty': is_ai_player
                 })
             
             # Get player selections
