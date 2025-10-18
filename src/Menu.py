@@ -50,7 +50,8 @@ class Menu:
         self.current_selection = 0
         self.menu_items = [
             "Black Player",
-            "White Player", 
+            "White Player",
+            "Show Opening",
             "Start Game",
             "Help",
             "About",
@@ -62,6 +63,9 @@ class Menu:
         self.white_player = "AI Bitboard with Book (Fastest)"
         self.black_difficulty = 5
         self.white_difficulty = 5
+        
+        # Opening book display option
+        self.show_opening = True  # Default: show opening book info
         
         # Get player types and descriptions from PlayerFactory metadata
         self.player_types = PlayerFactory.get_available_player_types()
@@ -149,6 +153,8 @@ class Menu:
                 text = f"White Player: {self.white_player}"
                 if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)", "AI Bitboard with Book (Fastest)"]:
                     text += f" (Level {self.white_difficulty})"
+            elif item == "Show Opening":
+                text = "Show Opening" if self.show_opening else "Hide Opening"
             else:
                 text = item
             
@@ -362,6 +368,8 @@ class Menu:
                         self.current_selection = i
                         if item == "Start Game":
                             return "start_game"
+                        elif item == "Show Opening":
+                            self.show_opening = not self.show_opening
                         elif item == "Help":
                             self.in_help = True
                         elif item == "About":
@@ -455,6 +463,8 @@ class Menu:
                 self.in_submenu = True
                 self.submenu_type = "white_player"
                 self.submenu_selection = self.player_types.index(self.white_player)
+            elif self.menu_items[self.current_selection] == "Show Opening":
+                self.show_opening = not self.show_opening
             elif self.menu_items[self.current_selection] == "Start Game":
                 return "start_game"
             elif self.menu_items[self.current_selection] == "Help":
@@ -534,7 +544,8 @@ class Menu:
                             "black_player": self.black_player,
                             "white_player": self.white_player,
                             "black_difficulty": self.black_difficulty,
-                            "white_difficulty": self.white_difficulty
+                            "white_difficulty": self.white_difficulty,
+                            "show_opening": self.show_opening
                         }
                     elif result == "exit":
                         return "exit"
@@ -545,7 +556,8 @@ class Menu:
                             "black_player": self.black_player,
                             "white_player": self.white_player,
                             "black_difficulty": self.black_difficulty,
-                            "white_difficulty": self.white_difficulty
+                            "white_difficulty": self.white_difficulty,
+                            "show_opening": self.show_opening
                         }
                     elif result == "exit":
                         return "exit"

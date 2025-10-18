@@ -65,8 +65,44 @@ class HumanPlayer(Player):
                     print("This move is not valid!")
                     control.bx = control.by = None  # Reset for next attempt
             
-            # Update display
-            control.view.update(control.cursor_mode)
+            # Handle opening book info display with fixed position
+            current_opening_info = None
+            
+            if control.show_opening and control.opening_book:
+                # Determine which move is being hovered (mouse or cursor)
+                if control.cursor_mode:
+                    cursor_x, cursor_y = control.view.cursorX, control.view.cursorY
+                    if cursor_x is not None and cursor_y is not None:
+                        cursor_move = Move(cursor_x + 1, cursor_y + 1)
+                        if cursor_move in moves:
+                            current_opening_info = control.opening_book.get_openings_for_move(game.history, cursor_move)
+                else:
+                    mouse_pos = pygame.mouse.get_pos()
+                    bx, by = control.view.point2Box(mouse_pos[0], mouse_pos[1])
+                    if bx is not None and by is not None and bx in range(control.sizex) and by in range(control.sizey):
+                        hover_move = Move(bx + 1, by + 1)
+                        if hover_move in moves:
+                            current_opening_info = control.opening_book.get_openings_for_move(game.history, hover_move)
+            
+            # Only redraw if opening info changed
+            if not hasattr(control, 'last_opening_info'):
+                control.last_opening_info = None
+            
+            if current_opening_info != control.last_opening_info:
+                # Opening info changed - redraw board
+                control.renderModel()
+                
+                # Draw tooltip in fixed position if we have opening info
+                if current_opening_info:
+                    control.view.set_opening_info(current_opening_info)
+                    control.view.draw_opening_info_fixed()
+                
+                pygame.display.flip()
+                control.last_opening_info = current_opening_info
+            else:
+                # Just update display without redrawing (no flickering)
+                control.view.update(control.cursor_mode)
+            
             clock.tick(60)  # Limit to 60 FPS
         
         return None

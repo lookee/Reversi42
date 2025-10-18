@@ -218,6 +218,32 @@ class OpeningBook:
         
         return None
     
+    def get_openings_for_move(self, game_history, next_move):
+        """
+        Get all opening names that include this specific next move.
+        
+        Args:
+            game_history: Current move sequence (e.g., "" or "F5d6")
+            next_move: The next move to check (Move object or string like "F5")
+        
+        Returns:
+            List of opening names that include this move at this position
+        """
+        # Convert move to string if needed
+        move_str = str(next_move).upper()
+        
+        # Build the test sequence
+        test_history = game_history.upper() + move_str
+        
+        # Find all openings that start with this sequence
+        matching_openings = []
+        for sequence, name in self.opening_names.items():
+            sequence_upper = sequence.upper()
+            if sequence_upper.startswith(test_history):
+                matching_openings.append(name)
+        
+        return matching_openings
+    
     def get_statistics(self):
         """Get statistics about the loaded book"""
         return {

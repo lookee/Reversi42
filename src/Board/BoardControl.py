@@ -36,6 +36,11 @@ class BoardControl(object):
         self.should_exit = False  # Flag to signal exit
         self.should_pause = False  # Flag to signal pause request
         
+        # Opening book support
+        self.opening_book = None
+        self.show_opening = False
+        self.book_moves = []  # List of (x, y, count) tuples for book moves with opening count
+        
         # Initialize cursor to center of board
         self.view.setCursor(sizex // 2, sizey // 2)
 
@@ -163,6 +168,13 @@ class BoardControl(object):
         # Update piece counts in the view
         self.view.setPlayerCounts(black_count, white_count)
         self.view.update(self.cursor_mode)
+        
+        # Redraw opening book moves AFTER update (so they appear on top and don't get erased)
+        if self.show_opening and len(self.book_moves) > 0:
+            for bx, by, count in self.book_moves:
+                self.view.setCanMoveBook(bx, by, count)
+            # Force display update to show the golden moves
+            pygame.display.update()
 
     def importModel(self,model):
         for y in range(self.sizey):

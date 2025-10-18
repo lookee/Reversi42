@@ -48,6 +48,7 @@ class BoardView(object):
         self.whiteMoveColor     = (200,     230,    210)  # Light mint for white moves
         self.blackMoveColor     = (160,     200,    170)  # Darker mint for black moves
         self.cursorColor        = (255,     215,      0)  # Pure gold for cursor
+        self.bookMoveColor      = (255,     215,      0)  # Gold for opening book moves
 
         # Minimum window size
         self.min_width = 400
@@ -78,6 +79,11 @@ class BoardView(object):
         self.black_player_name = "Black"
         self.white_player_name = "White"
         self.black_count = 2
+        
+        # Opening book information
+        self.opening_info_text = None  # Text to display for hovered move
+        self.opening_info_font = pygame.font.Font(None, 18)
+        self.opening_info_bg = (0, 0, 0, 200)  # Semi-transparent black
         self.white_count = 2
         self.current_turn = 'B'  # Track whose turn it is
         
@@ -438,6 +444,49 @@ class BoardView(object):
                 pygame.draw.circle(s, (*self.blackMoveColor, alpha), (center, center), radius + i, 1)
         
         self.screen.blit(s, (posx - center, posy - center))
+    
+    def setCanMoveBook(self, bx, by, opening_count=0):
+        """Draw opening book move with golden highlighting, glow, and count badge"""
+        radius = int((self.stepy-10) // 4)
+        posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
+        posy = int(self.marginy + self.stepy * by + self.stepy // 2)
+        
+        self.unfillBox(bx, by)
+        
+        surf_size = radius * 4
+        s = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
+        center = surf_size // 2
+        
+        # Draw golden circle with glow effect
+        pygame.draw.circle(s, (*self.bookMoveColor, 200), (center, center), radius)
+        
+        # Add golden glow rings
+        for i in range(1, 5):
+            alpha = 200 - i * 40
+            if alpha > 0:
+                pygame.draw.circle(s, (*self.bookMoveColor, alpha), (center, center), radius + i, 2)
+        
+        self.screen.blit(s, (posx - center, posy - center))
+        
+        # Draw opening count badge if provided
+        if opening_count > 0:
+            # Small badge in top-right of the circle
+            badge_font = pygame.font.Font(None, 16)
+            count_text = str(opening_count) if opening_count < 100 else "99+"
+            
+            # Background circle for badge
+            badge_radius = 10
+            badge_x = posx + radius - 5
+            badge_y = posy - radius + 5
+            
+            # Draw badge background (darker for contrast)
+            pygame.draw.circle(self.screen, (40, 40, 40), (badge_x, badge_y), badge_radius)
+            pygame.draw.circle(self.screen, self.bookMoveColor, (badge_x, badge_y), badge_radius, 2)
+            
+            # Draw count text
+            text_surface = badge_font.render(count_text, True, self.bookMoveColor)
+            text_rect = text_surface.get_rect(center=(badge_x, badge_y))
+            self.screen.blit(text_surface, text_rect)
 
     def setCanMoveWhite(self, bx, by):
         """Draw possible move for white with perfectly smooth edges"""
@@ -679,4 +728,63 @@ class BoardView(object):
         # Outline ring for definition
         if player == 'W':
             pygame.gfxdraw.aacircle(self.screen, x, y, radius + 1, (200, 200, 205))
+    
+    def set_opening_info(self, opening_names):
+        """Set opening names to display for hovered move"""
+        if opening_names:
+            self.opening_info_text = opening_names
+        else:
+            self.opening_info_text = None
+    
+    def draw_opening_info_fixed(self):
+        """Draw opening book information in a fixed position (top-right corner)"""
+        if not self.opening_info_text:
+            return
+        
+        # Create info box
+        lines = []
+        lines.append("📚 Opening Book")
+        lines.append("")  # Separator
+        for name in self.opening_info_text[:6]:  # Show max 6 openings
+            lines.append(f"• {name}")
+        if len(self.opening_info_text) > 6:
+            lines.append(f"... +{len(self.opening_info_text) - 6} more")
+        
+        # Calculate box size
+        line_height = 20
+        padding = 12
+        max_width = max([self.opening_info_font.size(line)[0] for line in lines]) + padding * 2
+        box_height = len(lines) * line_height + padding * 2
+        
+        # Fixed position: top-right corner, below header
+        margin = 15
+        box_x = self.width - max_width - margin
+        box_y = self.header_height + margin
+        
+        # Draw semi-transparent background with rounded effect
+        s = pygame.Surface((max_width, box_height), pygame.SRCALPHA)
+        s.fill((0, 40, 30, 240))  # Dark green semi-transparent
+        # Golden border for book moves (thicker)
+        pygame.draw.rect(s, self.bookMoveColor, (0, 0, max_width, box_height), 3)
+        # Inner glow
+        pygame.draw.rect(s, (*self.bookMoveColor, 60), (3, 3, max_width-6, box_height-6), 1)
+        
+        self.screen.blit(s, (box_x, box_y))
+        
+        # Draw text lines
+        for i, line in enumerate(lines):
+            if i == 0:
+                color = self.bookMoveColor  # Gold for title
+            elif line == "":
+                continue
+            else:
+                color = (230, 240, 230)  # Light text
+            
+            text = self.opening_info_font.render(line, True, color)
+            self.screen.blit(text, (box_x + padding, box_y + padding + i * line_height))
+    
+    def draw_opening_info(self, mouse_pos=None):
+        """Draw opening book information if available (deprecated - use draw_opening_info_fixed)"""
+        # Keep for backwards compatibility but prefer fixed position
+        self.draw_opening_info_fixed()
 

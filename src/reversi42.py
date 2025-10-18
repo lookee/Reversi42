@@ -34,6 +34,7 @@ from Menu import Menu
 from GameOver import GameOver
 from PauseMenu import PauseMenu
 from GameIO import GameIO
+from AI.OpeningBook import get_default_opening_book
 
 def create_player(player_type, difficulty=6, engine_type='Minimax'):
     """Create a player instance using the PlayerFactory"""
@@ -155,6 +156,12 @@ def run_game(menu_result, loaded_game_data=None):
     white_player_type = menu_result["white_player"]
     black_difficulty = menu_result["black_difficulty"]
     white_difficulty = menu_result["white_difficulty"]
+    show_opening = menu_result.get("show_opening", True)  # Default True
+    
+    # Load opening book if show_opening is enabled
+    opening_book = None
+    if show_opening:
+        opening_book = get_default_opening_book()
     
     # Create players
     players = {
@@ -187,6 +194,14 @@ def run_game(menu_result, loaded_game_data=None):
     
     c = BoardControl(size, size)
     
+    # Set opening book in BoardControl if enabled
+    if opening_book:
+        c.opening_book = opening_book
+        c.show_opening = True
+    else:
+        c.opening_book = None
+        c.show_opening = False
+    
     # Set player names in the board view
     c.setPlayerNames(players['B'].get_name(), players['W'].get_name())
     
@@ -214,10 +229,24 @@ def run_game(menu_result, loaded_game_data=None):
             # Import board position
             c.importModel(g.export_str())
             
-            # Show all available moves
-            for move in moves:
-                # print(f"move: {move}")
-                c.setCanMove(move.get_x(), move.get_y(), turn)
+            # Show all available moves (with opening book highlighting if enabled)
+            c.book_moves = []  # Reset book moves list
+            
+            if c.show_opening and c.opening_book:
+                # Check each move to see if it leads to an opening
+                for move in moves:
+                    # Get all openings that include this move
+                    openings = c.opening_book.get_openings_for_move(g.history, move)
+                    
+                    if openings:
+                        # This move leads to opening(s) - save it for highlighting with count
+                        c.book_moves.append((move.get_x() - 1, move.get_y() - 1, len(openings)))
+                        c.setCanMove(move.get_x(), move.get_y(), turn)  # First draw normal
+                    else:
+                        c.setCanMove(move.get_x(), move.get_y(), turn)
+            else:
+                for move in moves:
+                    c.setCanMove(move.get_x(), move.get_y(), turn)
             
             # Set current turn for indicator
             c.setCurrentTurn(turn)
@@ -267,8 +296,23 @@ def run_game(menu_result, loaded_game_data=None):
                 c.view.refresh()  # Clear screen and redraw grid
                 c.importModel(g.export_str())
                 moves = g.get_move_list()  # Refresh moves (may have changed due to undo)
-                for m in moves:
-                    c.setCanMove(m.get_x(), m.get_y(), g.get_turn())
+                
+                # Show moves with opening book highlighting if enabled
+                c.book_moves = []  # Reset book moves list
+                
+                if c.show_opening and c.opening_book:
+                    for m in moves:
+                        # Check if this move leads to any opening
+                        openings = c.opening_book.get_openings_for_move(g.history, m)
+                        if openings:
+                            c.book_moves.append((m.get_x() - 1, m.get_y() - 1, len(openings)))
+                            c.setCanMove(m.get_x(), m.get_y(), g.get_turn())  # Draw normal first
+                        else:
+                            c.setCanMove(m.get_x(), m.get_y(), g.get_turn())
+                else:
+                    for m in moves:
+                        c.setCanMove(m.get_x(), m.get_y(), g.get_turn())
+                
                 c.renderModel()
                 continue  # Go back to get move again
             
@@ -340,8 +384,23 @@ def run_game(menu_result, loaded_game_data=None):
             c.view.refresh()  # Clear screen and redraw grid
             c.importModel(g.export_str())
             moves = g.get_move_list()
-            for move in moves:
-                c.setCanMove(move.get_x(), move.get_y(), g.get_turn())
+            
+            # Show moves with opening book highlighting if enabled
+            c.book_moves = []  # Reset book moves list
+            
+            if c.show_opening and c.opening_book:
+                for move in moves:
+                    # Check if this move leads to any opening
+                    openings = c.opening_book.get_openings_for_move(g.history, move)
+                    if openings:
+                        c.book_moves.append((move.get_x() - 1, move.get_y() - 1, len(openings)))
+                        c.setCanMove(move.get_x(), move.get_y(), g.get_turn())  # Draw normal first
+                    else:
+                        c.setCanMove(move.get_x(), move.get_y(), g.get_turn())
+            else:
+                for move in moves:
+                    c.setCanMove(move.get_x(), move.get_y(), g.get_turn())
+            
             c.renderModel()
         
         # Removed duplicate check - already handled above
