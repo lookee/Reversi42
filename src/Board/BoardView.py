@@ -84,6 +84,7 @@ class BoardView(object):
         self.opening_info_text = None  # Text to display for hovered move
         self.opening_info_font = pygame.font.Font(None, 18)
         self.opening_info_bg = (0, 0, 0, 200)  # Semi-transparent black
+        self.last_tooltip_rect = None  # Track last tooltip position for cleanup
         self.white_count = 2
         self.current_turn = 'B'  # Track whose turn it is
         
@@ -736,8 +737,17 @@ class BoardView(object):
         else:
             self.opening_info_text = None
     
+    def clear_tooltip_area(self):
+        """Clear the tooltip area completely"""
+        if self.last_tooltip_rect:
+            pygame.draw.rect(self.screen, self.bgColor, self.last_tooltip_rect)
+            self.last_tooltip_rect = None
+    
     def draw_opening_info_fixed(self):
         """Draw opening book information in a fixed position (top-right corner)"""
+        # Always clear previous tooltip first
+        self.clear_tooltip_area()
+        
         if not self.opening_info_text:
             return
         
@@ -760,6 +770,9 @@ class BoardView(object):
         margin = 15
         box_x = self.width - max_width - margin
         box_y = self.header_height + margin
+        
+        # Save tooltip rect for next cleanup
+        self.last_tooltip_rect = pygame.Rect(box_x - 5, box_y - 5, max_width + 10, box_height + 10)
         
         # Draw semi-transparent background with rounded effect
         s = pygame.Surface((max_width, box_height), pygame.SRCALPHA)

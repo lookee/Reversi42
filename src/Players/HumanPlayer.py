@@ -84,23 +84,33 @@ class HumanPlayer(Player):
                         if hover_move in moves:
                             current_opening_info = control.opening_book.get_openings_for_move(game.history, hover_move)
             
-            # Only redraw if opening info changed
+            # Initialize last_opening_info if not exists
             if not hasattr(control, 'last_opening_info'):
                 control.last_opening_info = None
             
-            if current_opening_info != control.last_opening_info:
-                # Opening info changed - redraw board
+            # Check if opening info changed (including None -> something or something -> None)
+            info_changed = (current_opening_info != control.last_opening_info)
+            
+            if info_changed:
+                # Tooltip changed - clear old tooltip area first
+                control.view.clear_tooltip_area()
+                
+                # Redraw entire board to ensure clean state
                 control.renderModel()
                 
-                # Draw tooltip in fixed position if we have opening info
+                # Now draw tooltip in fixed position if we have opening info
                 if current_opening_info:
                     control.view.set_opening_info(current_opening_info)
                     control.view.draw_opening_info_fixed()
+                else:
+                    # Just clear, no new tooltip
+                    control.view.set_opening_info(None)
                 
+                # Update entire display
                 pygame.display.flip()
                 control.last_opening_info = current_opening_info
             else:
-                # Just update display without redrawing (no flickering)
+                # Nothing changed - just normal update
                 control.view.update(control.cursor_mode)
             
             clock.tick(60)  # Limit to 60 FPS
