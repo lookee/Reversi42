@@ -244,9 +244,10 @@ class Menu:
             options = [f"Level {d}" for d in self.difficulties]
         
         # Calculate how many items fit on screen
-        start_y = 120
-        option_spacing = 50  # Compact for 800x600
-        available_height = self.height - start_y - 60  # Reserve space for instructions
+        start_y = 100
+        # More spacing for player selection (to accommodate icons + larger 2-line descriptions)
+        option_spacing = 75 if "player" in self.submenu_type else 50
+        available_height = self.height - start_y - 50  # Reserve space for instructions
         max_visible = available_height // option_spacing
         
         # Scrolling: show items around current selection
@@ -266,26 +267,81 @@ class Menu:
         else:
             visible_options = list(enumerate(options))
         
-        # Draw visible options
+        # Draw visible options with clean minimal elegant layout
         for display_idx, (actual_idx, option) in enumerate(visible_options):
             is_selected = actual_idx == self.submenu_selection
             y_pos = start_y + display_idx * option_spacing
             
-            # Player name
-            color = self.selected_color if is_selected else self.text_color
-            option_text = self.menu_font.render(option, True, color)
+            # Simple yellow bullet for selected item ONLY
+            if is_selected and "player" in self.submenu_type:
+                bullet_x = self.width//2 - 320
+                bullet_radius = 6
+                # Yellow bullet (soft golden yellow)
+                pygame.draw.circle(self.screen, (255, 220, 100), (bullet_x, y_pos), bullet_radius)
+                # No border - clean and simple
+            
+            # Player name - highlighted in yellow if selected
+            if is_selected:
+                name_color = (255, 200, 50)  # Golden yellow highlight
+            else:
+                name_color = (200, 200, 210)  # Soft gray
+            
+            option_text = self.menu_font.render(option, True, name_color)
             option_rect = option_text.get_rect(center=(self.width//2, y_pos))
             self.screen.blit(option_text, option_rect)
             
-            # Show description for player types (compact version)
+            # Show description for player types (2 lines if needed, no truncation)
             if "player" in self.submenu_type and option in self.player_descriptions:
                 desc = self.player_descriptions[option]
-                # Truncate long descriptions for 800px width
-                if len(desc) > 60:
-                    desc = desc[:57] + "..."
-                desc_text = self.small_font.render(desc, True, self.highlight_color if is_selected else self.text_color)
-                desc_rect = desc_text.get_rect(center=(self.width//2, y_pos + 18))
-                self.screen.blit(desc_text, desc_rect)
+                
+                # Remove emoji from description if present (already shown as icon)
+                desc_clean = desc
+                for emoji in ['🎲', '🦛', '⚔️', '🧘', '🎭', '🌑', '📜', '🌌', '💀', '👤']:
+                    desc_clean = desc_clean.replace(emoji, '').strip()
+                
+                # Smart line breaking: break at 55 chars or at natural break
+                if len(desc_clean) > 55:
+                    # Try to break at ' - ' or other natural points
+                    if ' - ' in desc_clean:
+                        parts = desc_clean.split(' - ', 1)
+                        line1 = parts[0]
+                        line2 = '- ' + parts[1] if len(parts) > 1 else ''
+                    else:
+                        # Break at word boundary
+                        words = desc_clean.split()
+                        line1_words = []
+                        line2_words = []
+                        current_len = 0
+                        for word in words:
+                            if current_len + len(word) < 55:
+                                line1_words.append(word)
+                                current_len += len(word) + 1
+                            else:
+                                line2_words.append(word)
+                        line1 = ' '.join(line1_words)
+                        line2 = ' '.join(line2_words)
+                else:
+                    line1 = desc_clean
+                    line2 = ''
+                
+                # Description with LARGE readable font
+                desc_font = pygame.font.Font(None, 26)  # Large for readability!
+                
+                # Yellow tint for selected, gray for normal
+                if is_selected:
+                    desc_color = (220, 180, 80)  # Soft golden yellow
+                else:
+                    desc_color = (150, 150, 160)  # Soft gray
+                
+                desc_text1 = desc_font.render(line1, True, desc_color)
+                desc_rect1 = desc_text1.get_rect(center=(self.width//2, y_pos + 22))
+                self.screen.blit(desc_text1, desc_rect1)
+                
+                # Render second line if exists
+                if line2:
+                    desc_text2 = desc_font.render(line2, True, desc_color)
+                    desc_rect2 = desc_text2.get_rect(center=(self.width//2, y_pos + 42))
+                    self.screen.blit(desc_text2, desc_rect2)
         
         # Instructions at bottom
         instructions = "Arrows: Navigate | ENTER: Select | ESC: Back"

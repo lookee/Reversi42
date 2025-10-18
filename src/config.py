@@ -17,9 +17,9 @@ class GameConfig:
     
     # Players
     DEFAULT_BLACK_PLAYER = "Human Player"
-    DEFAULT_WHITE_PLAYER = "Parallel Oracle"
+    DEFAULT_WHITE_PLAYER = "Apocalypse"  # Final Boss!
     DEFAULT_BLACK_DEPTH = 5
-    DEFAULT_WHITE_DEPTH = 5  # Parallel Oracle optimal depth
+    DEFAULT_WHITE_DEPTH = 7  # Apocalypse Level 7 (fast but strong)
     
     # Opening Book
     OPENING_BOOK_ENABLED = True
@@ -63,7 +63,7 @@ class MenuConfig:
         "Exit"
     ]
     
-    # Default selections
+    # Default selections (Epic Players)
     DEFAULT_BLACK_PLAYER = GameConfig.DEFAULT_BLACK_PLAYER
     DEFAULT_WHITE_PLAYER = GameConfig.DEFAULT_WHITE_PLAYER
     DEFAULT_BLACK_DIFFICULTY = GameConfig.DEFAULT_BLACK_DEPTH
@@ -73,14 +73,16 @@ class MenuConfig:
     # AI difficulty levels (depth)
     DIFFICULTY_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     
-    # AI players that require difficulty selection
+    # AI players that require difficulty selection (Epic Players with depth parameter)
     AI_PLAYERS_WITH_DIFFICULTY = [
-        "Alpha-Beta AI",
-        "Opening Scholar",
-        "Bitboard Blitz",
-        "The Oracle",
-        "Parallel Oracle",
-        "Grandmaster"
+        "Hungry Hippo",      # depth 1-5
+        "Berserker",         # depth 2-8
+        "Zen Master",        # depth 4-11
+        "The Trickster",     # depth 3-9
+        "The Shadow",        # depth 3-10
+        "Ancient Sage",      # depth 4-10
+        "Quantum Mind",      # depth 5-12
+        "Apocalypse"         # depth 7-15
     ]
 
 

@@ -1,13 +1,11 @@
 """
-Player Factory Components
+Player Factory Components - Epic Players Edition
 
-Factory Pattern for creating players with backward compatibility.
+Factory Pattern for creating legendary AI warriors!
 
-Version: 3.2.0
+Version: 3.1.0
 """
 
 from .player_factory_v2 import PlayerFactoryV2
-from .player_presets import PlayerPresets
 
-__all__ = ['PlayerFactoryV2', 'PlayerPresets']
-
+__all__ = ['PlayerFactoryV2']
