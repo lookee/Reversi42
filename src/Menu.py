@@ -31,7 +31,7 @@ class Menu:
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
-        pygame.display.set_caption("Reversi42 - Menu")
+        pygame.display.set_caption("Reversi42 v3.0.0 - Menu")
         
         # Colors
         self.bg_color = (20, 50, 30)  # Dark green background
@@ -40,11 +40,13 @@ class Menu:
         self.selected_color = (255, 255, 0)  # Yellow for selection
         self.highlight_color = (100, 150, 100)  # Light green for highlight
         
-        # Fonts
+        # Fonts (scaled for 800x600)
         pygame.font.init()
-        self.title_font = pygame.font.Font(None, 64)  # Reduced from 72
-        self.menu_font = pygame.font.Font(None, 32)   # Reduced from 36
-        self.small_font = pygame.font.Font(None, 20)  # Reduced from 24
+        self.title_font = pygame.font.Font(None, 64)
+        self.subtitle_font = pygame.font.Font(None, 20)
+        self.menu_font = pygame.font.Font(None, 32)
+        self.player_font = pygame.font.Font(None, 24)  # Smaller for long names
+        self.small_font = pygame.font.Font(None, 18)
         
         # Menu state
         self.current_selection = 0
@@ -136,51 +138,86 @@ class Menu:
         
         # Title
         title_text = self.title_font.render("Reversi42", True, self.title_color)
-        title_rect = title_text.get_rect(center=(self.width//2, 60))
+        title_rect = title_text.get_rect(center=(self.width//2, 50))
         self.screen.blit(title_text, title_rect)
         
-        # Menu items with better spacing
-        start_y = 160
-        item_spacing = 50  # Reduced from 60
+        # Subtitle
+        subtitle_text = self.subtitle_font.render("v3.0.0 - Bitboard Revolution", True, self.text_color)
+        subtitle_rect = subtitle_text.get_rect(center=(self.width//2, 90))
+        self.screen.blit(subtitle_text, subtitle_rect)
+        
+        # Menu items with compact layout for 800x600
+        start_y = 130
+        item_spacing = 50
+        
         for i, item in enumerate(self.menu_items):
-            color = self.selected_color if i == self.current_selection else self.text_color
+            is_selected = i == self.current_selection
             
             if item == "Black Player":
-                text = f"Black Player: {self.black_player}"
-                if self.black_player in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
-                    text += f" (Level {self.black_difficulty})"
+                self._draw_player_selection(
+                    "Black Player", 
+                    self.black_player, 
+                    self.black_difficulty,
+                    start_y + i * item_spacing,
+                    is_selected
+                )
             elif item == "White Player":
-                text = f"White Player: {self.white_player}"
-                if self.white_player in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
-                    text += f" (Level {self.white_difficulty})"
+                self._draw_player_selection(
+                    "White Player",
+                    self.white_player,
+                    self.white_difficulty,
+                    start_y + i * item_spacing,
+                    is_selected
+                )
             elif item == "Show Opening":
-                text = "Show Opening" if self.show_opening else "Hide Opening"
+                text = "Show Opening Book" if self.show_opening else "Hide Opening Book"
+                color = self.selected_color if is_selected else self.text_color
+                menu_text = self.menu_font.render(text, True, color)
+                menu_rect = menu_text.get_rect(center=(self.width//2, start_y + i * item_spacing))
+                self.screen.blit(menu_text, menu_rect)
             else:
-                text = item
-            
-            # Truncate text if too long to prevent going off screen
-            max_width = self.width - 100  # Leave 50px margin on each side
-            if len(text) > 30:  # Approximate character limit
-                text = text[:27] + "..."
-            
-            menu_text = self.menu_font.render(text, True, color)
-            menu_rect = menu_text.get_rect(center=(self.width//2, start_y + i * item_spacing))
-            self.screen.blit(menu_text, menu_rect)
+                # Regular menu items
+                color = self.selected_color if is_selected else self.text_color
+                menu_text = self.menu_font.render(item, True, color)
+                menu_rect = menu_text.get_rect(center=(self.width//2, start_y + i * item_spacing))
+                self.screen.blit(menu_text, menu_rect)
         
         # Instructions with better positioning
         instructions = [
-            "Use arrow keys to navigate",
-            "Press ENTER to select",
-            "Press ESC to exit"
+            "Arrow Keys: Navigate  |  ENTER: Select  |  ESC: Exit"
         ]
         
         for i, instruction in enumerate(instructions):
             inst_text = self.small_font.render(instruction, True, self.text_color)
-            inst_rect = inst_text.get_rect(center=(self.width//2, self.height - 80 + i * 20))
+            inst_rect = inst_text.get_rect(center=(self.width//2, self.height - 40 + i * 20))
             self.screen.blit(inst_text, inst_rect)
     
+    def _draw_player_selection(self, label, player_name, difficulty, y_pos, is_selected):
+        """Draw player selection with label and value on separate lines for clarity"""
+        color = self.selected_color if is_selected else self.text_color
+        
+        # Label (e.g., "Black Player:")
+        label_text = self.menu_font.render(label + ":", True, color)
+        label_rect = label_text.get_rect(center=(self.width//2, y_pos - 10))
+        self.screen.blit(label_text, label_rect)
+        
+        # Player name with difficulty (smaller font to avoid truncation)
+        if player_name in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
+            value_text = f"{player_name} (Level {difficulty})"
+        else:
+            value_text = player_name
+        
+        # Truncate if still too long for 800px width
+        if len(value_text) > 35:
+            value_text = value_text[:32] + "..."
+        
+        # Use smaller font for player names to fit better
+        value_surface = self.player_font.render(value_text, True, self.highlight_color if is_selected else self.text_color)
+        value_rect = value_surface.get_rect(center=(self.width//2, y_pos + 10))
+        self.screen.blit(value_surface, value_rect)
+    
     def draw_submenu(self):
-        """Draw submenu for player/difficulty selection"""
+        """Draw submenu for player/difficulty selection with scrolling support"""
         self.screen.fill(self.bg_color)
         
         # Title with better positioning
@@ -189,122 +226,137 @@ class Menu:
         elif self.submenu_type == "white_player":
             title = "Select White Player"
         elif self.submenu_type == "black_difficulty":
-            title = "Select Black AI Difficulty"
+            title = "Black AI Difficulty"
         elif self.submenu_type == "white_difficulty":
-            title = "Select White AI Difficulty"
+            title = "White AI Difficulty"
         else:
             title = "Select Option"
         
-        # Use smaller font for longer titles to prevent overflow
-        title_font = self.title_font if len(title) <= 20 else self.menu_font
-        title_text = title_font.render(title, True, self.title_color)
-        title_rect = title_text.get_rect(center=(self.width//2, 80))
+        title_text = self.title_font.render(title, True, self.title_color)
+        title_rect = title_text.get_rect(center=(self.width//2, 50))
         self.screen.blit(title_text, title_rect)
         
-        # Options with better spacing
+        # Options with improved spacing and scrolling
         if "player" in self.submenu_type:
             options = self.player_types
         else:
             options = [f"Level {d}" for d in self.difficulties]
         
-        start_y = 200
-        option_spacing = 45  # Reduced spacing
-        max_options_visible = (self.height - start_y - 100) // option_spacing
+        # Calculate how many items fit on screen
+        start_y = 120
+        option_spacing = 50  # Compact for 800x600
+        available_height = self.height - start_y - 60  # Reserve space for instructions
+        max_visible = available_height // option_spacing
         
-        # If too many options, show only a subset with scrolling
-        if len(options) > max_options_visible:
-            # Simple scrolling - show options around current selection
-            start_idx = max(0, self.submenu_selection - max_options_visible // 2)
-            end_idx = min(len(options), start_idx + max_options_visible)
-            visible_options = options[start_idx:end_idx]
-            visible_selection = self.submenu_selection - start_idx
+        # Scrolling: show items around current selection
+        if len(options) > max_visible:
+            # Center the view on the selected item
+            start_idx = max(0, min(self.submenu_selection - max_visible // 2, len(options) - max_visible))
+            end_idx = start_idx + max_visible
+            visible_options = list(enumerate(options))[start_idx:end_idx]
+            
+            # Show scroll indicators (no Unicode to avoid rendering issues)
+            if start_idx > 0:
+                arrow_up = self.small_font.render("^ More above", True, self.highlight_color)
+                self.screen.blit(arrow_up, (self.width//2 - 50, start_y - 35))
+            if end_idx < len(options):
+                arrow_down = self.small_font.render("v More below", True, self.highlight_color)
+                self.screen.blit(arrow_down, (self.width//2 - 50, self.height - 70))
         else:
-            visible_options = options
-            visible_selection = self.submenu_selection
+            visible_options = list(enumerate(options))
         
-        for i, option in enumerate(visible_options):
-            color = self.selected_color if i == visible_selection else self.text_color
+        # Draw visible options
+        for display_idx, (actual_idx, option) in enumerate(visible_options):
+            is_selected = actual_idx == self.submenu_selection
+            y_pos = start_y + display_idx * option_spacing
+            
+            # Player name
+            color = self.selected_color if is_selected else self.text_color
             option_text = self.menu_font.render(option, True, color)
-            option_rect = option_text.get_rect(center=(self.width//2, start_y + i * option_spacing))
+            option_rect = option_text.get_rect(center=(self.width//2, y_pos))
             self.screen.blit(option_text, option_rect)
             
-            # Show description for player types
+            # Show description for player types (compact version)
             if "player" in self.submenu_type and option in self.player_descriptions:
-                desc_text = self.small_font.render(self.player_descriptions[option], True, self.text_color)
-                desc_rect = desc_text.get_rect(center=(self.width//2, start_y + i * option_spacing + 20))
+                desc = self.player_descriptions[option]
+                # Truncate long descriptions for 800px width
+                if len(desc) > 60:
+                    desc = desc[:57] + "..."
+                desc_text = self.small_font.render(desc, True, self.highlight_color if is_selected else self.text_color)
+                desc_rect = desc_text.get_rect(center=(self.width//2, y_pos + 18))
                 self.screen.blit(desc_text, desc_rect)
         
-        # Instructions with better positioning
-        instructions = [
-            "Use arrow keys to navigate",
-            "Press ENTER to select",
-            "Press ESC to go back"
-        ]
-        
-        for i, instruction in enumerate(instructions):
-            inst_text = self.small_font.render(instruction, True, self.text_color)
-            inst_rect = inst_text.get_rect(center=(self.width//2, self.height - 60 + i * 18))
-            self.screen.blit(inst_text, inst_rect)
+        # Instructions at bottom
+        instructions = "Arrows: Navigate | ENTER: Select | ESC: Back"
+        inst_text = self.small_font.render(instructions, True, self.text_color)
+        inst_rect = inst_text.get_rect(center=(self.width//2, self.height - 20))
+        self.screen.blit(inst_text, inst_rect)
     
     def draw_help(self):
-        """Draw the help screen"""
+        """Draw the help screen with scrollable layout for 800x600"""
         self.screen.fill(self.bg_color)
         
         # Title
         title_text = self.title_font.render("Help", True, self.title_color)
-        title_rect = title_text.get_rect(center=(self.width//2, 60))
+        title_rect = title_text.get_rect(center=(self.width//2, 40))
         self.screen.blit(title_text, title_rect)
         
-        # Build player types list from metadata (only enabled players)
-        player_descriptions_list = []
+        # Section: Player Types (compact single-line format for space)
+        y_pos = 90
+        section_title = self.menu_font.render("PLAYER TYPES", True, self.selected_color)
+        section_rect = section_title.get_rect(center=(self.width//2, y_pos))
+        self.screen.blit(section_title, section_rect)
+        y_pos += 30
+        
+        # Display each player with name and description (compact for 800x600)
         for name in self.player_types:
             if name in self.player_descriptions:
-                player_descriptions_list.append(f"{name}: {self.player_descriptions[name]}")
-        
-        # Help content
-        help_sections = [
-            ("PLAYER TYPES", player_descriptions_list),
-            ("GAME CONTROLS", [
-                "Mouse: Click on valid moves to place your piece",
-                "C key: Toggle cursor navigation mode",
-                "Arrow keys: Move cursor (when in cursor mode)",
-                "ENTER/SPACE: Select move at cursor position",
-                "ESC or Q: Quit the game"
-            ])
-        ]
-        
-        y_pos = 130
-        section_spacing = 15
-        line_spacing = 22
-        
-        for section_title, section_lines in help_sections:
-            # Draw section title
-            section_surface = self.menu_font.render(section_title, True, self.selected_color)
-            section_rect = section_surface.get_rect(center=(self.width//2, y_pos))
-            self.screen.blit(section_surface, section_rect)
-            y_pos += 35
-            
-            # Draw section content
-            for line in section_lines:
+                desc = self.player_descriptions[name]
+                # Very compact format: "Name - Description"
+                if len(desc) > 50:
+                    desc = desc[:47] + "..."
+                line = f"{name} - {desc}"
+                if len(line) > 75:
+                    line = line[:72] + "..."
+                
                 line_surface = self.small_font.render(line, True, self.text_color)
                 line_rect = line_surface.get_rect(center=(self.width//2, y_pos))
                 self.screen.blit(line_surface, line_rect)
-                y_pos += line_spacing
-            
-            y_pos += section_spacing
+                y_pos += 20
+        
+        # Section: Game Controls
+        y_pos += 15
+        controls_title = self.menu_font.render("GAME CONTROLS", True, self.selected_color)
+        controls_rect = controls_title.get_rect(center=(self.width//2, y_pos))
+        self.screen.blit(controls_title, controls_rect)
+        y_pos += 30
+        
+        controls = [
+            "Mouse: Click on valid moves",
+            "C key: Toggle cursor mode",
+            "Arrows: Navigate cursor",
+            "ENTER/SPACE: Confirm move",
+            "ESC or Q: Quit game"
+        ]
+        
+        for control in controls:
+            control_surface = self.small_font.render(control, True, self.text_color)
+            control_rect = control_surface.get_rect(center=(self.width//2, y_pos))
+            self.screen.blit(control_surface, control_rect)
+            y_pos += 18
         
         # Back instruction
         back_text = self.small_font.render("Press ESC or ENTER to go back", True, self.selected_color)
-        back_rect = back_text.get_rect(center=(self.width//2, self.height - 30))
+        back_rect = back_text.get_rect(center=(self.width//2, self.height - 20))
         self.screen.blit(back_text, back_rect)
     
     def draw_about(self):
-        """Draw the about screen"""
+        """Draw the about screen for 800x600"""
         self.screen.fill(self.bg_color)
         
         # Title
         title_text = self.title_font.render("About Reversi42", True, self.title_color)
-        title_rect = title_text.get_rect(center=(self.width//2, 60))
+        title_rect = title_text.get_rect(center=(self.width//2, 40))
         self.screen.blit(title_text, title_rect)
         
         # About content
@@ -327,16 +379,16 @@ class Menu:
             ])
         ]
         
-        y_pos = 140
-        section_spacing = 15
-        line_spacing = 22
+        y_pos = 100
+        section_spacing = 10
+        line_spacing = 18
         
         for section_title, section_lines in about_sections:
             # Draw section title
             section_surface = self.menu_font.render(section_title, True, self.selected_color)
             section_rect = section_surface.get_rect(center=(self.width//2, y_pos))
             self.screen.blit(section_surface, section_rect)
-            y_pos += 35
+            y_pos += 30
             
             # Draw section content
             for line in section_lines:
@@ -358,13 +410,19 @@ class Menu:
             mouse_x, mouse_y = event.pos
             
             if not self.in_submenu:
-                # Calculate which menu item was clicked
-                start_y = 160
+                # Calculate which menu item was clicked (must match draw_menu coordinates)
+                start_y = 130
                 item_spacing = 50
                 
                 for i, item in enumerate(self.menu_items):
                     item_y = start_y + i * item_spacing
-                    if abs(mouse_y - item_y) < 25:  # Within clickable area
+                    # Larger clickable area for two-line items (Black/White Player)
+                    if item in ["Black Player", "White Player"]:
+                        click_area = 30  # Larger for two-line layout
+                    else:
+                        click_area = 25
+                    
+                    if abs(mouse_y - item_y) < click_area:  # Within clickable area
                         self.current_selection = i
                         if item == "Start Game":
                             return "start_game"
@@ -386,19 +444,32 @@ class Menu:
                             self.submenu_selection = self.player_types.index(self.white_player)
                         break
             else:
-                # Handle submenu clicks
-                start_y = 200
-                option_spacing = 45
+                # Handle submenu clicks (must match draw_submenu coordinates)
+                start_y = 120
+                option_spacing = 50
                 
                 if "player" in self.submenu_type:
                     options = self.player_types
                 else:
                     options = [f"Level {d}" for d in self.difficulties]
                 
-                for i, option in enumerate(options):
-                    option_y = start_y + i * option_spacing
-                    if abs(mouse_y - option_y) < 22:  # Within clickable area
-                        self.submenu_selection = i
+                # Calculate visible range (same logic as draw_submenu)
+                available_height = self.height - start_y - 60
+                max_visible = available_height // option_spacing
+                
+                if len(options) > max_visible:
+                    # Scrolling is active - calculate visible range
+                    start_idx = max(0, min(self.submenu_selection - max_visible // 2, len(options) - max_visible))
+                    end_idx = start_idx + max_visible
+                    visible_options = list(enumerate(options))[start_idx:end_idx]
+                else:
+                    visible_options = list(enumerate(options))
+                
+                # Check click on visible items only
+                for display_idx, (actual_idx, option) in enumerate(visible_options):
+                    option_y = start_y + display_idx * option_spacing
+                    if abs(mouse_y - option_y) < 25:  # Within clickable area
+                        self.submenu_selection = actual_idx
                         if "player" in self.submenu_type:
                             if self.submenu_type == "black_player":
                                 self.black_player = self.player_types[self.submenu_selection]
@@ -495,7 +566,7 @@ class Menu:
                 if self.submenu_type == "black_player":
                     self.black_player = self.player_types[self.submenu_selection]
                     # Ask for difficulty for AI players
-                    if self.black_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)", "AI Bitboard with Book (Fastest)"]:
+                    if self.black_player in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
                         self.in_submenu = True
                         self.submenu_type = "black_difficulty"
                         self.submenu_selection = self.difficulties.index(self.black_difficulty)
@@ -504,7 +575,7 @@ class Menu:
                 elif self.submenu_type == "white_player":
                     self.white_player = self.player_types[self.submenu_selection]
                     # Ask for difficulty for AI players
-                    if self.white_player in ["AI", "AI with Opening Book", "AI Bitboard (Ultra-Fast)", "AI Bitboard with Book (Fastest)"]:
+                    if self.white_player in ["Alpha-Beta AI", "Opening Scholar", "Bitboard Blitz", "The Oracle"]:
                         self.in_submenu = True
                         self.submenu_type = "white_difficulty"
                         self.submenu_selection = self.difficulties.index(self.white_difficulty)

@@ -17,7 +17,7 @@ class GameConfig:
     
     # Players
     DEFAULT_BLACK_PLAYER = "Human"
-    DEFAULT_WHITE_PLAYER = "AI Bitboard with Book (Fastest)"
+    DEFAULT_WHITE_PLAYER = "The Oracle"
     DEFAULT_DEPTH = 5
     
     # Opening Book
