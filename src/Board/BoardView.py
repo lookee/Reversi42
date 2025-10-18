@@ -753,12 +753,12 @@ class BoardView(object):
         
         # Create info box
         lines = []
-        lines.append("📚 Opening Book")
+        lines.append("OPENING BOOK")
         lines.append("")  # Separator
         for name in self.opening_info_text[:6]:  # Show max 6 openings
-            lines.append(f"• {name}")
+            lines.append(f"  {name}")
         if len(self.opening_info_text) > 6:
-            lines.append(f"... +{len(self.opening_info_text) - 6} more")
+            lines.append(f"  ... +{len(self.opening_info_text) - 6} more")
         
         # Calculate box size
         line_height = 20
