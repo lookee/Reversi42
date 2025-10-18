@@ -295,14 +295,18 @@ class BoardControl(object):
         self.view.update(self.cursor_mode)
         
         # Redraw opening book moves AFTER update (so they appear on top and don't get erased)
-        # Only for Pygame views (not terminal/headless)
+        # Works for both Pygame and Terminal views
         if self.show_opening and len(self.book_moves) > 0:
             for bx, by, count in self.book_moves:
                 self.view.setCanMoveBook(bx, by, count)
-            # Force display update to show the golden moves (only for Pygame)
+            # Force display update to show the golden/X moves
             if hasattr(self.view, 'screen') and self.view.screen is not None:
+                # Pygame view - force display update
                 import pygame
                 pygame.display.update()
+            elif hasattr(self.view, '_draw_board'):
+                # Terminal view - redraw board to show book moves
+                self.view._draw_board()
 
     def importModel(self,model):
         for y in range(self.sizey):

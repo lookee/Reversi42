@@ -558,14 +558,22 @@ def main():
             # Build player options list
             player_options = []
             for name, meta in enabled_players.items():
-                # AI players have difficulty, Human players don't
-                is_ai_player = (name != 'Terminal Human' and name != 'Human Player' and 
-                               meta.get('type', 'AI') == 'AI')
+                # Check if this player has 'deep' parameter
+                # Only players with configurable depth should ask for difficulty
+                has_deep_param = False
+                parameters = meta.get('parameters', [])
+                for param in parameters:
+                    if param.get('name') in ['deep', 'depth']:
+                        has_deep_param = True
+                        break
+                
+                # Also check if it's an AI player (not Human)
+                is_ai_player = (name != 'Terminal Human' and name != 'Human Player')
                 
                 player_options.append({
                     'name': name,
                     'description': meta.get('description', f'{name} player'),
-                    'has_difficulty': is_ai_player
+                    'has_difficulty': has_deep_param and is_ai_player
                 })
             
             # Get player selections
