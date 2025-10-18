@@ -1,0 +1,22 @@
+{
+  "name": "Apocalypse Rising",
+  "description": "💀🌌📜 THE FINAL CHALLENGE - Elite warriors face the ultimate destroyer!",
+  "players": [
+    {"type": "Ancient Sage", "depth": 8},
+    {"type": "Quantum Mind", "depth": 9, "threads": 16},
+    {"type": "Zen Master", "depth": 9},
+    {"type": "The Shadow", "depth": 8},
+    {"type": "Apocalypse", "depth": 10, "threads": 24}
+  ],
+  "games_per_matchup": 4,
+  "total_games": 40,
+  "estimated_time": "3-5 hours",
+  "category": "LEGENDARY",
+  "purpose": "Ultimate challenge - Can anyone survive the Apocalypse?",
+  "warnings": [
+    "⚠️  EXTREMELY SLOW - Apocalypse at depth 10",
+    "⚠️  Requires powerful CPU (8+ cores recommended)",
+    "⚠️  Best run overnight or during breaks"
+  ]
+}
+

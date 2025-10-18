@@ -1,0 +1,17 @@
+{
+  "name": "Chaos Unleashed",
+  "description": "🎲🦛⚔️ Beginner's Arena - Pure chaos meets greedy hunger and berserker rage!",
+  "players": [
+    {"type": "Random Chaos", "depth": 1},
+    {"type": "Hungry Hippo", "depth": 2},
+    {"type": "Hungry Hippo", "depth": 4},
+    {"type": "Berserker", "depth": 4},
+    {"type": "Berserker", "depth": 6}
+  ],
+  "games_per_matchup": 4,
+  "total_games": 40,
+  "estimated_time": "15-25 minutes",
+  "category": "BEGINNER",
+  "purpose": "Learning tournament - See how depth affects performance"
+}
+

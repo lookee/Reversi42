@@ -10,6 +10,14 @@ from AI.factory.engine_builder import EngineBuilder
 from Players.ai.ai_player import AIPlayer
 from Players.presets.metadata import PLAYER_PRESETS
 
+# Force import all engines to ensure registration
+import AI.implementations.standard.minimax_engine
+import AI.implementations.standard.greedy_engine
+import AI.implementations.standard.heuristic_engine
+import AI.implementations.random.random_engine
+import AI.implementations.bitboard.bitboard_engine
+import AI.implementations.grandmaster.grandmaster_engine
+
 
 class PresetFactory:
     """
@@ -69,7 +77,7 @@ class PresetFactory:
             engine = PresetFactory._build_engine_with_features(engine_type, features)
         else:
             # Simple engine from registry
-            engine = EngineRegistry.get_engine(engine_type)()
+            engine = EngineRegistry.get_engine(engine_type)
         
         # Create and return player
         return AIPlayer(
@@ -90,10 +98,10 @@ class PresetFactory:
             builder.use_minimax()
         elif engine_type == 'grandmaster':
             # Grandmaster is a complete engine, use directly
-            return EngineRegistry.get_engine('grandmaster')()
+            return EngineRegistry.get_engine('grandmaster')
         else:
             # For greedy, heuristic, random - use registry directly
-            return EngineRegistry.get_engine(engine_type)()
+            return EngineRegistry.get_engine(engine_type)
         
         # Add features
         if 'opening_book' in features:

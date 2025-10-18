@@ -1,0 +1,16 @@
+{
+  "name": "Shadow Wars",
+  "description": "🌑⚔️ Defensive vs Aggressive - Strategic patience battles brutal force!",
+  "players": [
+    {"type": "Berserker", "depth": 6},
+    {"type": "The Shadow", "depth": 7},
+    {"type": "Zen Master", "depth": 7},
+    {"type": "Ancient Sage", "depth": 7}
+  ],
+  "games_per_matchup": 6,
+  "total_games": 36,
+  "estimated_time": "45-60 minutes",
+  "category": "TACTICAL",
+  "purpose": "Study defensive vs aggressive strategies"
+}
+

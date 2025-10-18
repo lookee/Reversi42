@@ -1,0 +1,17 @@
+{
+  "name": "Quick Battle",
+  "description": "⚡ Fast-paced tournament for quick testing - Best warriors in rapid combat!",
+  "players": [
+    {"type": "Hungry Hippo", "depth": 3},
+    {"type": "Berserker", "depth": 5},
+    {"type": "Zen Master", "depth": 6},
+    {"type": "The Shadow", "depth": 6},
+    {"type": "Ancient Sage", "depth": 6}
+  ],
+  "games_per_matchup": 2,
+  "total_games": 20,
+  "estimated_time": "10-15 minutes",
+  "category": "QUICK",
+  "purpose": "Quick testing and practice"
+}
+

@@ -70,102 +70,104 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 
 ## 🎮 Player Types
 
-The game features a **metadata-driven player system** with 8 distinct playing styles.
+The game features a **metadata-driven player system** with **9 legendary AI warriors**, each with unique personality and strategy!
 
 ### Complete Player Roster (v3.1.0)
 
-| Player Name | Type | Engine | Speed | Depth | Opening Book | Best For |
-|------------|------|--------|-------|-------|--------------|----------|
-| **Human Player** | Human | Manual | - | - | ❌ | You! Interactive play with visual learning |
-| **Alpha-Beta AI** | AI | Minimax | 1x | 1-10 | ❌ | Practice, reliable opponent |
-| **Opening Scholar** | AI | Minimax+Book | 1x | 1-10 | ✅ 57 | Learning openings, strong early game |
-| **Bitboard Blitz** | AI | Bitboard | **50x** | 1-12 | ❌ | Fast analysis, deep searches |
-| **The Oracle** | AI | Bitboard+Book | **100x** | 1-12 | ✅ 57 | Strong challenge, fast games |
-| **Parallel Oracle** 🏆⚡ | AI | Parallel+Book | **200-500x** | 7-12 | ✅ 57 | **DEFAULT - Ultimate AI, multi-core** |
-| **Heuristic Scout** | AI | Heuristic | Fast | - | ❌ | Quick games, medium difficulty |
-| **Greedy Goblin** | AI | Greedy | Fast | - | ❌ | Educational, shows greedy pitfalls |
-| **Random Chaos** | Random | RNG | Instant | - | ❌ | Testing, benchmarking, fun |
+| Player | Icon | Difficulty | Style | Strength | Speed | Best For |
+|--------|------|------------|-------|----------|-------|----------|
+| **Human Player** | 👤 | - | Your Style | You! | - | Interactive play, learning |
+| **Random Chaos** | 🎲 | Beginner | Chaotic | ☆☆☆☆☆ | ⚡⚡⚡⚡⚡ | First-time players, testing |
+| **Hungry Hippo** | 🦛 | Beginner | Greedy | ★☆☆☆☆ | ⚡⚡⚡⚡⚡ | Learning tactics |
+| **Berserker** | ⚔️ | Intermediate | Aggressive | ★★★☆☆ | ⚡⚡⚡⚡☆ | Handling pressure |
+| **Zen Master** | 🧘 | Intermediate | Balanced | ★★★★★ | ⚡⚡⚡☆☆ | Balanced strategy |
+| **The Trickster** | 🎭 | Intermediate | Psychological | ★★★★☆ | ⚡⚡⚡☆☆ | Unpredictable opponents |
+| **The Shadow** | 🌑 | Advanced | Defensive | ★★★★☆ | ⚡⚡⚡☆☆ | Defensive mastery |
+| **Ancient Sage** | 📜 | Advanced | Classical | ★★★★★ | ⚡⚡⚡⚡☆ | Opening theory |
+| **Quantum Mind** | 🌌 | Expert | Analytical | ★★★★★★ | ⚡⚡⚡☆☆ | Ultimate challenge |
+| **Apocalypse** 💀 | 💀 | **LEGENDARY** | **GODLIKE** | **★★★★★★★★** | ⚡⚡☆☆☆ | **FINAL BOSS** ⚠️ |
 
 ### Detailed Player Descriptions
+
+For complete details on each player, see [Player Documentation](docs/players/README.md)!
 
 #### 👤 Human Player
 **You control the game!**
 - **Controls**: Mouse click or keyboard navigation (C + arrows)
 - **Features**: Opening book tooltips when enabled
 - **Learning**: See golden moves and opening names while you play
-- **Best For**: Everyone - this is you!
 
-#### 🤖 Alpha-Beta AI
-**Classic AI with proven minimax algorithm**
-- **Technology**: Alpha-beta pruning, transposition tables
-- **Strength**: Configurable depth 1-10
-- **Style**: Strategic, reliable, well-balanced
-- **Best For**: Learning AI basics, consistent practice opponent
-- **Performance**: ~2,000 nodes/second at depth 6
+#### 🎲 Random Chaos - "Pure Chaos Incarnate"
+**Completely unpredictable!**
+- **Strength**: Very Weak | **Speed**: Instant
+- **Best For**: First-time players, testing, fun
+- **Quote**: *"I move without thinking. Predictability is for the weak!"*
 
-#### 📚 Opening Scholar  
-**Master of opening theory**
-- **Technology**: 57 professional openings + minimax fallback
-- **Strength**: Instant in book, depth 1-10 when out
-- **Style**: Strong early game, follows master sequences
-- **Best For**: Learning openings, tournament preparation
-- **Special**: Randomly selects from multiple book options for variety
-- **Performance**: Instant book moves, standard speed out of book
+#### 🦛 Hungry Hippo - "Greedy but Smarter"
+**Maximizes captures with 3-ply lookahead**
+- **Strength**: Weak | **Speed**: Very Fast
+- **Best For**: Learning tactics, practice opponent
+- **Quote**: *"I see food, I eat! MUST. CAPTURE. NOW! 🦛"*
 
-#### ⚡ Bitboard Blitz
-**Pure computational speed**
-- **Technology**: 64-bit bitboard representation
-- **Strength**: Depth 1-12 practical in real-time
-- **Style**: Aggressive deep searches, no opening knowledge
-- **Best For**: Analysis, deep tactical positions
-- **Performance**: **50-100x faster** - 50,000+ nodes/second
-- **Special**: Can search depth 10-12 in seconds
+#### ⚔️ Berserker - "Relentless Aggressor"
+**Attacks without mercy!**
+- **Strength**: Medium-Strong | **Speed**: Very Fast
+- **Depth**: 5 (default, range 2-8)
+- **Best For**: Learning defensive strategies, handling pressure
+- **Quote**: *"ATTACK! Capture everything! No mercy! Only VICTORY! ⚔️"*
 
-#### 🔮 The Oracle
-**Ultimate single-core Reversi AI**
-- **Technology**: Bitboard engine + 57 opening sequences
-- **Strength**: Depth 1-12 with instant opening responses
-- **Style**: Perfect opening play, deep midgame search
-- **Best For**: Strong challenge, fast games
-- **Performance**: **100x faster** when in book, 50x when searching
-- **Special**: Combines speed AND knowledge
+#### 🧘 Zen Master - "Perfect Harmony"
+**Achieves balance between offense and defense**
+- **Strength**: Very Strong | **Speed**: Medium
+- **Depth**: 8 (default, range 4-11)
+- **Technology**: Minimax with alpha-beta pruning
+- **Best For**: Learning balanced strategy, classical Reversi
+- **Quote**: *"Flow like water. The path of least resistance leads to victory."*
 
-#### ⚡ Parallel Oracle (DEFAULT - RECOMMENDED) 🏆
-**The ultimate multi-core Reversi AI**
-- **Technology**: Parallel bitboard (2-5x) + 57 opening sequences
-- **Strength**: Depth 7-12 with multi-core parallel search
-- **Style**: Perfect opening play + ultra-deep parallel search
-- **Best For**: Maximum challenge, tournaments, deep analysis (4+ cores)
-- **Performance**: **200-500x faster** than standard, 2-5x vs single-core
-- **Special**: Auto-adaptive (sequential for depth <7, parallel for >=7)
-- **Default**: Selected by default at depth 8 for new games
-- **Intelligence**: Master openings + 12+ ply lookahead with multiprocessing
+#### 🎭 The Trickster - "Mind Games Master"
+**Makes unconventional moves to confuse opponents**
+- **Strength**: Strong | **Speed**: Fast
+- **Depth**: 6 (default, range 3-9)
+- **Best For**: Handling unpredictable opponents, staying focused
+- **Quote**: *"Chaos is a ladder. Are you ready to climb... or fall?"*
 
-#### 🎯 Heuristic Scout
-**Fast intuitive player**
-- **Technology**: Positional heuristics, pattern recognition
-- **Strength**: Medium (no deep search)
-- **Style**: Quick decisions, position-based
-- **Best For**: Fast games, variety in play style
-- **Performance**: Instant moves
+#### 🌑 The Shadow - "Silent Defender"
+**Lurks in darkness, strikes from shadows**
+- **Strength**: Strong | **Speed**: Medium
+- **Depth**: 7 (default, range 3-10)
+- **Technology**: Heuristic (positional evaluation)
+- **Best For**: Defensive mastery, patient gameplay
+- **Quote**: *"I am the shadows. I am the watcher. Your defeat is inevitable."*
 
-#### 👹 Greedy Goblin
-**Educational opponent**
-- **Technology**: Immediate piece count maximization
-- **Strength**: Weak (short-sighted strategy)
-- **Style**: Always captures maximum pieces available
-- **Best For**: Beginners learning why greedy play fails
-- **Educational Value**: Shows importance of position over piece count
-- **Performance**: Instant moves
+#### 📜 Ancient Sage - "1000 Years of Wisdom"
+**Knows every classical opening by heart!**
+- **Strength**: Very Strong | **Speed**: Medium-Fast
+- **Depth**: 7 (default, range 4-10)
+- **Technology**: Bitboard + Opening Book (depth 20!) + Endgame Solver
+- **Best For**: Learning classical theory, perfect openings
+- **Quote**: *"I have studied every game ever played. Your moves are already written."*
 
-#### 🎲 Random Chaos
-**Pure unpredictability**
-- **Technology**: Random number generator
-- **Strength**: None (random)
-- **Style**: Completely unpredictable
-- **Best For**: Testing, benchmarking, comic relief
-- **Performance**: Instant moves
-- **Warning**: Will make terrible moves!
+#### 🌌 Quantum Mind - "Parallel Universe Explorer"
+**Calculates 16 futures simultaneously!**
+- **Strength**: Master | **Speed**: Fast
+- **Depth**: 9 (default, range 5-12)
+- **Technology**: Bitboard + 16 Parallel Threads + 256MB Transposition Table
+- **Best For**: Ultimate challenge, expert players
+- **Requirements**: 8+ CPU cores recommended
+- **Quote**: *"I see all possible futures. In every timeline, you lose."*
+
+#### 💀 Apocalypse - "THE ULTIMATE DESTROYER" ⚠️
+**Everything. Everywhere. All at once.**
+- **Strength**: GODLIKE | **Speed**: Adaptive (SLOW at depth >10)
+- **Depth**: 11 (default, range 7-15)
+- **Technology**: ALL 12 techniques combined!
+  - Grandmaster Engine, Bitboard, Opening Book (depth 30!), 32 Parallel Threads
+  - 1GB Transposition Table, Advanced Evaluator, Move Ordering, Killer Moves
+  - Endgame Solver, Aspiration Windows, Iterative Deepening, Null-Move Pruning
+- **Best For**: The ultimate challenge (defeat is almost certain!)
+- **Requirements**: 8+ CPU cores, 2GB RAM, patience
+- **⚠️ WARNING**: Depth 11 = 1-3 min/move, Depth 12+ = 5-10 min/move!
+- **Quote**: *"I AM INEVITABLE. Resistance is futile. Your defeat is absolute."*
 
 ### Quick Comparison
 

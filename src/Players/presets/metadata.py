@@ -1,209 +1,313 @@
 """
-Player Presets - Pure Metadata Approach
+Player Presets - Epic Collection
 
 All player configurations defined declaratively using metadata only.
 No redundant create_*() functions needed.
 
-A generic factory creates players from these metadata configurations.
+Epic Players with unique personalities, styles, and strengths!
 """
 
 # All player presets defined as pure metadata
 PLAYER_PRESETS = {
+    # ═══════════════════════════════════════════════════════════════
+    # BEGINNER TIER - Learn the basics
+    # ═══════════════════════════════════════════════════════════════
+    
     'Random Chaos': {
         'engine_type': 'random',
         'default_depth': 1,
         'name': 'Random Chaos',
-        'description': 'Random Chaos - Unpredictable moves',
+        'description': '🎲 Pure randomness - Moves without thinking. Perfect for absolute beginners!',
         'difficulty': 'beginner',
         'speed': 'instant',
         'strength': 'very_weak',
         'enabled': True,
-        'icon': '🎲'
+        'icon': '🎲',
+        'play_style': 'chaotic',
+        'specialty': 'Completely unpredictable, no strategy'
     },
     
-    'Alpha-Beta AI': {
-        'engine_type': 'minimax',
-        'default_depth': 4,
-        'name': 'Alpha-Beta AI',
-        'description': 'Classic minimax with alpha-beta pruning',
-        'difficulty': 'intermediate',
-        'speed': 'medium',
-        'strength': 'medium',
+    'Hungry Hippo': {
+        'engine_type': 'greedy',
+        'default_depth': 3,
+        'name': 'Hungry Hippo',
+        'description': '🦛 Greedy but smarter - Looks 3 moves ahead while maximizing captures. Good practice opponent!',
+        'difficulty': 'beginner',
+        'speed': 'very_fast',
+        'strength': 'weak',
         'enabled': True,
-        'icon': '🎯',
+        'icon': '🦛',
+        'play_style': 'greedy',
+        'specialty': 'Short-term thinking, captures everything in sight',
         'parameters': [
             {
                 'name': 'depth',
                 'type': 'int',
-                'default': 4,
+                'default': 3,
                 'min': 1,
-                'max': 8,
-                'description': 'Search depth (higher = stronger but slower)'
+                'max': 5,
+                'description': 'Look-ahead depth (1=pure greedy, 3+=tactical)'
             }
         ]
     },
     
-    'Opening Scholar': {
-        'engine_type': 'minimax',
+    # ═══════════════════════════════════════════════════════════════
+    # INTERMEDIATE TIER - Develop tactics
+    # ═══════════════════════════════════════════════════════════════
+    
+    'Berserker': {
+        'engine_type': 'greedy',
         'default_depth': 5,
-        'name': 'Opening Scholar',
-        'description': 'Minimax with opening book knowledge',
+        'name': 'Berserker',
+        'description': '⚔️ Relentless aggressor - Attacks without mercy! Maximizes captures with brutal efficiency.',
         'difficulty': 'intermediate',
-        'speed': 'medium',
+        'speed': 'very_fast',
         'strength': 'medium_strong',
         'enabled': True,
-        'icon': '📚',
-        'features': ['opening_book'],
+        'icon': '⚔️',
+        'features': ['aggressive_captures', 'high_mobility'],
+        'play_style': 'aggressive',
+        'specialty': 'Overwhelming captures, high-pressure attacks',
         'parameters': [
             {
                 'name': 'depth',
                 'type': 'int',
                 'default': 5,
-                'min': 1,
+                'min': 2,
                 'max': 8,
-                'description': 'Search depth'
+                'description': 'Aggression depth (higher = more brutal)'
             }
         ]
     },
     
-    'Bitboard Blitz': {
-        'engine_type': 'bitboard',
-        'default_depth': 6,
-        'name': 'Bitboard Blitz',
-        'description': 'Ultra-fast bitboard - 10x faster',
-        'difficulty': 'advanced',
-        'speed': 'fast',
-        'strength': 'strong',
-        'enabled': True,
-        'icon': '⚡',
-        'features': ['bitboard', 'optimized'],
-        'parameters': [
-            {
-                'name': 'depth',
-                'type': 'int',
-                'default': 6,
-                'min': 1,
-                'max': 10,
-                'description': 'Search depth (can go deeper due to speed)'
-            }
-        ]
-    },
-    
-    'The Oracle': {
-        'engine_type': 'bitboard',
-        'default_depth': 6,
-        'name': 'The Oracle',
-        'description': 'Bitboard + opening book - Fast & knowledgeable',
-        'difficulty': 'advanced',
-        'speed': 'fast',
-        'strength': 'strong',
-        'enabled': True,
-        'icon': '🔮',
-        'features': ['bitboard', 'opening_book'],
-        'parameters': [
-            {
-                'name': 'depth',
-                'type': 'int',
-                'default': 6,
-                'min': 1,
-                'max': 10,
-                'description': 'Search depth'
-            }
-        ]
-    },
-    
-    'Greedy Gobbler': {
-        'engine_type': 'greedy',
-        'default_depth': 1,
-        'name': 'Greedy Gobbler',
-        'description': 'Aggressive - Maximizes captures',
-        'difficulty': 'beginner',
-        'speed': 'fast',
-        'strength': 'weak',
-        'enabled': True,
-        'icon': '🍖'
-    },
-    
-    'Positional Master': {
-        'engine_type': 'heuristic',
-        'default_depth': 4,
-        'name': 'Positional Master',
-        'description': 'Strategic positioning - Corners & edges',
-        'difficulty': 'intermediate',
-        'speed': 'medium',
-        'strength': 'medium',
-        'enabled': True,
-        'icon': '🎓',
-        'parameters': [
-            {
-                'name': 'depth',
-                'type': 'int',
-                'default': 4,
-                'min': 1,
-                'max': 8,
-                'description': 'Search depth'
-            }
-        ]
-    },
-    
-    'Grandmaster': {
-        'engine_type': 'grandmaster',
-        'default_depth': 9,
-        'name': 'Grandmaster',
-        'description': 'Ultimate AI - All techniques combined',
-        'difficulty': 'expert',
-        'speed': 'slow',
-        'strength': 'master',
-        'enabled': True,
-        'icon': '👑',
-        'features': ['bitboard', 'advanced_eval', 'move_ordering', 'killer_moves'],
-        'parameters': [
-            {
-                'name': 'depth',
-                'type': 'int',
-                'default': 9,
-                'min': 1,
-                'max': 12,
-                'description': 'Search depth (very slow at high depths)'
-            }
-        ]
-    },
-    
-    'Ultimate AI': {
-        'engine_type': 'bitboard',
+    'Zen Master': {
+        'engine_type': 'minimax',
         'default_depth': 8,
-        'name': 'Ultimate AI',
-        'description': 'Maximum power - All features enabled',
-        'difficulty': 'expert',
+        'name': 'Zen Master',
+        'description': '🧘 Perfect harmony - Achieves balance between offense and defense. Every move flows like water.',
+        'difficulty': 'intermediate',
         'speed': 'medium',
         'strength': 'very_strong',
         'enabled': True,
-        'icon': '🚀',
-        'features': ['bitboard', 'opening_book', 'parallel', 'transposition_table', 'advanced_eval'],
-        'engine_config': {
-            'use_bitboard': True,
-            'opening_book': True,
-            'parallel_threads': 4,
-            'transposition_table_mb': 128,
-            'advanced_evaluator': True
-        },
+        'icon': '🧘',
+        'features': ['balanced_strategy', 'advanced_eval'],
+        'play_style': 'balanced',
+        'specialty': 'Maintains equilibrium, adapts to opponent style',
         'parameters': [
             {
                 'name': 'depth',
                 'type': 'int',
                 'default': 8,
-                'min': 1,
+                'min': 4,
+                'max': 11,
+                'description': 'Meditation depth (higher = deeper wisdom)'
+            }
+        ]
+    },
+    
+    'The Trickster': {
+        'engine_type': 'minimax',
+        'default_depth': 6,
+        'name': 'The Trickster',
+        'description': '🎭 Mind games master - Makes unconventional moves to confuse opponents. Chaos is a ladder.',
+        'difficulty': 'intermediate',
+        'speed': 'fast',
+        'strength': 'strong',
+        'enabled': True,
+        'icon': '🎭',
+        'features': ['unpredictable', 'psychological', 'anti_pattern'],
+        'play_style': 'unconventional',
+        'specialty': 'Breaks expectations, creates traps, psychological pressure',
+        'parameters': [
+            {
+                'name': 'depth',
+                'type': 'int',
+                'default': 6,
+                'min': 3,
+                'max': 9,
+                'description': 'Trickery depth'
+            }
+        ]
+    },
+    
+    # ═══════════════════════════════════════════════════════════════
+    # ADVANCED TIER - Master strategy
+    # ═══════════════════════════════════════════════════════════════
+    
+    'The Shadow': {
+        'engine_type': 'heuristic',
+        'default_depth': 7,
+        'name': 'The Shadow',
+        'description': '🌑 Silent defender - Lurks in darkness, strikes from shadows. Masters defensive positioning.',
+        'difficulty': 'advanced',
+        'speed': 'medium',
+        'strength': 'strong',
+        'enabled': True,
+        'icon': '🌑',
+        'features': ['defensive_strategy', 'corner_control'],
+        'play_style': 'defensive',
+        'specialty': 'Controls board edges and waits for opponent mistakes',
+        'parameters': [
+            {
+                'name': 'depth',
+                'type': 'int',
+                'default': 7,
+                'min': 3,
                 'max': 10,
-                'description': 'Search depth'
+                'description': 'Calculation depth (deeper = more patient)'
+            }
+        ]
+    },
+    
+    'Ancient Sage': {
+        'engine_type': 'bitboard',
+        'default_depth': 7,
+        'name': 'Ancient Sage',
+        'description': '📜 Wisdom of ages - Knows every classical opening. 1000 years of Othello mastery in every move.',
+        'difficulty': 'advanced',
+        'speed': 'medium_fast',
+        'strength': 'very_strong',
+        'enabled': True,
+        'icon': '📜',
+        'features': ['bitboard', 'opening_book', 'endgame_database', 'classical_patterns'],
+        'play_style': 'traditional',
+        'specialty': 'Perfect openings, legendary endgame technique',
+        'engine_config': {
+            'use_bitboard': True,
+            'opening_book': True,
+            'opening_book_depth': 20,
+            'endgame_solver': True
+        },
+        'parameters': [
+            {
+                'name': 'depth',
+                'type': 'int',
+                'default': 7,
+                'min': 4,
+                'max': 10,
+                'description': 'Ancient wisdom depth'
+            }
+        ]
+    },
+    
+    # ═══════════════════════════════════════════════════════════════
+    # EXPERT TIER - Ultimate challenge
+    # ═══════════════════════════════════════════════════════════════
+    
+    'Quantum Mind': {
+        'engine_type': 'bitboard',
+        'default_depth': 9,
+        'name': 'Quantum Mind',
+        'description': '🌌 Explores infinite possibilities - Thinks in parallel dimensions. Calculates 16 futures simultaneously!',
+        'difficulty': 'expert',
+        'speed': 'fast',
+        'strength': 'master',
+        'enabled': True,
+        'icon': '🌌',
+        'features': ['bitboard', 'parallel', 'transposition_table', 'move_ordering'],
+        'play_style': 'analytical',
+        'specialty': 'Multi-threaded deep search, impossible calculations',
+        'engine_config': {
+            'use_bitboard': True,
+            'parallel_threads': 16,
+            'transposition_table_mb': 256,
+            'move_ordering': True
+        },
+        'parameters': [
+            {
+                'name': 'depth',
+                'type': 'int',
+                'default': 9,
+                'min': 5,
+                'max': 12,
+                'description': 'Quantum depth (dimensions explored)'
             },
             {
                 'name': 'threads',
                 'type': 'int',
-                'default': 4,
+                'default': 16,
                 'min': 1,
-                'max': 16,
-                'description': 'Parallel threads'
+                'max': 32,
+                'description': 'Parallel universes (CPU cores)'
             }
+        ]
+    },
+    
+    # ═══════════════════════════════════════════════════════════════
+    # LEGENDARY TIER - Final Boss
+    # ═══════════════════════════════════════════════════════════════
+    
+    'Apocalypse': {
+        'engine_type': 'grandmaster',
+        'default_depth': 11,
+        'name': 'Apocalypse',
+        'description': '💀 THE END IS NEAR - Ultimate AI fusion! Undefeated. Unstoppable. Unforgiving. Defeat is inevitable.',
+        'difficulty': 'LEGENDARY',
+        'speed': 'adaptive',
+        'strength': 'GODLIKE',
+        'enabled': True,
+        'icon': '💀',
+        'features': [
+            'grandmaster_engine',
+            'bitboard', 
+            'opening_book', 
+            'parallel', 
+            'transposition_table',
+            'advanced_eval',
+            'move_ordering',
+            'killer_moves',
+            'endgame_solver',
+            'aspiration_windows',
+            'iterative_deepening',
+            'null_move_pruning'
+        ],
+        'play_style': 'ANNIHILATION',
+        'specialty': 'Everything. Everywhere. All at once. Total domination.',
+        'engine_config': {
+            'use_bitboard': True,
+            'opening_book': True,
+            'opening_book_depth': 30,
+            'parallel_threads': 32,
+            'transposition_table_mb': 1024,
+            'advanced_evaluator': True,
+            'move_ordering': True,
+            'killer_moves': True,
+            'endgame_solver': True,
+            'aspiration_windows': True,
+            'iterative_deepening': True,
+            'null_move_pruning': True
+        },
+        'parameters': [
+            {
+                'name': 'depth',
+                'type': 'int',
+                'default': 11,
+                'min': 7,
+                'max': 15,
+                'description': '⚠️  WARNING: Depth >12 may take MINUTES per move!'
+            },
+            {
+                'name': 'threads',
+                'type': 'int',
+                'default': 32,
+                'min': 4,
+                'max': 64,
+                'description': 'CPU cores (all of them)'
+            },
+            {
+                'name': 'memory_mb',
+                'type': 'int',
+                'default': 1024,
+                'min': 128,
+                'max': 8192,
+                'description': 'RAM allocated (MB)'
+            }
+        ],
+        'warnings': [
+            '⚠️  EXTREMELY SLOW at depth >10',
+            '⚠️  Requires 8+ CPU cores for optimal performance',
+            '⚠️  May consume 1GB+ RAM',
+            '⚠️  Difficulty: LEGENDARY - Not for the faint of heart'
         ]
     }
 }
@@ -240,4 +344,3 @@ def list_presets() -> dict:
 
 
 __all__ = ['PLAYER_PRESETS', 'get_preset', 'list_presets']
-

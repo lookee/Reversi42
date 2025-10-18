@@ -1,0 +1,20 @@
+{
+  "name": "Arena of Legends",
+  "description": "🏛️ Epic battle royale - All tiers compete for supremacy! From chaos to godlike power!",
+  "players": [
+    {"type": "Random Chaos", "depth": 1},
+    {"type": "Hungry Hippo", "depth": 3},
+    {"type": "Berserker", "depth": 5},
+    {"type": "Zen Master", "depth": 7},
+    {"type": "The Trickster", "depth": 6},
+    {"type": "The Shadow", "depth": 7},
+    {"type": "Ancient Sage", "depth": 7},
+    {"type": "Quantum Mind", "depth": 8, "threads": 12}
+  ],
+  "games_per_matchup": 4,
+  "total_games": 112,
+  "estimated_time": "2-3 hours",
+  "category": "EPIC",
+  "purpose": "Complete tier analysis - Who truly dominates?"
+}
+
