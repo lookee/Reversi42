@@ -93,6 +93,7 @@ class TerminalBoardView(AbstractBoardView):
         self.board_state = [[' ' for _ in range(sizex)] for _ in range(sizey)]
         self.valid_moves_list = []
         self.book_moves_list = []  # Track opening book moves separately
+        self.opening_names = {}  # Dict mapping (x,y) -> list of opening names
         self.use_color = True  # Can be disabled for non-color terminals
         self.last_output_lines = 0
         self.move_count = 0  # Track move number
@@ -183,10 +184,12 @@ class TerminalBoardView(AbstractBoardView):
                                           for m in self.valid_moves_list]
                 
                 # Check if this is an opening book move
+                # book_moves_list contains 0-indexed coordinates
+                # x, y in the loop are also 0-indexed
                 is_book_move = False
                 book_count = 0
                 for bx, by, count in self.book_moves_list:
-                    if (bx == x + 1 and by == y + 1) or (bx == x and by == y):
+                    if bx == x and by == y:
                         is_book_move = True
                         book_count = count
                         break
@@ -246,6 +249,35 @@ class TerminalBoardView(AbstractBoardView):
         bottom_line += self.BOX_BR
         lines.append(bottom_line)
         
+        # Column headers at bottom
+        col_footer = "    " + "   ".join("ABCDEFGH"[:self.sizex])
+        lines.append(col_footer)
+        
+        # Show opening names if any (compact, single line)
+        if self.opening_names:
+            lines.append("")  # Spacing
+            opening_info = []
+            for (ox, oy), names in self.opening_names.items():
+                # Convert to chess notation (A1, B2, etc.)
+                col = chr(ord('A') + ox)
+                row = oy + 1
+                pos = f"{col}{row}"
+                # Join first 2 opening names max
+                opening_str = ', '.join(names[:2])
+                if len(names) > 2:
+                    opening_str += f" (+{len(names)-2})"
+                opening_info.append(f"{pos}:{opening_str}")
+            
+            # Print on one line if short, otherwise wrap
+            info_text = " | ".join(opening_info)
+            if len(info_text) < 70:
+                lines.append(f"  📚 Book: {info_text}")
+            else:
+                # Wrap to multiple lines
+                lines.append(f"  📚 Book:")
+                for info in opening_info:
+                    lines.append(f"    • {info}")
+        
         # Print all lines with extra spacing for readability
         output = '\n'.join(lines)
         print(output)
@@ -259,6 +291,9 @@ class TerminalBoardView(AbstractBoardView):
     def highlight_valid_moves(self, moves: List):
         """Highlight valid moves"""
         self.valid_moves_list = moves
+        # Clear book moves and opening names when new valid moves are set
+        self.book_moves_list = []
+        self.opening_names = {}
     
     def highlight_last_move(self, x: int, y: int):
         """Highlight last move"""
@@ -311,9 +346,25 @@ class TerminalBoardView(AbstractBoardView):
     
     def setCanMoveBook(self, x: int, y: int, count: int):
         """Mark position as opening book move with special highlighting"""
-        # Track book moves separately for special rendering
-        if 0 <= y < len(self.board_state) and 0 <= x < len(self.board_state[0]):
-            self.book_moves_list.append((x, y, count))  # Track for highlighting
+        # x, y are 1-indexed from BoardControl
+        # Convert to 0-indexed for internal storage
+        x0 = x - 1
+        y0 = y - 1
+        
+        if 0 <= y0 < len(self.board_state) and 0 <= x0 < len(self.board_state[0]):
+            self.book_moves_list.append((x0, y0, count))  # Track for highlighting
+    
+    def set_opening_names(self, x: int, y: int, openings: list):
+        """Store opening names for a position"""
+        # x, y are 1-indexed from BoardControl
+        x0 = x - 1
+        y0 = y - 1
+        
+        if openings:
+            # Extract names from opening objects
+            names = [opening.get('name', 'Unknown') if isinstance(opening, dict) else str(opening) 
+                    for opening in openings[:3]]  # Limit to first 3
+            self.opening_names[(x0, y0)] = names
     
     def unfillBox(self, x: int, y: int):
         """Clear a box (alias for unsetBox)"""

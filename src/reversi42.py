@@ -630,9 +630,10 @@ def main():
             black_p = select_player("Black")
             white_p = select_player("White")
             
-            # Ask about opening book
-            show_book = input("\nShow opening book? (y/N): ").strip().lower()
-            show_opening = show_book in ['y', 'yes']
+            # Ask about opening book (default: yes)
+            show_book = input("\nShow opening book? (Y/n): ").strip().lower()
+            # Default to True if empty or 'y'
+            show_opening = show_book != 'n' and show_book != 'no'
             
             print(f"\n✓ Black: {black_p.name}")
             print(f"✓ White: {white_p.name}")

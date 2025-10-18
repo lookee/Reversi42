@@ -297,8 +297,20 @@ class BoardControl(object):
         # Redraw opening book moves AFTER update (so they appear on top and don't get erased)
         # Works for both Pygame and Terminal views
         if self.show_opening and len(self.book_moves) > 0:
-            for bx, by, count in self.book_moves:
+            for item in self.book_moves:
+                if len(item) == 4:
+                    bx, by, count, openings = item
+                else:
+                    # Legacy format
+                    bx, by, count = item
+                    openings = []
+                
                 self.view.setCanMoveBook(bx, by, count)
+                
+                # For terminal view, also pass opening names
+                if hasattr(self.view, 'set_opening_names'):
+                    self.view.set_opening_names(bx, by, openings)
+            
             # Force display update to show the golden/X moves
             if hasattr(self.view, 'screen') and self.view.screen is not None:
                 # Pygame view - force display update
@@ -366,7 +378,8 @@ class BoardControl(object):
                 
                 if openings:
                     # This move leads to opening(s) - save for highlighting with count
-                    self.book_moves.append((move.get_x() - 1, move.get_y() - 1, len(openings)))
+                    # Store with original coordinates (1-indexed) for setCanMoveBook
+                    self.book_moves.append((move.get_x(), move.get_y(), len(openings), openings))
                     self.setCanMove(move.get_x(), move.get_y(), turn)
                 else:
                     self.setCanMove(move.get_x(), move.get_y(), turn)
