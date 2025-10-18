@@ -54,20 +54,24 @@ class Menu:
         self.current_selection = 0
         self.menu_items = MenuConfig.MENU_ITEMS.copy()  # Copy to allow modifications
         
+        # Get player types and descriptions from PlayerFactory metadata FIRST
+        # Get available players from factory (backward compatible)
+        available = PlayerFactory.list_available_players()
+        self.player_types = list(available.keys())
+        self.all_metadata = available  # This is already the full metadata dict
+        
         # Player selections from config
-        self.black_player = MenuConfig.DEFAULT_BLACK_PLAYER
-        self.white_player = MenuConfig.DEFAULT_WHITE_PLAYER
+        # Use first available player as default if config default not in list
+        default_black = MenuConfig.DEFAULT_BLACK_PLAYER
+        default_white = MenuConfig.DEFAULT_WHITE_PLAYER
+        
+        self.black_player = default_black if default_black in self.player_types else self.player_types[0]
+        self.white_player = default_white if default_white in self.player_types else self.player_types[0]
         self.black_difficulty = MenuConfig.DEFAULT_BLACK_DIFFICULTY
         self.white_difficulty = MenuConfig.DEFAULT_WHITE_DIFFICULTY
         
         # Opening book display option from config
         self.show_opening = MenuConfig.DEFAULT_SHOW_OPENING
-        
-        # Get player types and descriptions from PlayerFactory metadata
-        # Get available players from factory (backward compatible)
-        available = PlayerFactory.list_available_players()
-        self.player_types = list(available.keys())
-        self.all_metadata = available  # This is already the full metadata dict
         
         # Build descriptions from metadata
         self.player_descriptions = {
@@ -97,9 +101,10 @@ class Menu:
     def load_splash_screen(self):
         """Load the splash screen image"""
         try:
-            # Get the directory of the current script
+            # Get the src directory (go up from ui/implementations/pygame/components/)
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            splash_path = os.path.join(script_dir, "Images", "reversi42-splash.png")
+            src_dir = os.path.join(script_dir, '..', '..', '..', '..')
+            splash_path = os.path.join(src_dir, "Images", "reversi42-splash.png")
             
             if os.path.exists(splash_path):
                 self.splash_image = pygame.image.load(splash_path)
@@ -433,11 +438,19 @@ class Menu:
                         elif item == "Black Player":
                             self.in_submenu = True
                             self.submenu_type = "black_player"
-                            self.submenu_selection = self.player_types.index(self.black_player)
+                            # Safe index lookup
+                            try:
+                                self.submenu_selection = self.player_types.index(self.black_player)
+                            except ValueError:
+                                self.submenu_selection = 0  # Default to first player
                         elif item == "White Player":
                             self.in_submenu = True
                             self.submenu_type = "white_player"
-                            self.submenu_selection = self.player_types.index(self.white_player)
+                            # Safe index lookup
+                            try:
+                                self.submenu_selection = self.player_types.index(self.white_player)
+                            except ValueError:
+                                self.submenu_selection = 0  # Default to first player
                         break
             else:
                 # Handle submenu clicks (must match draw_submenu coordinates)
@@ -525,11 +538,19 @@ class Menu:
             if self.menu_items[self.current_selection] == "Black Player":
                 self.in_submenu = True
                 self.submenu_type = "black_player"
-                self.submenu_selection = self.player_types.index(self.black_player)
+                # Safe index lookup
+                try:
+                    self.submenu_selection = self.player_types.index(self.black_player)
+                except ValueError:
+                    self.submenu_selection = 0  # Default to first player
             elif self.menu_items[self.current_selection] == "White Player":
                 self.in_submenu = True
                 self.submenu_type = "white_player"
-                self.submenu_selection = self.player_types.index(self.white_player)
+                # Safe index lookup
+                try:
+                    self.submenu_selection = self.player_types.index(self.white_player)
+                except ValueError:
+                    self.submenu_selection = 0  # Default to first player
             elif self.menu_items[self.current_selection] == "Show Opening":
                 self.show_opening = not self.show_opening
             elif self.menu_items[self.current_selection] == "Start Game":
