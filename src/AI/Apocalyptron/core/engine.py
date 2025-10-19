@@ -5,6 +5,10 @@ Clean facade over GrandmasterEngine with modular architecture exposure.
 This ensures zero regressions while providing clean API.
 """
 
+# Suppress pygame welcome message in parallel workers
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 from AI.GrandmasterEngine import GrandmasterEngine
 from AI.Apocalyptron.core.config import ApocalyptronConfig
 from AI.Apocalyptron.core.search_result import SearchResult

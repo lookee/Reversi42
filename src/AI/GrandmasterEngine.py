@@ -3,6 +3,10 @@
 #    Advanced move ordering + enhanced evaluation for maximum strength
 #------------------------------------------------------------------------
 
+# Suppress pygame welcome message in worker processes
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 from AI.ParallelBitboardMinimaxEngine import ParallelBitboardMinimaxEngine, INFINITY
 from AI.GrandmasterWeights import GrandmasterWeights
 from Reversi.Game import Move

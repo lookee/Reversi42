@@ -3,6 +3,10 @@
 #    Expected: 2-4x speedup on 4 cores, 4-8x on 8+ cores
 #------------------------------------------------------------------------
 
+# Suppress pygame welcome message in worker processes
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 from AI.BitboardMinimaxEngine import BitboardMinimaxEngine, INFINITY
 from multiprocessing import Pool, cpu_count
 import time
