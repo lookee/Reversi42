@@ -90,19 +90,39 @@ class Menu:
         
         # Load splash screen
         self.splash_image = None
+        self.splash_x = 0
+        self.splash_y = 0
         self.load_splash_screen()
         
     def load_splash_screen(self):
         """Load the splash screen image"""
         try:
-            # Get the directory of the current script
+            # Navigate to project root and then to Images directory
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            splash_path = os.path.join(script_dir, "Images", "reversi42-splash.png")
+            # Go up from components/ → pygame/ → implementations/ → ui/ → (src/)
+            project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(script_dir))))
+            splash_path = os.path.join(project_root, "Images", "reversi42-splash.png")
             
             if os.path.exists(splash_path):
-                self.splash_image = pygame.image.load(splash_path)
-                # Scale the image to fit the screen
-                self.splash_image = pygame.transform.scale(self.splash_image, (self.width, self.height))
+                original_image = pygame.image.load(splash_path)
+                # Scale proportionally to fit screen while maintaining aspect ratio
+                img_width, img_height = original_image.get_size()
+                aspect_ratio = img_width / img_height
+                
+                # Calculate scaled dimensions
+                if self.width / self.height > aspect_ratio:
+                    # Screen is wider - fit to height
+                    new_height = self.height
+                    new_width = int(new_height * aspect_ratio)
+                else:
+                    # Screen is taller - fit to width
+                    new_width = self.width
+                    new_height = int(new_width / aspect_ratio)
+                
+                self.splash_image = pygame.transform.scale(original_image, (new_width, new_height))
+                # Center the image on screen
+                self.splash_x = (self.width - new_width) // 2
+                self.splash_y = (self.height - new_height) // 2
             else:
                 print(f"Splash image not found at: {splash_path}")
         except Exception as e:
@@ -111,7 +131,10 @@ class Menu:
     def show_splash_screen(self):
         """Display splash screen for 3 seconds"""
         if self.splash_image:
-            self.screen.blit(self.splash_image, (0, 0))
+            # Fill background
+            self.screen.fill(self.bg_color)
+            # Blit centered image
+            self.screen.blit(self.splash_image, (self.splash_x, self.splash_y))
         else:
             # Fallback splash screen
             self.screen.fill(self.bg_color)
