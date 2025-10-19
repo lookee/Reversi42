@@ -70,16 +70,22 @@ class TerminalHumanPlayer(Player):
                 # Check if this is a book move
                 is_book = False
                 opening_info = None
+                first_moves_set = set()
                 if control.show_opening and control.opening_book:
-                    openings = control.opening_book.get_openings_for_move(game.history, m)
-                    if openings:
+                    openings_with_first = control.opening_book.get_openings_with_first_move(game.history, m)
+                    if openings_with_first:
                         is_book = True
                         book_move_indices.append(i)
-                        opening_info = openings
+                        opening_info = openings_with_first
+                        # Collect unique first moves
+                        for first_move, _ in openings_with_first:
+                            first_moves_set.add(first_move)
                 
-                # Format with X for book moves
+                # Format with X and first move(s) for book moves
                 if is_book:
-                    move_str = f"{i}.{col_letter}{m.y}[X]"
+                    # Show unique first moves (e.g., "F5" or "C4,F5")
+                    first_moves_str = ','.join(sorted(first_moves_set))
+                    move_str = f"{i}.{col_letter}{m.y}[{first_moves_str}]"
                 else:
                     move_str = f"{i}.{col_letter}{m.y}"
                 move_strs.append(move_str)
@@ -109,10 +115,23 @@ class TerminalHumanPlayer(Player):
                 if not move_input or move_input.upper() in ['Y', 'YES']:
                     # Show opening info if available
                     if control.show_opening and control.opening_book:
-                        openings = control.opening_book.get_openings_for_move(game.history, first_move)
-                        if openings:
+                        openings_with_first = control.opening_book.get_openings_with_first_move(game.history, first_move)
+                        if openings_with_first:
+                            # Format: "F5: Opening Name"
+                            formatted_openings = [f"{first_move}: {name}" for first_move, name in openings_with_first]
                             # Update view with opening info (new format: list of tuples)
-                            control.view.set_opening_info([(default_move_str, sorted(openings))])
+                            control.view.set_opening_info([(default_move_str, sorted(formatted_openings))])
+                            
+                            # Show which opening will be reached after this move
+                            future_history = game.history + str(first_move).upper()
+                            opening_name = control.opening_book.get_current_opening_name(future_history)
+                            if opening_name:
+                                advantage = control.opening_book.get_opening_advantage(future_history)
+                                if advantage:
+                                    desc, value = control.opening_book.interpret_advantage(advantage)
+                                    print(f"📖 Opening: {opening_name} [{advantage}] - {desc}")
+                                else:
+                                    print(f"📖 Opening: {opening_name}")
                     print(f"✓ Playing default: {default_move_str}")
                     return first_move
                 
@@ -145,13 +164,23 @@ class TerminalHumanPlayer(Player):
                         
                         # Show opening info if available
                         if control.show_opening and control.opening_book:
-                            openings = control.opening_book.get_openings_for_move(game.history, selected_move)
-                            if openings:
+                            openings_with_first = control.opening_book.get_openings_with_first_move(game.history, selected_move)
+                            if openings_with_first:
+                                # Format: "F5: Opening Name"
+                                formatted_openings = [f"{first_move}: {name}" for first_move, name in openings_with_first]
                                 # Update view with opening info (new format: list of tuples)
-                                control.view.set_opening_info([(move_str, sorted(openings))])
-                                print(f"📖 {move_str}: {', '.join(sorted(openings)[:5])}")
-                                if len(openings) > 5:
-                                    print(f"    ... and {len(openings) - 5} more")
+                                control.view.set_opening_info([(move_str, sorted(formatted_openings))])
+                                
+                                # Show which opening will be reached after this move
+                                future_history = game.history + str(selected_move).upper()
+                                opening_name = control.opening_book.get_current_opening_name(future_history)
+                                if opening_name:
+                                    advantage = control.opening_book.get_opening_advantage(future_history)
+                                    if advantage:
+                                        desc, value = control.opening_book.interpret_advantage(advantage)
+                                        print(f"📖 Opening: {opening_name} [{advantage}] - {desc}")
+                                    else:
+                                        print(f"📖 Opening: {opening_name}")
                         
                         print(f"✓ Playing {move_num}.{move_str}")
                         return selected_move
@@ -193,13 +222,23 @@ class TerminalHumanPlayer(Player):
                     
                     # Show opening info if available
                     if control.show_opening and control.opening_book:
-                        openings = control.opening_book.get_openings_for_move(game.history, move)
-                        if openings:
+                        openings_with_first = control.opening_book.get_openings_with_first_move(game.history, move)
+                        if openings_with_first:
+                            # Format: "F5: Opening Name"
+                            formatted_openings = [f"{first_move}: {name}" for first_move, name in openings_with_first]
                             # Update view with opening info (new format: list of tuples)
-                            control.view.set_opening_info([(move_str, sorted(openings))])
-                            print(f"📖 {move_str}: {', '.join(sorted(openings)[:5])}")
-                            if len(openings) > 5:
-                                print(f"    ... and {len(openings) - 5} more")
+                            control.view.set_opening_info([(move_str, sorted(formatted_openings))])
+                            
+                            # Show which opening will be reached after this move
+                            future_history = game.history + str(move).upper()
+                            opening_name = control.opening_book.get_current_opening_name(future_history)
+                            if opening_name:
+                                advantage = control.opening_book.get_opening_advantage(future_history)
+                                if advantage:
+                                    desc, value = control.opening_book.interpret_advantage(advantage)
+                                    print(f"📖 Opening: {opening_name} [{advantage}] - {desc}")
+                                else:
+                                    print(f"📖 Opening: {opening_name}")
                     
                     print(f"✓ Playing {move_str}")
                     return move

@@ -101,7 +101,7 @@ class AIPlayerBitboardBook(Player):
             if self.show_book_options:
                 # Show opening book information
                 current_opening = self.opening_book.get_current_opening_name(game_history)
-                all_openings = self.opening_book.get_opening_names(game_history)
+                all_openings_with_first = self.opening_book.get_opening_names_with_first_move(game_history)
                 
                 print(f"\n{'='*80}")
                 print(f"📚 OPENING BOOK - {self.name}")
@@ -110,25 +110,37 @@ class AIPlayerBitboardBook(Player):
                 if current_opening:
                     print(f"Current opening: {current_opening}")
                 else:
-                    print(f"Following {len(all_openings)} opening(s)")
+                    print(f"Following {len(all_openings_with_first)} opening(s)")
                 
-                if len(all_openings) > 1:
-                    print(f"\nPossible openings at this position:")
-                    for opening_name in sorted(all_openings)[:10]:
-                        print(f"  • {opening_name}")
-                    if len(all_openings) > 10:
-                        print(f"  ... and {len(all_openings) - 10} more")
+                # Show available book moves
+                print(f"\nAvailable book moves: {', '.join(str(m) for m in book_moves)}")
                 
-                print(f"\nBook moves available: {len(book_moves)}")
-                print(f"Showing options for each move:\n")
+                if len(all_openings_with_first) > 1:
+                    print(f"\nPossible openings at current position:")
+                    for first_move, opening_name in all_openings_with_first[:10]:
+                        print(f"  • {first_move}: {opening_name}")
+                    if len(all_openings_with_first) > 10:
+                        print(f"  ... and {len(all_openings_with_first) - 10} more")
+                
+                print(f"\nShowing where each move leads:\n")
                 
                 for book_move in book_moves:
                     # Check which openings this move leads to
                     test_history = game_history + str(book_move).upper() if game.turn == 'B' else game_history + str(book_move).lower()
                     resulting_openings = self.opening_book.get_opening_names(test_history)
                     
+                    # Get specific opening name and advantage
+                    opening_name = self.opening_book.get_current_opening_name(test_history)
+                    advantage = self.opening_book.get_opening_advantage(test_history)
+                    
                     print(f"  {book_move} → ", end='')
-                    if resulting_openings:
+                    if opening_name:
+                        if advantage:
+                            desc, value = self.opening_book.interpret_advantage(advantage)
+                            print(f"{opening_name} [{advantage}] - {desc}")
+                        else:
+                            print(f"{opening_name}")
+                    elif resulting_openings:
                         opening_names = sorted(resulting_openings)[:3]
                         print(', '.join(opening_names))
                         if len(resulting_openings) > 3:
@@ -143,10 +155,36 @@ class AIPlayerBitboardBook(Player):
             if len(book_moves) > 1:
                 chosen_move = random.choice(book_moves)
                 if self.show_book_options:
-                    print(f"📖 Randomly selected {chosen_move} from {len(book_moves)} book moves\n")
+                    # Show selected opening and advantage
+                    test_history = game_history + str(chosen_move).upper() if game.turn == 'B' else game_history + str(chosen_move).lower()
+                    opening_name = self.opening_book.get_current_opening_name(test_history)
+                    advantage = self.opening_book.get_opening_advantage(test_history)
+                    
+                    print(f"📖 Selected {chosen_move} from {len(book_moves)} book moves")
+                    if opening_name:
+                        if advantage:
+                            desc, value = self.opening_book.interpret_advantage(advantage)
+                            print(f"   Opening: {opening_name} [{advantage}] - {desc}\n")
+                        else:
+                            print(f"   Opening: {opening_name}\n")
+                    else:
+                        print()
                 return chosen_move
             else:
-                return book_moves[0]
+                chosen_move = book_moves[0]
+                # Show selected opening and advantage even for single move
+                if self.show_book_options:
+                    test_history = game_history + str(chosen_move).upper() if game.turn == 'B' else game_history + str(chosen_move).lower()
+                    opening_name = self.opening_book.get_current_opening_name(test_history)
+                    advantage = self.opening_book.get_opening_advantage(test_history)
+                    
+                    if opening_name:
+                        if advantage:
+                            desc, value = self.opening_book.interpret_advantage(advantage)
+                            print(f"📖 Playing {chosen_move}: {opening_name} [{advantage}] - {desc}\n")
+                        else:
+                            print(f"📖 Playing {chosen_move}: {opening_name}\n")
+                return chosen_move
         
         # Out of book - try bitboard engine first, fallback to standard if needed
         if self.show_book_options:

@@ -1,16 +1,48 @@
 # Opening Books
 
-This directory contains opening book files for Reversi42.
+This directory contains professional opening book files for Reversi42.
 
-## File Format
+## 🔄 Automatic Loading System
 
-Opening books use a simple text format:
+**All `.txt` files in this directory are automatically loaded at startup!**
 
+- Files are loaded in **alphabetical order** (use numeric prefixes like `00_`, `01_` to control order)
+- The system displays detailed statistics for each book loaded
+- Duplicate openings are automatically merged
+- Mixed formats are supported (with/without advantage evaluations)
+
+## 📚 Current Books
+
+### 1. **00_opening_ffo.txt** (FFO Professional Repertoire)
+- **Source**: Fédération Française d'Othello
+- **URL**: https://www.ffothello.org/strategie/repertoire-douvertures/
+- **Repository**: https://github.com/jonkr2/PointyStone3
+- **Content**: Professional C4-based openings
+- **Format**: `NAME | MOVES | ADVANTAGE`
+- **Features**: Includes positional evaluations (=, w, w+, w++, b, b+, b++)
+
+### 2. **01_opening_pointystone.txt** (PointyStone3 Collection)
+- **Source**: PointyStone3 Reversi Engine
+- **Repository**: https://github.com/jonkr2/PointyStone3
+- **Content**: Popular F5-based tactical openings
+- **Format**: `NAME | MOVES`
+- **Features**: Community-tested variations, tactical diversity
+
+## File Formats
+
+### FFO Format (with advantages)
 ```
-# Comments start with #
-F5d6C3      # Each line is a sequence of moves
-F5d6C5      # Uppercase = Black, lowercase = White
-F5f6E6f4    # Multiple variations can be listed
+# NAME | MOVES | ADVANTAGE
+Diagonal Opening | C4c3D3c5 | =
+Heath | C4c3D3c5B4 | w
+Tiger Opening | C4c3D3c5B4e3D2b5 | w+
+```
+
+### PointyStone3 Format (legacy)
+```
+# NAME | MOVES
+Diagonal Opening | F5d6C3
+Tiger Opening | F5f6E6f4
 ```
 
 ### Move Notation
@@ -19,10 +51,6 @@ F5f6E6f4    # Multiple variations can be listed
 - **Rows**: 1-8 (numbers)
 - **Color**: Uppercase for Black, lowercase for White
 - **Example**: `F5d6C3` = Black F5, White d6, Black C3
-
-## Files
-
-- `opening_book.txt` - Main opening book with classic Reversi openings
 
 ## Using Opening Books
 
@@ -42,18 +70,38 @@ The player will:
 
 ## Adding New Openings
 
-To add new openings to `opening_book.txt`:
+### Option 1: Add to Existing File
+Edit any existing `.txt` file and add new lines:
 
-1. Add move sequences, one per line
-2. Use format: `F5d6C3d3C4...`
-3. Add comments with `#`
-4. Longer sequences are better (8-12 moves recommended)
+```
+# My new opening
+My Opening Name | F5d6C5f4F6f3E3d3C3 | =
+```
 
-Example:
-```
-# My favorite opening
-F5d6C5f4F6f3E3d3C3
-```
+### Option 2: Create New Book File
+Create a new `.txt` file in this directory:
+
+1. **Choose a prefix** (e.g., `02_my_book.txt`, `99_experimental.txt`)
+   - Use numeric prefix to control load order
+   - Lower numbers = loaded first
+
+2. **Use correct format**:
+   ```
+   # Comments start with #
+   Opening Name | MOVES | ADVANTAGE
+   Opening Name | MOVES
+   ```
+
+3. **Example new file** (`02_my_custom.txt`):
+   ```
+   # My Custom Opening Book
+   # Author: Your Name
+   
+   My Favorite | F5d6C5f4F6 | w
+   My Second Opening | C4c3D3c5B4 | =
+   ```
+
+4. **Restart the game** - your book will be automatically loaded!
 
 ## Performance
 

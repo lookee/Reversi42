@@ -1,7 +1,16 @@
-# Reversi42 Opening Book
+# ============================================================================
+# POINTYSTONE3 OPENINGS - F5-based Tactical Opening Book
+# ============================================================================
+# File: 01_opening_pointystone.txt
+# Source: PointyStone3 Reversi Engine
+#         Repository: https://github.com/jonkr2/PointyStone3
+# 
+# Content: 57 popular F5-based tactical openings
 # Format: NAME | MOVES
-# Lines starting with # are comments
-# Moves are in format: C4, d3, etc. (uppercase=black, lowercase=white)
+# 
+# Notes:
+# - Moves in format: F5d6C3 (uppercase=Black, lowercase=White)
+# - These complement FFO's C4 repertoire with F5 variety 
 
 # Diagonal Opening (most popular)
 Diagonal Opening | F5d6C3

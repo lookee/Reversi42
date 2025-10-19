@@ -33,6 +33,7 @@ class OpeningBook:
         self.book_path = book_path
         self.lines_loaded = 0
         self.opening_names = {}  # Map: move_sequence -> opening_name
+        self.opening_advantages = {}  # Map: move_sequence -> advantage (=, w, w+, w++, b, b+, b++)
         
         if book_path and os.path.exists(book_path):
             self._load_book(book_path)
@@ -46,22 +47,40 @@ class OpeningBook:
                 if not line or line.startswith('#'):
                     continue
                 
-                # Check if line has format: NAME | MOVES
+                # Parse format:
+                # FFO format: NAME | MOVES | ADVANTAGE
+                # Legacy format: NAME | MOVES
                 opening_name = None
+                advantage = None
+                
                 if '|' in line:
-                    parts = line.split('|', 1)
-                    opening_name = parts[0].strip()
-                    move_sequence = parts[1].strip()
+                    parts = [p.strip() for p in line.split('|')]
+                    
+                    if len(parts) == 3:
+                        # FFO format: NAME | MOVES | ADVANTAGE
+                        opening_name = parts[0]
+                        move_sequence = parts[1]
+                        advantage = parts[2]
+                    elif len(parts) == 2:
+                        # Legacy format: NAME | MOVES
+                        opening_name = parts[0]
+                        move_sequence = parts[1]
+                    else:
+                        # Fallback: treat as just moves
+                        move_sequence = line
                 else:
+                    # No pipes: just move sequence
                     move_sequence = line
                 
                 # Parse the move sequence
                 moves = self._parse_move_sequence(move_sequence)
                 if moves:
                     self._add_sequence(moves)
-                    # Store opening name if provided
+                    # Store opening name and advantage if provided
                     if opening_name:
                         self.opening_names[move_sequence] = opening_name
+                    if advantage:
+                        self.opening_advantages[move_sequence] = advantage
                     self.lines_loaded += 1
     
     def _parse_move_sequence(self, sequence):
@@ -218,6 +237,32 @@ class OpeningBook:
         
         return None
     
+    def get_opening_names_with_first_move(self, game_history):
+        """
+        Get all opening names with their first move from current position.
+        
+        Args:
+            game_history: String of moves so far
+        
+        Returns:
+            List of tuples: [(first_move, opening_name), ...]
+            Sorted by first move, then opening name
+        """
+        openings_with_first = []
+        history_upper = game_history.upper()
+        
+        for sequence, name in self.opening_names.items():
+            sequence_upper = sequence.upper()
+            # Check if this opening matches or extends the current position
+            if sequence_upper.startswith(history_upper) or history_upper.startswith(sequence_upper):
+                # Extract first move (first 2 characters of the sequence)
+                if len(sequence) >= 2:
+                    first_move = sequence[:2].upper()
+                    openings_with_first.append((first_move, name))
+        
+        # Sort by first move, then by opening name
+        return sorted(openings_with_first, key=lambda x: (x[0], x[1]))
+    
     def get_openings_for_move(self, game_history, next_move):
         """
         Get all opening names that include this specific next move.
@@ -244,11 +289,118 @@ class OpeningBook:
         
         return matching_openings
     
+    def get_openings_with_first_move(self, game_history, next_move):
+        """
+        Get opening info including first move for each opening.
+        
+        Args:
+            game_history: Current move sequence (e.g., "" or "F5d6")
+            next_move: The next move to check (Move object or string like "F5")
+        
+        Returns:
+            List of tuples: [(first_move, opening_name), ...]
+            where first_move is like "F5", "C4", etc.
+        """
+        # Convert move to string if needed
+        move_str = str(next_move).upper()
+        
+        # Build the test sequence
+        test_history = game_history.upper() + move_str
+        
+        # Find all openings that start with this sequence
+        openings_info = []
+        for sequence, name in self.opening_names.items():
+            sequence_upper = sequence.upper()
+            if sequence_upper.startswith(test_history):
+                # Extract first move (first 2 characters)
+                if len(sequence) >= 2:
+                    first_move = sequence[:2].upper()
+                    openings_info.append((first_move, name))
+        
+        return openings_info
+    
+    def get_opening_advantage(self, game_history):
+        """
+        Get the advantage evaluation for the current opening.
+        
+        Args:
+            game_history: Current move sequence
+        
+        Returns:
+            String indicating advantage (=, w, w+, w++, b, b+, b++) or None
+        """
+        # Normalize history
+        history_upper = game_history.upper()
+        
+        # Look for exact match
+        for sequence, advantage in self.opening_advantages.items():
+            sequence_upper = sequence.upper()
+            if history_upper == sequence_upper:
+                return advantage
+        
+        return None
+    
+    def interpret_advantage(self, advantage):
+        """
+        Interpret advantage string into human-readable format.
+        
+        Args:
+            advantage: String like '=', 'w', 'w+', 'w++', 'b', 'b+', 'b++'
+        
+        Returns:
+            Tuple: (description, numeric_value)
+            numeric_value: +50 to -50 scale (positive = Black better)
+        """
+        advantage_map = {
+            '=': ('Balanced position', 0),
+            'w': ('Black slightly better', 15),
+            'w+': ('Black better', 30),
+            'w++': ('Black clearly better', 50),
+            'b': ('White slightly better', -15),
+            'b+': ('White better', -30),
+            'b++': ('White clearly better', -50),
+        }
+        
+        return advantage_map.get(advantage, ('Unknown', 0))
+    
+    def get_opening_info_with_advantage(self, game_history):
+        """
+        Get complete opening information including name and advantage.
+        
+        Args:
+            game_history: Current move sequence
+        
+        Returns:
+            Dict with keys: 'name', 'advantage', 'description', 'numeric_value'
+            or None if not in book
+        """
+        # Get opening name
+        opening_name = self.get_current_opening_name(game_history)
+        
+        if not opening_name:
+            return None
+        
+        # Get advantage
+        advantage = self.get_opening_advantage(game_history)
+        
+        # Interpret advantage
+        description, numeric_value = ('Unknown', 0)
+        if advantage:
+            description, numeric_value = self.interpret_advantage(advantage)
+        
+        return {
+            'name': opening_name,
+            'advantage': advantage if advantage else '=',
+            'description': description,
+            'numeric_value': numeric_value
+        }
+    
     def get_statistics(self):
         """Get statistics about the loaded book"""
         return {
             'lines_loaded': self.lines_loaded,
-            'total_positions': self._count_nodes(self.root)
+            'total_positions': self._count_nodes(self.root),
+            'openings_with_advantage': len(self.opening_advantages)
         }
     
     def _count_nodes(self, node):
@@ -263,17 +415,90 @@ def get_default_opening_book():
     """
     Get the default opening book instance.
     
+    Automatically loads ALL opening book files from Books/ directory.
+    Files are loaded in alphabetical order.
+    
+    Supported format:
+    - NAME | MOVES | ADVANTAGE  (with evaluation)
+    - NAME | MOVES              (legacy format)
+    
     Returns:
-        OpeningBook instance with default book loaded, or empty book if not found
+        OpeningBook instance with all books combined
     """
-    # Try to find the opening book file
+    import glob
+    
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(current_dir))
-    book_path = os.path.join(project_root, 'Books', 'opening_book.txt')
+    books_dir = os.path.join(project_root, 'Books')
     
-    if os.path.exists(book_path):
-        return OpeningBook(book_path)
-    else:
-        print(f"Warning: Opening book not found at {book_path}")
+    # Create empty combined book
+    combined_book = OpeningBook()
+    
+    # Find all .txt files in Books/ directory (excluding README)
+    book_files = glob.glob(os.path.join(books_dir, '*.txt'))
+    book_files.sort()  # Alphabetical order
+    
+    if not book_files:
+        print(f"⚠️  Warning: No opening book files found in {books_dir}")
         return OpeningBook()
+    
+    # Display header
+    print("\n" + "="*80)
+    print("📚 LOADING OPENING BOOKS")
+    print("="*80)
+    
+    total_files = 0
+    file_stats = []
+    
+    for book_file in book_files:
+        filename = os.path.basename(book_file)
+        
+        # Skip non-opening files
+        if 'README' in filename.upper():
+            continue
+        
+        # Load this book
+        temp_book = OpeningBook(book_file)
+        
+        # Count advantages in this file
+        advantages_count = len(temp_book.opening_advantages)
+        
+        # Merge into combined book
+        if total_files == 0:
+            # First file: copy root
+            combined_book.root = temp_book.root
+        else:
+            # Subsequent files: merge trie
+            for move, child_node in temp_book.root.children.items():
+                if move not in combined_book.root.children:
+                    combined_book.root.children[move] = child_node
+                # If move exists, the tries will share structure (no duplicates)
+        
+        # Merge metadata
+        combined_book.opening_names.update(temp_book.opening_names)
+        combined_book.opening_advantages.update(temp_book.opening_advantages)
+        combined_book.lines_loaded += temp_book.lines_loaded
+        
+        # Store stats for this file
+        file_stats.append({
+            'filename': filename,
+            'openings': temp_book.lines_loaded,
+            'advantages': advantages_count
+        })
+        
+        total_files += 1
+    
+    # Display detailed log
+    print(f"\n📖 Loaded {total_files} opening book file(s):\n")
+    
+    for i, stat in enumerate(file_stats, 1):
+        advantage_info = f", {stat['advantages']} with evaluations" if stat['advantages'] > 0 else ""
+        print(f"  {i}. {stat['filename']:<35} {stat['openings']:>4} openings{advantage_info}")
+    
+    print(f"\n{'─'*80}")
+    print(f"📊 TOTAL: {combined_book.lines_loaded} openings, "
+          f"{len(combined_book.opening_advantages)} with positional evaluations")
+    print("="*80 + "\n")
+    
+    return combined_book
 

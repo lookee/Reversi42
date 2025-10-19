@@ -574,6 +574,17 @@ You should have received a copy of the GNU General Public License along with thi
 - Official Othello: http://www.fngo.it
 - World Othello Federation: https://www.worldothello.org/
 
+### 🎓 Recommended Study Tools
+Want to improve your Othello skills? Check out these professional tools:
+- **[WOF Study Support](https://www.worldothello.org/about/study-othello/study-support)** - Recommended tools by World Othello Federation
+  - **Egaroucid** - One of the strongest Othello solver AIs
+  - **Othello Sensei** - Analysis program by Michele Borassi
+  - **SAIO** - Professional engine by 3x Italian Champion Benedetto Romano
+  - **WZebra** - Classic analysis tool (still widely used since 2006)
+  - **Othello Expert** - Multi-tool with 60,000 endgame puzzles
+  - **Smart Othello** - Tutorial and teaching aids
+  - **WTHOR Database** - 130,000+ tournament games archive
+
 ---
 
 ## 👤 Author

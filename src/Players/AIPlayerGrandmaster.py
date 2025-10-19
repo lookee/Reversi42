@@ -138,19 +138,23 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
                 print(f"{'='*80}")
                 
                 current_opening = self.opening_book.get_current_opening_name(game_history)
-                all_openings = self.opening_book.get_opening_names(game_history)
+                all_openings_with_first = self.opening_book.get_opening_names_with_first_move(game_history)
                 
                 if current_opening:
                     print(f"Current opening: {current_opening}")
                 else:
-                    print(f"Following {len(all_openings)} opening(s)")
+                    print(f"Following {len(all_openings_with_first)} opening(s)")
                 
-                if len(all_openings) > 1:
-                    print(f"\nPossible openings:")
-                    for opening_name in sorted(all_openings)[:8]:
-                        print(f"  • {opening_name}")
-                    if len(all_openings) > 8:
-                        print(f"  ... and {len(all_openings) - 8} more")
+                # Show available book moves
+                if len(book_moves) > 0:
+                    print(f"\nAvailable book moves: {', '.join(str(m) for m in book_moves)}")
+                
+                if len(all_openings_with_first) > 1:
+                    print(f"\nPossible openings at current position:")
+                    for first_move, opening_name in all_openings_with_first[:8]:
+                        print(f"  • {first_move}: {opening_name}")
+                    if len(all_openings_with_first) > 8:
+                        print(f"  ... and {len(all_openings_with_first) - 8} more")
                 
                 print(f"\n⚡ Using book move (instant response)")
                 print(f"{'='*80}\n")
@@ -160,10 +164,38 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
                 import random
                 chosen_move = random.choice(book_moves)
                 if self.show_book_options:
-                    print(f"📖 Selected {chosen_move} from {len(book_moves)} book moves\n")
+                    # Show selected opening and advantage
+                    test_history = game_history + str(chosen_move).upper() if game.turn == 'B' else game_history + str(chosen_move).lower()
+                    opening_name = self.opening_book.get_current_opening_name(test_history)
+                    advantage = self.opening_book.get_opening_advantage(test_history)
+                    
+                    print(f"📖 Selected {chosen_move} from {len(book_moves)} book moves")
+                    if opening_name:
+                        if advantage:
+                            desc, value = self.opening_book.interpret_advantage(advantage)
+                            print(f"   Opening: {opening_name} [{advantage}] - {desc}\n")
+                        else:
+                            print(f"   Opening: {opening_name}\n")
+                    else:
+                        print()
+                
                 return chosen_move
             else:
-                return book_moves[0]
+                chosen_move = book_moves[0]
+                # Show selected opening and advantage even for single move
+                if self.show_book_options:
+                    test_history = game_history + str(chosen_move).upper() if game.turn == 'B' else game_history + str(chosen_move).lower()
+                    opening_name = self.opening_book.get_current_opening_name(test_history)
+                    advantage = self.opening_book.get_opening_advantage(test_history)
+                    
+                    if opening_name:
+                        if advantage:
+                            desc, value = self.opening_book.interpret_advantage(advantage)
+                            print(f"📖 Playing {chosen_move}: {opening_name} [{advantage}] - {desc}\n")
+                        else:
+                            print(f"📖 Playing {chosen_move}: {opening_name}\n")
+                
+                return chosen_move
         
         # Out of book - use Grandmaster engine
         if self.show_book_options:

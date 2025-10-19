@@ -370,15 +370,17 @@ class BoardControl(object):
             
             # Check each move to see if it leads to an opening
             for move in moves:
-                # Get all openings that include this move
-                openings = self.opening_book.get_openings_for_move(game.history, move)
+                # Get all openings that include this move with first move info
+                openings_with_first = self.opening_book.get_openings_with_first_move(game.history, move)
                 
-                if openings:
+                if openings_with_first:
                     # This move leads to opening(s) - save for highlighting with count
-                    self.book_moves.append((move.get_x() - 1, move.get_y() - 1, len(openings)))
+                    self.book_moves.append((move.get_x() - 1, move.get_y() - 1, len(openings_with_first)))
                     self.setCanMove(move.get_x(), move.get_y(), turn)
+                    # Format: "F5: Opening Name"
+                    formatted_openings = [f"{first_move}: {name}" for first_move, name in openings_with_first]
                     # Save move with its openings
-                    opening_info.append((str(move), sorted(openings)))
+                    opening_info.append((str(move), sorted(formatted_openings)))
                 else:
                     self.setCanMove(move.get_x(), move.get_y(), turn)
             
