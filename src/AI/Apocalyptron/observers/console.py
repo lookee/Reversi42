@@ -69,7 +69,7 @@ class ConsoleObserver(SearchObserver):
     def on_move_evaluated(self, move: Any, value: int, is_best: bool,
                          nodes: int, pruning: int, elapsed_time: float):
         """Print move evaluation result"""
-        move_str = f"⭐{move}" if is_best else f"  {move}"
+        move_str = f"⭐{move}" if is_best else f"🚫{move}"
         best_value = value if is_best else (value - 1)  # Approximate
         
         print(f"{move_str:<8} {value:>8d}   {best_value:>8d}   {nodes:>8d}   "
@@ -113,7 +113,7 @@ class ConsoleObserver(SearchObserver):
     def on_parallel_result(self, move: Any, value: int, is_best: bool,
                           nodes: int, pruning: int):
         """Print parallel evaluation result"""
-        move_str = f"⭐{move}" if is_best else f"  {move}"
+        move_str = f"⭐{move}" if is_best else f"🚫{move}"
         print(f"{move_str:<8} {value:>8d}   {nodes:>10,}   {pruning:>8,}")
     
     def _print_opening_info(self, opening_book, game_history, game):
