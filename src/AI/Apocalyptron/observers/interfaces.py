@@ -126,4 +126,21 @@ class SearchObserver(ABC):
             pruning: Nodes pruned
         """
         pass
+    
+    @abstractmethod
+    def on_phase1_complete(self, stats: Dict, time_elapsed: float, 
+                          final_depth: int, target_depth: int,
+                          best_move: Any = None, best_value: int = 0):
+        """
+        Called when Phase 1 (sequential iterative deepening) completes.
+        
+        Args:
+            stats: Statistics from Phase 1
+            time_elapsed: Time spent in Phase 1
+            final_depth: Last depth completed
+            target_depth: Target depth for overall search
+            best_move: Best move from Phase 1 (optional)
+            best_value: Best value from Phase 1 (optional)
+        """
+        pass
 

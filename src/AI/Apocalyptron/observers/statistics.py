@@ -103,6 +103,19 @@ class StatisticsObserver(SearchObserver):
             'pruning': pruning,
         })
     
+    def on_phase1_complete(self, stats: Dict, time_elapsed: float, 
+                          final_depth: int, target_depth: int,
+                          best_move: Any = None, best_value: int = 0):
+        """Record Phase 1 completion"""
+        self.search_data['phase1'] = {
+            'stats': stats,
+            'time': time_elapsed,
+            'final_depth': final_depth,
+            'target_depth': target_depth,
+            'best_move': str(best_move) if best_move else None,
+            'best_value': best_value
+        }
+    
     def get_summary(self) -> Dict:
         """Get complete statistics summary"""
         return {

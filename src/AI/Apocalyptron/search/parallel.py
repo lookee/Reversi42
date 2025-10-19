@@ -173,18 +173,54 @@ class ParallelSearch:
         
         # Phase 1: Iterative deepening sequentially up to depth-1
         # (Phase 1 notifications handled by base_search observers)
+        phase1_best_move = None
+        phase1_best_value = 0
+        phase1_time = 0.0
+        move_progression = []  # Track best move at each depth
         
         # Use base search for depths 1 to depth-1 (builds TT, PV, history)
         if depth > 1:
+            phase1_start = time.perf_counter()
+            
             # Use quiet observers for intermediate depths
             from AI.Apocalyptron.observers.quiet import QuietObserver
             original_observers = self.base_search.observers
             self.base_search.observers = [QuietObserver()]
             
+            # Track best moves at each depth for stability analysis
             for current_depth in range(1, depth):
-                self.base_search.get_best_move(game, current_depth, player_name=None)
+                phase1_best_move = self.base_search.get_best_move(game, current_depth, player_name=None)
+                move_progression.append((current_depth, phase1_best_move))
             
             self.base_search.observers = original_observers
+            
+            phase1_time = time.perf_counter() - phase1_start
+            
+            # Get Phase 1 statistics
+            phase1_stats = self.base_search.alphabeta.get_statistics()
+            
+            # Get best value from alphabeta if available
+            if hasattr(self.base_search, 'last_best_value'):
+                phase1_best_value = self.base_search.last_best_value
+            
+            # Add aspiration windows stats from iterative deepening
+            if hasattr(self.base_search, 'aspiration_hits'):
+                phase1_stats['aspiration_hits'] = self.base_search.aspiration_hits
+                phase1_stats['aspiration_fails'] = self.base_search.aspiration_fails
+            
+            # Add move progression for stability analysis
+            phase1_stats['move_progression'] = move_progression
+            
+            # Notify: Phase 1 complete
+            for observer in self.observers:
+                observer.on_phase1_complete(
+                    stats=phase1_stats,
+                    time_elapsed=phase1_time,
+                    final_depth=depth - 1,
+                    target_depth=depth,
+                    best_move=phase1_best_move,
+                    best_value=phase1_best_value
+                )
         
         # Phase 2: Parallel search at final depth
         # Notify: Parallel phase start

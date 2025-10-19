@@ -300,6 +300,12 @@ class AlphaBetaSearchComplete(SearchAlgorithm):
         if self.history_orderer:
             stats['history_entries'] = len(self.history_orderer.history_table)
         
+        if self.killer_orderer:
+            # Count total killer moves stored
+            killer_count = sum(1 for depth_killers in self.killer_orderer.killer_moves.values() 
+                             for k in depth_killers if k is not None)
+            stats['killer_moves'] = killer_count
+        
         return stats
     
     def reset(self):

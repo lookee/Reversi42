@@ -104,10 +104,134 @@ class ConsoleObserver(SearchObserver):
         print(f"   🚀 FUTILITY + LMR + MULTI-CUT + NULL + ASP + ID + HISTORY: Ultimate!")
         print("="*80 + "\n")
     
+    def on_phase1_complete(self, stats: Dict, time_elapsed: float, 
+                          final_depth: int, target_depth: int,
+                          best_move: Any = None, best_value: int = 0):
+        """Print Phase 1 summary"""
+        print("\n" + "="*80)
+        print(f"🔍 PHASE 1: Sequential Iterative Deepening (depths 1→{final_depth})")
+        print("="*80)
+        
+        nodes = stats.get('nodes', 0)
+        pruning = stats.get('pruning', 0)
+        pruning_pct = (pruning / max(nodes, 1)) * 100
+        
+        # Search Statistics
+        print(f"\n📊 Search Statistics:")
+        print(f"   • Total nodes explored: {nodes:,}")
+        print(f"   • Alpha-beta pruning: {pruning:,} cuts ({pruning_pct:.1f}%)")
+        print(f"   • Search time: {time_elapsed:.3f}s")
+        if time_elapsed > 0 and nodes > 0:
+            print(f"   • Average speed: {nodes/time_elapsed:,.0f} nodes/sec")
+        
+        # Optimizations Applied
+        print(f"\n🎯 Optimizations Applied:")
+        
+        # LMR
+        if 'lmr' in stats and stats['lmr'].get('reductions', 0) > 0:
+            lmr = stats['lmr']
+            print(f"   • Late move reduction: {lmr['reductions']:,} reductions, "
+                  f"{lmr['re_searches']:,} re-searches ({lmr['re_search_rate']:.1f}% re-search rate)")
+        else:
+            print(f"   • Late move reduction: 0 reductions")
+        
+        # Null move
+        if 'null_move' in stats and stats['null_move'].get('attempts', 0) > 0:
+            nm = stats['null_move']
+            print(f"   • Null move pruning: {nm['cutoffs']:,}/{nm['attempts']:,} cutoffs ({nm['success_rate']:.1f}% success)")
+        else:
+            print(f"   • Null move pruning: 0 cutoffs")
+        
+        # Futility
+        if 'futility' in stats and stats['futility'].get('pruning_count', 0) > 0:
+            print(f"   • Futility pruning: {stats['futility']['pruning_count']:,} hopeless positions cut")
+        else:
+            print(f"   • Futility pruning: 0 hopeless positions cut")
+        
+        # Multi-cut
+        if 'multi_cut' in stats and stats['multi_cut'].get('pruning_count', 0) > 0:
+            print(f"   • Multi-cut pruning: {stats['multi_cut']['pruning_count']:,} early cutoffs")
+        else:
+            print(f"   • Multi-cut pruning: 0 early cutoffs")
+        
+        # Aspiration windows
+        if 'aspiration_hits' in stats and 'aspiration_fails' in stats:
+            hits = stats['aspiration_hits']
+            fails = stats['aspiration_fails']
+            if hits + fails > 0:
+                asp_rate = (hits / (hits + fails)) * 100
+                print(f"   • Aspiration windows: {hits} hits, {fails} fails ({asp_rate:.1f}% success)")
+        
+        # Knowledge Base Built
+        print(f"\n🧠 Knowledge Base Built:")
+        
+        if 'history_entries' in stats:
+            print(f"   • History table entries: {stats['history_entries']}")
+        
+        if 'killer_moves' in stats:
+            print(f"   • Killer moves cached: {stats['killer_moves']}")
+        
+        if 'tt_size' in stats:
+            tt_size = stats['tt_size']
+            tt_hits = stats.get('tt_hits', 0)
+            print(f"   • Transposition table: {tt_size:,} entries, {tt_hits:,} hits")
+        
+        if best_move:
+            print(f"   • PV move from depth {final_depth}: {best_move} (value: {best_value})")
+        
+        # Move Stability Analysis
+        if 'move_progression' in stats and len(stats['move_progression']) > 0:
+            self._print_move_stability(stats['move_progression'])
+        
+        print(f"\n⚡ Ready for Phase 2 parallel search at depth {target_depth}")
+        print("="*80 + "\n")
+    
+    def _print_move_stability(self, move_progression):
+        """Print move stability analysis from Phase 1"""
+        print(f"\n📈 Best Move Progression:")
+        
+        # Group consecutive depths with same best move
+        if not move_progression:
+            return
+        
+        groups = []
+        current_move = move_progression[0][1]
+        start_depth = move_progression[0][0]
+        end_depth = start_depth
+        
+        for depth, move in move_progression[1:]:
+            if move == current_move:
+                end_depth = depth
+            else:
+                groups.append((start_depth, end_depth, current_move))
+                current_move = move
+                start_depth = depth
+                end_depth = depth
+        
+        # Add last group
+        groups.append((start_depth, end_depth, current_move))
+        
+        # Print groups
+        for start, end, move in groups:
+            if start == end:
+                status = ""
+            else:
+                status = " (stable)" if (end - start + 1) >= 3 else ""
+            
+            if start == end:
+                print(f"   • Depth {start}: {move}{status}")
+            else:
+                print(f"   • Depth {start}-{end}: {move}{status}")
+        
+        # Final move convergence indicator
+        if len(groups) == 1:
+            print(f"   ✓ Completely stable (same move all depths)")
+        elif groups[-1][1] - groups[-1][0] >= 2:
+            print(f"   ✓ Converged to {groups[-1][2]}")
+    
     def on_parallel_phase_start(self, depth: int, num_workers: int):
         """Print parallel phase start"""
-        print(f"\n⚡ Phase 2: Parallel search at depth {depth}...")
-        print(f"\n{'Move':<8} {'Value':<10} {'Nodes':<12} {'Pruning':<10}")
+        print(f"{'Move':<8} {'Value':<10} {'Nodes':<12} {'Pruning':<10}")
         print("-"*50)
     
     def on_parallel_result(self, move: Any, value: int, is_best: bool,

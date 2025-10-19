@@ -55,4 +55,10 @@ class QuietObserver(SearchObserver):
                           nodes: int, pruning: int):
         """Silent"""
         pass
+    
+    def on_phase1_complete(self, stats: Dict, time_elapsed: float, 
+                          final_depth: int, target_depth: int,
+                          best_move: Any = None, best_value: int = 0):
+        """Silent"""
+        pass
 

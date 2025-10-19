@@ -82,7 +82,9 @@ class IterativeDeepeningSearch:
         final_best_value = -INFINITY
         prev_iteration_value = 0
         
-        # Aspiration statistics
+        # Aspiration statistics (stored as instance attributes for access by ParallelSearch)
+        self.aspiration_hits = 0
+        self.aspiration_fails = 0
         aspiration_hits = 0
         aspiration_fails = 0
         
@@ -123,8 +125,10 @@ class IterativeDeepeningSearch:
                         value = -self.alphabeta.alphabeta(game, current_depth - 1, -INFINITY, -best_value)
                         re_search_needed = True
                         aspiration_fails += 1
+                        self.aspiration_fails += 1
                     else:
                         aspiration_hits += 1
+                        self.aspiration_hits += 1
                 else:
                     value = -self.alphabeta.alphabeta(game, current_depth - 1, -INFINITY, -best_value)
                 
