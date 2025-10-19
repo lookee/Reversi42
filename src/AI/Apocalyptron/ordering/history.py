@@ -5,6 +5,7 @@ Tracks globally successful moves across all depths and positions.
 Moves that caused many cutoffs get higher scores.
 """
 
+from typing import List, Tuple, Any
 from AI.Apocalyptron.ordering.interfaces import MoveOrderer
 
 
@@ -28,7 +29,7 @@ class HistoryHeuristicOrderer(MoveOrderer):
         """Initialize history table"""
         self.history_table = {}  # {(x, y): score}
     
-    def score_moves(self, game, moves: list) -> list[tuple[float, any]]:
+    def score_moves(self, game, moves: List) -> List[Tuple[float, Any]]:
         """
         Score moves based on historical success.
         

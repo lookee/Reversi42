@@ -10,6 +10,7 @@ Orders moves based on strategic square values:
 Extracted from GrandmasterEngine.order_moves (lines 117-129).
 """
 
+from typing import List, Tuple, Any
 from AI.Apocalyptron.ordering.interfaces import MoveOrderer
 
 
@@ -40,7 +41,7 @@ class PositionalOrderer(MoveOrderer):
         
         self.weights = weights if weights is not None else EvaluationWeights()
     
-    def score_moves(self, game, moves: list) -> list[tuple[float, any]]:
+    def score_moves(self, game, moves: List) -> List[Tuple[float, Any]]:
         """
         Score moves based on positional value.
         

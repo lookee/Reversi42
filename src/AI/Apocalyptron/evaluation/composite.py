@@ -5,6 +5,7 @@ Combines multiple evaluation strategies using weighted sum.
 Implements Composite Pattern for flexible evaluation composition.
 """
 
+from typing import List, Tuple
 from AI.Apocalyptron.evaluation.interfaces import PositionEvaluator
 
 
@@ -31,7 +32,7 @@ class CompositeEvaluator(PositionEvaluator):
     
     def __init__(self):
         """Initialize empty composite evaluator"""
-        self.evaluators: list[tuple[PositionEvaluator, float]] = []
+        self.evaluators: List[Tuple[PositionEvaluator, float]] = []
     
     def add_evaluator(self, evaluator: PositionEvaluator, weight: float = 1.0):
         """

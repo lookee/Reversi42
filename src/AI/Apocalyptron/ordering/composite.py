@@ -5,6 +5,7 @@ Combines multiple ordering strategies by summing their scores.
 Implements Composite Pattern for flexible move ordering.
 """
 
+from typing import List, Tuple, Any
 from AI.Apocalyptron.ordering.interfaces import MoveOrderer
 
 
@@ -35,7 +36,7 @@ class CompositeOrderer(MoveOrderer):
     
     def __init__(self):
         """Initialize empty composite orderer"""
-        self.orderers: list[MoveOrderer] = []
+        self.orderers: List[MoveOrderer] = []
     
     def add_orderer(self, orderer: MoveOrderer):
         """
@@ -46,7 +47,7 @@ class CompositeOrderer(MoveOrderer):
         """
         self.orderers.append(orderer)
     
-    def score_moves(self, game, moves: list) -> list[tuple[float, any]]:
+    def score_moves(self, game, moves: List) -> List[Tuple[float, Any]]:
         """
         Score moves using all registered orderers.
         

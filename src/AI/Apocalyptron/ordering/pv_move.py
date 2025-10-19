@@ -5,6 +5,7 @@ The best move from the previous iteration (in iterative deepening)
 is tried first in the next iteration.
 """
 
+from typing import List, Tuple, Any
 from AI.Apocalyptron.ordering.interfaces import MoveOrderer
 
 
@@ -36,7 +37,7 @@ class PVMoveOrderer(MoveOrderer):
         """
         self.pv_move = move
     
-    def score_moves(self, game, moves: list) -> list[tuple[float, any]]:
+    def score_moves(self, game, moves: List) -> List[Tuple[float, Any]]:
         """
         Score moves - PV move gets highest score.
         

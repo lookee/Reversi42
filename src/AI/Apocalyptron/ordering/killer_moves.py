@@ -5,6 +5,7 @@ Stores moves that caused beta cutoffs at each depth level.
 These moves are likely to cause cutoffs in sibling positions.
 """
 
+from typing import List, Tuple, Any
 from AI.Apocalyptron.ordering.interfaces import MoveOrderer
 
 
@@ -52,7 +53,7 @@ class KillerMoveOrderer(MoveOrderer):
             if len(self.killer_moves[depth]) > self.MAX_KILLERS_PER_DEPTH:
                 self.killer_moves[depth].pop()
     
-    def score_moves(self, game, moves: list) -> list[tuple[float, any]]:
+    def score_moves(self, game, moves: List) -> List[Tuple[float, Any]]:
         """
         Score moves - high score for killer moves.
         

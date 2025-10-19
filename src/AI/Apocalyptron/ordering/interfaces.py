@@ -6,6 +6,7 @@ Better move ordering = more cutoffs = faster search.
 """
 
 from abc import ABC, abstractmethod
+from typing import List, Tuple, Any
 
 
 class MoveOrderer(ABC):
@@ -17,7 +18,7 @@ class MoveOrderer(ABC):
     """
     
     @abstractmethod
-    def score_moves(self, game, moves: list) -> list[tuple[float, any]]:
+    def score_moves(self, game, moves: List) -> List[Tuple[float, Any]]:
         """
         Score moves for ordering.
         
@@ -30,7 +31,7 @@ class MoveOrderer(ABC):
         """
         pass
     
-    def order_moves(self, game, moves: list) -> list:
+    def order_moves(self, game, moves: List) -> List:
         """
         Order moves by score (best first).
         
