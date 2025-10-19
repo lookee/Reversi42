@@ -18,20 +18,22 @@
 from Players.Player import Player
 from Players.HumanPlayer import HumanPlayer
 from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
+from Players.PlayerApocalyptron import PlayerApocalyptron
 
 class PlayerFactory:
     """
     Factory class for creating players.
-    Focused on Grandmaster AI - the ultimate Reversi player.
+    Now featuring Apocalyptron - the ultimate Reversi AI.
     
     Player types are automatically discovered from their metadata.
     """
     
     # Registry of all player classes
-    # Only Grandmaster is enabled in the menu
+    # Apocalyptron is the featured AI (Grandmaster kept for compatibility)
     ALL_PLAYER_CLASSES = [
         HumanPlayer,                     # Human player (disabled in menu, but available for API)
-        AIPlayerGrandmaster,             # The Grandmaster AI (enabled in menu)
+        PlayerApocalyptron,              # ⚡ Apocalyptron - The ultimate AI (enabled in menu)
+        AIPlayerGrandmaster,             # Legacy Grandmaster AI (enabled for compatibility)
     ]
     
     # Build registry from metadata
@@ -62,9 +64,24 @@ class PlayerFactory:
         return player_class(**kwargs)
     
     @classmethod
+    def create_apocalyptron(cls, depth=9, weights=None, **kwargs):
+        """
+        Create an Apocalyptron AI player (recommended).
+        
+        Args:
+            depth (int): Search depth (7-12 recommended, default 9)
+            weights: GrandmasterWeights instance for custom evaluation (None = default)
+            **kwargs: Additional arguments for player creation
+            
+        Returns:
+            PlayerApocalyptron: The created Apocalyptron AI instance
+        """
+        return PlayerApocalyptron(depth=depth, weights=weights, **kwargs)
+    
+    @classmethod
     def create_grandmaster(cls, difficulty=9, weights=None, **kwargs):
         """
-        Create a Grandmaster AI player.
+        Create a Grandmaster AI player (legacy - use create_apocalyptron instead).
         
         Args:
             difficulty (int): Search depth (7-12 recommended, default 9)

@@ -17,9 +17,9 @@ class GameConfig:
     
     # Players
     DEFAULT_BLACK_PLAYER = "Human Player"
-    DEFAULT_WHITE_PLAYER = "Grandmaster"
+    DEFAULT_WHITE_PLAYER = "Apocalyptron"
     DEFAULT_BLACK_DEPTH = 5
-    DEFAULT_WHITE_DEPTH = 6  # Grandmaster level 6
+    DEFAULT_WHITE_DEPTH = 9  # Apocalyptron level 9
     
     # Opening Book
     OPENING_BOOK_ENABLED = True
@@ -80,6 +80,7 @@ class MenuConfig:
         "Bitboard Blitz",
         "The Oracle",
         "Parallel Oracle",
+        "Apocalyptron",
         "Grandmaster"
     ]
 
