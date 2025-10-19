@@ -110,6 +110,10 @@ class TerminalBoardView(AbstractBoardView):
         self.cursorY = 0
         self.last_move_x = -1
         self.last_move_y = -1
+        
+        # Opening book moves - list of (x, y, count) tuples
+        self.book_moves = []
+        self.opening_names = []  # List of opening names for display
     
     def initialize(self):
         """Initialize terminal (clear screen, setup)"""
@@ -131,7 +135,7 @@ class TerminalBoardView(AbstractBoardView):
                 piece = model.getPoint(x, y)
                 self.board_state[y][x] = piece if piece else ' '
         
-        # Draw board
+        # Draw board (book_moves should already be set by controller before this call)
         self._draw_board()
     
     def _draw_board(self):
@@ -177,9 +181,18 @@ class TerminalBoardView(AbstractBoardView):
                 piece = self.board_state[y][x]
                 
                 # Check if this is a valid move
-                is_valid_move = (x, y) in [(m[0] - 1 if hasattr(m, 'x') else m[0], 
-                                           m[1] - 1 if hasattr(m, 'y') else m[1]) 
-                                          for m in self.valid_moves_list]
+                is_valid_move = False
+                for m in self.valid_moves_list:
+                    if hasattr(m, 'x') and hasattr(m, 'y'):
+                        # Move object
+                        if m.x - 1 == x and m.y - 1 == y:
+                            is_valid_move = True
+                            break
+                    elif isinstance(m, tuple) and len(m) >= 2:
+                        # Tuple (x, y)
+                        if m[0] == x and m[1] == y:
+                            is_valid_move = True
+                            break
                 
                 # Check if this is the last move
                 is_last_move = (self.last_move_x == x + 1 and self.last_move_y == y + 1) or \
@@ -188,15 +201,23 @@ class TerminalBoardView(AbstractBoardView):
                 # Check if cursor is here
                 is_cursor = (self.cursorX == x and self.cursorY == y)
                 
+                # Check if this is a book move
+                is_book_move = any(bx == x and by == y for bx, by, _ in self.book_moves)
+                
                 # Determine what to display
                 if piece == 'B':
                     cell = f" {self.BLACK_PIECE} "
                 elif piece == 'W':
                     cell = f" {self.WHITE_PIECE} "
                 elif piece in ['b', 'w'] or is_valid_move:  # b/w are valid move markers
-                    # Valid move marker (use * for ASCII mode, ⊡ for color mode)
-                    marker = '*' if not self.USE_COLORS else '⊡'
-                    cell = f" {self.GREEN}{marker}{self.RESET} "
+                    # Valid move marker
+                    # Use 'X' for book moves, '*' for regular moves
+                    if is_book_move:
+                        marker = 'X'
+                        cell = f" {self.CYAN}{marker}{self.RESET} "
+                    else:
+                        marker = '*' if not self.USE_COLORS else '⊡'
+                        cell = f" {self.GREEN}{marker}{self.RESET} "
                 else:
                     cell = f" {self.EMPTY} "
                 
@@ -230,6 +251,19 @@ class TerminalBoardView(AbstractBoardView):
         bottom_line += self.BOX_BR
         lines.append(bottom_line)
         
+        # Add opening book information if available (below the board)
+        if self.opening_names:
+            lines.append("")
+            lines.append("  " + self.CYAN + "📖 Openings:" + self.RESET)
+            # opening_names is now a list of (move, [names]) tuples
+            for move_str, names in self.opening_names:
+                # Show first few opening names for this move
+                if len(names) <= 3:
+                    names_str = ", ".join(names)
+                else:
+                    names_str = ", ".join(names[:3]) + f" ... (+{len(names)-3} more)"
+                lines.append(f"     {self.YELLOW}{move_str}{self.RESET}: {names_str}")
+        
         # Print all lines with extra spacing for readability
         output = '\n'.join(lines)
         print(output)
@@ -243,6 +277,7 @@ class TerminalBoardView(AbstractBoardView):
     def highlight_valid_moves(self, moves: List):
         """Highlight valid moves"""
         self.valid_moves_list = moves
+        # Note: don't reset book_moves here - they're managed separately by setCanMoveBook
     
     def highlight_last_move(self, x: int, y: int):
         """Highlight last move"""
@@ -294,11 +329,15 @@ class TerminalBoardView(AbstractBoardView):
         self.move_count = black_count + white_count - 4
     
     def setCanMoveBook(self, x: int, y: int, count: int):
-        """Mark position as opening book move (terminal just marks as valid)"""
-        # In terminal, just mark as valid move (no special book highlighting)
-        if 0 <= y < len(self.board_state) and 0 <= x < len(self.board_state[0]):
-            # Keep existing marker if it's a valid move
-            pass
+        """Mark position as opening book move"""
+        # Save book move for special display
+        if (x, y, count) not in self.book_moves:
+            self.book_moves.append((x, y, count))
+    
+    def clear_book_moves(self):
+        """Clear book moves and opening names (called when starting a new turn)"""
+        self.book_moves = []
+        self.opening_names = []
     
     def unfillBox(self, x: int, y: int):
         """Clear a box (alias for unsetBox)"""
@@ -414,10 +453,15 @@ class TerminalBoardView(AbstractBoardView):
         """Draw header (included in board rendering)"""
         pass
     
-    def set_opening_info(self, opening_names):
-        """Set opening info (could display below board)"""
-        if opening_names:
-            print(f"{self.CYAN}Opening: {', '.join(opening_names[:3])}{self.RESET}")
+    def set_opening_info(self, opening_info):
+        """
+        Set opening info to display below board.
+        
+        Args:
+            opening_info: List of (move_str, [opening_names]) tuples
+                         or empty list to clear
+        """
+        self.opening_names = opening_info if opening_info else []
     
     def clear_tooltip_area(self):
         """Clear tooltip (no-op)"""

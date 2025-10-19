@@ -62,13 +62,34 @@ class TerminalHumanPlayer(Player):
         # Display valid moves with numbers (compact, on one line)
         if moves:
             move_strs = []
+            book_move_indices = []  # Track which moves are book moves
+            
             for i, m in enumerate(moves, 1):
                 col_letter = chr(ord('A') + m.x - 1)
-                move_str = f"{i}.{col_letter}{m.y}"
+                
+                # Check if this is a book move
+                is_book = False
+                opening_info = None
+                if control.show_opening and control.opening_book:
+                    openings = control.opening_book.get_openings_for_move(game.history, m)
+                    if openings:
+                        is_book = True
+                        book_move_indices.append(i)
+                        opening_info = openings
+                
+                # Format with X for book moves
+                if is_book:
+                    move_str = f"{i}.{col_letter}{m.y}[X]"
+                else:
+                    move_str = f"{i}.{col_letter}{m.y}"
                 move_strs.append(move_str)
             
             # Print all moves on one line
             print(f"Valid moves: {' '.join(move_strs)}")
+            
+            # If there are book moves, show them separately
+            if book_move_indices:
+                print(f"📖 Opening book moves: {', '.join(str(i) for i in book_move_indices)}")
             
             # First move as default
             first_move = moves[0]
@@ -81,10 +102,17 @@ class TerminalHumanPlayer(Player):
         # Get input
         while True:
             try:
-                move_input = input(f"\nEnter move [{default_move_str}], 1-{len(moves)}, 0=Exit, M=Menu: ").strip()
+                # Default is "y" in terminal mode
+                move_input = input(f"\nEnter move (Y={default_move_str}, 1-{len(moves)}, 0=Exit, M=Menu): ").strip()
                 
-                # If empty, use default (first move)
-                if not move_input:
+                # If empty or "y", use default (first move)
+                if not move_input or move_input.upper() in ['Y', 'YES']:
+                    # Show opening info if available
+                    if control.show_opening and control.opening_book:
+                        openings = control.opening_book.get_openings_for_move(game.history, first_move)
+                        if openings:
+                            # Update view with opening info (new format: list of tuples)
+                            control.view.set_opening_info([(default_move_str, sorted(openings))])
                     print(f"✓ Playing default: {default_move_str}")
                     return first_move
                 
@@ -113,7 +141,19 @@ class TerminalHumanPlayer(Player):
                     if 1 <= move_num <= len(moves):
                         selected_move = moves[move_num - 1]
                         col_letter = chr(ord('A') + selected_move.x - 1)
-                        print(f"✓ Playing {move_num}.{col_letter}{selected_move.y}")
+                        move_str = f"{col_letter}{selected_move.y}"
+                        
+                        # Show opening info if available
+                        if control.show_opening and control.opening_book:
+                            openings = control.opening_book.get_openings_for_move(game.history, selected_move)
+                            if openings:
+                                # Update view with opening info (new format: list of tuples)
+                                control.view.set_opening_info([(move_str, sorted(openings))])
+                                print(f"📖 {move_str}: {', '.join(sorted(openings)[:5])}")
+                                if len(openings) > 5:
+                                    print(f"    ... and {len(openings) - 5} more")
+                        
+                        print(f"✓ Playing {move_num}.{move_str}")
                         return selected_move
                     else:
                         print(f"✗ Invalid number. Choose 1-{len(moves)}")
@@ -149,7 +189,19 @@ class TerminalHumanPlayer(Player):
                 
                 # Check if move is valid
                 if move in moves:
-                    print(f"✓ Playing {col_letter}{row}")
+                    move_str = f"{col_letter}{row}"
+                    
+                    # Show opening info if available
+                    if control.show_opening and control.opening_book:
+                        openings = control.opening_book.get_openings_for_move(game.history, move)
+                        if openings:
+                            # Update view with opening info (new format: list of tuples)
+                            control.view.set_opening_info([(move_str, sorted(openings))])
+                            print(f"📖 {move_str}: {', '.join(sorted(openings)[:5])}")
+                            if len(openings) > 5:
+                                print(f"    ... and {len(openings) - 5} more")
+                    
+                    print(f"✓ Playing {move_str}")
                     return move
                 else:
                     print(f"✗ {col_letter}{row} is not a valid move")

@@ -292,15 +292,21 @@ class BoardControl(object):
         
         # Update piece counts in the view
         self.view.setPlayerCounts(black_count, white_count)
-        self.view.update(self.cursor_mode)
         
-        # Redraw opening book moves AFTER update (so they appear on top and don't get erased)
-        # Only for Pygame views (not terminal/headless)
+        # Set opening book moves BEFORE update for Terminal views (so they're in place when drawn)
+        # For Pygame views, we'll set them again AFTER update (so they appear on top)
         if self.show_opening and len(self.book_moves) > 0:
             for bx, by, count in self.book_moves:
                 self.view.setCanMoveBook(bx, by, count)
-            # Force display update to show the golden moves (only for Pygame)
+        
+        self.view.update(self.cursor_mode)
+        
+        # Redraw opening book moves AFTER update for Pygame (so they appear on top and don't get erased)
+        if self.show_opening and len(self.book_moves) > 0:
+            # For Pygame views, redraw book moves on top
             if hasattr(self.view, 'screen') and self.view.screen is not None:
+                for bx, by, count in self.book_moves:
+                    self.view.setCanMoveBook(bx, by, count)
                 import pygame
                 pygame.display.update()
 
@@ -354,7 +360,14 @@ class BoardControl(object):
         """
         self.book_moves = []  # Reset book moves list
         
+        # Clear book moves in the view too
+        if hasattr(self.view, 'clear_book_moves'):
+            self.view.clear_book_moves()
+        
         if self.show_opening and self.opening_book:
+            # Collect opening info: list of (move_str, [opening_names])
+            opening_info = []
+            
             # Check each move to see if it leads to an opening
             for move in moves:
                 # Get all openings that include this move
@@ -364,12 +377,21 @@ class BoardControl(object):
                     # This move leads to opening(s) - save for highlighting with count
                     self.book_moves.append((move.get_x() - 1, move.get_y() - 1, len(openings)))
                     self.setCanMove(move.get_x(), move.get_y(), turn)
+                    # Save move with its openings
+                    opening_info.append((str(move), sorted(openings)))
                 else:
                     self.setCanMove(move.get_x(), move.get_y(), turn)
+            
+            # Pass opening info to the view for display
+            if hasattr(self.view, 'set_opening_info'):
+                self.view.set_opening_info(opening_info)
         else:
             # No opening book - show all moves normally
             for move in moves:
                 self.setCanMove(move.get_x(), move.get_y(), turn)
+            # Clear opening info if it exists
+            if hasattr(self.view, 'set_opening_info'):
+                self.view.set_opening_info([])
     
     def setCurrentTurn(self, turn):
         """Set whose turn it is for the turn indicator"""
