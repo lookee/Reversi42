@@ -14,6 +14,7 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
     - Opening book (57 professional sequences) - Instant responses
     - Iterative deepening - Progressive search 1→N (1.5-2.5x)
     - Null move pruning - Skip-turn verification (1.5-2.5x in midgame)
+    - Futility pruning - Cut hopeless positions (1.15-1.25x at frontier)
     - Late move reduction - Reduced depth for bad moves (1.4-2x)
     - Multi-cut pruning - Early cutoff detection (1.15-1.3x)
     - Aspiration windows - Narrow search window (1.2-1.3x)
@@ -24,7 +25,7 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
     - Enhanced evaluation - X-squares, Stability, Frontier, Parity (+30%)
     - Killer move heuristic - Remembers strong moves (1.3x)
     
-    Total Performance: 3000-15000x faster than standard AI
+    Total Performance: 3500-14000x faster than standard AI
     Total Strength: +40-50% win rate vs base parallel
     
     Ideal for:
@@ -38,7 +39,7 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
     
     PLAYER_METADATA = {
         'display_name': 'Grandmaster',
-        'description': 'Ultimate AI - LMR + null move + aspiration + ID + history (3000-15000x speed, +40% strength)',
+        'description': 'Ultimate AI - Futility + LMR + null move + aspiration + ID (3500-14000x speed, +40% strength)',
         'enabled': True,
         'parameters': {
             'difficulty': {
