@@ -549,10 +549,14 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         
         # Print header
         print("\n" + "="*80)
+        
+        # Detect if used by Apocalyptron (new branding)
+        engine_name = "APOCALYPTRON AI" if (player_name and "Apocalyptron" in player_name) else "GRANDMASTER AI"
+        
         if player_name:
-            print(f"🧠 GRANDMASTER AI - {player_name} (Iterative Deepening)")
+            print(f"🧠 {engine_name} - {player_name} (Iterative Deepening)")
         else:
-            print("🧠 GRANDMASTER AI (Iterative Deepening)")
+            print(f"🧠 {engine_name} (Iterative Deepening)")
         
         # Game progress
         current_move = game.turn_cnt + 1
@@ -783,10 +787,14 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         
         # Print header
         print("\n" + "="*80)
+        
+        # Detect if used by Apocalyptron (new branding)
+        engine_name = "APOCALYPTRON AI" if (player_name and "Apocalyptron" in player_name) else "GRANDMASTER AI"
+        
         if player_name:
-            print(f"🧠 GRANDMASTER AI (HYBRID) - {player_name} ({self.num_workers} cores)")
+            print(f"🧠 {engine_name} (HYBRID) - {player_name} ({self.num_workers} cores)")
         else:
-            print(f"🧠 GRANDMASTER AI (HYBRID) - {self.num_workers} cores")
+            print(f"🧠 {engine_name} (HYBRID) - {self.num_workers} cores")
         
         current_move = game.turn_cnt + 1
         max_moves = game.cells_cnt

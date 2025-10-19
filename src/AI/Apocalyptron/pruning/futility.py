@@ -7,6 +7,7 @@ prune the search early.
 Extracted from GrandmasterEngine (lines 326-352).
 """
 
+from typing import Optional, Tuple, List
 from AI.Apocalyptron.pruning.interfaces import PruningStrategy, PruningResult
 
 
@@ -67,7 +68,7 @@ class FutilityPruning(PruningStrategy):
         return PruningResult(False, reason="requires_evaluation")
     
     def can_prune_futile(self, game, depth: int, alpha: int, beta: int,
-                         move_list: list) -> tuple[bool, Optional[int]]:
+                         move_list: List) -> Tuple[bool, Optional[int]]:
         """
         Check if position is futile (actual implementation).
         

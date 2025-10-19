@@ -27,12 +27,12 @@ from AI.Apocalyptron.search.parallel import ParallelSearch
 import time
 
 
-class ApocalyptronEngine:
+class ApocalyptronEngineStandalone:
     """
-    Apocalyptron engine using ONLY modular components.
+    Standalone Apocalyptron engine using ONLY modular components.
     
-    Complete standalone implementation with ZERO dependency on GrandmasterEngine.
-    Uses clean modular architecture with all optimizations.
+    This is the complete refactored implementation that doesn't depend
+    on GrandmasterEngine at all.
     
     Architecture:
     - Evaluation: CompositeEvaluator (Mobility + Positional + Stability + Parity)
@@ -95,7 +95,7 @@ class ApocalyptronEngine:
         self.searches_performed = 0
         self.total_time = 0.0
         
-        print(f"[ApocalyptronEngine] Initialized with modular components (NO GrandmasterEngine)!")
+        print(f"[ApocalyptronEngineStandalone] Initialized with modular components!")
         print(f"  • Evaluators: {self.evaluator.get_evaluator_count()}")
         print(f"  • Orderers: {self.orderer.get_orderer_count()}")
         print(f"  • Null move: {self.config.enable_null_move_pruning}")
@@ -168,7 +168,7 @@ class ApocalyptronEngine:
     def get_statistics(self) -> dict:
         """Get engine statistics"""
         return {
-            'engine': 'Apocalyptron (Modular Architecture)',
+            'engine': 'Apocalyptron (Standalone - NO GrandmasterEngine)',
             'searches_performed': self.searches_performed,
             'total_time': self.total_time,
             'avg_time': self.total_time / self.searches_performed if self.searches_performed > 0 else 0,
