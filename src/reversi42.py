@@ -312,15 +312,109 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
             if isinstance(c.view, TerminalBoardView):
                 # Terminal mode: single-line info with extra newline after for spacing
                 if last_move:
-                    print(f"Last: {last_move}  |  History: {game_history if game_history else '(start)'}\n")
+                    print(f"Last: {last_move}  |  History: {game_history if game_history else '(start)'}")
+                    
+                    # Show current opening if available
+                    if c.opening_book and c.show_opening and game_history:
+                        opening_name = c.opening_book.get_current_opening_name(game_history)
+                        all_openings = c.opening_book.get_remaining_openings(game_history)
+                        
+                        if opening_name:
+                            # Complete opening reached
+                            advantage = c.opening_book.get_opening_advantage(game_history)
+                            book_count = f" [{len(all_openings)} in book]" if len(all_openings) > 0 else ""
+                            if advantage and advantage != '=':
+                                eval_score = c.opening_book.evaluate_advantage_for_player(advantage, g.turn)
+                                desc, _ = c.opening_book.interpret_advantage(advantage)
+                                sign = '+' if eval_score >= 0 else ''
+                                print(f"Opening: {opening_name} [{advantage}] - {desc} ({sign}{eval_score:.2f}){book_count}")
+                            else:
+                                print(f"Opening: {opening_name}{book_count}")
+                        elif len(all_openings) > 0:
+                            # Following opening(s) in progress
+                            openings_str = ', '.join(sorted(all_openings)[:2])
+                            if len(all_openings) > 2:
+                                print(f"Following: {openings_str} ... [{len(all_openings)} in book]")
+                            else:
+                                print(f"Following: {openings_str} [{len(all_openings)} in book]")
+                        else:
+                            # Out of book - show last detected opening if any
+                            all_openings_including_passed = c.opening_book.get_opening_names(game_history)
+                            if len(all_openings_including_passed) > 0:
+                                # We passed through some openings
+                                last_opening = sorted(all_openings_including_passed)[0]
+                                print(f"Out of book (was following: {last_opening})")
+                    print()  # Extra newline for spacing
                 else:
                     print(f"History: {game_history if game_history else '(start)'}\n")
             else:
                 # Pygame mode: compact single-line info
                 if last_move and game_history:
                     print(f"Move: {last_move}  |  History: {game_history}")
+                    
+                    # Show current opening if available
+                    if c.opening_book and c.show_opening:
+                        opening_name = c.opening_book.get_current_opening_name(game_history)
+                        all_openings = c.opening_book.get_remaining_openings(game_history)
+                        
+                        if opening_name:
+                            # Complete opening reached
+                            advantage = c.opening_book.get_opening_advantage(game_history)
+                            book_count = f" [{len(all_openings)} in book]" if len(all_openings) > 0 else ""
+                            if advantage and advantage != '=':
+                                eval_score = c.opening_book.evaluate_advantage_for_player(advantage, g.turn)
+                                desc, _ = c.opening_book.interpret_advantage(advantage)
+                                sign = '+' if eval_score >= 0 else ''
+                                print(f"Opening: {opening_name} [{advantage}] - {desc} ({sign}{eval_score:.2f}){book_count}")
+                            else:
+                                print(f"Opening: {opening_name}{book_count}")
+                        elif len(all_openings) > 0:
+                            # Following opening(s) in progress
+                            openings_str = ', '.join(sorted(all_openings)[:2])
+                            if len(all_openings) > 2:
+                                print(f"Following: {openings_str} ... [{len(all_openings)} in book]")
+                            else:
+                                print(f"Following: {openings_str} [{len(all_openings)} in book]")
+                        else:
+                            # Out of book - show last detected opening if any
+                            all_openings_including_passed = c.opening_book.get_opening_names(game_history)
+                            if len(all_openings_including_passed) > 0:
+                                # We passed through some openings
+                                last_opening = sorted(all_openings_including_passed)[0]
+                                print(f"Out of book (was following: {last_opening})")
                 elif game_history:
                     print(f"History: {game_history}")
+                    
+                    # Show current opening if available
+                    if c.opening_book and c.show_opening:
+                        opening_name = c.opening_book.get_current_opening_name(game_history)
+                        all_openings = c.opening_book.get_remaining_openings(game_history)
+                        
+                        if opening_name:
+                            # Complete opening reached
+                            advantage = c.opening_book.get_opening_advantage(game_history)
+                            book_count = f" [{len(all_openings)} in book]" if len(all_openings) > 0 else ""
+                            if advantage and advantage != '=':
+                                eval_score = c.opening_book.evaluate_advantage_for_player(advantage, g.turn)
+                                desc, _ = c.opening_book.interpret_advantage(advantage)
+                                sign = '+' if eval_score >= 0 else ''
+                                print(f"Opening: {opening_name} [{advantage}] - {desc} ({sign}{eval_score:.2f}){book_count}")
+                            else:
+                                print(f"Opening: {opening_name}{book_count}")
+                        elif len(all_openings) > 0:
+                            # Following opening(s) in progress
+                            openings_str = ', '.join(sorted(all_openings)[:2])
+                            if len(all_openings) > 2:
+                                print(f"Following: {openings_str} ... [{len(all_openings)} in book]")
+                            else:
+                                print(f"Following: {openings_str} [{len(all_openings)} in book]")
+                        else:
+                            # Out of book - show last detected opening if any
+                            all_openings_including_passed = c.opening_book.get_opening_names(game_history)
+                            if len(all_openings_including_passed) > 0:
+                                # We passed through some openings
+                                last_opening = sorted(all_openings_including_passed)[0]
+                                print(f"Out of book (was following: {last_opening})")
                 elif last_move:
                     print(f"Move: {last_move}")
                 

@@ -489,7 +489,7 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         
         return best_value
     
-    def get_best_move(self, game, depth, player_name=None):
+    def get_best_move(self, game, depth, player_name=None, opening_book=None, game_history=None):
         """Enhanced get_best_move with iterative deepening"""
         # Clear killer moves for new search
         self.killer_moves.clear()
@@ -526,11 +526,11 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         )
         
         if use_parallel:
-            return self._get_best_move_parallel_ordered(game, depth, player_name, move_list)
+            return self._get_best_move_parallel_ordered(game, depth, player_name, move_list, opening_book, game_history)
         else:
-            return self._get_best_move_sequential_ordered(game, depth, player_name, move_list)
+            return self._get_best_move_sequential_ordered(game, depth, player_name, move_list, opening_book, game_history)
     
-    def _get_best_move_sequential_ordered(self, game, depth, player_name, move_list):
+    def _get_best_move_sequential_ordered(self, game, depth, player_name, move_list, opening_book=None, game_history=None):
         """Sequential search with ITERATIVE DEEPENING"""
         # DON'T clear transposition table - it will be filled progressively
         total_nodes_start = self.nodes
@@ -650,7 +650,38 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         total_pruning = self.pruning  # Standard alpha-beta cutoffs
         
         print("\n" + "="*80)
-        print(f"📊 ITERATIVE DEEPENING SUMMARY:")
+        print(f"🤖 ITERATIVE DEEPENING SUMMARY:")
+        
+        # OPENING BOOK INFO: Show current opening status
+        if opening_book and game_history:
+            # Check if we completed an opening
+            current_opening = opening_book.get_current_opening_name(game_history)
+            
+            # Count remaining openings in book at this position
+            all_openings = opening_book.get_remaining_openings(game_history)
+            
+            if current_opening:
+                # We've reached a complete opening
+                advantage = opening_book.get_opening_advantage(game_history)
+                if advantage and advantage != '=':
+                    eval_score = opening_book.evaluate_advantage_for_player(advantage, game.turn)
+                    desc, _ = opening_book.interpret_advantage(advantage)
+                    sign = '+' if eval_score >= 0 else ''
+                    print(f"   • Opening: {current_opening} [{advantage}] - {desc} ({sign}{eval_score:.2f})")
+                else:
+                    print(f"   • Opening: {current_opening}")
+            elif len(all_openings) > 0:
+                # We're following opening(s) but haven't reached one yet
+                # Show the first opening(s) we're heading towards
+                openings_preview = ', '.join(sorted(all_openings)[:3])
+                if len(all_openings) > 3:
+                    print(f"   • Following: {openings_preview} ...")
+                else:
+                    print(f"   • Following: {openings_preview}")
+            
+            # Show remaining openings count
+            if len(all_openings) > 0:
+                print(f"   • Openings in book: {len(all_openings)} available")
         
         # FINAL DEPTH: Target search depth reached
         # Higher = stronger play but slower (exponential cost)
@@ -737,7 +768,7 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         
         return final_best_move
     
-    def _get_best_move_parallel_ordered(self, game, depth, player_name, move_list):
+    def _get_best_move_parallel_ordered(self, game, depth, player_name, move_list, opening_book=None, game_history=None):
         """Hybrid: Iterative deepening sequentially, then parallel for final depth"""
         time_start = time.perf_counter()
         
@@ -835,7 +866,39 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         
         # Final Summary
         print("\n" + "="*80)
-        print(f"📊 HYBRID ITERATIVE DEEPENING + PARALLEL SUMMARY:")
+        print(f"🤖 HYBRID ITERATIVE DEEPENING + PARALLEL SUMMARY:")
+        
+        # OPENING BOOK INFO: Show current opening status
+        if opening_book and game_history:
+            # Check if we completed an opening
+            current_opening = opening_book.get_current_opening_name(game_history)
+            
+            # Count remaining openings in book at this position
+            all_openings = opening_book.get_remaining_openings(game_history)
+            
+            if current_opening:
+                # We've reached a complete opening
+                advantage = opening_book.get_opening_advantage(game_history)
+                if advantage and advantage != '=':
+                    eval_score = opening_book.evaluate_advantage_for_player(advantage, game.turn)
+                    desc, _ = opening_book.interpret_advantage(advantage)
+                    sign = '+' if eval_score >= 0 else ''
+                    print(f"   • Opening: {current_opening} [{advantage}] - {desc} ({sign}{eval_score:.2f})")
+                else:
+                    print(f"   • Opening: {current_opening}")
+            elif len(all_openings) > 0:
+                # We're following opening(s) but haven't reached one yet
+                # Show the first opening(s) we're heading towards
+                openings_preview = ', '.join(sorted(all_openings)[:3])
+                if len(all_openings) > 3:
+                    print(f"   • Following: {openings_preview} ...")
+                else:
+                    print(f"   • Following: {openings_preview}")
+            
+            # Show remaining openings count
+            if len(all_openings) > 0:
+                print(f"   • Openings in book: {len(all_openings)} available")
+        
         print(f"   • Final depth: {depth}")
         print(f"   • Workers (final depth): {self.num_workers} cores")
         print(f"   • Parallel nodes: {total_nodes:,}")

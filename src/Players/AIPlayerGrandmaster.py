@@ -85,6 +85,12 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
         self.book_hits = 0
         self.total_moves = 0
         
+        # Log opening book evaluation settings
+        if self.opening_book.only_evaluated_openings:
+            eval_filter_msg = "✅ Using ONLY evaluated openings (with advantage data)"
+        else:
+            eval_filter_msg = "⚠️  Using ALL openings (including non-evaluated)"
+        
         # Print configuration
         print(f"\n{'='*80}")
         print(f"🏆 GRANDMASTER AI INITIALIZED - {self.name}")
@@ -92,12 +98,14 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
         print(f"  • Search depth: {self.deep}")
         print(f"  • Worker processes: {self.bitboard_engine.num_workers}")
         print(f"  • Opening book: {len(self.opening_book.opening_names)} sequences")
+        print(f"  • {eval_filter_msg}")
         print(f"\n  🧠 ADVANCED FEATURES ENABLED:")
         print(f"     ✅ Move Ordering (Corner/Edge/Mobility)")
         print(f"     ✅ Enhanced Evaluation (X-squares, Stability, Frontier)")
         print(f"     ✅ Killer Move Heuristic")
         print(f"     ✅ Parallel Bitboard Search")
         print(f"     ✅ Opening Book Integration")
+        print(f"     ✅ HYBRID Opening Evaluation (adv={self.opening_book.advantage_weight}, var={self.opening_book.variety_weight})")
         print(f"\n  📊 EXPECTED PERFORMANCE:")
         print(f"     • Speed: 400-1000x vs standard AI")
         print(f"     • Strength: +40-50% vs base parallel")
@@ -139,9 +147,17 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
                 
                 current_opening = self.opening_book.get_current_opening_name(game_history)
                 
-                # Show current opening status
+                # Show current opening status with evaluation
                 if current_opening:
-                    print(f"Current opening: {current_opening}")
+                    advantage = self.opening_book.get_opening_advantage(game_history)
+                    if advantage and advantage != '=':
+                        # Show evaluation for current player
+                        eval_score = self.opening_book.evaluate_advantage_for_player(advantage, game.turn)
+                        desc, _ = self.opening_book.interpret_advantage(advantage)
+                        sign = '+' if eval_score >= 0 else ''
+                        print(f"Current opening: {current_opening} [{advantage}] - {desc} ({sign}{eval_score:.2f})")
+                    else:
+                        print(f"Current opening: {current_opening}")
                 
                 # Show available book moves
                 if len(book_moves) > 0:
@@ -229,7 +245,14 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
             bb_moves = bitboard_game.get_move_list()
             
             if len(bb_moves) > 0:
-                move = self.bitboard_engine.get_best_move(bitboard_game, self.deep, player_name=self.name)
+                # Pass opening book and game history for summary display
+                move = self.bitboard_engine.get_best_move(
+                    bitboard_game, 
+                    self.deep, 
+                    player_name=self.name,
+                    opening_book=self.opening_book,
+                    game_history=game_history
+                )
                 if move and game.valid_move(move):
                     return move
         except Exception as e:

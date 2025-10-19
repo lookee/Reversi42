@@ -62,6 +62,21 @@ class AIPlayerBitboardBook(Player):
         self.book_hits = 0
         self.total_moves = 0
         
+        # Log opening book evaluation settings
+        if show_book_options:
+            print(f"\n{'='*80}")
+            print(f"🤖 {self.name} - Opening Book Settings")
+            print(f"{'='*80}")
+            print(f"  • Opening book: {len(self.opening_book.opening_names)} sequences")
+            print(f"  • Evaluation: HYBRID (Avg + Variety)")
+            print(f"  • Advantage weight: {self.opening_book.advantage_weight}")
+            print(f"  • Variety weight: {self.opening_book.variety_weight}")
+            if self.opening_book.only_evaluated_openings:
+                print(f"  • Filter: ✅ Only evaluated openings (with advantage data)")
+            else:
+                print(f"  • Filter: ⚠️  All openings (including non-evaluated)")
+            print(f"{'='*80}\n")
+        
         print(f"[{self.name}] Bitboard AI with Opening Book initialized!")
         print(f"  • Search depth: {self.deep}")
         print(f"  • Opening book: {len(self.opening_book.opening_names)} openings loaded")
@@ -106,9 +121,17 @@ class AIPlayerBitboardBook(Player):
                 print(f"📚 OPENING BOOK - {self.name}")
                 print(f"{'='*80}")
                 
-                # Show current opening status
+                # Show current opening status with evaluation
                 if current_opening:
-                    print(f"Current opening: {current_opening}")
+                    advantage = self.opening_book.get_opening_advantage(game_history)
+                    if advantage and advantage != '=':
+                        # Show evaluation for current player
+                        eval_score = self.opening_book.evaluate_advantage_for_player(advantage, game.turn)
+                        desc, _ = self.opening_book.interpret_advantage(advantage)
+                        sign = '+' if eval_score >= 0 else ''
+                        print(f"Current opening: {current_opening} [{advantage}] - {desc} ({sign}{eval_score:.2f})")
+                    else:
+                        print(f"Current opening: {current_opening}")
                 
                 # Show available book moves
                 print(f"\nAvailable book moves: {', '.join(str(m) for m in book_moves)}")

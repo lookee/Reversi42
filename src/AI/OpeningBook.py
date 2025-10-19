@@ -24,14 +24,18 @@ class OpeningBook:
     
     # Opening evaluation constants (parametric)
     ADVANTAGE_WEIGHT = 0.2  # Base weight for advantage evaluation
+    VARIETY_WEIGHT = 0.1    # Bonus for variety (more openings = more flexibility)
     
-    def __init__(self, book_path=None, advantage_weight=0.2):
+    def __init__(self, book_path=None, advantage_weight=0.2, variety_weight=0.1, only_evaluated_openings=True):
         """
         Initialize the opening book.
         
         Args:
             book_path: Path to the opening book file. If None, uses default.
             advantage_weight: Weight for advantage evaluation (default: 0.2)
+            variety_weight: Weight for variety bonus (default: 0.1)
+            only_evaluated_openings: If True, ignore openings without advantage data (default: True)
+                                     Note: Openings with '=' are still considered (balanced position)
         """
         self.root = TrieNode()
         self.book_path = book_path
@@ -39,6 +43,8 @@ class OpeningBook:
         self.opening_names = {}  # Map: move_sequence -> opening_name
         self.opening_advantages = {}  # Map: move_sequence -> advantage (=, w, w+, w++, b, b+, b++)
         self.advantage_weight = advantage_weight  # Parametric weight for evaluations
+        self.variety_weight = variety_weight  # Parametric weight for variety bonus
+        self.only_evaluated_openings = only_evaluated_openings  # Filter non-evaluated openings
         
         if book_path and os.path.exists(book_path):
             self._load_book(book_path)
@@ -219,6 +225,30 @@ class OpeningBook:
                 matching_names.append(name)
         
         return matching_names
+    
+    def get_remaining_openings(self, game_history):
+        """
+        Get the names of openings that can still be reached from current position.
+        
+        This excludes openings that have already been passed (shorter than current history).
+        
+        Args:
+            game_history: String of moves so far (e.g., "F5d6C3")
+        
+        Returns:
+            List of opening names that can still be reached
+        """
+        remaining_names = []
+        history_upper = game_history.upper()
+        
+        for sequence, name in self.opening_names.items():
+            sequence_upper = sequence.upper()
+            # Only count openings that START WITH current position (can still be reached)
+            # Exclude openings where current position starts with them (already passed)
+            if sequence_upper.startswith(history_upper):
+                remaining_names.append(name)
+        
+        return remaining_names
     
     def get_current_opening_name(self, game_history):
         """
@@ -477,16 +507,24 @@ class OpeningBook:
         """
         Evaluate all available moves based on their opening advantages.
         
+        Uses HYBRID strategy: AVERAGE + VARIETY_BONUS
+        - AVERAGE: Maximize theoretical advantage quality
+        - VARIETY_BONUS: Reward moves with more opening options (flexibility)
+        
         Args:
             game_history: Current move sequence
             available_moves: List of Move objects
             player_color: 'B' for Black, 'W' for White
         
         Returns:
-            Dict: {move_str: {'score': float, 'openings': int, 'details': [(advantage, opening_name), ...]}}
+            Dict: {move_str: {'score': float, 'avg': float, 'variety_bonus': float, 
+                             'openings': int, 'evaluated': int, 'skipped': int, 'details': [...]}}
         """
         evaluations = {}
+        max_evaluated = 0  # For normalization
         
+        # First pass: collect all data
+        temp_data = {}
         for move in available_moves:
             move_str = str(move).upper()
             
@@ -497,22 +535,65 @@ class OpeningBook:
             opening_scores = []
             total_score = 0.0
             openings_count = 0
+            evaluated_count = 0
+            skipped_count = 0
             
             for sequence, name in self.opening_names.items():
                 sequence_upper = sequence.upper()
                 if sequence_upper.startswith(test_history):
+                    openings_count += 1
+                    
                     # Get advantage for this opening
                     advantage = self.opening_advantages.get(sequence)
+                    
+                    # Filter based on only_evaluated_openings setting
+                    if self.only_evaluated_openings and advantage is None:
+                        # Skip openings without advantage data
+                        skipped_count += 1
+                        continue
+                    
+                    # Evaluate (Note: '=' is considered as 0.0, which is valid)
                     score = self.evaluate_advantage_for_player(advantage, player_color)
                     
-                    opening_scores.append((advantage if advantage else '=', name, score))
+                    opening_scores.append((advantage if advantage else 'none', name, score))
                     total_score += score
-                    openings_count += 1
+                    evaluated_count += 1
+            
+            max_evaluated = max(max_evaluated, evaluated_count)
+            
+            temp_data[move_str] = {
+                'sum': total_score,
+                'openings': openings_count,
+                'evaluated': evaluated_count,
+                'skipped': skipped_count,
+                'details': opening_scores
+            }
+        
+        # Second pass: calculate HYBRID score (AVERAGE + VARIETY_BONUS)
+        for move_str, data in temp_data.items():
+            evaluated = data['evaluated']
+            total_sum = data['sum']
+            
+            # Calculate AVERAGE
+            avg_score = total_sum / evaluated if evaluated > 0 else 0.0
+            
+            # Calculate VARIETY_BONUS (normalized by max openings across all moves)
+            variety_bonus = 0.0
+            if max_evaluated > 0:
+                normalized = evaluated / max_evaluated
+                variety_bonus = normalized * self.variety_weight
+            
+            # HYBRID SCORE = AVERAGE + VARIETY_BONUS
+            hybrid_score = avg_score + variety_bonus
             
             evaluations[move_str] = {
-                'score': total_score,
-                'openings': openings_count,
-                'details': opening_scores
+                'score': hybrid_score,  # Hybrid score for selection
+                'avg': avg_score,       # Pure average (for display)
+                'variety_bonus': variety_bonus,  # Variety bonus (for display)
+                'openings': data['openings'],
+                'evaluated': data['evaluated'],
+                'skipped': data['skipped'],
+                'details': data['details']
             }
         
         return evaluations
@@ -535,17 +616,39 @@ class OpeningBook:
         evaluations = self.evaluate_move_openings(game_history, available_moves, player_color)
         
         if show_details:
-            print(f"\n📊 Opening Evaluation (advantage_weight={self.advantage_weight}):")
-            print(f"   Player: {'Black' if player_color == 'B' else 'White'}\n")
+            print(f"\n📊 Opening Evaluation (HYBRID Strategy):")
+            print(f"   Player: {'Black' if player_color == 'B' else 'White'}")
+            print(f"   Advantage weight: {self.advantage_weight}")
+            print(f"   Variety weight: {self.variety_weight}")
+            if self.only_evaluated_openings:
+                print(f"   Filter: Only evaluated openings (with advantage data)")
+            else:
+                print(f"   Filter: All openings (including non-evaluated)")
+            print()
+            print(f"   {'Move':<6} {'Score':<8} {'Avg':<8} {'Variety':<8} {'Openings':<12}")
+            print(f"   {'-'*6} {'-'*8} {'-'*8} {'-'*8} {'-'*12}")
             
             # Sort by score descending
             sorted_evals = sorted(evaluations.items(), key=lambda x: x[1]['score'], reverse=True)
             
             for move_str, eval_data in sorted_evals:
                 score = eval_data['score']
+                avg = eval_data['avg']
+                variety = eval_data['variety_bonus']
                 openings = eval_data['openings']
-                sign = '+' if score >= 0 else ''
-                print(f"   {move_str}: {sign}{score:.2f} ({openings} opening(s))")
+                evaluated = eval_data['evaluated']
+                skipped = eval_data['skipped']
+                
+                score_str = f"{score:+.4f}"
+                avg_str = f"{avg:+.4f}"
+                variety_str = f"+{variety:.4f}"
+                
+                if self.only_evaluated_openings and skipped > 0:
+                    openings_str = f"{evaluated}ev, {skipped}sk"
+                else:
+                    openings_str = f"{openings} total"
+                
+                print(f"   {move_str:<6} {score_str:<8} {avg_str:<8} {variety_str:<8} {openings_str:<12}")
         
         # Find best score
         if not evaluations:
@@ -577,16 +680,25 @@ class OpeningBook:
         return count
 
 
-def get_default_opening_book():
+def get_default_opening_book(advantage_weight=0.2, variety_weight=0.1, only_evaluated_openings=True):
     """
     Get the default opening book instance.
     
     Automatically loads ALL opening book files from Books/ directory.
     Files are loaded in alphabetical order.
     
+    Uses HYBRID evaluation strategy: AVERAGE + VARIETY_BONUS
+    - AVERAGE: Theoretical advantage quality
+    - VARIETY_BONUS: Flexibility (more openings = more tactical options)
+    
     Supported format:
     - NAME | MOVES | ADVANTAGE  (with evaluation)
     - NAME | MOVES              (legacy format)
+    
+    Args:
+        advantage_weight: Weight for advantage evaluation (default: 0.2)
+        variety_weight: Weight for variety bonus (default: 0.1)
+        only_evaluated_openings: If True, only use openings with advantage data (default: True)
     
     Returns:
         OpeningBook instance with all books combined
@@ -597,8 +709,12 @@ def get_default_opening_book():
     project_root = os.path.dirname(os.path.dirname(current_dir))
     books_dir = os.path.join(project_root, 'Books')
     
-    # Create empty combined book
-    combined_book = OpeningBook()
+    # Create empty combined book with specified parameters
+    combined_book = OpeningBook(
+        advantage_weight=advantage_weight, 
+        variety_weight=variety_weight,
+        only_evaluated_openings=only_evaluated_openings
+    )
     
     # Find all .txt files in Books/ directory (excluding README)
     book_files = glob.glob(os.path.join(books_dir, '*.txt'))

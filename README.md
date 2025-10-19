@@ -587,6 +587,14 @@ Want to improve your Othello skills? Check out these professional tools:
 
 ---
 
+## 🙏 Acknowledgments
+
+**Special thanks to Donato Barnaba** for his invaluable explanations, support, and insights during the development of the first version of this software. His expertise in Reversi/Othello strategy and game theory was fundamental in shaping the initial direction of Reversi42.
+
+The software has since evolved significantly with advanced AI optimizations and features. As I am not an expert player myself, any errors or imperfections in the current implementation are solely my responsibility.
+
+---
+
 ## 👤 Author
 
 **Luca Amore**  
