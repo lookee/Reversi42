@@ -56,8 +56,8 @@ class MenuConfig:
     MENU_ITEMS = [
         "Black Player",
         "White Player",
-        "Show Opening",
         "Start Game",
+        "Show Opening",
         "Help",
         "About",
         "Exit"
