@@ -16,7 +16,7 @@
 #------------------------------------------------------------------------
 
 from Players.Player import Player
-from Players.HumanPlayer import HumanPlayer
+from Players.PlayerHuman import PlayerHuman
 from Players.PlayerApocalyptron import PlayerApocalyptron
 
 class PlayerFactory:
@@ -30,7 +30,7 @@ class PlayerFactory:
     # Registry of all player classes
     # Apocalyptron is the ultimate AI
     ALL_PLAYER_CLASSES = [
-        HumanPlayer,                     # Human player (disabled in menu, but available for API)
+        PlayerHuman,                     # Human player (disabled in menu, but available for API)
         PlayerApocalyptron,              # ⚡ Apocalyptron - The ultimate AI (enabled in menu)
     ]
     

@@ -24,7 +24,7 @@ import random
 import pygame
 from pygame.locals import *
 
-class HumanPlayer(Player):
+class PlayerHuman(Player):
     
     PLAYER_METADATA = {
         'display_name': 'Human Player',
@@ -116,3 +116,4 @@ class HumanPlayer(Player):
             clock.tick(60)  # Limit to 60 FPS
         
         return None
+

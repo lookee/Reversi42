@@ -29,7 +29,7 @@ from Reversi.Game import Game
 from Reversi.Game import Move
 
 from Players.PlayerFactory import PlayerFactory
-from Players.HumanPlayer import HumanPlayer
+from Players.PlayerHuman import PlayerHuman
 from Board.BoardControl import BoardControl
 from Board.ViewFactory import ViewFactory
 from ui.implementations.pygame.view import PygameBoardView  # New location
@@ -419,7 +419,7 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
                     print(f"Move: {last_move}")
                 
                 # Instructions for cursor navigation (pygame only)
-                if isinstance(player, HumanPlayer):
+                if isinstance(player, PlayerHuman):
                     print("\nControls:")
                     print("- Click to select a move")
                     print("- Press 'C' to toggle cursor navigation mode")
