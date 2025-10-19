@@ -17,66 +17,27 @@
 
 from Players.Player import Player
 from Players.HumanPlayer import HumanPlayer
-from Players.AIPlayer import AIPlayer
-from Players.AIPlayerBook import AIPlayerBook
-from Players.AIPlayerBitboard import AIPlayerBitboard
-from Players.AIPlayerBitboardBook import AIPlayerBitboardBook
-from Players.AIPlayerBitboardBookParallel import AIPlayerBitboardBookParallel
 from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
-from Players.Monkey import Monkey
-from Players.GreedyPlayer import GreedyPlayer
-from Players.HeuristicPlayer import HeuristicPlayer
-from Players.NetworkPlayer import NetworkPlayer
-from AI.MinimaxEngine import MinimaxEngine
-from AI.RandomEngine import RandomEngine
-from AI.HeuristicEngine import HeuristicEngine
-from AI.StandardEvaluator import StandardEvaluator
-from AI.SimpleEvaluator import SimpleEvaluator
-from AI.AdvancedEvaluator import AdvancedEvaluator
-from AI.GreedyEvaluator import GreedyEvaluator
 
 class PlayerFactory:
     """
-    Factory class for creating different types of players.
-    This makes it easy to add new player types and engines.
+    Factory class for creating players.
+    Focused on Grandmaster AI - the ultimate Reversi player.
     
     Player types are automatically discovered from their metadata.
     """
     
-    # Registry of all player classes (including disabled ones)
+    # Registry of all player classes
+    # Only Grandmaster is enabled in the menu
     ALL_PLAYER_CLASSES = [
-        HumanPlayer,
-        AIPlayer,
-        AIPlayerBook,
-        AIPlayerBitboard,
-        AIPlayerBitboardBook,
-        AIPlayerBitboardBookParallel,
-        AIPlayerGrandmaster,
-        HeuristicPlayer,
-        GreedyPlayer,
-        Monkey,
-        NetworkPlayer,  # Disabled by default
+        HumanPlayer,                     # Human player (disabled in menu, but available for API)
+        AIPlayerGrandmaster,             # The Grandmaster AI (enabled in menu)
     ]
     
     # Build registry from metadata
     PLAYER_TYPES = {
         cls.PLAYER_METADATA['display_name']: cls
         for cls in ALL_PLAYER_CLASSES
-    }
-    
-    # Registry of available AI engines
-    AI_ENGINES = {
-        'Minimax': MinimaxEngine,
-        'Random': RandomEngine,
-        'Heuristic': HeuristicEngine,
-    }
-    
-    # Registry of available evaluators
-    EVALUATORS = {
-        'Standard': StandardEvaluator,
-        'Simple': SimpleEvaluator,
-        'Advanced': AdvancedEvaluator,
-        'Greedy': GreedyEvaluator,
     }
     
     @classmethod
@@ -101,41 +62,19 @@ class PlayerFactory:
         return player_class(**kwargs)
     
     @classmethod
-    def create_ai_player(cls, engine_type='Minimax', difficulty=6, evaluator_type='Standard', **kwargs):
+    def create_grandmaster(cls, difficulty=9, weights=None, **kwargs):
         """
-        Create an AI player with the specified engine and evaluator.
+        Create a Grandmaster AI player.
         
         Args:
-            engine_type (str): Type of AI engine to use
-            difficulty (int): Difficulty level (depth for minimax)
-            evaluator_type (str): Type of evaluator to use
+            difficulty (int): Search depth (7-12 recommended, default 9)
+            weights: GrandmasterWeights instance for custom evaluation (None = default)
             **kwargs: Additional arguments for player creation
             
         Returns:
-            AIPlayer: The created AI player instance
-            
-        Raises:
-            ValueError: If engine type or evaluator type is not supported
+            AIPlayerGrandmaster: The created Grandmaster AI instance
         """
-        if engine_type not in cls.AI_ENGINES:
-            raise ValueError(f"Unsupported engine type: {engine_type}")
-        
-        if evaluator_type not in cls.EVALUATORS:
-            raise ValueError(f"Unsupported evaluator type: {evaluator_type}")
-        
-        # Create evaluator instance
-        evaluator_class = cls.EVALUATORS[evaluator_type]
-        evaluator = evaluator_class()
-        
-        # Create AI player with custom engine
-        player = AIPlayer(difficulty)
-        
-        # Replace the default engine with the specified one
-        engine_class = cls.AI_ENGINES[engine_type]
-        player.engine = engine_class(evaluator=evaluator)
-        player.name = f"{engine_type}AI{difficulty}"
-        
-        return player
+        return AIPlayerGrandmaster(deep=difficulty, weights=weights, **kwargs)
     
     @classmethod
     def get_available_player_types(cls):
@@ -190,16 +129,6 @@ class PlayerFactory:
         }
     
     @classmethod
-    def get_available_engines(cls):
-        """
-        Get list of available AI engines.
-        
-        Returns:
-            list: List of available engine type names
-        """
-        return list(cls.AI_ENGINES.keys())
-    
-    @classmethod
     def register_player_type(cls, name, player_class):
         """
         Register a new player type.
@@ -209,35 +138,3 @@ class PlayerFactory:
             player_class: Class that implements the player
         """
         cls.PLAYER_TYPES[name] = player_class
-    
-    @classmethod
-    def register_engine(cls, name, engine_class):
-        """
-        Register a new AI engine.
-        
-        Args:
-            name (str): Name of the engine
-            engine_class: Class that implements the engine
-        """
-        cls.AI_ENGINES[name] = engine_class
-    
-    @classmethod
-    def get_available_evaluators(cls):
-        """
-        Get list of available evaluators.
-        
-        Returns:
-            list: List of available evaluator type names
-        """
-        return list(cls.EVALUATORS.keys())
-    
-    @classmethod
-    def register_evaluator(cls, name, evaluator_class):
-        """
-        Register a new evaluator.
-        
-        Args:
-            name (str): Name of the evaluator
-            evaluator_class: Class that implements the evaluator
-        """
-        cls.EVALUATORS[name] = evaluator_class

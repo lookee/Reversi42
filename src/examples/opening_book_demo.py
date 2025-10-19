@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Demo: AIPlayerBook with Opening Book
+Demo: Grandmaster with Opening Book
 
-This demonstrates how the AIPlayerBook uses opening theory from the book
-and falls back to minimax when out of book.
+This demonstrates how the Grandmaster AI uses opening theory from the book
+and falls back to advanced search when out of book.
 """
 
 import sys
@@ -11,8 +11,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from Reversi.Game import Game, Move
-from Players.AIPlayerBook import AIPlayerBook
-from Players.AIPlayer import AIPlayer
+from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
 from AI.OpeningBook import get_default_opening_book
 
 def demo_opening_book():
@@ -53,22 +52,22 @@ def demo_opening_book():
                 print(f"   ... and {len(book_moves) - 5} more")
     print()
 
-def play_book_vs_standard():
-    """Play a game between AIPlayerBook and standard AIPlayer"""
+def play_grandmaster_mirror_match():
+    """Play a game between two Grandmaster players"""
     print("=" * 70)
-    print("GAME: AIPlayerBook vs Standard AI")
+    print("GAME: Grandmaster vs Grandmaster (Mirror Match)")
     print("=" * 70)
     print()
     
     game = Game(8)
     
-    # Create players
-    book_player = AIPlayerBook(deep=4)
-    standard_player = AIPlayer(deep=4)
+    # Create players - both Grandmaster but different depths
+    gm_black = AIPlayerGrandmaster(deep=5, show_book_options=False)
+    gm_white = AIPlayerGrandmaster(deep=5, show_book_options=False)
     
     players = {
-        'B': book_player,
-        'W': standard_player
+        'B': gm_black,
+        'W': gm_white
     }
     
     move_count = 0
@@ -109,15 +108,18 @@ def play_book_vs_standard():
     print("Game Statistics:")
     print("=" * 70)
     
-    # Show book player statistics
-    if hasattr(book_player, 'get_statistics'):
-        stats = book_player.get_statistics()
-        print(f"\n{book_player.name}:")
-        print(f"  Moves from book: {stats['moves_from_book']}")
-        print(f"  Moves from engine: {stats['moves_from_engine']}")
-        print(f"  Book usage: {stats['book_percentage']:.1f}%")
-        if stats['left_book_at_move']:
-            print(f"  Left book at move: {stats['left_book_at_move']}")
+    # Show player statistics
+    print(f"\n{gm_black.name} (Black):")
+    print(f"  Total moves: {gm_black.total_moves}")
+    print(f"  Book moves: {gm_black.book_hits}")
+    if gm_black.total_moves > 0:
+        print(f"  Book usage: {(gm_black.book_hits/gm_black.total_moves)*100:.1f}%")
+    
+    print(f"\n{gm_white.name} (White):")
+    print(f"  Total moves: {gm_white.total_moves}")
+    print(f"  Book moves: {gm_white.book_hits}")
+    if gm_white.total_moves > 0:
+        print(f"  Book usage: {(gm_white.book_hits/gm_white.total_moves)*100:.1f}%")
     
     print(f"\nFinal position:")
     print(f"  Black: {game.black_cnt}")
@@ -125,37 +127,38 @@ def play_book_vs_standard():
     print()
 
 def compare_book_performance():
-    """Compare AIPlayerBook vs standard AI performance"""
+    """Test Grandmaster with opening book performance"""
     print("=" * 70)
-    print("PERFORMANCE COMPARISON")
+    print("GRANDMASTER PERFORMANCE WITH OPENING BOOK")
     print("=" * 70)
     print()
     
     import time
     
     game = Game(8)
-    book_player = AIPlayerBook(deep=4)
+    grandmaster = AIPlayerGrandmaster(deep=5, show_book_options=False)
     
     # Play a few moves and time them
-    print("Testing first 5 moves with AIPlayerBook:")
+    print("Testing first 10 moves with Grandmaster:")
     print("-" * 70)
     
-    for i in range(5):
+    for i in range(10):
         moves = game.get_move_list()
         if not moves:
             break
         
         start = time.perf_counter()
-        move = book_player.get_move(game, moves, None)
+        move = grandmaster.get_move(game, moves, None)
         elapsed = time.perf_counter() - start
         
         if move:
             game.move(move)
-            print(f"Move {i+1}: {move} ({elapsed*1000:.2f}ms)")
+            is_book = "📚 BOOK" if grandmaster.book_hits > 0 and i < grandmaster.book_hits else "🧠 ENGINE"
+            print(f"Move {i+1}: {move} - {elapsed*1000:.2f}ms ({is_book})")
     
     print()
-    print("Book moves should be nearly instant (<<1ms)")
-    print("Engine moves typically take longer (>100ms)")
+    print("Book moves should be nearly instant (<<10ms)")
+    print("Engine moves take longer but are still very fast (10-500ms)")
     print()
 
 if __name__ == "__main__":
@@ -163,7 +166,7 @@ if __name__ == "__main__":
     demo_opening_book()
     print()
     
-    play_book_vs_standard()
+    play_grandmaster_mirror_match()
     print()
     
     compare_book_performance()

@@ -52,13 +52,14 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
         }
     }
     
-    def __init__(self, deep=9, show_book_options=True):
+    def __init__(self, deep=9, show_book_options=True, weights=None):
         """
         Initialize Grandmaster AI.
         
         Args:
             deep: Search depth (7-12 recommended, default 9)
             show_book_options: Show opening book information
+            weights: GrandmasterWeights instance for custom evaluation (None = default)
         """
         # Initialize parent (sets up opening book)
         # Don't call super().__init__ to avoid double engine creation
@@ -67,11 +68,12 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
         
         self.depth = deep
         self.deep = deep
+        self.weights = weights
         self.name = f"Grandmaster{deep}"
         self.show_book_options = show_book_options
         
         # Use Grandmaster engine (advanced strategy)
-        self.bitboard_engine = GrandmasterEngine()
+        self.bitboard_engine = GrandmasterEngine(weights=weights)
         
         # Standard engine as fallback
         from AI.MinimaxEngine import MinimaxEngine
@@ -99,6 +101,13 @@ class AIPlayerGrandmaster(AIPlayerBitboardBookParallel):
         print(f"  • Worker processes: {self.bitboard_engine.num_workers}")
         print(f"  • Opening book: {len(self.opening_book.opening_names)} sequences")
         print(f"  • {eval_filter_msg}")
+        
+        # Show weights configuration
+        if weights is not None:
+            print(f"  • Weights: CUSTOM ({weights.__class__.__name__})")
+        else:
+            print(f"  • Weights: DEFAULT (standard Grandmaster)")
+        
         print(f"\n  🧠 ADVANCED FEATURES ENABLED:")
         print(f"     ✅ Move Ordering (Corner/Edge/Mobility)")
         print(f"     ✅ Enhanced Evaluation (X-squares, Stability, Frontier)")

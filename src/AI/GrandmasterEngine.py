@@ -4,6 +4,7 @@
 #------------------------------------------------------------------------
 
 from AI.ParallelBitboardMinimaxEngine import ParallelBitboardMinimaxEngine, INFINITY
+from AI.GrandmasterWeights import GrandmasterWeights
 from Reversi.Game import Move
 import time
 
@@ -30,8 +31,11 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
     - Total: 3500-14000x vs standard AI
     """
     
-    def __init__(self, evaluator=None, num_workers=None):
+    def __init__(self, evaluator=None, num_workers=None, weights=None):
         super().__init__(evaluator, num_workers)
+        
+        # Evaluation weights - use custom or default
+        self.weights = weights if weights is not None else GrandmasterWeights()
         
         # Killer move heuristic - stores moves that caused cutoff
         self.killer_moves = {}  # {depth: [move1, move2]}
@@ -57,6 +61,7 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         self.futility_pruning = 0
         
         print(f"[GrandmasterEngine] Advanced strategy active!")
+        print(f"  • Weights: {self.weights}")
         print(f"  • Move ordering: Corner > Edge > Mobility")
         print(f"  • Evaluation: X-squares, Stability, Frontier, Parity")
         print(f"  • Killer moves: 2 per depth level")
@@ -110,17 +115,17 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
             
             bit_mask = 1 << bit
             
-            # 1. Corner: Maximum priority (+1000)
+            # 1. Corner: Maximum priority
             if bit_mask & corner_mask:
-                score += 1000
+                score += self.weights.move_order_corner
             
-            # 2. Stable edge: High priority (+500)
+            # 2. Stable edge: High priority
             elif bit_mask & stable_edge_mask:
-                score += 500
+                score += self.weights.move_order_edge
             
-            # 3. Center control: Medium priority (+100)
+            # 3. Center control: Medium priority
             elif bit_mask & center_mask:
-                score += 100
+                score += self.weights.move_order_center
             
             # 4. History heuristic: Add historical success score
             if move_key in self.history_table:
@@ -132,7 +137,7 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
                 opponent_moves = len(game.get_move_list())
                 game.undo_move()
                 # Fewer opponent moves = better for us
-                score -= opponent_moves * 15
+                score -= opponent_moves * self.weights.move_order_mobility_penalty
             except:
                 pass
             
@@ -180,17 +185,17 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         game.undo_move()
         
         if phase == 'midgame':
-            score += (my_mobility - opponent_mobility) * 15
+            score += (my_mobility - opponent_mobility) * self.weights.mobility_midgame
         elif phase == 'opening':
-            score += (my_mobility - opponent_mobility) * 10
+            score += (my_mobility - opponent_mobility) * self.weights.mobility_opening
         else:
-            score += (my_mobility - opponent_mobility) * 5
+            score += (my_mobility - opponent_mobility) * self.weights.mobility_endgame
         
         # 2. CORNER CONTROL (always critical)
         corner_mask = 0x8100000000000081  # a1, h1, a8, h8
         player_corners = game._count_bits(player & corner_mask)
         opponent_corners = game._count_bits(opponent & corner_mask)
-        score += (player_corners - opponent_corners) * 150
+        score += (player_corners - opponent_corners) * self.weights.corner_weight
         
         # 3. X-SQUARES PENALTY (adjacent to empty corners - very bad)
         x_square_penalties = [
@@ -210,9 +215,9 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
             if not corner_occupied:
                 # Corner empty - X-square is BAD
                 if player & x_mask_single:
-                    score -= 80  # Heavy penalty
+                    score -= self.weights.x_square_penalty  # Heavy penalty
                 if opponent & x_mask_single:
-                    score += 80  # Good for us
+                    score += self.weights.x_square_penalty  # Good for us
         
         # 4. STABILITY (pieces that cannot be flipped)
         # Simplified: corners are always stable
@@ -246,7 +251,7 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         
         player_stable_count = game._count_bits(stable_pieces)
         opponent_stable_count = game._count_bits(opponent_stable)
-        score += (player_stable_count - opponent_stable_count) * 40
+        score += (player_stable_count - opponent_stable_count) * self.weights.stability_weight
         
         # 5. FRONTIER DISCS (pieces with empty neighbors - bad in midgame)
         if phase == 'midgame':
@@ -265,29 +270,29 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
             opponent_frontier_count = game._count_bits(opponent_frontier & opponent)
             
             # Fewer frontier discs is better in midgame (more stable position)
-            score += (opponent_frontier_count - player_frontier_count) * 8
+            score += (opponent_frontier_count - player_frontier_count) * self.weights.frontier_weight
         
         # 6. EDGE CONTROL
         edge_mask = 0xFF818181818181FF
         player_edges = game._count_bits(player & edge_mask)
         opponent_edges = game._count_bits(opponent & edge_mask)
-        score += (player_edges - opponent_edges) * 10
+        score += (player_edges - opponent_edges) * self.weights.edge_weight
         
         # 7. PARITY (who makes last move - important in endgame)
         if phase == 'endgame':
             empty_count = 64 - piece_count
             # Even parity means we make last move (good)
             if empty_count % 2 == 0:
-                score += 25
+                score += self.weights.parity_favorable
             else:
-                score -= 10
+                score += self.weights.parity_unfavorable
         
         # 8. PIECE COUNT (only in endgame)
         if phase == 'endgame':
             if game.turn == 'B':
-                score += (game.black_cnt - game.white_cnt) * 20
+                score += (game.black_cnt - game.white_cnt) * self.weights.piece_count_weight
             else:
-                score += (game.white_cnt - game.black_cnt) * 20
+                score += (game.white_cnt - game.black_cnt) * self.weights.piece_count_weight
         
         return score
     

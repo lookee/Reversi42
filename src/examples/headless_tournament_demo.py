@@ -21,8 +21,8 @@ from Reversi.Game import Game
 from Board.BoardControl import BoardControl
 from ui.implementations.headless import HeadlessBoardView
 from ui.implementations.pygame.view import PygameBoardView
-from Players.AIPlayer import AIPlayer
-from Players.GreedyPlayer import GreedyPlayer
+from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
+from AI.GrandmasterWeights import AggressiveMobilityWeights, DefensiveStabilityWeights
 
 print("\n╔═══════════════════════════════════════════════════════════════╗")
 print("║       HEADLESS VIEW DEMO - PERFORMANCE COMPARISON             ║")
@@ -32,8 +32,8 @@ print("Comparing Pygame view vs Headless view performance...\n")
 
 # Test configuration
 num_games = 10
-ai1 = AIPlayer(deep=4)
-ai2 = GreedyPlayer()
+ai1 = AIPlayerGrandmaster(deep=5, show_book_options=False, weights=AggressiveMobilityWeights())
+ai2 = AIPlayerGrandmaster(deep=5, show_book_options=False, weights=DefensiveStabilityWeights())
 
 # Test 1: With Pygame view (graphics overhead)
 print(f"Test 1: {num_games} games with PygameBoardView (graphics enabled)")

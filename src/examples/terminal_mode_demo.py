@@ -20,7 +20,7 @@ from Reversi.Game import Game
 from Board.BoardControl import BoardControl
 from ui.implementations.terminal import TerminalBoardView
 from Players.HumanPlayer import HumanPlayer
-from Players.AIPlayer import AIPlayer
+from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
 
 print("\n╔═══════════════════════════════════════════════════════════════╗")
 print("║          REVERSI42 - TERMINAL MODE DEMONSTRATION              ║")
@@ -43,7 +43,7 @@ game = Game(8)
 
 # Create players
 human = HumanPlayer("You")
-ai = AIPlayer(deep=3)  # Easy AI for demo
+ai = AIPlayerGrandmaster(deep=5, show_book_options=False)  # Grandmaster AI
 
 print(f"\nPlayers: {human.name} (Black) vs {ai.name} (White)")
 print("\nNote: Full terminal gameplay requires input adaptation.")

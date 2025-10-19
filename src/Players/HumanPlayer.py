@@ -29,7 +29,7 @@ class HumanPlayer(Player):
     PLAYER_METADATA = {
         'display_name': 'Human Player',
         'description': 'You! Play with mouse or keyboard controls',
-        'enabled': True,
+        'enabled': True,  # Enabled in menu to allow playing as Black
         'parameters': []  # No configurable parameters
     }
 
