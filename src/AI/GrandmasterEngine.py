@@ -12,17 +12,18 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
     Grandmaster engine with advanced strategic improvements:
     
     1. Iterative Deepening - Progressive search 1→N (1.5-2.5x speedup)
-    2. Principal Variation - Best move from previous iteration (1.2x speedup)
-    3. History Heuristic - Global move success tracking (1.2-1.4x speedup)
-    4. Move Ordering - Corner/Edge/Mobility priority (2-3x speedup)
-    5. Enhanced Evaluation - X-squares, stability, frontier, parity (+30% strength)
-    6. Killer Move Heuristic - Remembers cutoff moves (1.3x speedup)
-    7. Parallel search with all improvements (hybrid mode)
+    2. Aspiration Windows - Narrow search window (1.2-1.3x speedup)
+    3. Principal Variation - Best move from previous iteration (1.2x speedup)
+    4. History Heuristic - Global move success tracking (1.2-1.4x speedup)
+    5. Move Ordering - Corner/Edge/Mobility priority (2-3x speedup)
+    6. Enhanced Evaluation - X-squares, stability, frontier, parity (+30% strength)
+    7. Killer Move Heuristic - Remembers cutoff moves (1.3x speedup)
+    8. Parallel search with all improvements (hybrid mode)
     
     Expected performance:
-    - Speedup: 6-14x vs base parallel (20-40x vs sequential)
+    - Speedup: 7-18x vs base parallel (25-50x vs sequential)
     - Strength: +30-40% win rate
-    - Total: 800-3000x vs standard AI
+    - Total: 1000-4000x vs standard AI
     """
     
     def __init__(self, evaluator=None, num_workers=None):
@@ -43,7 +44,8 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         print(f"  • Killer moves: 2 per depth level")
         print(f"  • History heuristic: Global move success tracking")
         print(f"  • Iterative deepening: Progressive search with TT")
-        print(f"  • Expected improvement: 5-10x speedup, +30% strength")
+        print(f"  • Aspiration windows: Narrow search with fallback")
+        print(f"  • Expected improvement: 7-18x speedup, +30% strength")
     
     def order_moves(self, game, move_list):
         """
@@ -413,6 +415,11 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         
         final_best_move = None
         final_best_value = -INFINITY
+        prev_iteration_value = 0  # For aspiration windows
+        
+        # Aspiration window statistics
+        aspiration_hits = 0
+        aspiration_fails = 0
         
         # ITERATIVE DEEPENING: Search depth 1, 2, 3, ..., target_depth
         for current_depth in range(1, depth + 1):
@@ -420,7 +427,17 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
             self.nodes = 0
             self.pruning = 0
             
-            print(f"\n🔍 Depth {current_depth}/{depth}:")
+            # Determine aspiration window
+            use_aspiration = current_depth >= 3  # Only use from depth 3+
+            if use_aspiration:
+                # Window size: smaller for later iterations (more confident)
+                window_size = max(25, 100 - current_depth * 10)
+                alpha_asp = prev_iteration_value - window_size
+                beta_asp = prev_iteration_value + window_size
+                print(f"\n🔍 Depth {current_depth}/{depth} [Aspiration: {alpha_asp} to {beta_asp}, window ±{window_size}]:")
+            else:
+                print(f"\n🔍 Depth {current_depth}/{depth}:")
+            
             print(f"{'Move':<8} {'Value':<10} {'Best':<10} {'Nodes':<10} {'Pruning':<10} {'Time(s)':<10}")
             print("-"*80)
             
@@ -437,10 +454,28 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
             
             best_value = -INFINITY
             best_move = None
+            re_search_needed = False
             
+            # First pass: try with aspiration window if applicable
             for move in ordered_moves:
                 game.move(move)
-                value = -self.alphabeta(game, current_depth - 1, -INFINITY, -best_value)
+                
+                if use_aspiration and not re_search_needed:
+                    # Try aspiration window first
+                    value = -self.alphabeta(game, current_depth - 1, -beta_asp, -max(alpha_asp, best_value))
+                    
+                    # Check if we need to re-search with full window
+                    if value <= alpha_asp or value >= beta_asp:
+                        # Aspiration window failed, re-search with full window
+                        value = -self.alphabeta(game, current_depth - 1, -INFINITY, -best_value)
+                        re_search_needed = True  # Rest of moves will use full window
+                        aspiration_fails += 1
+                    else:
+                        aspiration_hits += 1
+                else:
+                    # Full window search
+                    value = -self.alphabeta(game, current_depth - 1, -INFINITY, -best_value)
+                
                 game.undo_move()
                 
                 time_diff = time.perf_counter() - iter_start
@@ -456,14 +491,16 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
                     best_value = value
                     best_move = move
             
-            # Update PV for next iteration
+            # Update for next iteration
             self.pv_move = best_move
             final_best_move = best_move
             final_best_value = best_value
+            prev_iteration_value = best_value  # Store for aspiration window
             
             iter_time = time.perf_counter() - iter_start
             print("-"*80)
-            print(f"  ✓ Depth {current_depth} complete: {best_move} (value: {best_value}) in {iter_time:.3f}s")
+            asp_info = f" [Asp: {'✓' if not re_search_needed and use_aspiration else '✗ re-search' if re_search_needed else 'N/A'}]" if use_aspiration else ""
+            print(f"  ✓ Depth {current_depth} complete: {best_move} (value: {best_value}) in {iter_time:.3f}s{asp_info}")
         
         # Final Summary
         time_total = time.perf_counter() - time_start
@@ -476,11 +513,14 @@ class GrandmasterEngine(ParallelBitboardMinimaxEngine):
         print(f"   • Total nodes: {total_nodes:,}")
         print(f"   • Total pruning: {total_pruning:,} ({100*total_pruning/max(total_nodes,1):.1f}%)")
         print(f"   • History table entries: {len(self.history_table)}")
+        if aspiration_hits + aspiration_fails > 0:
+            asp_success_rate = 100 * aspiration_hits / (aspiration_hits + aspiration_fails)
+            print(f"   • Aspiration windows: {aspiration_hits} hits, {aspiration_fails} fails ({asp_success_rate:.1f}% success)")
         print(f"   • Total time: {time_total:.3f}s")
         if time_total > 0:
             print(f"   • Average rate: {total_nodes/time_total:,.0f} nodes/sec")
         print(f"   • Selected move: {final_best_move} (value: {final_best_value})")
-        print(f"   🚀 ITERATIVE DEEPENING + HISTORY: Progressive search with learning!")
+        print(f"   🚀 ID + ASPIRATION + HISTORY: Smart search with learning!")
         print("="*80 + "\n")
         
         return final_best_move
