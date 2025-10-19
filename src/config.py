@@ -17,9 +17,9 @@ class GameConfig:
     
     # Players
     DEFAULT_BLACK_PLAYER = "Human Player"
-    DEFAULT_WHITE_PLAYER = "Parallel Oracle"
+    DEFAULT_WHITE_PLAYER = "Grandmaster"
     DEFAULT_BLACK_DEPTH = 5
-    DEFAULT_WHITE_DEPTH = 5  # Parallel Oracle optimal depth
+    DEFAULT_WHITE_DEPTH = 6  # Grandmaster level 6
     
     # Opening Book
     OPENING_BOOK_ENABLED = True
