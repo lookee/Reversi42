@@ -38,19 +38,19 @@ class MenuConfig:
     DEFAULT_HEIGHT = 600
     WINDOW_TITLE = "Reversi42 v3.0.0 - Menu"
     
-    # Menu colors
-    BG_COLOR = (20, 50, 30)           # Dark green background
-    TITLE_COLOR = (255, 255, 255)     # White title
-    TEXT_COLOR = (200, 200, 200)      # Light gray text
-    SELECTED_COLOR = (255, 255, 0)    # Yellow for selection
-    HIGHLIGHT_COLOR = (100, 150, 100) # Light green for highlight
+    # Menu colors (matching header elegant green)
+    BG_COLOR = (0, 65, 50)            # Elegant dark green (same as header)
+    TITLE_COLOR = (230, 240, 235)     # Off-white title (matching header text)
+    TEXT_COLOR = (200, 220, 210)      # Light green-gray text
+    SELECTED_COLOR = (255, 215, 0)    # Gold for selection (matching header accent)
+    HIGHLIGHT_COLOR = (0, 80, 60)     # Slightly lighter green (matching header accent)
     
-    # Font sizes (scaled for 800x600)
-    TITLE_FONT_SIZE = 64
-    SUBTITLE_FONT_SIZE = 20
-    MENU_FONT_SIZE = 32
-    PLAYER_FONT_SIZE = 24   # Smaller for long names
-    SMALL_FONT_SIZE = 18
+    # Font sizes (enlarged for better visibility)
+    TITLE_FONT_SIZE = 80        # Enlarged from 64
+    SUBTITLE_FONT_SIZE = 24     # Enlarged from 20
+    MENU_FONT_SIZE = 40         # Enlarged from 32
+    PLAYER_FONT_SIZE = 32       # Enlarged from 24
+    SMALL_FONT_SIZE = 22        # Enlarged from 18
     
     # Menu items
     MENU_ITEMS = [
@@ -110,12 +110,12 @@ class Colors:
     # Hoshi and grid
     HOSHI = (20, 70, 55)            # Subtle dark teal
     
-    # Menu colors
-    MENU_BG = (20, 50, 30)          # Dark green menu background
-    MENU_TITLE = (255, 255, 255)    # White title
-    MENU_TEXT = (200, 200, 200)     # Light gray text
-    MENU_SELECTED = (255, 255, 0)   # Yellow selection
-    MENU_HIGHLIGHT = (100, 150, 100) # Light green highlight
+    # Menu colors (matching header elegant green)
+    MENU_BG = (0, 65, 50)           # Elegant dark green (same as header)
+    MENU_TITLE = (230, 240, 235)    # Off-white title (matching header text)
+    MENU_TEXT = (200, 220, 210)     # Light green-gray text
+    MENU_SELECTED = (255, 215, 0)   # Gold selection (matching header accent)
+    MENU_HIGHLIGHT = (0, 80, 60)    # Slightly lighter green (matching header accent)
     
     # Header colors (tournament style)
     HEADER_BG = (0, 65, 50)         # Dark forest green

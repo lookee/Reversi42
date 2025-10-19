@@ -91,10 +91,10 @@ class PygameBoardView(AbstractBoardView):
         self.score_font = pygame.font.Font(None, 52)  # Large scores
         self.label_font = pygame.font.Font(None, 20)  # Small labels
         
-        # Header colors (elegant dark green, professional)
-        self.header_bg = (0, 65, 50)  # Dark forest green (darker than board)
-        self.header_accent = (0, 85, 65)  # Slightly lighter green for accents
-        self.header_text = (230, 235, 230)  # Off-white text
+        # Header colors (elegant dark green, darker than board)
+        self.header_bg = (0, 65, 50)  # Elegant dark green (darker than board)
+        self.header_accent = (0, 80, 60)  # Slightly lighter green for accents
+        self.header_text = (230, 240, 235)  # Off-white text
         self.header_label = (160, 180, 170)  # Soft mint labels
         self.turn_indicator = (255, 215, 0)  # Gold dot for active player
         
@@ -475,44 +475,50 @@ class PygameBoardView(AbstractBoardView):
         self.screen.blit(s, (posx - center, posy - center))
     
     def setCanMoveBook(self, bx, by, opening_count=0):
-        """Draw opening book move with golden highlighting, glow, and count badge"""
-        radius = int((self.stepy-10) // 4)
+        """Draw opening book move as simple circle with number"""
         posx = int(self.marginx + self.stepx * bx + self.stepx // 2)
         posy = int(self.marginy + self.stepy * by + self.stepy // 2)
         
         self.unfillBox(bx, by)
         
-        surf_size = radius * 4
-        s = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
-        center = surf_size // 2
-        
-        # Draw golden circle with glow effect
-        pygame.draw.circle(s, (*self.bookMoveColor, 200), (center, center), radius)
-        
-        # Add golden glow rings
-        for i in range(1, 5):
-            alpha = 200 - i * 40
-            if alpha > 0:
-                pygame.draw.circle(s, (*self.bookMoveColor, alpha), (center, center), radius + i, 2)
-        
-        self.screen.blit(s, (posx - center, posy - center))
-        
-        # Draw opening count badge if provided
+        # Draw opening count badge
         if opening_count > 0:
-            # Small badge in top-right of the circle
-            badge_font = pygame.font.Font(None, 16)
+            # Simple circle with number (no glow, no effects)
             count_text = str(opening_count) if opening_count < 100 else "99+"
             
-            # Background circle for badge
-            badge_radius = 10
-            badge_x = posx + radius - 5
-            badge_y = posy - radius + 5
+            # Adaptive font and radius based on text length
+            if len(count_text) == 1:
+                # Single digit: large font
+                badge_font = pygame.font.Font(None, 32)
+                base_radius = 18
+            elif len(count_text) == 2:
+                # Two digits: medium font
+                badge_font = pygame.font.Font(None, 28)
+                base_radius = 20
+            else:
+                # Three digits (99+): smaller font
+                badge_font = pygame.font.Font(None, 24)
+                base_radius = 22
             
-            # Draw badge background (darker for contrast)
+            # Measure actual text size to ensure fit
+            text_surface_test = badge_font.render(count_text, True, self.bookMoveColor)
+            text_width, text_height = text_surface_test.get_size()
+            
+            # Ensure radius is large enough to contain text (with 5px margin)
+            min_radius = max(text_width, text_height) // 2 + 5
+            badge_radius = max(base_radius, min_radius)
+            
+            # Center the badge on the cell
+            badge_x = posx
+            badge_y = posy
+            
+            # Draw simple circle with border
+            # Background circle (dark)
             pygame.draw.circle(self.screen, (40, 40, 40), (badge_x, badge_y), badge_radius)
-            pygame.draw.circle(self.screen, self.bookMoveColor, (badge_x, badge_y), badge_radius, 2)
+            # Gold border
+            pygame.draw.circle(self.screen, self.bookMoveColor, (badge_x, badge_y), badge_radius, 3)
             
-            # Draw count text
+            # Draw number (centered, no shadow)
             text_surface = badge_font.render(count_text, True, self.bookMoveColor)
             text_rect = text_surface.get_rect(center=(badge_x, badge_y))
             self.screen.blit(text_surface, text_rect)

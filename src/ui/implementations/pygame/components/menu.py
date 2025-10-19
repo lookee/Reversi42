@@ -158,14 +158,11 @@ class Menu:
         title_rect = title_text.get_rect(center=(self.width//2, 50))
         self.screen.blit(title_text, title_rect)
         
-        # Subtitle
-        subtitle_text = self.subtitle_font.render("v3.1.0 - Tournament & Documentation", True, self.text_color)
-        subtitle_rect = subtitle_text.get_rect(center=(self.width//2, 90))
-        self.screen.blit(subtitle_text, subtitle_rect)
+        # Subtitle removed - no version text
         
-        # Menu items with compact layout for 800x600
-        start_y = 130
-        item_spacing = 50
+        # Menu items with enlarged layout
+        start_y = 120  # Moved up since no subtitle
+        item_spacing = 60  # Increased spacing for larger fonts
         
         for i, item in enumerate(self.menu_items):
             is_selected = i == self.current_selection
@@ -229,7 +226,8 @@ class Menu:
             value_text = value_text[:32] + "..."
         
         # Use smaller font for player names to fit better
-        value_surface = self.player_font.render(value_text, True, self.highlight_color if is_selected else self.text_color)
+        # Use gold color for selection instead of green for better contrast
+        value_surface = self.player_font.render(value_text, True, self.selected_color if is_selected else self.text_color)
         value_rect = value_surface.get_rect(center=(self.width//2, y_pos + 10))
         self.screen.blit(value_surface, value_rect)
     
@@ -259,10 +257,39 @@ class Menu:
         else:
             options = [f"Level {d}" for d in self.difficulties]
         
-        # Calculate how many items fit on screen
-        start_y = 120
-        option_spacing = 50  # Compact for 800x600
+        # Calculate how many items fit on screen (dynamic spacing for descriptions)
+        start_y = 160  # Moved down to avoid overlap with "More above"
+        base_option_spacing = 50  # Base spacing for items without descriptions
+        description_spacing = 35  # Additional spacing per description line
         available_height = self.height - start_y - 60  # Reserve space for instructions
+        
+        # Calculate dynamic spacing based on longest description
+        max_desc_lines = 1
+        if "player" in self.submenu_type:
+            for option in options:
+                if option in self.player_descriptions:
+                    desc = self.player_descriptions[option]
+                    # Calculate how many lines this description would need
+                    max_chars_per_line = 70
+                    words = desc.split()
+                    lines = []
+                    current_line = ""
+                    
+                    for word in words:
+                        if len(current_line + word + " ") <= max_chars_per_line:
+                            current_line += word + " "
+                        else:
+                            if current_line:
+                                lines.append(current_line.strip())
+                            current_line = word + " "
+                    
+                    if current_line:
+                        lines.append(current_line.strip())
+                    
+                    max_desc_lines = max(max_desc_lines, len(lines))
+        
+        # Use dynamic spacing based on description length
+        option_spacing = base_option_spacing + (max_desc_lines - 1) * description_spacing
         max_visible = available_height // option_spacing
         
         # Scrolling: show items around current selection
@@ -273,35 +300,55 @@ class Menu:
             visible_options = list(enumerate(options))[start_idx:end_idx]
             
             # Show scroll indicators (no Unicode to avoid rendering issues)
+            # Use a lighter green color for better visibility on dark green background
+            scroll_color = (120, 200, 150)  # Light mint green for better contrast
             if start_idx > 0:
-                arrow_up = self.small_font.render("^ More above", True, self.highlight_color)
-                self.screen.blit(arrow_up, (self.width//2 - 50, start_y - 35))
+                arrow_up = self.small_font.render("^ More above", True, scroll_color)
+                self.screen.blit(arrow_up, (self.width//2 - 50, start_y - 60))  # Moved higher
             if end_idx < len(options):
-                arrow_down = self.small_font.render("v More below", True, self.highlight_color)
+                arrow_down = self.small_font.render("v More below", True, scroll_color)
                 self.screen.blit(arrow_down, (self.width//2 - 50, self.height - 70))
         else:
             visible_options = list(enumerate(options))
         
         # Draw visible options
+        scroll_color = (120, 200, 150)  # Light mint green for consistency
         for display_idx, (actual_idx, option) in enumerate(visible_options):
             is_selected = actual_idx == self.submenu_selection
             y_pos = start_y + display_idx * option_spacing
             
-            # Player name
+            # Player name - use gold when selected, normal text color otherwise
             color = self.selected_color if is_selected else self.text_color
             option_text = self.menu_font.render(option, True, color)
             option_rect = option_text.get_rect(center=(self.width//2, y_pos))
             self.screen.blit(option_text, option_rect)
             
-            # Show description for player types (compact version)
+            # Show description for player types (multi-line version)
             if "player" in self.submenu_type and option in self.player_descriptions:
                 desc = self.player_descriptions[option]
-                # Truncate long descriptions for 800px width
-                if len(desc) > 60:
-                    desc = desc[:57] + "..."
-                desc_text = self.small_font.render(desc, True, self.highlight_color if is_selected else self.text_color)
-                desc_rect = desc_text.get_rect(center=(self.width//2, y_pos + 18))
-                self.screen.blit(desc_text, desc_rect)
+                
+                # Split long descriptions into multiple lines
+                max_chars_per_line = 70  # Increased for 800px width
+                words = desc.split()
+                lines = []
+                current_line = ""
+                
+                for word in words:
+                    if len(current_line + word + " ") <= max_chars_per_line:
+                        current_line += word + " "
+                    else:
+                        if current_line:
+                            lines.append(current_line.strip())
+                        current_line = word + " "
+                
+                if current_line:
+                    lines.append(current_line.strip())
+                
+                # Draw each line of description - use mint green when selected (like More above/below)
+                for line_idx, line in enumerate(lines):
+                    desc_text = self.small_font.render(line, True, scroll_color if is_selected else self.text_color)
+                    desc_rect = desc_text.get_rect(center=(self.width//2, y_pos + 18 + line_idx * 16))
+                    self.screen.blit(desc_text, desc_rect)
         
         # Instructions at bottom
         instructions = "Arrows: Navigate | ENTER: Select | ESC: Back"

@@ -31,14 +31,14 @@ class PauseMenu:
         self.width = self.screen.get_width()
         self.height = self.screen.get_height()
         
-        # Colors
-        self.overlay_color = (0, 0, 0, 180)  # Semi-transparent black
-        self.bg_color = (20, 50, 30)
-        self.title_color = (255, 255, 255)
-        self.text_color = (200, 200, 200)
-        self.selected_color = (255, 255, 0)
-        self.button_color = (100, 150, 100)
-        self.button_hover_color = (120, 180, 120)
+        # Colors (matching header elegant green)
+        self.overlay_color = (0, 100, 0, 180)  # Semi-transparent board green
+        self.bg_color = (0, 65, 50)           # Elegant dark green (same as header)
+        self.title_color = (230, 240, 235)     # Off-white title (matching header text)
+        self.text_color = (200, 220, 210)     # Light green-gray text
+        self.selected_color = (255, 215, 0)   # Gold selection (matching header accent)
+        self.button_color = (0, 80, 60)        # Slightly lighter green (matching header accent)
+        self.button_hover_color = (0, 100, 75) # Even lighter green for hover
         
         # Fonts
         pygame.font.init()
@@ -56,21 +56,32 @@ class PauseMenu:
         self.current_selection = 0
     
     def draw(self):
-        """Draw the pause menu overlay"""
-        # Create semi-transparent overlay
-        overlay = pygame.Surface((self.width, self.height))
-        overlay.set_alpha(180)
-        overlay.fill((0, 0, 0))
-        self.screen.blit(overlay, (0, 0))
+        """Draw the pause menu as a clean window centered over the board"""
+        # No overlay - just draw the window directly over the board
         
-        # Draw pause menu box
+        # Calculate board center position
+        # Board starts after header and coordinates
+        header_height = 80  # Approximate header height
+        coord_margin = 25   # Space for coordinates
+        board_start_x = coord_margin
+        board_start_y = header_height + coord_margin
+        board_width = self.width - coord_margin * 2
+        board_height = self.height - header_height - coord_margin * 2
+        
+        # Center the menu over the board
         menu_width = 450
         menu_height = 400
-        menu_x = (self.width - menu_width) // 2
-        menu_y = (self.height - menu_height) // 2
+        menu_x = board_start_x + (board_width - menu_width) // 2
+        menu_y = board_start_y + (board_height - menu_height) // 2
         
-        # Draw menu background
+        # Draw menu background with shadow effect
         menu_rect = pygame.Rect(menu_x, menu_y, menu_width, menu_height)
+        
+        # Shadow
+        shadow_rect = pygame.Rect(menu_x + 5, menu_y + 5, menu_width, menu_height)
+        pygame.draw.rect(self.screen, (0, 0, 0, 100), shadow_rect, border_radius=15)
+        
+        # Main window
         pygame.draw.rect(self.screen, self.bg_color, menu_rect, border_radius=15)
         pygame.draw.rect(self.screen, self.title_color, menu_rect, 3, border_radius=15)
         

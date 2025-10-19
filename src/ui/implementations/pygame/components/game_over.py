@@ -35,14 +35,14 @@ class GameOver:
         
         pygame.display.set_caption("Reversi42 - Game Over")
         
-        # Colors
-        self.bg_color = (20, 50, 30)
-        self.title_color = (255, 255, 255)
-        self.winner_color = (255, 215, 0)  # Gold
-        self.text_color = (200, 200, 200)
-        self.button_color = (100, 150, 100)
-        self.button_hover_color = (120, 180, 120)
-        self.button_text_color = (255, 255, 255)
+        # Colors (matching header elegant green)
+        self.bg_color = (0, 65, 50)           # Elegant dark green (same as header)
+        self.title_color = (230, 240, 235)     # Off-white title (matching header text)
+        self.winner_color = (255, 215, 0)      # Gold (matching header accent)
+        self.text_color = (200, 220, 210)      # Light green-gray text
+        self.button_color = (0, 80, 60)        # Slightly lighter green (matching header accent)
+        self.button_hover_color = (0, 100, 75) # Even lighter green for hover
+        self.button_text_color = (230, 240, 235) # Off-white text (matching header text)
         
         # Fonts
         pygame.font.init()

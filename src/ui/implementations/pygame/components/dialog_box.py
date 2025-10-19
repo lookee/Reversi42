@@ -28,13 +28,13 @@ class TextInputDialog:
         self.cursor_visible = True
         self.cursor_timer = 0
         
-        # Colors
+        # Colors (matching header elegant green)
         self.overlay_color = (0, 0, 0, 200)
-        self.bg_color = (20, 50, 30)
-        self.title_color = (255, 255, 255)
-        self.text_color = (200, 200, 200)
-        self.input_bg_color = (40, 70, 50)
-        self.cursor_color = (255, 255, 0)
+        self.bg_color = (0, 65, 50)           # Elegant dark green (same as header)
+        self.title_color = (230, 240, 235)    # Off-white title (matching header text)
+        self.text_color = (200, 220, 210)     # Light green-gray text
+        self.input_bg_color = (0, 80, 60)     # Slightly lighter green (matching header accent)
+        self.cursor_color = (255, 215, 0)     # Gold cursor (matching header accent)
         
         # Fonts
         pygame.font.init()
