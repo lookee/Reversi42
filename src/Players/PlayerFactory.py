@@ -17,7 +17,6 @@
 
 from Players.Player import Player
 from Players.HumanPlayer import HumanPlayer
-from Players.AIPlayerGrandmaster import AIPlayerGrandmaster
 from Players.PlayerApocalyptron import PlayerApocalyptron
 
 class PlayerFactory:
@@ -29,11 +28,10 @@ class PlayerFactory:
     """
     
     # Registry of all player classes
-    # Apocalyptron is the featured AI (Grandmaster kept for compatibility)
+    # Apocalyptron is the ultimate AI
     ALL_PLAYER_CLASSES = [
         HumanPlayer,                     # Human player (disabled in menu, but available for API)
         PlayerApocalyptron,              # ⚡ Apocalyptron - The ultimate AI (enabled in menu)
-        AIPlayerGrandmaster,             # Legacy Grandmaster AI (enabled for compatibility)
     ]
     
     # Build registry from metadata
@@ -81,7 +79,10 @@ class PlayerFactory:
     @classmethod
     def create_grandmaster(cls, difficulty=9, weights=None, **kwargs):
         """
-        Create a Grandmaster AI player (legacy - use create_apocalyptron instead).
+        Create a Grandmaster AI player (legacy alias for create_apocalyptron).
+        
+        Note: This method is kept for backwards compatibility.
+        Grandmaster AI has been replaced by Apocalyptron.
         
         Args:
             difficulty (int): Search depth (7-12 recommended, default 9)
@@ -89,9 +90,9 @@ class PlayerFactory:
             **kwargs: Additional arguments for player creation
             
         Returns:
-            AIPlayerGrandmaster: The created Grandmaster AI instance
+            PlayerApocalyptron: The created Apocalyptron AI instance
         """
-        return AIPlayerGrandmaster(deep=difficulty, weights=weights, **kwargs)
+        return PlayerApocalyptron(depth=difficulty, weights=weights, **kwargs)
     
     @classmethod
     def get_available_player_types(cls):

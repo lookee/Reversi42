@@ -15,7 +15,6 @@ This is the fully refactored version with SOLID architecture.
 """
 
 from Players.Player import Player
-from AI.GrandmasterWeights import GrandmasterWeights
 
 
 class PlayerApocalyptron(Player):
@@ -73,7 +72,7 @@ class PlayerApocalyptron(Player):
         Args:
             depth: Search depth (7-12 recommended, default 9)
             show_book_options: Show opening book information
-            weights: GrandmasterWeights instance for custom evaluation (None = default)
+            weights: EvaluationWeights instance for custom evaluation (None = default)
         """
         # Don't call super().__init__() to avoid double initialization message
         # Instead, initialize directly (same as AIPlayerGrandmaster but with Apocalyptron branding)
@@ -97,31 +96,10 @@ class PlayerApocalyptron(Player):
         
         # Override weights if provided
         if weights:
-            # Convert GrandmasterWeights to EvaluationWeights
-            from AI.Apocalyptron.weights import EvaluationWeights
-            eval_weights = EvaluationWeights()
-            eval_weights.mobility_opening = weights.mobility_opening
-            eval_weights.mobility_midgame = weights.mobility_midgame
-            eval_weights.mobility_endgame = weights.mobility_endgame
-            eval_weights.corner_weight = weights.corner_weight
-            eval_weights.x_square_penalty = weights.x_square_penalty
-            eval_weights.stability_weight = weights.stability_weight
-            eval_weights.frontier_weight = weights.frontier_weight
-            eval_weights.edge_weight = weights.edge_weight
-            eval_weights.parity_favorable = weights.parity_favorable
-            eval_weights.parity_unfavorable = weights.parity_unfavorable
-            eval_weights.piece_count_weight = weights.piece_count_weight
-            eval_weights.move_order_corner = weights.move_order_corner
-            eval_weights.move_order_edge = weights.move_order_edge
-            eval_weights.move_order_center = weights.move_order_center
-            eval_weights.move_order_mobility_penalty = weights.move_order_mobility_penalty
-            engine_config.weights = eval_weights
+            # Use provided EvaluationWeights directly
+            engine_config.weights = weights
         
         self.bitboard_engine = ApocalyptronEngine(config=engine_config)
-        
-        # Standard engine as fallback
-        from AI.MinimaxEngine import MinimaxEngine
-        self.standard_engine = MinimaxEngine()
         
         # Load opening book
         from AI.OpeningBook import get_default_opening_book
@@ -316,11 +294,8 @@ class PlayerApocalyptron(Player):
                 if move and game.valid_move(move):
                     return move
         except Exception as e:
-            print(f"⚠️  Bitboard error: {e}, falling back to standard engine")
-        
-        # Fallback to standard engine
-        move = self.standard_engine.get_best_move(game, self.deep, player_name=self.name)
-        return move
+            print(f"❌ Apocalyptron error: {e}")
+            raise  # Re-raise exception instead of falling back
     
     def _get_game_history(self, game):
         """Extract game move history"""
