@@ -22,18 +22,23 @@ class OpeningBook:
     much faster than comparing against all book lines.
     """
     
-    def __init__(self, book_path=None):
+    # Opening evaluation constants (parametric)
+    ADVANTAGE_WEIGHT = 0.2  # Base weight for advantage evaluation
+    
+    def __init__(self, book_path=None, advantage_weight=0.2):
         """
         Initialize the opening book.
         
         Args:
             book_path: Path to the opening book file. If None, uses default.
+            advantage_weight: Weight for advantage evaluation (default: 0.2)
         """
         self.root = TrieNode()
         self.book_path = book_path
         self.lines_loaded = 0
         self.opening_names = {}  # Map: move_sequence -> opening_name
         self.opening_advantages = {}  # Map: move_sequence -> advantage (=, w, w+, w++, b, b+, b++)
+        self.advantage_weight = advantage_weight  # Parametric weight for evaluations
         
         if book_path and os.path.exists(book_path):
             self._load_book(book_path)
@@ -420,6 +425,141 @@ class OpeningBook:
             'description': description,
             'numeric_value': numeric_value
         }
+    
+    def evaluate_advantage_for_player(self, advantage, player_color):
+        """
+        Evaluate an advantage symbol for a specific player color.
+        
+        Args:
+            advantage: Advantage string ('=', 'b', 'b+', 'b++', 'w', 'w+', 'w++', or None)
+            player_color: 'B' for Black, 'W' for White
+        
+        Returns:
+            Float score based on advantage_weight
+            Positive = good for player, Negative = bad for player
+        """
+        if not advantage or advantage == '=':
+            return 0.0
+        
+        # Define multipliers
+        # b = better for White (in FFO notation)
+        # w = better for Black (in FFO notation)
+        multipliers = {
+            'b': 1,
+            'b+': 2,
+            'b++': 4,
+            'w': 1,
+            'w+': 2,
+            'w++': 4,
+        }
+        
+        if advantage not in multipliers:
+            return 0.0
+        
+        multiplier = multipliers[advantage]
+        base_score = self.advantage_weight * multiplier
+        
+        # Apply sign based on advantage type and player color
+        if player_color == 'B':  # Black player
+            # w = good for Black, b = bad for Black
+            if advantage.startswith('w'):
+                return base_score  # Positive
+            else:  # starts with 'b'
+                return -base_score  # Negative
+        else:  # White player
+            # b = good for White, w = bad for White
+            if advantage.startswith('b'):
+                return base_score  # Positive
+            else:  # starts with 'w'
+                return -base_score  # Negative
+    
+    def evaluate_move_openings(self, game_history, available_moves, player_color):
+        """
+        Evaluate all available moves based on their opening advantages.
+        
+        Args:
+            game_history: Current move sequence
+            available_moves: List of Move objects
+            player_color: 'B' for Black, 'W' for White
+        
+        Returns:
+            Dict: {move_str: {'score': float, 'openings': int, 'details': [(advantage, opening_name), ...]}}
+        """
+        evaluations = {}
+        
+        for move in available_moves:
+            move_str = str(move).upper()
+            
+            # Get all openings for this move
+            test_history = game_history.upper() + move_str
+            
+            # Find all openings and their advantages
+            opening_scores = []
+            total_score = 0.0
+            openings_count = 0
+            
+            for sequence, name in self.opening_names.items():
+                sequence_upper = sequence.upper()
+                if sequence_upper.startswith(test_history):
+                    # Get advantage for this opening
+                    advantage = self.opening_advantages.get(sequence)
+                    score = self.evaluate_advantage_for_player(advantage, player_color)
+                    
+                    opening_scores.append((advantage if advantage else '=', name, score))
+                    total_score += score
+                    openings_count += 1
+            
+            evaluations[move_str] = {
+                'score': total_score,
+                'openings': openings_count,
+                'details': opening_scores
+            }
+        
+        return evaluations
+    
+    def get_best_opening_move(self, game_history, available_moves, player_color, show_details=False):
+        """
+        Get the best move based on opening evaluation.
+        
+        Args:
+            game_history: Current move sequence
+            available_moves: List of Move objects
+            player_color: 'B' for Black, 'W' for White
+            show_details: If True, print evaluation details
+        
+        Returns:
+            Best Move object (or random choice if tie)
+        """
+        import random
+        
+        evaluations = self.evaluate_move_openings(game_history, available_moves, player_color)
+        
+        if show_details:
+            print(f"\n📊 Opening Evaluation (advantage_weight={self.advantage_weight}):")
+            print(f"   Player: {'Black' if player_color == 'B' else 'White'}\n")
+            
+            # Sort by score descending
+            sorted_evals = sorted(evaluations.items(), key=lambda x: x[1]['score'], reverse=True)
+            
+            for move_str, eval_data in sorted_evals:
+                score = eval_data['score']
+                openings = eval_data['openings']
+                sign = '+' if score >= 0 else ''
+                print(f"   {move_str}: {sign}{score:.2f} ({openings} opening(s))")
+        
+        # Find best score
+        if not evaluations:
+            return random.choice(available_moves) if available_moves else None
+        
+        best_score = max(eval_data['score'] for eval_data in evaluations.values())
+        
+        # Get all moves with best score (handle ties)
+        best_moves = [
+            move for move in available_moves
+            if evaluations[str(move).upper()]['score'] == best_score
+        ]
+        
+        return random.choice(best_moves) if best_moves else random.choice(available_moves)
     
     def get_statistics(self):
         """Get statistics about the loaded book"""

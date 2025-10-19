@@ -171,9 +171,12 @@ class AIPlayerBitboardBook(Player):
                 print(f"\n⚡ Using book move (instant response)")
                 print(f"{'='*80}\n")
             
-            # Return random book move if multiple available (adds variety)
+            # Use intelligent selection based on opening evaluation
             if len(book_moves) > 1:
-                chosen_move = random.choice(book_moves)
+                # Evaluate and choose best move
+                chosen_move = self.opening_book.get_best_opening_move(
+                    game_history, book_moves, game.turn, show_details=self.show_book_options
+                )
                 if self.show_book_options:
                     # Show selected opening and advantage
                     test_history = game_history + str(chosen_move).upper() if game.turn == 'B' else game_history + str(chosen_move).lower()
