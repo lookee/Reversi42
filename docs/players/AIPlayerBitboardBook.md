@@ -25,15 +25,29 @@ class AIPlayerBitboardBook(Player):
 ## Key Features
 
 ### 1. Dual-Power System
-- **Opening Book** (Moves 1-12): Instant, perfect responses
-- **Bitboard Search** (Moves 13+): Ultra-fast deep analysis
+- **Opening Book** (Moves 1-15): Intelligent HYBRID selection
+- **Bitboard Search** (Moves 16+): Ultra-fast deep analysis
 - Seamless transition between modes
+- Always-present opening tracking
 
-### 2. Master-Level Opening Theory
-- 57 professional opening sequences
-- Instant responses (no computation)
-- Multiple variations for variety
-- Educational opening information
+### 2. Master-Level Opening Theory with HYBRID Evaluation
+- **644+ professional opening sequences**
+  - FFO Repertoire: 586 C4-openings with advantage data
+  - PointyStone3: 57 F5-openings for variety
+  - Automatic loading from `Books/` directory
+- **HYBRID Selection Strategy**:
+  - Formula: `Score = AVERAGE + VARIETY_BONUS`
+  - Maximizes theoretical advantage quality
+  - Rewards tactical flexibility
+- **Intelligent Evaluation**:
+  - advantage_weight = 0.2 (configurable)
+  - variety_weight = 0.1 (configurable)
+  - Adapts to player color (Black/White)
+- **Visual Feedback**:
+  - Shows detected opening with advantage
+  - Displays remaining openings count
+  - Groups by available moves
+  - "Out of book" notifications
 
 ### 3. Bitboard Performance
 - 50-100x faster than standard AI

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `AIPlayerBook` combines opening book knowledge with minimax search. It consults a database of 57 professional opening sequences for instant, tournament-level early game play, then seamlessly transitions to standard minimax search when out of book.
+The `AIPlayerBook` combines opening book knowledge with minimax search. It consults a database of 644+ professional opening sequences for instant, tournament-level early game play, then seamlessly transitions to standard minimax search when out of book. The opening book uses HYBRID evaluation for intelligent move selection.
 
 ## Class Definition
 
@@ -16,25 +16,38 @@ class AIPlayerBook(Player):
 
 ## Key Features
 
-### 1. Opening Book Integration
-- 57 professional opening sequences
-- Trie-based O(m) position lookup
-- Instant responses in known positions
-- Multiple variations supported
+### 1. Opening Book Integration with HYBRID Evaluation
+- **644+ professional opening sequences**
+  - FFO Repertoire: 586 C4-openings with advantage data
+  - PointyStone3: 57 F5-openings for tactical variety
+  - Automatic loading from `Books/` directory
+- **HYBRID Selection Strategy**:
+  - Formula: `Score = AVERAGE + VARIETY_BONUS`
+  - Intelligent move selection (not random!)
+  - Adapts to player color
+- **Trie-based O(m) position lookup**
+- **Instant responses** in known positions
+- **Multiple variations** supported
 
 ### 2. Intelligent Fallback
 - Seamless transition to minimax when out of book
 - No performance penalty at transition
 - Tracks when leaving book for statistics
+- Shows "Out of book" notifications
 
-### 3. Random Selection
-- Multiple book moves → random choice
-- Adds unpredictability
-- Explores different variations
+### 3. HYBRID Selection (Not Random!)
+- Evaluates all book moves by advantage + variety
+- Chooses best theoretical move
+- Configurable parameters:
+  - `advantage_weight = 0.2`
+  - `variety_weight = 0.1`
+  - `only_evaluated_openings = True`
 
 ### 4. Opening Information Display
-- Shows current opening name
-- Lists available continuations
+- Shows current/following opening name
+- Displays advantage with evaluation score
+- Lists remaining openings count `[X in book]`
+- Groups by available moves
 - Educational feedback during play
 
 ## How It Works
