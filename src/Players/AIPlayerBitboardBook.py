@@ -101,26 +101,46 @@ class AIPlayerBitboardBook(Player):
             if self.show_book_options:
                 # Show opening book information
                 current_opening = self.opening_book.get_current_opening_name(game_history)
-                all_openings_with_first = self.opening_book.get_opening_names_with_first_move(game_history)
                 
                 print(f"\n{'='*80}")
                 print(f"📚 OPENING BOOK - {self.name}")
                 print(f"{'='*80}")
                 
+                # Show current opening status
                 if current_opening:
                     print(f"Current opening: {current_opening}")
-                else:
-                    print(f"Following {len(all_openings_with_first)} opening(s)")
                 
                 # Show available book moves
                 print(f"\nAvailable book moves: {', '.join(str(m) for m in book_moves)}")
                 
-                if len(all_openings_with_first) > 1:
-                    print(f"\nPossible openings at current position:")
-                    for first_move, opening_name in all_openings_with_first[:10]:
-                        print(f"  • {first_move}: {opening_name}")
-                    if len(all_openings_with_first) > 10:
-                        print(f"  ... and {len(all_openings_with_first) - 10} more")
+                # Group openings by next move
+                grouped = self.opening_book.get_openings_grouped_by_next_move(game_history, book_moves)
+                
+                if len(grouped) > 0:
+                    print(f"\nPossible openings grouped by move:")
+                    
+                    # Show ALL moves, but limit openings per move
+                    max_per_move = 4  # Show max 4 openings per move
+                    total_openings = 0
+                    
+                    for move_str in sorted(grouped.keys()):
+                        openings_with_first = grouped[move_str]
+                        total_openings += len(openings_with_first)
+                        
+                        print(f"\n  {move_str}: ({len(openings_with_first)} opening(s))")
+                        
+                        # Show first few openings with their first move
+                        shown = 0
+                        for first_move, opening_name in openings_with_first[:max_per_move]:
+                            print(f"    • {first_move}: {opening_name}")
+                            shown += 1
+                        
+                        if len(openings_with_first) > max_per_move:
+                            remaining = len(openings_with_first) - max_per_move
+                            print(f"    ... and {remaining} more")
+                    
+                    if len(grouped) > 1:
+                        print(f"\n  Total: {total_openings} openings across {len(grouped)} move(s)")
                 
                 print(f"\nShowing where each move leads:\n")
                 

@@ -319,6 +319,32 @@ class OpeningBook:
         
         return openings_info
     
+    def get_openings_grouped_by_next_move(self, game_history, available_moves):
+        """
+        Get openings grouped by the next available move.
+        
+        Args:
+            game_history: Current move sequence
+            available_moves: List of Move objects that are currently valid
+        
+        Returns:
+            Dict: {move_str: [(first_move, opening_name), ...]}
+        """
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        
+        for move in available_moves:
+            move_str = str(move).upper()
+            
+            # Get openings that include this next move
+            openings = self.get_openings_with_first_move(game_history, move)
+            
+            # Add to group for this move
+            for first_move, opening_name in openings:
+                grouped[move_str].append((first_move, opening_name))
+        
+        return grouped
+    
     def get_opening_advantage(self, game_history):
         """
         Get the advantage evaluation for the current opening.
