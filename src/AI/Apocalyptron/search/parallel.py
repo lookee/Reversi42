@@ -1,15 +1,17 @@
 """
-Parallel Search Decorator.
+Parallel Search Decorator with Observer Pattern.
 
 Wraps sequential search to add root-level parallelization.
 Distributes root moves across worker processes for speedup.
+Uses observers for output separation.
 
 Extracted from GrandmasterEngine._get_best_move_parallel_ordered and
 ParallelBitboardMinimaxEngine (lines 776-920 and parallel engine).
 """
 
 from multiprocessing import Pool, cpu_count
-from typing import Optional
+from typing import Optional, List
+from AI.Apocalyptron.observers.interfaces import SearchObserver
 import time
 import copy
 
@@ -81,7 +83,7 @@ class ParallelSearch:
     def __init__(self, base_search, num_workers: Optional[int] = None,
                  parallel_threshold_depth: int = 7,
                  parallel_threshold_moves: int = 4,
-                 verbose: bool = True):
+                 observers: Optional[List[SearchObserver]] = None):
         """
         Initialize parallel search.
         
@@ -90,13 +92,15 @@ class ParallelSearch:
             num_workers: Number of worker processes (None = auto)
             parallel_threshold_depth: Min depth for parallel (default: 7)
             parallel_threshold_moves: Min moves for parallel (default: 4)
-            verbose: Print search progress
+            observers: List of observers (inherits from base_search if None)
         """
         self.base_search = base_search
         self.num_workers = num_workers or max(1, cpu_count() - 1)
         self.parallel_threshold_depth = parallel_threshold_depth
         self.parallel_threshold_moves = parallel_threshold_moves
-        self.verbose = verbose
+        
+        # Use base_search observers if not provided
+        self.observers = observers if observers is not None else base_search.observers
         
         # Worker pool (lazy init)
         self._pool = None
@@ -163,44 +167,29 @@ class ParallelSearch:
         """
         time_start = time.perf_counter()
         
-        if self.verbose:
-            print("\n" + "="*80)
-            engine_name = "APOCALYPTRON AI"
-            if player_name:
-                print(f"🧠 {engine_name} (HYBRID) - {player_name} ({self.num_workers} cores)")
-            else:
-                print(f"🧠 {engine_name} (HYBRID) - {self.num_workers} cores")
-            
-            current_move = game.turn_cnt + 1
-            max_moves = game.cells_cnt
-            progress_pct = (current_move / max_moves) * 100
-            print(f"Move: {current_move}/{max_moves} ({progress_pct:.1f}% complete)")
-            print(f"Target depth: {depth} (Sequential 1-{depth-1}, Parallel {depth})")
-            print("="*80)
+        # Notify: Search start (hybrid mode)
+        for observer in self.observers:
+            observer.on_search_start(depth, player_name, game, mode="hybrid")
         
         # Phase 1: Iterative deepening sequentially up to depth-1
-        if depth > 1 and self.verbose:
-            print(f"\n📈 Phase 1: Iterative deepening (depths 1-{depth-1})...")
+        # (Phase 1 notifications handled by base_search observers)
         
         # Use base search for depths 1 to depth-1 (builds TT, PV, history)
         if depth > 1:
-            # Temporarily disable verbose for intermediate depths
-            original_verbose = self.base_search.verbose
-            self.base_search.verbose = False
+            # Use quiet observers for intermediate depths
+            from AI.Apocalyptron.observers.quiet import QuietObserver
+            original_observers = self.base_search.observers
+            self.base_search.observers = [QuietObserver()]
             
             for current_depth in range(1, depth):
                 self.base_search.get_best_move(game, current_depth, player_name=None)
-                
-                if self.verbose:
-                    best_move = self.base_search.pv_orderer.pv_move if self.base_search.pv_orderer else None
-                    nodes = self.base_search.alphabeta.nodes
-                    print(f"  Depth {current_depth}: {best_move} ({nodes:,} nodes)")
             
-            self.base_search.verbose = original_verbose
+            self.base_search.observers = original_observers
         
         # Phase 2: Parallel search at final depth
-        if self.verbose:
-            print(f"\n⚡ Phase 2: Parallel search at depth {depth}...")
+        # Notify: Parallel phase start
+        for observer in self.observers:
+            observer.on_parallel_phase_start(depth, self.num_workers)
         
         parallel_start = time.perf_counter()
         
@@ -215,10 +204,6 @@ class ParallelSearch:
         results = pool.map(_evaluate_move_worker, work_items)
         
         # Process results
-        if self.verbose:
-            print(f"\n{'Move':<8} {'Value':<10} {'Nodes':<12} {'Pruning':<10}")
-            print("-"*50)
-        
         best_move = None
         best_value = -999999
         total_nodes = 0
@@ -230,9 +215,9 @@ class ParallelSearch:
             
             is_best = value > best_value or best_move is None
             
-            if self.verbose:
-                move_str = f"⭐{move}" if is_best else f"  {move}"
-                print(f"{move_str:<8} {value:>8d}   {nodes:>10,}   {pruning:>8,}")
+            # Notify: Parallel result
+            for observer in self.observers:
+                observer.on_parallel_result(move, value, is_best, nodes, pruning)
             
             if value > best_value or best_move is None:
                 best_value = value
@@ -241,61 +226,20 @@ class ParallelSearch:
         parallel_time = time.perf_counter() - parallel_start
         time_total = time.perf_counter() - time_start
         
-        # Final summary
-        if self.verbose:
-            self._print_parallel_summary(depth, best_move, best_value, total_nodes,
-                                        total_pruning, parallel_time, time_total,
-                                        opening_book, game_history, game)
+        # Notify: Search complete (with parallel-specific statistics)
+        stats = self.base_search.alphabeta.get_statistics() if hasattr(self.base_search, 'alphabeta') else {}
+        stats['depth'] = depth
+        stats['nodes'] = total_nodes
+        stats['pruning'] = total_pruning
+        stats['parallel_time'] = parallel_time
+        stats['total_time'] = time_total
+        stats['num_workers'] = self.num_workers
+        
+        for observer in self.observers:
+            observer.on_search_complete(best_move, best_value, stats, time_total,
+                                       opening_book, game_history, game)
         
         return best_move
-    
-    def _print_parallel_summary(self, depth, best_move, best_value, total_nodes,
-                               total_pruning, parallel_time, time_total,
-                               opening_book, game_history, game):
-        """Print parallel search summary"""
-        print("\n" + "="*80)
-        print(f"🤖 HYBRID ITERATIVE DEEPENING + PARALLEL SUMMARY:")
-        
-        # Opening book info
-        if opening_book and game_history:
-            current_opening = opening_book.get_current_opening_name(game_history)
-            all_openings = opening_book.get_remaining_openings(game_history)
-            
-            if current_opening:
-                advantage = opening_book.get_opening_advantage(game_history)
-                if advantage and advantage != '=':
-                    eval_score = opening_book.evaluate_advantage_for_player(advantage, game.turn)
-                    desc, _ = opening_book.interpret_advantage(advantage)
-                    sign = '+' if eval_score >= 0 else ''
-                    print(f"   • Opening: {current_opening} [{advantage}] - {desc} ({sign}{eval_score:.2f})")
-                else:
-                    print(f"   • Opening: {current_opening}")
-            elif len(all_openings) > 0:
-                openings_preview = ', '.join(sorted(all_openings)[:3])
-                if len(all_openings) > 3:
-                    print(f"   • Following: {openings_preview} ...")
-                else:
-                    print(f"   • Following: {openings_preview}")
-            
-            if len(all_openings) > 0:
-                print(f"   • Openings in book: {len(all_openings)} available")
-        
-        print(f"   • Final depth: {depth}")
-        print(f"   • Workers (final depth): {self.num_workers} cores")
-        print(f"   • Parallel nodes: {total_nodes:,}")
-        print(f"   • Parallel pruning: {total_pruning:,} ({100*total_pruning/max(total_nodes,1):.1f}%)")
-        
-        stats = self.base_search.alphabeta.get_statistics()
-        if 'history_entries' in stats:
-            print(f"   • History table entries: {stats['history_entries']}")
-        
-        print(f"   • Parallel time: {parallel_time:.3f}s")
-        print(f"   • Total time: {time_total:.3f}s")
-        if time_total > 0:
-            print(f"   • Overall rate: {total_nodes/time_total:,.0f} nodes/sec")
-        print(f"   • Selected move: {best_move} (value: {best_value})")
-        print(f"   🚀 HYBRID: Iterative deepening + history + parallel power!")
-        print("="*80 + "\n")
     
     def __del__(self):
         """Cleanup on destruction"""

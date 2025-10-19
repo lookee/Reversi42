@@ -13,7 +13,7 @@ from AI.Apocalyptron.observers.console import ConsoleObserver
 import time
 
 
-class IterativeDeepeningSearch:
+class IterativeDeepeningSearchWithObservers:
     """
     Iterative deepening with Observer Pattern.
     

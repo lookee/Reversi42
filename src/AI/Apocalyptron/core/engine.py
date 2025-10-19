@@ -69,12 +69,15 @@ class ApocalyptronEngine:
             enable_multi_cut=self.config.enable_multi_cut_pruning
         )
         
+        # Setup observers based on config
+        self.observers = self._build_observers()
+        
         # Wrap with iterative deepening
         if self.config.use_iterative_deepening:
             self.search = IterativeDeepeningSearch(
                 self.alphabeta,
                 use_aspiration=self.config.use_aspiration_windows,
-                verbose=self.config.show_search_output
+                observers=self.observers
             )
         else:
             self.search = self.alphabeta
@@ -86,7 +89,7 @@ class ApocalyptronEngine:
                 num_workers=self.config.num_workers,
                 parallel_threshold_depth=self.config.parallel_threshold_depth,
                 parallel_threshold_moves=self.config.parallel_threshold_moves,
-                verbose=self.config.show_search_output
+                observers=self.observers
             )
         else:
             self.parallel_search = self.search
@@ -130,6 +133,15 @@ class ApocalyptronEngine:
         orderer.add_orderer(PositionalOrderer(self.weights))
         
         return orderer
+    
+    def _build_observers(self):
+        """Build observers based on configuration"""
+        from AI.Apocalyptron.observers import ConsoleObserver, QuietObserver
+        
+        if self.config.show_search_output:
+            return [ConsoleObserver()]
+        else:
+            return [QuietObserver()]
     
     def get_best_move(self, game, depth: int, player_name: str = None,
                      opening_book=None, game_history: str = None):
