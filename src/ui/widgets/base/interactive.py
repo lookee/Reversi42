@@ -67,15 +67,12 @@ class Clickable:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if hasattr(self, "contains_point") and self.contains_point(event.pos[0], event.pos[1]):
                 self.pressed = True
+                # Trigger immediately on mouse down for faster response
+                self._trigger_click()
                 return True
 
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            if hasattr(self, "contains_point") and self.contains_point(event.pos[0], event.pos[1]):
-                if self.pressed:
-                    # Click completed
-                    self.pressed = False
-                    self._trigger_click()
-                    return True
+            # Reset pressed state on mouse up
             self.pressed = False
 
         return False

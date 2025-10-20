@@ -190,6 +190,9 @@ class Menu:
         self.main_menu_widget.add(opening_btn)
 
         # Help, About, Quit
+        # Bottom buttons in HBox with explicit positioning
+        button_row = HBox([], spacing=20)
+        
         help_btn = Button(
             "Help",
             x=0,
@@ -220,8 +223,11 @@ class Menu:
             color=(60, 40, 40),
             text_color=MenuConfig.TEXT_COLOR,
         )
-
-        button_row = HBox([help_btn, about_btn, quit_btn], spacing=20)
+        
+        button_row.add(help_btn)
+        button_row.add(about_btn)
+        button_row.add(quit_btn)
+        
         self.main_menu_widget.add(button_row)
 
         # Center everything
@@ -324,7 +330,7 @@ class Menu:
         self.help_widget.border_color = MenuConfig.TITLE_COLOR
 
         # Title
-        title = Label("Help", x=20, y=20, font_size=48, color=MenuConfig.TITLE_COLOR)
+        title = Label("Help", x=60, y=20, font_size=48, color=MenuConfig.TITLE_COLOR)
         self.help_widget.add(title)
 
         # Help text (multiline)
@@ -342,14 +348,14 @@ class Menu:
 
         y_pos = 80
         for line in help_lines:
-            label = Label(line, x=30, y=y_pos, font_size=24, color=MenuConfig.TEXT_COLOR)
+            label = Label(line, x=80, y=y_pos, font_size=24, color=MenuConfig.TEXT_COLOR)
             self.help_widget.add(label)
             y_pos += 35
 
         # Back button
         back_btn = Button(
             "Back",
-            x=30,
+            x=80,
             y=self.height - 150,
             width=150,
             height=40,
@@ -366,7 +372,7 @@ class Menu:
         self.about_widget.border_color = MenuConfig.TITLE_COLOR
 
         # Title
-        title = Label("About Reversi42", x=20, y=20, font_size=48, color=MenuConfig.TITLE_COLOR)
+        title = Label("About Reversi42", x=60, y=20, font_size=48, color=MenuConfig.TITLE_COLOR)
         self.about_widget.add(title)
 
         # About text
@@ -385,14 +391,14 @@ class Menu:
 
         y_pos = 90
         for line in about_lines:
-            label = Label(line, x=30, y=y_pos, font_size=24, color=MenuConfig.TEXT_COLOR)
+            label = Label(line, x=80, y=y_pos, font_size=24, color=MenuConfig.TEXT_COLOR)
             self.about_widget.add(label)
             y_pos += 35
 
         # Back button
         back_btn = Button(
             "Back",
-            x=30,
+            x=80,
             y=self.height - 150,
             width=150,
             height=40,
@@ -489,8 +495,8 @@ class Menu:
         Returns:
             dict with player selections or None if quit
         """
-        # Show splash
-        self.show_splash_screen()
+        # Show splash (disabled for faster startup)
+        # self.show_splash_screen()
 
         # Build initial menu
         self._build_main_menu()

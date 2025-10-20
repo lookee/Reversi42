@@ -47,21 +47,26 @@ class PauseMenu:
 
     def _build_ui(self):
         """Build UI using widgets"""
+        # Import MenuConfig for consistent colors
+        from core.config import MenuConfig
+        
         # Menu container (centered panel)
         menu_width = 450
-        menu_height = 400
+        menu_height = 450
         menu_x = (self.width - menu_width) // 2
         menu_y = (self.height - menu_height) // 2
 
         self.container = Panel(menu_x, menu_y, menu_width, menu_height)
         self.container.background_color = self.bg_color
-        self.container.border_color = (230, 240, 235)
+        self.container.border_color = MenuConfig.TITLE_COLOR
 
-        # Title
-        title = Label("GAME PAUSED", x=20, y=30, font_size=56, color=(230, 240, 235))
+        # Title (centered in panel)
+        title = Label("GAME PAUSED", x=0, y=30, font_size=56, color=MenuConfig.TITLE_COLOR)
+        # Center title horizontally
+        title.x = (menu_width - 300) // 2
         self.container.add(title)
 
-        # Menu items (buttons)
+        # Menu items (buttons) - centered in panel
         menu_items = [
             ("Resume Game", "resume"),
             ("Save Game", "save"),
@@ -69,22 +74,24 @@ class PauseMenu:
             ("Return to Menu", "menu"),
             ("Exit Game", "exit"),
         ]
-
-        y_pos = 120
+        
+        button_width = 300
+        button_x = (menu_width - button_width) // 2  # Center buttons horizontally
+        y_pos = 130
+        
         for text, action in menu_items:
             btn = Button(
                 text,
-                x=75,
+                x=button_x,
                 y=y_pos,
-                width=300,
-                height=40,
+                width=button_width,
+                height=45,
                 on_click=lambda a=action: setattr(self, "result", a),
-                color=(0, 80, 60),
-                text_color=(200, 220, 210),
-                hover_color=(255, 215, 0),
+                color=(40, 40, 50),
+                text_color=MenuConfig.TEXT_COLOR,
             )
             self.container.add(btn)
-            y_pos += 50
+            y_pos += 55
 
     def draw(self):
         """Draw the pause menu"""

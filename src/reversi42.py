@@ -203,6 +203,10 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
     if view_class is None:
         view_class = globals().get("SELECTED_VIEW_CLASS", PygameBoardView)
 
+    # Handle None menu_result (e.g., when loading game)
+    if menu_result is None:
+        menu_result = {}
+    
     show_opening = menu_result.get("show_opening", True)  # Default True
 
     # Load opening book if show_opening is enabled
@@ -243,21 +247,38 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
     PlayerFactory.set_board_control(c)
 
     # Check if players are already created (terminal mode) or need creation (menu mode)
-    if isinstance(menu_result.get("black_player"), str):
+    if loaded_game_data and "black_player" in loaded_game_data and "white_player" in loaded_game_data:
+        # Loaded game - use saved player info to recreate players
+        black_player_name = loaded_game_data["black_player"]
+        white_player_name = loaded_game_data["white_player"]
+        
+        # Try to determine player types from names (default to Human if unknown)
+        # Use PlayerFactory to create players with proper InputProvider injection
+        players = {
+            "B": PlayerFactory.create_player("Human Player", board_control=c),
+            "W": PlayerFactory.create_player("Human Player", board_control=c),
+        }
+    elif "black_player" in menu_result and isinstance(menu_result.get("black_player"), str):
         # Menu mode - players are type strings, need to create them
         black_player_type = menu_result["black_player"]
         white_player_type = menu_result["white_player"]
-        black_difficulty = menu_result["black_difficulty"]
-        white_difficulty = menu_result["white_difficulty"]
+        black_difficulty = menu_result.get("black_difficulty")
+        white_difficulty = menu_result.get("white_difficulty")
 
         # Create players (PlayerFactory will inject InputProvider for human players!)
         players = {
             "B": create_player(black_player_type, black_difficulty),
             "W": create_player(white_player_type, white_difficulty),
         }
-    else:
+    elif "black_player" in menu_result and menu_result.get("black_player") is not None:
         # Terminal mode - players are already created objects
         players = {"B": menu_result["black_player"], "W": menu_result["white_player"]}
+    else:
+        # Fallback: create default Human players using PlayerFactory
+        players = {
+            "B": PlayerFactory.create_player("Human Player", board_control=c),
+            "W": PlayerFactory.create_player("Human Player", board_control=c),
+        }
 
     # Set opening book in BoardControl if enabled
     if opening_book:
@@ -779,7 +800,8 @@ def main():
             menu = Menu()
             result = menu.run()
 
-            if result == "exit":
+            # Menu returns None when user quits
+            if result is None:
                 keep_running = False
                 continue
 
