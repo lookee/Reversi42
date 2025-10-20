@@ -56,6 +56,7 @@ For contributors and developers extending Reversi42.
 ### Technical Deep Dives
 - [**Bitboard Implementation**](architecture/bitboard.md) - Bitboard technical details ⭐ NEW
 - [**Apocalyptron Engine**](architecture/apocalyptron-engine.md) - Ultimate AI deep dive ⭐ NEW
+- [**UI Layout System**](architecture/ui-layout-system.md) - Bootstrap-like layout primitives ⭐ NEW
 - [**System Overview**](architecture/system-overview.md) - Complete system architecture ⭐ NEW
 - [**Design Principles**](architecture/design-principles.md) - Architectural principles ⭐ NEW
 - [**Data Flow**](architecture/data-flow.md) - Data flow diagrams ⭐ NEW
@@ -181,12 +182,12 @@ External resources and references.
 
 ## 📊 Documentation Statistics
 
-- **Total documentation files**: 35+ (and growing!)
-- **Lines of documentation**: 10,000+
+- **Total documentation files**: 36+ (and growing!)
+- **Lines of documentation**: 11,000+
 - **User guides**: 4 complete, 4 planned
 - **Developer guides**: 1 complete, 6 planned
 - **API references**: 2 complete, 5 planned
-- **Architecture docs**: 8 complete ✅
+- **Architecture docs**: 9 complete ✅
 - **Deployment guides**: 1 complete, 6 planned
 - **Root docs**: 5 complete ✅ (CONTRIBUTING, SECURITY, CHANGELOG, etc.)
 

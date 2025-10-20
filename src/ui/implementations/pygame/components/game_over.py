@@ -10,17 +10,17 @@
 # ------------------------------------------------------------------------
 
 """
-GameOver Screen - Refactored using Widget System
+GameOver Screen - Refactored using Bootstrap-like Layout System
 
-Reduces from 221 LoC → ~50 LoC by using reusable widgets!
+Super clean with Stack primitive!
 
-Design Pattern: Composite (Panel + Labels + Buttons)
+Design Pattern: Composite + Bootstrap-like Layout
 """
 
 import pygame
 
-from ui.widgets.base import HBox, VBox
-from ui.widgets.primitives import Button, Label, Panel
+from ui.widgets.base import Stack, HBox, Center
+from ui.widgets.primitives import Button, Label, Title
 
 
 class GameOver:
@@ -62,17 +62,17 @@ class GameOver:
         self._build_ui()
 
     def _build_ui(self):
-        """Build UI using widgets"""
-        center_x = self.width // 2
-
-        # Main container
-        self.container = VBox([], x=0, y=80, width=self.width, height=self.height - 80, spacing=30)
-
-        # Title
-        title = Label("GAME OVER", x=0, y=0, font_size=72, color=(230, 240, 235))
-        self.container.add(title)
-
-        # Winner announcement
+        """Build UI using Bootstrap-like Stack - ULTRA CLEAN!"""
+        
+        # === LAYOUT COMPLETO ===
+        # Stack verticale centrato con tutto
+        layout = Stack(gap=30, align="center", justify="center")
+        layout.set_size(self.width, self.height)
+        
+        # Title - auto-centered with Title()!
+        layout.add(Title("GAME OVER", font_size=72))
+        
+        # Winner announcement - auto-centered!
         if self.winner == "Draw":
             winner_text = "IT'S A DRAW!"
             winner_color = (200, 220, 210)
@@ -82,35 +82,34 @@ class GameOver:
         else:
             winner_text = f"{self.white_player_name} WINS!"
             winner_color = (255, 215, 0)
-
-        winner = Label(winner_text, x=0, y=0, font_size=56, color=winner_color)
-        self.container.add(winner)
-
-        # Scores
+        
+        winner_label = Label(winner_text, font_size=56, color=winner_color)
+        winner_label.center_in_parent = True
+        layout.add(winner_label)
+        
+        # Scores - auto-centered!
         black_label = Label(
             f"{self.black_player_name}: {self.black_score}",
-            x=0,
-            y=0,
             font_size=42,
             color=(200, 220, 210),
         )
+        black_label.center_in_parent = True
+        
         white_label = Label(
             f"{self.white_player_name}: {self.white_score}",
-            x=0,
-            y=0,
             font_size=42,
             color=(200, 220, 210),
         )
-        self.container.add(black_label)
-        self.container.add(white_label)
-
-        # Buttons
-        button_container = HBox([], x=0, y=0, spacing=40)
-
+        white_label.center_in_parent = True
+        
+        layout.add(black_label)
+        layout.add(white_label)
+        
+        # Buttons row
+        buttons = HBox(spacing=40, align="center")
+        
         menu_btn = Button(
             "Menu",
-            x=0,
-            y=0,
             width=200,
             height=50,
             on_click=lambda: setattr(self, "result", "menu"),
@@ -119,21 +118,18 @@ class GameOver:
         )
         exit_btn = Button(
             "Exit",
-            x=0,
-            y=0,
             width=200,
             height=50,
             on_click=lambda: setattr(self, "result", "exit"),
             color=(0, 80, 60),
             text_color=(230, 240, 235),
         )
-
-        button_container.add(menu_btn)
-        button_container.add(exit_btn)
-        self.container.add(button_container)
-
-        # Center container
-        self.container.rect.centerx = center_x
+        
+        buttons.add(menu_btn)
+        buttons.add(exit_btn)
+        layout.add(buttons)
+        
+        self.container = layout
 
     def draw(self):
         """Draw the screen"""

@@ -151,41 +151,58 @@ class VBox(Container):
         for child in self.children:
             max_width = max(max_width, child.rect.width)
 
+        # Use container width if explicitly set, otherwise use calculated max_width
+        container_inner_width = max(max_width, self.rect.width - 2 * self.padding) if self.rect.width > 0 else max_width
+
         # Second pass: position children with alignment
         for child in self.children:
-            if self.align == "center":
-                child_x = self.padding + (max_width - child.rect.width) // 2
+            # Check if child wants to be centered in parent (overrides align)
+            if hasattr(child, 'center_in_parent') and child.center_in_parent:
+                child_x = self.padding + (container_inner_width - child.rect.width) // 2
+            elif self.align == "center":
+                child_x = self.padding + (container_inner_width - child.rect.width) // 2
             elif self.align == "right":
-                child_x = self.padding + max_width - child.rect.width
+                child_x = self.padding + container_inner_width - child.rect.width
             else:  # left
                 child_x = self.padding
             
             child.set_position(child_x, current_y)
             current_y += child.rect.height + self.spacing
 
-        # Update container size
+        # Update container size only if not explicitly set
         if self.children:
-            self.set_size(max_width + 2 * self.padding, current_y - self.spacing + self.padding)
+            # Keep width if already set, otherwise calculate it
+            new_width = self.rect.width if self.rect.width > 0 else (max_width + 2 * self.padding)
+            new_height = current_y - self.spacing + self.padding
+            self.set_size(new_width, new_height)
 
 
 class HBox(Container):
     """
     Horizontal box layout container.
 
-    Arranges children horizontally with configurable spacing.
+    Arranges children horizontally with configurable spacing and alignment.
     """
 
-    def __init__(self, children: Optional[List[Widget]] = None, spacing: int = 5, **kwargs):
+    def __init__(
+        self, 
+        children: Optional[List[Widget]] = None, 
+        spacing: int = 5, 
+        align: str = "top",
+        **kwargs
+    ):
         """
         Initialize HBox.
 
         Args:
             children: List of child widgets
             spacing: Space between children
+            align: Vertical alignment - "top", "center", "bottom"
             **kwargs: Additional arguments (x, y, width, height) - set as attributes
         """
         super().__init__()
         self.spacing = spacing
+        self.align = align
         
         # Support legacy x, y, width, height parameters
         for key, value in kwargs.items():
@@ -203,18 +220,38 @@ class HBox(Container):
         self._layout()
 
     def _layout(self):
-        """Calculate horizontal layout."""
+        """Calculate horizontal layout with alignment."""
         current_x = self.padding
         max_height = 0
 
+        # First pass: calculate max height
         for child in self.children:
-            child.set_position(current_x, self.padding)
-            current_x += child.rect.width + self.spacing
             max_height = max(max_height, child.rect.height)
 
-        # Update container size
+        # Use container height if explicitly set, otherwise use calculated max_height
+        container_inner_height = max(max_height, self.rect.height - 2 * self.padding) if self.rect.height > 0 else max_height
+
+        # Second pass: position children with alignment
+        for child in self.children:
+            # Check if child wants to be centered in parent (overrides align for vertical)
+            if hasattr(child, 'center_in_parent') and child.center_in_parent:
+                child_y = self.padding + (container_inner_height - child.rect.height) // 2
+            elif self.align == "center":
+                child_y = self.padding + (container_inner_height - child.rect.height) // 2
+            elif self.align == "bottom":
+                child_y = self.padding + container_inner_height - child.rect.height
+            else:  # top
+                child_y = self.padding
+            
+            child.set_position(current_x, child_y)
+            current_x += child.rect.width + self.spacing
+
+        # Update container size only if not explicitly set
         if self.children:
-            self.set_size(current_x - self.spacing + self.padding, max_height + 2 * self.padding)
+            # Keep height if already set, otherwise calculate it
+            new_width = current_x - self.spacing + self.padding
+            new_height = self.rect.height if self.rect.height > 0 else (max_height + 2 * self.padding)
+            self.set_size(new_width, new_height)
 
 
 class Grid(Container):

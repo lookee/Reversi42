@@ -10,17 +10,17 @@
 # ------------------------------------------------------------------------
 
 """
-PauseMenu - Refactored using Widget System
+PauseMenu - Refactored using Bootstrap-like Layout System
 
-Reduces from 203 LoC → ~80 LoC by using reusable widgets!
+Ultra-clean code with Stack primitive!
 
-Design Pattern: Composite (Panel + Label + Buttons)
+Design Pattern: Composite + Bootstrap-like Layout
 """
 
 import pygame
 
-from ui.widgets.base import VBox
-from ui.widgets.primitives import Button, Label, Panel
+from ui.widgets.base import Stack, Center
+from ui.widgets.primitives import Button, Label, Title, Panel
 
 
 class PauseMenu:
@@ -46,54 +46,47 @@ class PauseMenu:
         self._build_ui()
 
     def _build_ui(self):
-        """Build UI using widgets"""
-        # Import MenuConfig for consistent colors
+        """Build UI using Bootstrap-like Stack primitive - ULTRA CLEAN!"""
         from core.config import MenuConfig
         
-        # Menu container (centered panel)
-        menu_width = 450
-        menu_height = 450
-        menu_x = (self.width - menu_width) // 2
-        menu_y = (self.height - menu_height) // 2
-
-        self.container = Panel(menu_x, menu_y, menu_width, menu_height)
-        self.container.background_color = self.bg_color
-        self.container.border_color = MenuConfig.TITLE_COLOR
-
-        # Title (centered in panel)
-        title = Label("GAME PAUSED", font_size=56, color=MenuConfig.TITLE_COLOR)
-        # Center title horizontally using actual width
-        title_x = (menu_width - title.rect.width) // 2
-        title.set_position(title_x, 30)
-        self.container.add(title)
-
-        # Menu items (buttons) - centered in panel
+        # === PANEL CENTRALE ===
+        # Stack verticale con tutto (titolo + bottoni)
+        panel = Stack(gap=20, align="center")
+        panel.background_color = self.bg_color
+        panel.border_color = MenuConfig.TITLE_COLOR
+        panel.padding = 30
+        panel.border_width = 2
+        panel.center_in_parent = True  # Panel centrato automaticamente!
+        
+        # Titolo centrato automaticamente con Title()!
+        panel.add(Title("GAME PAUSED", font_size=56, color=MenuConfig.TITLE_COLOR))
+        
+        # Menu items - ULTRA SEMPLICE!
         menu_items = [
-            ("Resume Game", "resume", (40, 40, 50)),
-            ("Save Game", "save", (40, 40, 50)),
-            ("Load Game", "load", (40, 40, 50)),
-            ("Return to Menu", "menu", (40, 40, 50)),
-            ("Quit", "exit", (80, 50, 50)),  # Rosso scuro tendente al grigio
+            ("Resume Game", "resume", (40, 40, 50), (60, 50, 60)),
+            ("Save Game", "save", (40, 40, 50), (60, 50, 60)),
+            ("Load Game", "load", (40, 40, 50), (60, 50, 60)),
+            ("Return to Menu", "menu", (40, 40, 50), (60, 50, 60)),
+            ("Quit", "exit", (80, 50, 50), (100, 60, 60)),
         ]
         
-        button_width = 300
-        button_x = (menu_width - button_width) // 2  # Center buttons horizontally
-        y_pos = 130
-        
-        for text, action, color in menu_items:
+        for text, action, color, hover_color in menu_items:
             btn = Button(
                 text,
-                x=button_x,
-                y=y_pos,
-                width=button_width,
+                width=300,
                 height=45,
                 on_click=lambda a=action: setattr(self, "result", a),
                 color=color,
-                hover_color=(color[0] + 20, color[1] + 10, color[2] + 10) if action != "exit" else (100, 60, 60),
+                hover_color=hover_color,
                 text_color=MenuConfig.TEXT_COLOR,
             )
-            self.container.add(btn)
-            y_pos += 55
+            panel.add(btn)
+        
+        # === CENTER IL PANEL ===
+        center = Center(width=self.width, height=self.height)
+        center.add(panel)
+        
+        self.container = center
 
     def draw(self):
         """Draw the pause menu"""

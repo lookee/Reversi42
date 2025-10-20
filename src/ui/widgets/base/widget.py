@@ -27,7 +27,7 @@ class Widget(ABC):
     Subclasses must implement render() method.
     """
 
-    def __init__(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0):
+    def __init__(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0, center_in_parent: bool = False):
         """
         Initialize widget.
 
@@ -36,11 +36,13 @@ class Widget(ABC):
             y: Y position (relative to parent)
             width: Widget width
             height: Widget height
+            center_in_parent: If True, widget will be centered in its parent container
         """
         self.rect = pygame.Rect(x, y, width, height)
         self.visible = True
         self.enabled = True
         self.parent: Optional["Widget"] = None
+        self.center_in_parent = center_in_parent
 
         # Styling
         self.background_color: Optional[Tuple[int, int, int]] = None

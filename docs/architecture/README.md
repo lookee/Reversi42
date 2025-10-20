@@ -18,6 +18,7 @@ Reversi42 is built with a modular, layered architecture that separates concerns 
 - [**Game Engine**](game-engine.md) - Core game logic and bitboard implementation
 - [**AI System**](ai-system.md) - AI architecture and algorithms
 - [**UI Layer**](ui-layer.md) - View system and MVP pattern
+- [**UI Layout System**](ui-layout-system.md) - Bootstrap-like layout primitives
 - [**Player System**](player-system.md) - Player abstractions and implementations
 
 ### Technical Deep Dives

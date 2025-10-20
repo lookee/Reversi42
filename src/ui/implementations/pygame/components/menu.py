@@ -25,7 +25,7 @@ from pygame.locals import *
 from core.config import MenuConfig
 from Players.PlayerFactory import PlayerFactory
 from ui.widgets.base import HBox, VBox
-from ui.widgets.primitives import Button, Label, Panel, panel
+from ui.widgets.primitives import Button, Label, Title, Panel, panel
 
 
 class Menu:
@@ -121,26 +121,34 @@ class Menu:
         pygame.time.wait(3000)
 
     def _build_main_menu(self):
-        """Build main menu with perfect HBox/VBox layout"""
-        from ui.widgets.base.container import VBox, HBox
+        """Build main menu using Bootstrap-like primitives - ULTRA CLEAN!"""
+        from ui.widgets.base import Stack, HBox, Spacer
         
-        # Titolo centrato (standalone)
-        self.title_label = Label("Reversi42", font_size=48, color=MenuConfig.TITLE_COLOR)
-        # Usa la larghezza reale del label per centrarlo correttamente
-        title_x = (self.width - self.title_label.rect.width) // 2
-        self.title_label.set_position(title_x, 50)
+        # === LAYOUT COMPLETO ===
+        # Stack verticale con tutto il menu (titolo + panel + bottoni)
+        main_layout = Stack(gap=40, align="center", justify="center")
+        main_layout.set_size(self.width, self.height)
         
-        # Panel (VBox) - contiene i bottoni di gioco
-        panel_container = VBox(spacing=15, align="center")
-        panel_container.background_color = (30, 50, 40)
-        panel_container.border_color = MenuConfig.TITLE_COLOR
-        panel_container.border_width = 2
-        panel_container.padding = 20
+        # === TITOLO ===
+        # Title() crea automaticamente un Label centrato!
+        main_layout.add(Title("Reversi42", font_size=48, color=MenuConfig.TITLE_COLOR))
         
-        # Players Row (HBox)
-        players_row = HBox(spacing=30)
+        # === PANEL CENTRALE ===
+        # Stack per i controlli di gioco (player buttons + start + book)
+        # Panel largo 85% dello schermo e centrato automaticamente!
+        panel_width = int(self.width * 0.85)
         
-        # Black Player Button
+        game_controls = Stack(gap=15, align="center")
+        game_controls.background_color = (30, 50, 40)
+        game_controls.border_color = MenuConfig.TITLE_COLOR
+        game_controls.border_width = 2
+        game_controls.padding = 20
+        game_controls.center_in_parent = True  # Centra il panel!
+        game_controls.set_size(panel_width, 0)  # Larghezza fissa, altezza auto
+        
+        # Players Row
+        players_row = HBox(spacing=30, align="center")
+        
         black_text = f"B: {self.black_player}"
         if self.black_difficulty and self.black_player != "Human Player":
             black_text += f" (Lv {self.black_difficulty})"
@@ -154,7 +162,6 @@ class Menu:
             text_color=MenuConfig.TEXT_COLOR,
         )
         
-        # White Player Button
         white_text = f"W: {self.white_player}"
         if self.white_difficulty and self.white_player != "Human Player":
             white_text += f" (Lv {self.white_difficulty})"
@@ -170,20 +177,20 @@ class Menu:
         
         players_row.add(self.black_btn)
         players_row.add(self.white_btn)
-        panel_container.add(players_row)
+        game_controls.add(players_row)
         
-        # Start Game Button (centrato)
+        # Start Game Button
         self.start_btn = Button(
             "Start Game",
             width=300, height=55,
             on_click=lambda: self._handle_start_game(),
-            color=(130, 85, 55),  # Arancione
+            color=(130, 85, 55),
             hover_color=(155, 105, 70),
             text_color=MenuConfig.TITLE_COLOR,
         )
-        panel_container.add(self.start_btn)
+        game_controls.add(self.start_btn)
         
-        # Opening Book Button (centrato)
+        # Opening Book Button
         opening_text = "Book: ON" if self.show_opening else "Book: OFF"
         self.opening_btn = Button(
             opening_text,
@@ -192,15 +199,12 @@ class Menu:
             color=(40, 40, 50),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        panel_container.add(self.opening_btn)
+        game_controls.add(self.opening_btn)
         
-        # Centra il panel sullo schermo
-        panel_x = (self.width - panel_container.rect.width) // 2
-        panel_y = (self.height - panel_container.rect.height) // 2
-        panel_container.set_position(panel_x, panel_y)
+        main_layout.add(game_controls)
         
-        # Sections Row (HBox) - Help, About, Quit
-        sections_row = HBox(spacing=30)
+        # === BOTTONI IN BASSO ===
+        sections_row = HBox(spacing=30, align="center")
         
         self.help_btn = Button(
             "Help",
@@ -224,7 +228,7 @@ class Menu:
             "Quit",
             width=150, height=40,
             on_click=lambda: self._quit(),
-            color=(80, 50, 50),  # Rosso scuro tendente al grigio
+            color=(80, 50, 50),
             hover_color=(100, 60, 60),
             text_color=MenuConfig.TEXT_COLOR,
         )
@@ -232,14 +236,10 @@ class Menu:
         sections_row.add(self.help_btn)
         sections_row.add(self.about_btn)
         sections_row.add(self.quit_btn)
+        main_layout.add(sections_row)
         
-        # Posiziona i bottoni in basso
-        sections_x = (self.width - sections_row.rect.width) // 2
-        sections_y = self.height - sections_row.rect.height - 40
-        sections_row.set_position(sections_x, sections_y)
-        
-        self.main_menu_panel = panel_container
-        self.sections_row = sections_row
+        # === SALVA RIFERIMENTI ===
+        self.main_menu_layout = main_layout
 
     def _build_player_selection_menu(self, player_color):
         """Build player selection submenu"""
@@ -546,12 +546,8 @@ class Menu:
                 else:
                     # Pass event to current widget
                     if self.current_screen == "main":
-                        # Handle title
-                        self.title_label.handle_event(event)
-                        # Handle main panel
-                        self.main_menu_panel.handle_event(event)
-                        # Handle bottom sections row
-                        self.sections_row.handle_event(event)
+                        # Handle entire main layout (includes title, panel, sections)
+                        self.main_menu_layout.handle_event(event)
                     elif (
                         self.current_screen in ["player_select", "difficulty_select"]
                         and self.submenu_widget
@@ -566,12 +562,8 @@ class Menu:
             self.screen.fill(self.bg_color)
 
             if self.current_screen == "main":
-                # Render title
-                self.title_label.render(self.screen)
-                # Render main menu panel
-                self.main_menu_panel.render(self.screen)
-                # Render bottom sections row
-                self.sections_row.render(self.screen)
+                # Render entire main layout (title + panel + sections all together!)
+                self.main_menu_layout.render(self.screen)
             elif (
                 self.current_screen in ["player_select", "difficulty_select"]
                 and self.submenu_widget
