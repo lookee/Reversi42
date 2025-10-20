@@ -70,8 +70,10 @@ class PlayerFortressEternal(Player):
     """
     
     PLAYER_METADATA = {
-        "display_name": "FORTRESS ETERNAL 🛡️",
+        "display_name": "FORTRESS ETERNAL",
         "description": "Defensive Master - The Immovable Object",
+        "headline": "DEFENSE PROTOCOL ACTIVE",
+        "strategy": "Impenetrable Stability | Depth: 10",
         "enabled": True,
         "parameters": {},
     }

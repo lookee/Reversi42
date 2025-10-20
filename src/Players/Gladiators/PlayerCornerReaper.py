@@ -64,8 +64,10 @@ class PlayerCornerReaper(Player):
     """
     
     PLAYER_METADATA = {
-        "display_name": "CORNER REAPER 👑",
+        "display_name": "CORNER REAPER",
         "description": "Corner Specialist - Throne Seeker",
+        "headline": "TERRITORIAL CONQUEST MODE",
+        "strategy": "Corner Domination | Depth: 9",
         "enabled": True,
         "parameters": {},
     }

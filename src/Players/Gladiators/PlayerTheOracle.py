@@ -66,8 +66,10 @@ class PlayerTheOracle(Player):
     """
     
     PLAYER_METADATA = {
-        "display_name": "THE ORACLE 🔮",
+        "display_name": "THE ORACLE",
         "description": "Endgame Prophet - Seer of Fates",
+        "headline": "PROPHETIC VISION ACTIVATED",
+        "strategy": "Adaptive 7/9/14 | Focus: Endgame Mastery",
         "enabled": True,
         "parameters": {},
     }

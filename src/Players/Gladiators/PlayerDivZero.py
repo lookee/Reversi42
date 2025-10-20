@@ -82,7 +82,9 @@ class PlayerDivZero(Player):
     
     PLAYER_METADATA = {
         "display_name": "DIVZERO.EXE",
-        "description": "💀 Ultimate Singularity - The Perfect Player",
+        "description": "Ultimate Singularity - The Perfect Player",
+        "headline": "THE SINGULARITY HAS ARRIVED",
+        "strategy": "Adaptive Depth: 8/12/16 | Parallel Cores: 8 | Opening Book: 644 sequences",
         "enabled": True,
         "parameters": {},
     }

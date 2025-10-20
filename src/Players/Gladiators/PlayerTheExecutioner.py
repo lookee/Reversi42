@@ -67,8 +67,10 @@ class PlayerTheExecutioner(Player):
     """
     
     PLAYER_METADATA = {
-        "display_name": "THE EXECUTIONER ⚔️",
+        "display_name": "THE EXECUTIONER",
         "description": "Ruthless Destroyer - No Mercy",
+        "headline": "ANNIHILATION PROTOCOL",
+        "strategy": "Hybrid Destruction | Depth: 9 | Mercy: ZERO",
         "enabled": True,
         "parameters": {},
     }

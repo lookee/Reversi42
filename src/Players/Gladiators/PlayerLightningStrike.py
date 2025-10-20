@@ -59,8 +59,10 @@ class PlayerLightningStrike(Player):
     """
     
     PLAYER_METADATA = {
-        "display_name": "LIGHTNING STRIKE ⚡",
+        "display_name": "LIGHTNING STRIKE",
         "description": "Blitz Master - Speed Above All",
+        "headline": "SPEED MODE ACTIVATED",
+        "strategy": "Response time: <100ms | Depth: 4 | Blitz",
         "enabled": True,
         "parameters": {},
     }

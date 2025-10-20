@@ -68,8 +68,10 @@ class PlayerTheStrangler(Player):
     """
     
     PLAYER_METADATA = {
-        "display_name": "THE STRANGLER 🎯",
+        "display_name": "THE STRANGLER",
         "description": "Mobility Assassin - Suffocates Your Options",
+        "headline": "SUFFOCATION MODE ENGAGED",
+        "strategy": "Mobility Destruction | Depth: 10 | Mercy: NONE",
         "enabled": True,
         "parameters": {},
     }

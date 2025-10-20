@@ -21,15 +21,15 @@ class TestEpicGladiators:
     
     GLADIATORS = [
         'DIVZERO.EXE',
-        'LIGHTNING STRIKE ⚡',
-        'THE STRANGLER 🎯',
-        'FORTRESS ETERNAL 🛡️',
-        'CORNER REAPER 👑',
-        'THE ORACLE 🔮',
-        'BLITZ DEMON 🔥',
-        'THE EXECUTIONER ⚔️',
-        'GLITCH_LORD 👾',
-        'ZEN MASTER 🧘',
+        'LIGHTNING STRIKE',
+        'THE STRANGLER',
+        'FORTRESS ETERNAL',
+        'CORNER REAPER',
+        'THE ORACLE',
+        'BLITZ DEMON',
+        'THE EXECUTIONER',
+        'GLITCH_LORD',
+        'ZEN MASTER',
     ]
     
     def test_all_gladiators_can_be_created(self):
@@ -67,7 +67,7 @@ class TestEpicGladiators:
     
     def test_lightning_strike_is_fastest(self):
         """Test that LIGHTNING STRIKE has fastest config"""
-        lightning = PlayerFactory.create_player('LIGHTNING STRIKE ⚡')
+        lightning = PlayerFactory.create_player('LIGHTNING STRIKE')
         
         config = lightning.bitboard_engine.config
         
@@ -85,7 +85,7 @@ class TestEpicGladiators:
     
     def test_strangler_focuses_on_mobility(self):
         """Test that THE STRANGLER focuses on mobility"""
-        strangler = PlayerFactory.create_player('THE STRANGLER 🎯')
+        strangler = PlayerFactory.create_player('THE STRANGLER')
         
         config = strangler.bitboard_engine.config
         
@@ -98,7 +98,7 @@ class TestEpicGladiators:
     
     def test_fortress_focuses_on_stability(self):
         """Test that FORTRESS ETERNAL focuses on stability"""
-        fortress = PlayerFactory.create_player('FORTRESS ETERNAL 🛡️')
+        fortress = PlayerFactory.create_player('FORTRESS ETERNAL')
         
         config = fortress.bitboard_engine.config
         
@@ -111,7 +111,7 @@ class TestEpicGladiators:
     
     def test_corner_reaper_focuses_on_corners(self):
         """Test that CORNER REAPER focuses on corners"""
-        reaper = PlayerFactory.create_player('CORNER REAPER 👑')
+        reaper = PlayerFactory.create_player('CORNER REAPER')
         
         config = reaper.bitboard_engine.config
         
@@ -124,7 +124,7 @@ class TestEpicGladiators:
     
     def test_oracle_has_adaptive_depth(self):
         """Test that THE ORACLE uses adaptive depth"""
-        oracle = PlayerFactory.create_player('THE ORACLE 🔮')
+        oracle = PlayerFactory.create_player('THE ORACLE')
         
         config = oracle.bitboard_engine.config
         
@@ -137,7 +137,7 @@ class TestEpicGladiators:
     
     def test_zen_master_is_minimalist(self):
         """Test that ZEN MASTER is truly minimalist"""
-        zen = PlayerFactory.create_player('ZEN MASTER 🧘')
+        zen = PlayerFactory.create_player('ZEN MASTER')
         
         config = zen.bitboard_engine.config
         
@@ -156,7 +156,7 @@ class TestEpicGladiators:
     
     def test_glitch_lord_is_chaotic(self):
         """Test that GLITCH_LORD has chaotic config"""
-        glitch = PlayerFactory.create_player('GLITCH_LORD 👾')
+        glitch = PlayerFactory.create_player('GLITCH_LORD')
         
         config = glitch.bitboard_engine.config
         

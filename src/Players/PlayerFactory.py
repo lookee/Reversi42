@@ -48,18 +48,18 @@ class PlayerFactory:
     # Apocalyptron is the ultimate AI, followed by Epic Gladiators
     ALL_PLAYER_CLASSES = [
         PlayerHuman,  # Human player (disabled in menu, but available for API)
-        PlayerApocalyptron,  # ⚡ Apocalyptron - The ultimate AI (enabled in menu)
+        PlayerApocalyptron,  # Apocalyptron - The ultimate AI (enabled in menu)
         # Epic Gladiators - 10 Legendary Fighters
-        PlayerDivZero,  # 💀 The Ultimate Singularity
-        PlayerLightningStrike,  # ⚡ Lightning Fast
-        PlayerTheStrangler,  # 🎯 Mobility Assassin
-        PlayerFortressEternal,  # 🛡️ Defensive Master
-        PlayerCornerReaper,  # 👑 Corner Specialist
-        PlayerTheOracle,  # 🔮 Endgame Prophet
-        PlayerBlitzDemon,  # 🔥 Speed Incarnate
-        PlayerTheExecutioner,  # ⚔️ Ruthless Destroyer
-        PlayerGlitchLord,  # 👾 Chaotic Anomaly
-        PlayerZenMaster,  # 🧘 Enlightened One
+        PlayerDivZero,  # The Ultimate Singularity (ELO 1880)
+        PlayerLightningStrike,  # Lightning Fast (ELO 1400)
+        PlayerTheStrangler,  # Mobility Assassin (ELO 1750)
+        PlayerFortressEternal,  # Defensive Master (ELO 1800)
+        PlayerCornerReaper,  # Corner Specialist (ELO 1720)
+        PlayerTheOracle,  # Endgame Prophet (ELO 1850)
+        PlayerBlitzDemon,  # Speed Incarnate (ELO 1350)
+        PlayerTheExecutioner,  # Ruthless Destroyer (ELO 1770)
+        PlayerGlitchLord,  # Chaotic Anomaly (ELO 1500)
+        PlayerZenMaster,  # Enlightened One (ELO 1250)
     ]
 
     # Build registry from metadata

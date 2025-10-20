@@ -68,8 +68,10 @@ class PlayerGlitchLord(Player):
     """
     
     PLAYER_METADATA = {
-        "display_name": "GLITCH_LORD 👾",
+        "display_name": "GLITCH_LORD",
         "description": "Chaotic Anomaly - Beautiful Madness",
+        "headline": "REALITY.EXE HAS STOPPED WORKING",
+        "strategy": "??????? | Logic: UNDEFINED | Sanity: NULL",
         "enabled": True,
         "parameters": {},
     }

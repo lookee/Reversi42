@@ -64,8 +64,10 @@ class PlayerBlitzDemon(Player):
     """
     
     PLAYER_METADATA = {
-        "display_name": "BLITZ DEMON 🔥",
+        "display_name": "BLITZ DEMON",
         "description": "Speed Incarnate - Chaos Unleashed",
+        "headline": "CHAOS MODE ENGAGED",
+        "strategy": "Pure Speed | Depth: 5 | Think Time: <50ms",
         "enabled": True,
         "parameters": {},
     }

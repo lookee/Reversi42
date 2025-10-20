@@ -73,8 +73,10 @@ class PlayerZenMaster(Player):
     """
     
     PLAYER_METADATA = {
-        "display_name": "ZEN MASTER 🧘",
+        "display_name": "ZEN MASTER",
         "description": "Enlightened One - Minimalist Monk",
+        "headline": "INNER PEACE ACTIVATED",
+        "strategy": "Philosophy: Be Water | Complexity: Zero | Enlightenment: Maximum",
         "enabled": True,
         "parameters": {},
     }
