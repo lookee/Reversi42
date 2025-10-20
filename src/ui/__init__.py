@@ -11,9 +11,10 @@ Version: 3.1.0
 Architecture: Clean MVC with Dependency Inversion
 """
 
-# Core MVC components (safe to import - no dependencies)
-from .core.model import BoardModel
-from .core.state import GameState
+# Core MVC components removed - using MVP pattern now
+# Old: from .core.model import BoardModel
+# Old: from .core.state import GameState
+# New: Use ui/widgets/ and ui/implementations/*/presenters/
 
 # Abstract interfaces (safe to import - no dependencies)
 from .abstractions.view_interface import AbstractView
@@ -30,21 +31,16 @@ from .abstractions.input_interface import AbstractInputHandler, InputEvent
 # from .core.controller import BoardController
 
 __all__ = [
-    # Core (safe exports)
-    'BoardModel',
-    'GameState',
-    
     # Abstractions (safe exports)
     'AbstractView',
     'AbstractInputHandler',
     'InputEvent',
     
-    # Note: Import implementations and factories directly:
-    #   from ui.implementations.pygame import PygameInputHandler
-    #   from ui.implementations.terminal import TerminalBoardView
-    #   from ui.implementations.headless import HeadlessInputHandler
-    #   from ui.factories.ui_factory import UIFactory
-    #   from ui.core.controller import BoardController
+    # Note: Import components directly:
+    #   from ui.widgets import Button, Label, Panel
+    #   from ui.common import Theme, LayoutManager, EventBus
+    #   from ui.implementations.pygame.presenters import BoardPresenter
+    #   from ui.implementations.pygame.renderers import BoardRenderer
 ]
 
 __version__ = '3.1.0'

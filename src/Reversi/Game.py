@@ -116,7 +116,8 @@ class Game(object):
         import os
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
         
-        from ui.utils.ascii_board_renderer import ASCIIBoardRenderer
+        # ASCII rendering removed - use TerminalBoardView instead
+        # from ui.implementations.terminal import TerminalBoardView
         
         out = "\n"
         
