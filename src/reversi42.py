@@ -207,26 +207,6 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
     if view_class is None:
         view_class = globals().get('SELECTED_VIEW_CLASS', PygameBoardView)
     
-    # Check if players are already created (terminal mode) or need creation (menu mode)
-    if isinstance(menu_result.get("black_player"), str):
-        # Menu mode - players are type strings, need to create them
-        black_player_type = menu_result["black_player"]
-        white_player_type = menu_result["white_player"]
-        black_difficulty = menu_result["black_difficulty"]
-        white_difficulty = menu_result["white_difficulty"]
-        
-        # Create players
-        players = {
-            'B': create_player(black_player_type, black_difficulty),
-            'W': create_player(white_player_type, white_difficulty)
-        }
-    else:
-        # Terminal mode - players are already created objects
-        players = {
-            'B': menu_result["black_player"],
-            'W': menu_result["white_player"]
-        }
-    
     show_opening = menu_result.get("show_opening", True)  # Default True
     
     # Load opening book if show_opening is enabled
@@ -260,6 +240,31 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
     # Create BoardControl with selected view class
     print(f"[INFO] Creating BoardControl with view: {view_class.__name__}")
     c = BoardControl(size, size, view_class=view_class)
+    
+    # CLEAN ARCHITECTURE: Inject BoardControl into PlayerFactory for Dependency Injection
+    # This allows PlayerFactory to create PlayerHuman with correct InputProvider
+    # (InputProvider abstracts away pygame dependency from Players domain layer)
+    PlayerFactory.set_board_control(c)
+    
+    # Check if players are already created (terminal mode) or need creation (menu mode)
+    if isinstance(menu_result.get("black_player"), str):
+        # Menu mode - players are type strings, need to create them
+        black_player_type = menu_result["black_player"]
+        white_player_type = menu_result["white_player"]
+        black_difficulty = menu_result["black_difficulty"]
+        white_difficulty = menu_result["white_difficulty"]
+        
+        # Create players (PlayerFactory will inject InputProvider for human players!)
+        players = {
+            'B': create_player(black_player_type, black_difficulty),
+            'W': create_player(white_player_type, white_difficulty)
+        }
+    else:
+        # Terminal mode - players are already created objects
+        players = {
+            'B': menu_result["black_player"],
+            'W': menu_result["white_player"]
+        }
     
     # Set opening book in BoardControl if enabled
     if opening_book:

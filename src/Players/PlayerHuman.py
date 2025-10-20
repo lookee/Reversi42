@@ -16,104 +16,100 @@
 #    along with Reversi42.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------
 
-from Reversi.Game import Game
+"""
+PlayerHuman - Human player (UI-agnostic!)
+
+Clean Architecture Implementation:
+- NO pygame dependencies
+- Depends on InputProvider abstraction (Dependency Inversion)
+- UI-specific logic delegated to InputProvider implementations
+- Fully testable with MockInputProvider
+
+Design Pattern: Strategy + Dependency Injection
+"""
+
+from typing import List, Optional
 from Reversi.Game import Move
 from Players.Player import Player
+from Players.abstractions import InputProvider
 
-import random
-import pygame
-from pygame.locals import *
 
 class PlayerHuman(Player):
+    """
+    Human player - completely UI-agnostic!
+    
+    This class contains ONLY domain logic for a human player.
+    All UI-specific input handling is delegated to the InputProvider.
+    
+    Benefits:
+    - No pygame/UI dependencies
+    - Fully testable with mock InputProvider
+    - Works with ANY UI (pygame, terminal, web, network)
+    - Follows Dependency Inversion Principle
+    
+    Example:
+        # Pygame UI
+        provider = PygameInputProvider(board_control)
+        player = PlayerHuman(provider, name="Alice")
+        
+        # Terminal UI
+        provider = TerminalInputProvider()
+        player = PlayerHuman(provider, name="Bob")
+        
+        # Testing
+        provider = MockInputProvider([Move(3,3), Move(4,4)])
+        player = PlayerHuman(provider, name="TestPlayer")
+    """
     
     PLAYER_METADATA = {
         'display_name': 'Human Player',
         'description': 'You! Play with mouse or keyboard controls',
-        'enabled': True,  # Enabled in menu to allow playing as Black
-        'parameters': []  # No configurable parameters
+        'enabled': True,
+        'parameters': []
     }
 
-    def __init__(self, name='Human'):
+    def __init__(self, input_provider: InputProvider, name='Human'):
+        """
+        Initialize human player with InputProvider (Dependency Injection!)
+        
+        Args:
+            input_provider: Implementation of InputProvider for getting user input
+            name: Player name
+        """
+        super().__init__()
         self.name = name
-
-    def get_move(self, game, moves, control):
-        control.cursorHand()
-        control.waitInput = True
-        control.resetSelection()  # Reset any previous selection
+        self.input_provider = input_provider
+    
+    def get_move(self, game, move_list: List[Move], control=None) -> Optional[Move]:
+        """
+        Get move from human player.
         
-        clock = pygame.time.Clock()
+        Pure domain logic - delegates input to provider.
         
-        while control.waitInput and not control.should_exit and not control.should_pause:
-            # Process events
-            control.action()
+        Args:
+            game: Current game state
+            move_list: List of legal moves
+            control: (DEPRECATED) Kept for backward compatibility, not used
             
-            # Check if user wants to pause or exit
-            if control.should_pause or control.should_exit:
+        Returns:
+            Move selected by user, or None if exit/pause requested
+        """
+        # Reset input provider state before getting new move
+        self.input_provider.reset()
+        
+        while True:
+            # Delegate input to provider (Strategy pattern!)
+            move = self.input_provider.get_move_input(game, move_list)
+            
+            # Check for exit/pause requests
+            if self.input_provider.should_exit() or self.input_provider.should_pause():
                 return None
             
-            # Check if we have a move
-            if control.bx is not None and control.by is not None:
-                x = control.bx + 1
-                y = control.by + 1
-                move = Move(x, y)
-                print("move: %s" % move)
-                
-                if game.valid_move(move):
-                    control.waitInput = False
-                    return move
-                else:
-                    print("This move is not valid!")
-                    control.bx = control.by = None  # Reset for next attempt
-            
-            # Handle opening book info display with fixed position
-            current_opening_info = None
-            
-            if control.show_opening and control.opening_book:
-                # Determine which move is being hovered (mouse or cursor)
-                if control.cursor_mode:
-                    cursor_x, cursor_y = control.view.cursorX, control.view.cursorY
-                    if cursor_x is not None and cursor_y is not None:
-                        cursor_move = Move(cursor_x + 1, cursor_y + 1)
-                        if cursor_move in moves:
-                            current_opening_info = control.opening_book.get_openings_for_move(game.history, cursor_move)
-                else:
-                    mouse_pos = pygame.mouse.get_pos()
-                    bx, by = control.view.point2Box(mouse_pos[0], mouse_pos[1])
-                    if bx is not None and by is not None and bx in range(control.sizex) and by in range(control.sizey):
-                        hover_move = Move(bx + 1, by + 1)
-                        if hover_move in moves:
-                            current_opening_info = control.opening_book.get_openings_for_move(game.history, hover_move)
-            
-            # Initialize last_opening_info if not exists
-            if not hasattr(control, 'last_opening_info'):
-                control.last_opening_info = None
-            
-            # Check if opening info changed (including None -> something or something -> None)
-            info_changed = (current_opening_info != control.last_opening_info)
-            
-            if info_changed:
-                # Tooltip changed - clear old tooltip area first
-                control.view.clear_tooltip_area()
-                
-                # Redraw entire board to ensure clean state
-                control.renderModel()
-                
-                # Now draw tooltip in fixed position if we have opening info
-                if current_opening_info:
-                    control.view.set_opening_info(current_opening_info)
-                    control.view.draw_opening_info_fixed()
-                else:
-                    # Just clear, no new tooltip
-                    control.view.set_opening_info(None)
-                
-                # Update entire display
-                pygame.display.flip()
-                control.last_opening_info = current_opening_info
-            else:
-                # Nothing changed - just normal update
-                control.view.update(control.cursor_mode)
-            
-            clock.tick(60)  # Limit to 60 FPS
+            # Validate move
+            if move and game.valid_move(move):
+                return move
+            elif move:
+                print(f"Move {move} is not valid!")
+                # Continue loop to get another move
         
         return None
-

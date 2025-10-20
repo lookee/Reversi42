@@ -21,8 +21,10 @@ from Players.PlayerApocalyptron import PlayerApocalyptron
 
 class PlayerFactory:
     """
-    Factory class for creating players.
-    Now featuring Apocalyptron - the ultimate Reversi AI.
+    Factory class for creating players with Dependency Injection.
+    
+    Clean Architecture: Factory handles dependency injection of InputProviders
+    for human players, keeping the Player domain layer UI-agnostic.
     
     Player types are automatically discovered from their metadata.
     """
@@ -40,10 +42,37 @@ class PlayerFactory:
         for cls in ALL_PLAYER_CLASSES
     }
     
+    # Store board_control for DI (set externally)
+    _board_control = None
+    _ui_type = 'pygame'  # Default UI type
+    
+    @classmethod
+    def set_board_control(cls, board_control):
+        """
+        Set BoardControl for dependency injection.
+        
+        Args:
+            board_control: BoardControl instance for pygame InputProvider
+        """
+        cls._board_control = board_control
+    
+    @classmethod
+    def set_ui_type(cls, ui_type: str):
+        """
+        Set UI type for InputProvider selection.
+        
+        Args:
+            ui_type: 'pygame', 'terminal', or 'headless'
+        """
+        cls._ui_type = ui_type
+    
     @classmethod
     def create_player(cls, player_type, **kwargs):
         """
-        Create a player of the specified type.
+        Create a player of the specified type with dependency injection.
+        
+        For PlayerHuman, automatically injects appropriate InputProvider.
+        For AI players, creates normally.
         
         Args:
             player_type (str): Type of player to create
@@ -59,7 +88,69 @@ class PlayerFactory:
             raise ValueError(f"Unsupported player type: {player_type}")
         
         player_class = cls.PLAYER_TYPES[player_type]
+        
+        # Special handling for PlayerHuman - inject InputProvider
+        if player_class == PlayerHuman:
+            return cls.create_human_player(**kwargs)
+        
+        # Other players (AI) don't need InputProvider
         return player_class(**kwargs)
+    
+    @classmethod
+    def create_human_player(cls, name='Human', board_control=None, **kwargs):
+        """
+        Create human player with appropriate InputProvider (Dependency Injection!)
+        
+        Args:
+            name: Player name
+            board_control: BoardControl instance (for pygame), if None uses factory's stored one
+            **kwargs: Additional arguments
+            
+        Returns:
+            PlayerHuman instance with injected InputProvider
+        """
+        # Use provided board_control or factory's stored one
+        control = board_control or cls._board_control
+        
+        # Create appropriate InputProvider based on UI type
+        input_provider = cls._create_input_provider(control)
+        
+        # Inject dependency!
+        return PlayerHuman(input_provider, name=name)
+    
+    @classmethod
+    def _create_input_provider(cls, board_control):
+        """
+        Create appropriate InputProvider based on UI type.
+        
+        Design Pattern: Factory Method
+        
+        Args:
+            board_control: BoardControl instance (for pygame)
+            
+        Returns:
+            InputProvider implementation
+        """
+        if cls._ui_type == 'pygame' and board_control:
+            from ui.implementations.pygame.input_providers import PygameInputProvider
+            return PygameInputProvider(board_control)
+        elif cls._ui_type == 'terminal':
+            from ui.implementations.terminal.input_providers import TerminalInputProvider
+            return TerminalInputProvider()
+        elif cls._ui_type == 'headless':
+            from ui.implementations.headless.input_providers import MockInputProvider
+            from Reversi.Game import Move
+            # Default mock moves for testing
+            return MockInputProvider([Move(3, 3)], auto_exit=False)
+        else:
+            # Fallback to pygame if available
+            if board_control:
+                from ui.implementations.pygame.input_providers import PygameInputProvider
+                return PygameInputProvider(board_control)
+            else:
+                # Last resort: terminal
+                from ui.implementations.terminal.input_providers import TerminalInputProvider
+                return TerminalInputProvider()
     
     @classmethod
     def create_apocalyptron(cls, depth=9, weights=None, **kwargs):
