@@ -7,7 +7,7 @@ Implements Composite Pattern for hierarchical UI composition.
 Design Pattern: Composite
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import pygame
 from .widget import Widget
 

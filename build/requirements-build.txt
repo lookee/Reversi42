@@ -1,3 +1,0 @@
-# Build requirements for Reversi42
-pygame>=2.0.0
-pyinstaller>=5.0.0
