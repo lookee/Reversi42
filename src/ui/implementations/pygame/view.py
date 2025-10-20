@@ -37,6 +37,10 @@ from pygame.gfxdraw import *
 
 from Board.AbstractBoardView import AbstractBoardView  # Use legacy for now
 
+# MVP Pattern: Import theme and renderers
+from ui.common import Theme, ColorPalette, LayoutManager
+from ui.implementations.pygame.renderers import BoardRenderer, PieceRenderer
+
 
 class PygameBoardView(AbstractBoardView):
     """
@@ -50,7 +54,7 @@ class PygameBoardView(AbstractBoardView):
     - Mouse and keyboard support
     """
 
-    def __init__(self, sizex=64, sizey=48, width=480, heigth=400):
+    def __init__(self, sizex=64, sizey=48, width=480, heigth=400, theme: ColorPalette = Theme.PROFESSIONAL):
         super().__init__(sizex, sizey, width, heigth)
 
         self.sizex = sizex
@@ -59,24 +63,29 @@ class PygameBoardView(AbstractBoardView):
         self.heigth = heigth
         self.caption = "Reversi42"
 
-        # Professional color palette - optimized for clarity and elegance
-        self.bgColor            = (  0,      95,     75)  # Rich forest green background
-        self.lineColor          = ( 15,      55,     45)  # Dark teal lines (not pure black)
-        self.boxColor           = (  0,       0,      0)
-        self.shadowColor        = ( 25,      50,     40)  # Subtle shadow
+        # MVP Pattern: Use Theme instead of hardcoded colors!
+        self.theme = theme
         
-        # Piece colors with improved contrast
-        self.whitePieceColor    = (248,     248,    250)  # Soft white (less harsh)
-        self.blackPieceColor    = ( 15,      15,     20)  # Deep black (not pure black)
+        # Backward compatibility: Map theme colors to old attribute names
+        self.bgColor = self.theme.board_background
+        self.lineColor = self.theme.board_lines
+        self.boxColor = (0, 0, 0)
+        self.shadowColor = self.theme.board_shadow
         
-        # UI accent colors
-        self.lastMoveColor      = (255,     180,     50)  # Golden amber for last move
-        self.hoshiColor         = ( 20,      70,     55)  # Subtle dark teal for hoshi
-        self.canMoveColor       = (180,     220,    190)  # Soft mint for possible moves
-        self.whiteMoveColor     = (200,     230,    210)  # Light mint for white moves
-        self.blackMoveColor     = (160,     200,    170)  # Darker mint for black moves
-        self.cursorColor        = (255,     215,      0)  # Pure gold for cursor
-        self.bookMoveColor      = (255,     215,      0)  # Gold for opening book moves
+        self.whitePieceColor = self.theme.white_piece
+        self.blackPieceColor = self.theme.black_piece
+        
+        self.lastMoveColor = self.theme.last_move
+        self.hoshiColor = self.theme.board_hoshi
+        self.canMoveColor = self.theme.legal_move
+        self.whiteMoveColor = self.theme.white_legal_move
+        self.blackMoveColor = self.theme.black_legal_move
+        self.cursorColor = self.theme.cursor
+        self.bookMoveColor = self.theme.book_move
+        
+        # MVP Pattern: Initialize renderers
+        self.board_renderer = BoardRenderer(self.theme)
+        self.piece_renderer = PieceRenderer(self.theme)
 
         # Minimum window size
         self.min_width = 400
