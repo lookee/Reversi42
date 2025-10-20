@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+
+## [4.1.15] - 2025-10-20
+
+### Added
 - **Bootstrap-like Layout System**: New declarative UI primitives for responsive layouts
   - `Stack` (enhanced VBox with justify), `Center`, `Row/Col` (12-column grid), `Spacer`, `Divider`
   - `center_in_parent` parameter for automatic widget centering
