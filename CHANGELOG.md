@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Bootstrap-like Layout System**: New declarative UI primitives for responsive layouts
+  - `Stack` (enhanced VBox with justify), `Center`, `Row/Col` (12-column grid), `Spacer`, `Divider`
+  - `center_in_parent` parameter for automatic widget centering
+  - `Title()` helper function for one-line centered titles
+  - Complete documentation in `docs/architecture/ui-layout-system.md`
+
+### Changed
+- **UI Code Reduction**: Refactored all GUI components with new layout system
+  - Main menu: 120 LoC → 60 LoC (-50%)
+  - Pause menu: 95 LoC → 50 LoC (-47%)
+  - Game over screen: 140 LoC → 70 LoC (-50%)
+- **Widget System**: VBox/HBox now respect explicit dimensions and auto-centering preferences
 
 
 ## [4.1.14] - 2025-10-20
