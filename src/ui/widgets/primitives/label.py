@@ -63,9 +63,12 @@ class Label(Widget):
         if not self.visible:
             return
 
+        # Get absolute rect for rendering
+        abs_rect = self.get_absolute_rect()
+
         # Render text
         text_surface = self.font.render(self.text, True, self.color)
-        surface.blit(text_surface, (self.rect.x, self.rect.y))
+        surface.blit(text_surface, (abs_rect.x, abs_rect.y))
 
     def set_text(self, text: str):
         """

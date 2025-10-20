@@ -37,7 +37,7 @@ class PauseMenu:
 
         # Theme colors
         self.bg_color = (0, 65, 50)
-        self.overlay_color = (0, 0, 0, 180)
+        self.overlay_color = (0, 100, 75, 180)  # Verde più chiaro semi-trasparente
 
         # Result
         self.result = None
@@ -61,25 +61,26 @@ class PauseMenu:
         self.container.border_color = MenuConfig.TITLE_COLOR
 
         # Title (centered in panel)
-        title = Label("GAME PAUSED", x=0, y=30, font_size=56, color=MenuConfig.TITLE_COLOR)
-        # Center title horizontally
-        title.x = (menu_width - 300) // 2
+        title = Label("GAME PAUSED", font_size=56, color=MenuConfig.TITLE_COLOR)
+        # Center title horizontally using actual width
+        title_x = (menu_width - title.rect.width) // 2
+        title.set_position(title_x, 30)
         self.container.add(title)
 
         # Menu items (buttons) - centered in panel
         menu_items = [
-            ("Resume Game", "resume"),
-            ("Save Game", "save"),
-            ("Load Game", "load"),
-            ("Return to Menu", "menu"),
-            ("Exit Game", "exit"),
+            ("Resume Game", "resume", (40, 40, 50)),
+            ("Save Game", "save", (40, 40, 50)),
+            ("Load Game", "load", (40, 40, 50)),
+            ("Return to Menu", "menu", (40, 40, 50)),
+            ("Quit", "exit", (80, 50, 50)),  # Rosso scuro tendente al grigio
         ]
         
         button_width = 300
         button_x = (menu_width - button_width) // 2  # Center buttons horizontally
         y_pos = 130
         
-        for text, action in menu_items:
+        for text, action, color in menu_items:
             btn = Button(
                 text,
                 x=button_x,
@@ -87,7 +88,8 @@ class PauseMenu:
                 width=button_width,
                 height=45,
                 on_click=lambda a=action: setattr(self, "result", a),
-                color=(40, 40, 50),
+                color=color,
+                hover_color=(color[0] + 20, color[1] + 10, color[2] + 10) if action != "exit" else (100, 60, 60),
                 text_color=MenuConfig.TEXT_COLOR,
             )
             self.container.add(btn)

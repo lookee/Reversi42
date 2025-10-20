@@ -64,9 +64,12 @@ class Panel(Container):
         if not self.visible:
             return
 
+        # Get absolute rect for rendering
+        abs_rect = self.get_absolute_rect()
+
         # Draw shadow if enabled
         if self.shadow:
-            shadow_rect = self.rect.move(self.shadow_offset, self.shadow_offset)
+            shadow_rect = abs_rect.move(self.shadow_offset, self.shadow_offset)
             shadow_surface = pygame.Surface(
                 (shadow_rect.width, shadow_rect.height), pygame.SRCALPHA
             )
@@ -80,7 +83,7 @@ class Panel(Container):
 
         # Draw background
         pygame.draw.rect(
-            surface, self.background_color, self.rect, border_radius=self.border_radius
+            surface, self.background_color, abs_rect, border_radius=self.border_radius
         )
 
         # Draw border
@@ -88,7 +91,7 @@ class Panel(Container):
             pygame.draw.rect(
                 surface,
                 self.border_color,
-                self.rect,
+                abs_rect,
                 self.border_width,
                 border_radius=self.border_radius,
             )

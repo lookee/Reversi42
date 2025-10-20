@@ -91,7 +91,9 @@ class Widget(ABC):
         Returns:
             True if point is inside widget bounds
         """
-        return self.rect.collidepoint(x, y)
+        # Use absolute rect for collision detection
+        abs_rect = self.get_absolute_rect()
+        return abs_rect.collidepoint(x, y)
 
     def get_absolute_rect(self) -> pygame.Rect:
         """

@@ -68,6 +68,9 @@ class Button(Widget, Clickable, Hoverable):
         if not self.visible:
             return
 
+        # Get absolute rect for rendering
+        abs_rect = self.get_absolute_rect()
+
         # Determine color based on state
         if self.pressed:
             color = self.color_pressed
@@ -77,12 +80,12 @@ class Button(Widget, Clickable, Hoverable):
             color = self.color_normal
 
         # Draw button background
-        pygame.draw.rect(surface, color, self.rect, border_radius=5)
-        pygame.draw.rect(surface, self.color_border, self.rect, 2, border_radius=5)
+        pygame.draw.rect(surface, color, abs_rect, border_radius=5)
+        pygame.draw.rect(surface, self.color_border, abs_rect, 2, border_radius=5)
 
         # Render text centered
         text_surface = self.font.render(self.text, True, self.color_text)
-        text_rect = text_surface.get_rect(center=self.rect.center)
+        text_rect = text_surface.get_rect(center=abs_rect.center)
         surface.blit(text_surface, text_rect)
 
     def handle_event(self, event: pygame.event.Event) -> bool:

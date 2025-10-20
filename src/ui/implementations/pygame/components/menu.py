@@ -124,20 +124,18 @@ class Menu:
         """Build main menu with perfect HBox/VBox layout"""
         from ui.widgets.base.container import VBox, HBox
         
-        # Main Container (VBox) - contiene tutto
-        main_container = VBox(
-            spacing=20,  # Spaziatura tra titolo e panel
-            x=0, y=0, width=self.width, height=self.height
-        )
-        
-        # Titolo centrato (fuori dal panel)
+        # Titolo centrato (standalone)
         self.title_label = Label("Reversi42", font_size=48, color=MenuConfig.TITLE_COLOR)
-        main_container.add(self.title_label)
+        # Usa la larghezza reale del label per centrarlo correttamente
+        title_x = (self.width - self.title_label.rect.width) // 2
+        self.title_label.set_position(title_x, 50)
         
         # Panel (VBox) - contiene i bottoni di gioco
-        panel_container = VBox(spacing=25)
+        panel_container = VBox(spacing=15, align="center")
         panel_container.background_color = (30, 50, 40)
         panel_container.border_color = MenuConfig.TITLE_COLOR
+        panel_container.border_width = 2
+        panel_container.padding = 20
         
         # Players Row (HBox)
         players_row = HBox(spacing=30)
@@ -196,8 +194,10 @@ class Menu:
         )
         panel_container.add(self.opening_btn)
         
-        # Aggiungi il panel al main container
-        main_container.add(panel_container)
+        # Centra il panel sullo schermo
+        panel_x = (self.width - panel_container.rect.width) // 2
+        panel_y = (self.height - panel_container.rect.height) // 2
+        panel_container.set_position(panel_x, panel_y)
         
         # Sections Row (HBox) - Help, About, Quit
         sections_row = HBox(spacing=30)
@@ -232,13 +232,14 @@ class Menu:
         sections_row.add(self.help_btn)
         sections_row.add(self.about_btn)
         sections_row.add(self.quit_btn)
-        main_container.add(sections_row)
         
-        # Centra il main container
-        main_container.x = (self.width - main_container.width) // 2
-        main_container.y = (self.height - main_container.height) // 2
+        # Posiziona i bottoni in basso
+        sections_x = (self.width - sections_row.rect.width) // 2
+        sections_y = self.height - sections_row.rect.height - 40
+        sections_row.set_position(sections_x, sections_y)
         
-        self.main_menu_panel = main_container
+        self.main_menu_panel = panel_container
+        self.sections_row = sections_row
 
     def _build_player_selection_menu(self, player_color):
         """Build player selection submenu"""
@@ -545,10 +546,12 @@ class Menu:
                 else:
                     # Pass event to current widget
                     if self.current_screen == "main":
-                        # Handle title (above panel)
+                        # Handle title
                         self.title_label.handle_event(event)
-                        # Handle panel (contains all main menu widgets including bottom buttons)
+                        # Handle main panel
                         self.main_menu_panel.handle_event(event)
+                        # Handle bottom sections row
+                        self.sections_row.handle_event(event)
                     elif (
                         self.current_screen in ["player_select", "difficulty_select"]
                         and self.submenu_widget
@@ -563,8 +566,12 @@ class Menu:
             self.screen.fill(self.bg_color)
 
             if self.current_screen == "main":
-                # Render main menu panel (contains title, game buttons, and bottom buttons)
+                # Render title
+                self.title_label.render(self.screen)
+                # Render main menu panel
                 self.main_menu_panel.render(self.screen)
+                # Render bottom sections row
+                self.sections_row.render(self.screen)
             elif (
                 self.current_screen in ["player_select", "difficulty_select"]
                 and self.submenu_widget

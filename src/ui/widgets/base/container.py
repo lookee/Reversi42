@@ -71,8 +71,14 @@ class Container(Widget):
         if not self.visible:
             return
 
-        # Render background if set
-        self._render_background(surface)
+        # Render background if set (using absolute rect)
+        if self.background_color:
+            abs_rect = self.get_absolute_rect()
+            pygame.draw.rect(surface, self.background_color, abs_rect)
+
+        if self.border_color and self.border_width > 0:
+            abs_rect = self.get_absolute_rect()
+            pygame.draw.rect(surface, self.border_color, abs_rect, self.border_width)
 
         # Render all children
         for child in self.children:
@@ -107,17 +113,19 @@ class VBox(Container):
     Arranges children vertically with configurable spacing.
     """
 
-    def __init__(self, children: Optional[List[Widget]] = None, spacing: int = 5, **kwargs):
+    def __init__(self, children: Optional[List[Widget]] = None, spacing: int = 5, align: str = "left", **kwargs):
         """
         Initialize VBox.
 
         Args:
             children: List of child widgets
             spacing: Space between children
+            align: Horizontal alignment - "left", "center", "right"
             **kwargs: Additional arguments (x, y, width, height) - set as attributes
         """
         super().__init__()
         self.spacing = spacing
+        self.align = align
         
         # Support legacy x, y, width, height parameters
         for key, value in kwargs.items():
@@ -139,10 +147,21 @@ class VBox(Container):
         current_y = self.padding
         max_width = 0
 
+        # First pass: calculate max width
         for child in self.children:
-            child.set_position(self.padding, current_y)
-            current_y += child.rect.height + self.spacing
             max_width = max(max_width, child.rect.width)
+
+        # Second pass: position children with alignment
+        for child in self.children:
+            if self.align == "center":
+                child_x = self.padding + (max_width - child.rect.width) // 2
+            elif self.align == "right":
+                child_x = self.padding + max_width - child.rect.width
+            else:  # left
+                child_x = self.padding
+            
+            child.set_position(child_x, current_y)
+            current_y += child.rect.height + self.spacing
 
         # Update container size
         if self.children:
