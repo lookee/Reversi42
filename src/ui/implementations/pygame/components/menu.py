@@ -83,7 +83,7 @@ class Menu:
             project_root = os.path.dirname(
                 os.path.dirname(os.path.dirname(os.path.dirname(script_dir)))
             )
-            splash_path = os.path.join(project_root, "Images", "reversi42-splash.png")
+            splash_path = os.path.join(project_root, "reversi42-splash.png")
 
             if os.path.exists(splash_path):
                 original = pygame.image.load(splash_path)

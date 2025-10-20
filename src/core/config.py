@@ -252,7 +252,7 @@ class Paths:
     IMAGES_DIR = "src/Images/"
 
     # Files
-    SPLASH_IMAGE = "src/Images/reversi42-splash.png"
+    SPLASH_IMAGE = "reversi42-splash.png"
     DEFAULT_OPENING_BOOK = "Books/opening_book.txt"
 
     # Save file format
