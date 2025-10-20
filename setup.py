@@ -25,7 +25,7 @@ if requirements_file.exists():
 
 setup(
     name="reversi42",
-    version="3.1.0",
+    version="4.1.12",
     author="Luca Amore",
     author_email="luca.amore@gmail.com",
     description="Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning",
