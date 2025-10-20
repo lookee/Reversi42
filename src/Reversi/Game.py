@@ -111,30 +111,21 @@ class Game(object):
 
     def get_view(self):
         """get the simplest string rappresentation of board status"""
-        # Use common ASCII renderer for consistency
-        import sys
-        import os
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-        
-        # ASCII rendering removed - use TerminalBoardView instead
-        # from ui.implementations.terminal import TerminalBoardView
-        
+        # Simple ASCII view for debugging (inline rendering)
         out = "\n"
         
-        # Header using common renderer
-        out += ASCIIBoardRenderer.render_header(
-            self.turn, self.black_cnt, self.white_cnt, self.turn_cnt
-        ) + "\n\n"
+        # Header
+        out += f"Turn: {self.turn_cnt} | "
+        out += f"Black: {self.black_cnt} | White: {self.white_cnt} | "
+        out += f"Current: {self.turn}\n\n"
         
-        # Board using common renderer (compact style)
-        # Convert matrix to simple format
-        board_str = ""
+        # Board - simple inline rendering
+        out += "  " + " ".join(str(i) for i in range(1, self.limit)) + "\n"
         for yy in range(1, self.limit):
+            out += str(yy) + " "
             for xx in range(1, self.limit):
-                board_str += self.matrix[yy][xx]
-        
-        out += ASCIIBoardRenderer.render_board_compact(board_str, self.size)
-        out += "\n"
+                out += self.matrix[yy][xx] + " "
+            out += "\n"
         
         return out
 

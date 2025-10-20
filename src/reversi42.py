@@ -70,18 +70,19 @@ def create_player(player_type, difficulty=6, engine_type='Minimax'):
 def handle_save_game(game, black_player_name, white_player_name, game_history):
     """Handle game save with graphical dialog"""
     from datetime import datetime
-    from ui.implementations.pygame.components.dialog_box import TextInputDialog, MessageDialog
+    from ui.widgets.primitives import InputDialog, Dialog
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     default_name = f"game_{timestamp}"
     
     # Show text input dialog
-    dialog = TextInputDialog(
+    dialog = InputDialog(
+        title="Save Game",
         prompt="Enter filename to save:",
         default_text=default_name
     )
     
-    filename = dialog.run()
+    filename = dialog.show_modal(pygame.display.get_surface())
     
     if filename is None or filename.strip() == "":
         # User cancelled or empty
@@ -93,49 +94,49 @@ def handle_save_game(game, black_player_name, white_player_name, game_history):
         filepath = GameIO.save_game(game, filename, black_player_name, white_player_name, game_history)
         
         # Show success message
-        msg_dialog = MessageDialog(
+        msg_dialog = Dialog(
             title="Save Successful",
             message=f"Game saved to:\n{os.path.basename(filepath)}",
-            message_type="success"
+            buttons=["OK"]
         )
-        msg_dialog.run()
+        msg_dialog.show_modal(pygame.display.get_surface())
         
         return True
     except Exception as e:
         # Show error message
-        msg_dialog = MessageDialog(
-            title="Save Error",
+        msg_dialog = Dialog(
+            title="Save Error ❌",
             message=f"Error saving game:\n{str(e)}",
-            message_type="error"
+            buttons=["OK"]
         )
-        msg_dialog.run()
+        msg_dialog.show_modal(pygame.display.get_surface())
         
         return False
 
 def handle_load_game():
     """Handle game load with graphical dialog - returns game data or None"""
-    from ui.implementations.pygame.components.dialog_box import ListSelectDialog, MessageDialog
+    from ui.widgets.primitives import ListDialog, Dialog
     
     saved_games = GameIO.list_saved_games()
     
     if not saved_games:
         # Show "no games" message
-        msg_dialog = MessageDialog(
+        msg_dialog = Dialog(
             title="No Saved Games",
             message="No saved games found.\nPlay a game and save it first!",
-            message_type="info"
+            buttons=["OK"]
         )
-        msg_dialog.run()
+        msg_dialog.show_modal(pygame.display.get_surface())
         return None
     
     # Show selection dialog
-    dialog = ListSelectDialog(
+    dialog = ListDialog(
         title="Select game to load:",
         items=saved_games,
         allow_cancel=True
     )
     
-    choice = dialog.run()
+    choice = dialog.show_modal(pygame.display.get_surface())
     
     if choice is None:
         # User cancelled
@@ -148,22 +149,22 @@ def handle_load_game():
         game_data = GameIO.load_game(filename)
         
         # Show success message
-        msg_dialog = MessageDialog(
+        msg_dialog = Dialog(
             title="Load Successful",
             message=f"Game loaded from:\n{filename}",
-            message_type="success"
+            buttons=["OK"]
         )
-        msg_dialog.run()
+        msg_dialog.show_modal(pygame.display.get_surface())
         
         return game_data
     except Exception as e:
         # Show error message
-        msg_dialog = MessageDialog(
-            title="Load Error",
+        msg_dialog = Dialog(
+            title="Load Error ❌",
             message=f"Error loading game:\n{str(e)}",
-            message_type="error"
+            buttons=["OK"]
         )
-        msg_dialog.run()
+        msg_dialog.show_modal(pygame.display.get_surface())
         
         return None
 
