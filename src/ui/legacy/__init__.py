@@ -23,7 +23,6 @@ if board_path not in sys.path:
 # Import from existing Board module and new ui module
 from Board.BoardModel import BoardModel
 from Board.BoardControl import BoardControl
-from Board.BoardView import BoardView
 from ui.implementations.pygame.view import PygameBoardView  # New location
 from ui.implementations.terminal import TerminalBoardView  # New location
 from ui.implementations.headless import HeadlessBoardView  # New location
@@ -33,10 +32,13 @@ from Board.AbstractBoardView import AbstractBoardView
 # Import TerminalHumanPlayer from new location
 from ui.implementations.terminal import TerminalHumanPlayer
 
+# Alias for backward compatibility (BoardView was just a wrapper for PygameBoardView)
+BoardView = PygameBoardView
+
 __all__ = [
     'BoardModel',
     'BoardControl',
-    'BoardView',
+    'BoardView',  # Alias to PygameBoardView for backward compatibility
     'PygameBoardView',
     'TerminalBoardView',
     'TerminalHumanPlayer',

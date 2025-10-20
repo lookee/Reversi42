@@ -25,7 +25,7 @@ if 'src' not in sys.path:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
 
 from Players.PlayerFactory import PlayerFactory
-from config import MenuConfig
+from core.config import MenuConfig
 
 class Menu:
     def __init__(self, width=None, height=None):

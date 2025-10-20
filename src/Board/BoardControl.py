@@ -26,7 +26,6 @@ Version: 3.1.0
 Architecture: Framework-independent controller
 """
 
-from Board.BoardView import BoardView
 from Board.BoardModel import BoardModel
 from ui.abstractions.input_interface import InputEvent
 

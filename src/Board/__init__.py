@@ -18,11 +18,14 @@ from .AbstractBoardView import AbstractBoardView
 # TerminalBoardView: lazy import
 # HeadlessBoardView: lazy import
 
-# Backward compatibility
-from .BoardView import BoardView
-
 # View factory
 from .ViewFactory import ViewFactory
+
+# Backward compatibility: BoardView alias (was a wrapper for PygameBoardView)
+# Created via lazy import to avoid circular dependency
+def _get_boardview():
+    from ui.implementations.pygame.view import PygameBoardView
+    return PygameBoardView
 
 __all__ = [
     # Core
@@ -31,7 +34,7 @@ __all__ = [
     
     # Views
     'AbstractBoardView',
-    'BoardView',  # Backward compatible
+    'BoardView',  # Backward compatible (alias to PygameBoardView)
     'PygameBoardView',
     # 'TerminalBoardView',  # Import directly from ui.implementations.terminal
     # 'HeadlessBoardView',  # Import directly from ui.implementations.headless
@@ -51,5 +54,9 @@ def __getattr__(name):
     elif name == 'HeadlessBoardView':
         from ui.implementations.headless import HeadlessBoardView
         return HeadlessBoardView
+    elif name == 'BoardView':
+        # Backward compatibility: BoardView is an alias for PygameBoardView
+        from ui.implementations.pygame.view import PygameBoardView
+        return PygameBoardView
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
