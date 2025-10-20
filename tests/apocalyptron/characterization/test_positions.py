@@ -20,7 +20,7 @@ class TestPositions:
     def after_first_move():
         """Position after F5"""
         game = BitboardGame()
-        game = game.make_move(37)  # F5 (position 37)
+        game.move(37)  # F5 (position 37)
         return game
     
     @staticmethod
@@ -30,8 +30,8 @@ class TestPositions:
         # Play a standard opening sequence
         moves = [37, 38, 29, 36, 21, 26, 19, 20, 30, 22]  # F5, f6, E5, f4, E3, d6, C5, d3, e6, c6
         for move in moves:
-            if move in game.get_valid_moves(game.current_player):
-                game = game.make_move(move)
+            if move in game.get_move_list():
+                game.move(move)
         return game
     
     @staticmethod
@@ -41,8 +41,8 @@ class TestPositions:
         # Sequence that creates tactical position
         moves = [37, 26, 19, 30, 38, 36, 31, 35, 39, 22, 23, 24, 20, 21]  # F5, d6, C5, e6, F6, f4, E7, f3, G5, c6, C7, d7, D3, e3
         for move in moves:
-            if move in game.get_valid_moves(game.current_player):
-                game = game.make_move(move)
+            if move in game.get_move_list():
+                game.move(move)
         return game
     
     @staticmethod
@@ -52,8 +52,8 @@ class TestPositions:
         # Extended sequence
         moves = [37, 26, 19, 30, 38, 36, 31, 35, 39, 22, 23, 24, 20, 21, 40, 41, 18, 25, 17, 10, 28, 11, 12, 9, 8, 13, 14, 43]
         for move in moves:
-            if move in game.get_valid_moves(game.current_player):
-                game = game.make_move(move)
+            if move in game.get_move_list():
+                game.move(move)
         return game
     
     @staticmethod
@@ -63,8 +63,8 @@ class TestPositions:
         # Long sequence to reach endgame
         moves = [37, 26, 19, 30, 38, 36, 31, 35, 39, 22, 23, 24, 20, 21, 40, 41, 18, 25, 17, 10, 28, 11, 12, 9, 8, 13, 14, 43, 44, 45, 42, 46, 15, 6, 1, 2, 47, 48, 3, 4]
         for move in moves:
-            if move in game.get_valid_moves(game.current_player):
-                game = game.make_move(move)
+            if move in game.get_move_list():
+                game.move(move)
         return game
     
     @staticmethod
@@ -74,8 +74,8 @@ class TestPositions:
         # Sequence leading to corner opportunity
         moves = [37, 26, 19, 30, 38, 36, 39, 40, 48, 47, 44, 35]
         for move in moves:
-            if move in game.get_valid_moves(game.current_player):
-                game = game.make_move(move)
+            if move in game.get_move_list():
+                game.move(move)
         return game
     
     @staticmethod

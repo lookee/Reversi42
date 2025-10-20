@@ -1,0 +1,65 @@
+{
+  "metadata": {
+    "engine": "ApocalyptronEngine",
+    "timestamp": "2025-10-20 11:13:08",
+    "purpose": "Baseline for Apocalyptron characterization"
+  },
+  "results": {
+    "initial_d6": {
+      "move": "C4",
+      "time": 0.001967582999999995,
+      "depth": 6,
+      "position": "initial_d6",
+      "piece_count": 4,
+      "turn": "B"
+    },
+    "initial_d8": {
+      "move": "C4",
+      "time": 0.0012806250000000352,
+      "depth": 8,
+      "position": "initial_d8",
+      "piece_count": 4,
+      "turn": "B"
+    },
+    "early_mid_d8": {
+      "move": "C4",
+      "time": 0.0013756249999999914,
+      "depth": 8,
+      "position": "early_mid_d8",
+      "piece_count": 4,
+      "turn": "B"
+    },
+    "mid_tactical_d9": {
+      "move": "C4",
+      "time": 0.001432541999999981,
+      "depth": 9,
+      "position": "mid_tactical_d9",
+      "piece_count": 4,
+      "turn": "B"
+    },
+    "late_mid_d10": {
+      "move": "C4",
+      "time": 0.00139525000000007,
+      "depth": 10,
+      "position": "late_mid_d10",
+      "piece_count": 4,
+      "turn": "B"
+    },
+    "endgame_d12": {
+      "move": "C4",
+      "time": 0.001373791000000013,
+      "depth": 12,
+      "position": "endgame_d12",
+      "piece_count": 4,
+      "turn": "B"
+    },
+    "corner_d8": {
+      "move": "C4",
+      "time": 0.0013642500000000668,
+      "depth": 8,
+      "position": "corner_d8",
+      "piece_count": 4,
+      "turn": "B"
+    }
+  }
+}

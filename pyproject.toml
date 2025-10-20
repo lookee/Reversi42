@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reversi42"
-version = "4.1.13"
+version = "4.1.14"
 description = "Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -120,9 +120,6 @@ minversion = "6.0"
 addopts = "-ra -q --strict-markers"
 testpaths = [
     "tests",
-]
-pythonpath = [
-    "src"
 ]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
