@@ -21,8 +21,9 @@ Transform Reversi42 from a well-coded personal project into an **enterprise-grad
 |----------|-------|-------------------|
 | **Documentation** | 36+ | 13,000+ |
 | **CI/CD Infrastructure** | 21 | 3,170+ |
+| **Test Batteries** | 10 | 3,430+ |
 | **Configuration** | 10 | 400+ |
-| **TOTAL** | **67+** | **16,570+** |
+| **TOTAL** | **77+** | **19,000+** |
 
 ### Time Investment vs ROI
 

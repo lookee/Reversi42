@@ -560,10 +560,22 @@ Website: https://www.lucaamore.com
 
 **Have fun playing Reversi42!** 🎮🎉
 
+## 🧪 Testing
+
+Comprehensive test suite with 800+ tests for quality assurance:
+
+- **[Test Suite Overview](tests/apocalyptron/README.md)** - Complete testing guide
+- **[Test Strategy](tests/apocalyptron/TEST_STRATEGY.md)** - Testing approach and coverage
+- **Run Tests**: `./scripts/run_tests.sh` - Automated test runner
+- **Quick Tests**: `pytest tests/apocalyptron/unit/ -v` - Fast unit tests
+- **Full Suite**: `pytest tests/ --cov=src` - Complete with coverage
+
 ## 🤖 CI/CD
 
-- CI/CD Reference: docs/ci-cd/README.md
-- CI/CD Plan: docs/deployment/ci-cd-plan.md
-- CI/CD Implementation: docs/deployment/CI_CD_IMPLEMENTATION.md
-- Scripts: scripts/README.md
+Automated testing, building, and deployment:
+
+- **[CI/CD Reference](docs/ci-cd/README.md)** - Quick reference and badges
+- **[CI/CD Implementation](docs/deployment/CI_CD_IMPLEMENTATION.md)** - Complete guide
+- **[Helper Scripts](scripts/README.md)** - Development automation
+- **GitHub Actions**: 5 workflows (CI, Release, Docs, Benchmarks, Security)
 
