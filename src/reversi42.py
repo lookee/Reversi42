@@ -206,7 +206,7 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
     # Handle None menu_result (e.g., when loading game)
     if menu_result is None:
         menu_result = {}
-    
+
     show_opening = menu_result.get("show_opening", True)  # Default True
 
     # Load opening book if show_opening is enabled
@@ -247,11 +247,15 @@ def run_game(menu_result, loaded_game_data=None, view_class=None):
     PlayerFactory.set_board_control(c)
 
     # Check if players are already created (terminal mode) or need creation (menu mode)
-    if loaded_game_data and "black_player" in loaded_game_data and "white_player" in loaded_game_data:
+    if (
+        loaded_game_data
+        and "black_player" in loaded_game_data
+        and "white_player" in loaded_game_data
+    ):
         # Loaded game - use saved player info to recreate players
         black_player_name = loaded_game_data["black_player"]
         white_player_name = loaded_game_data["white_player"]
-        
+
         # Try to determine player types from names (default to Human if unknown)
         # Use PlayerFactory to create players with proper InputProvider injection
         players = {

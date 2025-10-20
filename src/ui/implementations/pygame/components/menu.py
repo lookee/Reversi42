@@ -25,7 +25,7 @@ from pygame.locals import *
 from core.config import MenuConfig
 from Players.PlayerFactory import PlayerFactory
 from ui.widgets.base import HBox, VBox
-from ui.widgets.primitives import Button, Label, Title, Panel, panel
+from ui.widgets.primitives import Button, Label, Panel, Title, panel
 
 
 class Menu:
@@ -122,22 +122,22 @@ class Menu:
 
     def _build_main_menu(self):
         """Build main menu using Bootstrap-like primitives - ULTRA CLEAN!"""
-        from ui.widgets.base import Stack, HBox, Spacer
-        
+        from ui.widgets.base import HBox, Spacer, Stack
+
         # === LAYOUT COMPLETO ===
         # Stack verticale con tutto il menu (titolo + panel + bottoni)
         main_layout = Stack(gap=40, align="center", justify="center")
         main_layout.set_size(self.width, self.height)
-        
+
         # === TITOLO ===
         # Title() crea automaticamente un Label centrato!
         main_layout.add(Title("Reversi42", font_size=48, color=MenuConfig.TITLE_COLOR))
-        
+
         # === PANEL CENTRALE ===
         # Stack per i controlli di gioco (player buttons + start + book)
         # Panel largo 85% dello schermo e centrato automaticamente!
         panel_width = int(self.width * 0.85)
-        
+
         game_controls = Stack(gap=15, align="center")
         game_controls.background_color = (30, 50, 40)
         game_controls.border_color = MenuConfig.TITLE_COLOR
@@ -145,99 +145,106 @@ class Menu:
         game_controls.padding = 20
         game_controls.center_in_parent = True  # Centra il panel!
         game_controls.set_size(panel_width, 0)  # Larghezza fissa, altezza auto
-        
+
         # Players Row
         players_row = HBox(spacing=30, align="center")
-        
+
         black_text = f"B: {self.black_player}"
         if self.black_difficulty and self.black_player != "Human Player":
             black_text += f" (Lv {self.black_difficulty})"
-        
+
         self.black_btn = Button(
             black_text,
-            width=280, height=50,
+            width=280,
+            height=50,
             on_click=lambda: self._open_player_selection("black"),
             color=(50, 70, 90),
             hover_color=(70, 90, 110),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        
+
         white_text = f"W: {self.white_player}"
         if self.white_difficulty and self.white_player != "Human Player":
             white_text += f" (Lv {self.white_difficulty})"
-        
+
         self.white_btn = Button(
             white_text,
-            width=280, height=50,
+            width=280,
+            height=50,
             on_click=lambda: self._open_player_selection("white"),
             color=(50, 70, 90),
             hover_color=(70, 90, 110),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        
+
         players_row.add(self.black_btn)
         players_row.add(self.white_btn)
         game_controls.add(players_row)
-        
+
         # Start Game Button
         self.start_btn = Button(
             "Start Game",
-            width=300, height=55,
+            width=300,
+            height=55,
             on_click=lambda: self._handle_start_game(),
             color=(130, 85, 55),
             hover_color=(155, 105, 70),
             text_color=MenuConfig.TITLE_COLOR,
         )
         game_controls.add(self.start_btn)
-        
+
         # Opening Book Button
         opening_text = "Book: ON" if self.show_opening else "Book: OFF"
         self.opening_btn = Button(
             opening_text,
-            width=280, height=50,
+            width=280,
+            height=50,
             on_click=lambda: self._toggle_opening(),
             color=(40, 40, 50),
             text_color=MenuConfig.TEXT_COLOR,
         )
         game_controls.add(self.opening_btn)
-        
+
         main_layout.add(game_controls)
-        
+
         # === BOTTONI IN BASSO ===
         sections_row = HBox(spacing=30, align="center")
-        
+
         self.help_btn = Button(
             "Help",
-            width=150, height=40,
+            width=150,
+            height=40,
             on_click=lambda: self._show_help(),
             color=(60, 60, 70),
             hover_color=(80, 80, 90),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        
+
         self.about_btn = Button(
             "About",
-            width=150, height=40,
+            width=150,
+            height=40,
             on_click=lambda: self._show_about(),
             color=(60, 60, 70),
             hover_color=(80, 80, 90),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        
+
         self.quit_btn = Button(
             "Quit",
-            width=150, height=40,
+            width=150,
+            height=40,
             on_click=lambda: self._quit(),
             color=(80, 50, 50),
             hover_color=(100, 60, 60),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        
+
         sections_row.add(self.help_btn)
         sections_row.add(self.about_btn)
         sections_row.add(self.quit_btn)
         main_layout.add(sections_row)
-        
+
         # === SALVA RIFERIMENTI ===
         self.main_menu_layout = main_layout
 
@@ -264,7 +271,7 @@ class Menu:
         button_width = 400
         button_x = (panel_width - button_width) // 2  # Center buttons
         y_pos = 80
-        
+
         for player_type in self.player_types:
             btn = Button(
                 player_type,
@@ -315,7 +322,7 @@ class Menu:
         button_width = 300
         button_x = (panel_width - button_width) // 2  # Center buttons
         y_pos = 80
-        
+
         for diff in self.difficulties:
             btn = Button(
                 f"Level {diff}",

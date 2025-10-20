@@ -425,11 +425,11 @@ class ListDialog(Dialog):
     def _rebuild_list(self):
         """Rebuild list to update selection highlighting."""
         self._build_content([])
-    
+
     def show_modal(self, screen: pygame.Surface):
         """
         Show dialog modally and return selected index.
-        
+
         Returns:
             Selected index (int) or None if cancelled
         """

@@ -19,7 +19,7 @@ Design Pattern: Composite + Bootstrap-like Layout
 
 import pygame
 
-from ui.widgets.base import Stack, HBox, Center
+from ui.widgets.base import Center, HBox, Stack
 from ui.widgets.primitives import Button, Label, Title
 
 
@@ -63,15 +63,15 @@ class GameOver:
 
     def _build_ui(self):
         """Build UI using Bootstrap-like Stack - ULTRA CLEAN!"""
-        
+
         # === LAYOUT COMPLETO ===
         # Stack verticale centrato con tutto
         layout = Stack(gap=30, align="center", justify="center")
         layout.set_size(self.width, self.height)
-        
+
         # Title - auto-centered with Title()!
         layout.add(Title("GAME OVER", font_size=72))
-        
+
         # Winner announcement - auto-centered!
         if self.winner == "Draw":
             winner_text = "IT'S A DRAW!"
@@ -82,11 +82,11 @@ class GameOver:
         else:
             winner_text = f"{self.white_player_name} WINS!"
             winner_color = (255, 215, 0)
-        
+
         winner_label = Label(winner_text, font_size=56, color=winner_color)
         winner_label.center_in_parent = True
         layout.add(winner_label)
-        
+
         # Scores - auto-centered!
         black_label = Label(
             f"{self.black_player_name}: {self.black_score}",
@@ -94,20 +94,20 @@ class GameOver:
             color=(200, 220, 210),
         )
         black_label.center_in_parent = True
-        
+
         white_label = Label(
             f"{self.white_player_name}: {self.white_score}",
             font_size=42,
             color=(200, 220, 210),
         )
         white_label.center_in_parent = True
-        
+
         layout.add(black_label)
         layout.add(white_label)
-        
+
         # Buttons row
         buttons = HBox(spacing=40, align="center")
-        
+
         menu_btn = Button(
             "Menu",
             width=200,
@@ -124,11 +124,11 @@ class GameOver:
             color=(0, 80, 60),
             text_color=(230, 240, 235),
         )
-        
+
         buttons.add(menu_btn)
         buttons.add(exit_btn)
         layout.add(buttons)
-        
+
         self.container = layout
 
     def draw(self):

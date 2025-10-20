@@ -27,7 +27,14 @@ class Widget(ABC):
     Subclasses must implement render() method.
     """
 
-    def __init__(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0, center_in_parent: bool = False):
+    def __init__(
+        self,
+        x: int = 0,
+        y: int = 0,
+        width: int = 0,
+        height: int = 0,
+        center_in_parent: bool = False,
+    ):
         """
         Initialize widget.
 

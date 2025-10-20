@@ -16,18 +16,18 @@ from ui.widgets.base import Widget
 def Title(text: str, font_size: int = 48, color: Tuple[int, int, int] = (230, 240, 235)):
     """
     Create a centered title label.
-    
+
     Convenience function that creates a Label with center_in_parent=True
     and title-appropriate styling.
-    
+
     Args:
         text: Title text
         font_size: Font size (default: 48)
         color: Text color (default: light color)
-    
+
     Returns:
         Label configured as a centered title
-    
+
     Example:
         layout = Stack()
         layout.add(Title("Game Menu"))  # Auto-centered!

@@ -19,8 +19,8 @@ Design Pattern: Composite + Bootstrap-like Layout
 
 import pygame
 
-from ui.widgets.base import Stack, Center
-from ui.widgets.primitives import Button, Label, Title, Panel
+from ui.widgets.base import Center, Stack
+from ui.widgets.primitives import Button, Label, Panel, Title
 
 
 class PauseMenu:
@@ -48,7 +48,7 @@ class PauseMenu:
     def _build_ui(self):
         """Build UI using Bootstrap-like Stack primitive - ULTRA CLEAN!"""
         from core.config import MenuConfig
-        
+
         # === PANEL CENTRALE ===
         # Stack verticale con tutto (titolo + bottoni)
         panel = Stack(gap=20, align="center")
@@ -57,10 +57,10 @@ class PauseMenu:
         panel.padding = 30
         panel.border_width = 2
         panel.center_in_parent = True  # Panel centrato automaticamente!
-        
+
         # Titolo centrato automaticamente con Title()!
         panel.add(Title("GAME PAUSED", font_size=56, color=MenuConfig.TITLE_COLOR))
-        
+
         # Menu items - ULTRA SEMPLICE!
         menu_items = [
             ("Resume Game", "resume", (40, 40, 50), (60, 50, 60)),
@@ -69,7 +69,7 @@ class PauseMenu:
             ("Return to Menu", "menu", (40, 40, 50), (60, 50, 60)),
             ("Quit", "exit", (80, 50, 50), (100, 60, 60)),
         ]
-        
+
         for text, action, color, hover_color in menu_items:
             btn = Button(
                 text,
@@ -81,11 +81,11 @@ class PauseMenu:
                 text_color=MenuConfig.TEXT_COLOR,
             )
             panel.add(btn)
-        
+
         # === CENTER IL PANEL ===
         center = Center(width=self.width, height=self.height)
         center.add(panel)
-        
+
         self.container = center
 
     def draw(self):

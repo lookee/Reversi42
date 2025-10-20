@@ -82,9 +82,7 @@ class Panel(Container):
             surface.blit(shadow_surface, shadow_rect)
 
         # Draw background
-        pygame.draw.rect(
-            surface, self.background_color, abs_rect, border_radius=self.border_radius
-        )
+        pygame.draw.rect(surface, self.background_color, abs_rect, border_radius=self.border_radius)
 
         # Draw border
         if self.border_color and self.border_width > 0:
