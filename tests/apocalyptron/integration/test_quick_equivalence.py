@@ -27,75 +27,57 @@ def test_apocalyptron_engine():
     
     # Test 1: Creation
     print("\n1. Creazione engine...")
-    try:
-        engine = ApocalyptronFactory.create_default(depth=6)
-        print("   ✅ Engine creato")
-    except Exception as e:
-        print(f"   ❌ Errore creazione: {e}")
-        return False
+    engine = ApocalyptronFactory.create_default(depth=6)
+    print("   ✅ Engine creato")
+    assert engine is not None
     
     # Test 2: Evaluation
     print("\n2. Test evaluation...")
-    try:
-        game = BitboardGame()
-        score = engine.evaluate(game)
-        print(f"   ✅ Evaluation funziona (score: {score})")
-    except Exception as e:
-        print(f"   ❌ Errore evaluation: {e}")
-        return False
+    game = BitboardGame()
+    score = engine.evaluate(game)
+    print(f"   ✅ Evaluation funziona (score: {score})")
+    assert isinstance(score, (int, float))
     
     # Test 3: Move from initial position
     print("\n3. Move da posizione iniziale (depth 5, silent)...")
-    try:
-        game = BitboardGame()
-        move = engine.get_best_move(game, depth=5)
-        print(f"   ✅ Mossa trovata: {move}")
-    except Exception as e:
-        print(f"   ❌ Errore ricerca: {e}")
-        return False
+    game = BitboardGame()
+    move = engine.get_best_move(game, depth=5)
+    print(f"   ✅ Mossa trovata: {move}")
+    assert move is not None
     
     # Test 4: Move from midgame
     print("\n4. Move da midgame (depth 5)...")
-    try:
-        game = BitboardGame()
-        for m in [Move(6,5), Move(4,6), Move(3,5)]:
-            game.move(m)
-        
-        move = engine.get_best_move(game, depth=5)
-        print(f"   ✅ Mossa trovata: {move}")
-    except Exception as e:
-        print(f"   ❌ Errore ricerca midgame: {e}")
-        return False
+    game = BitboardGame()
+    for m in [Move(6,5), Move(4,6), Move(3,5)]:
+        game.move(m)
+    
+    move = engine.get_best_move(game, depth=5)
+    print(f"   ✅ Mossa trovata: {move}")
+    assert move is not None
     
     # Test 5: Factory variants
     print("\n5. Test factory variants...")
-    try:
-        aggressive = ApocalyptronFactory.create_aggressive(depth=4)
-        defensive = ApocalyptronFactory.create_defensive(depth=4)
-        tournament = ApocalyptronFactory.create_tournament(depth=4)
-        
-        print("   ✅ Tutti i variant funzionano")
-    except Exception as e:
-        print(f"   ❌ Errore factory: {e}")
-        return False
+    aggressive = ApocalyptronFactory.create_aggressive(depth=4)
+    defensive = ApocalyptronFactory.create_defensive(depth=4)
+    tournament = ApocalyptronFactory.create_tournament(depth=4)
+    
+    print("   ✅ Tutti i variant funzionano")
+    assert aggressive is not None
+    assert defensive is not None
+    assert tournament is not None
     
     # Test 6: Statistics
     print("\n6. Test statistiche...")
-    try:
-        stats = engine.get_statistics()
-        print(f"   ✅ Statistiche: {stats['searches_performed']} ricerche")
-    except Exception as e:
-        print(f"   ❌ Errore stats: {e}")
-        return False
+    stats = engine.get_statistics()
+    print(f"   ✅ Statistiche: {stats['searches_performed']} ricerche")
+    assert 'searches_performed' in stats
     
     print("\n" + "="*60)
     print("✅ TUTTI I TEST PASSATI!")
     print("="*60 + "\n")
-    
-    return True
 
 
 if __name__ == '__main__':
-    success = test_apocalyptron_engine()
-    exit(0 if success else 1)
+    test_apocalyptron_engine()
+    exit(0)
 

@@ -101,11 +101,9 @@ def test_observers():
     print("✅ Multiple observers - funzionano insieme")
     print("✅ Separation of Concerns - 100% completa!")
     print("="*70 + "\n")
-    
-    return True
 
 
 if __name__ == '__main__':
-    success = test_observers()
-    exit(0 if success else 1)
+    test_observers()
+    exit(0)
 
