@@ -560,11 +560,45 @@ You should have received a copy of the GNU General Public License along with thi
 
 ## 📚 Documentation
 
-### Player Documentation
+### 📖 User Documentation
+- **[User Guide](docs/user-guide/README.md)** - Complete guide for players
+  - [Getting Started](docs/user-guide/getting-started.md) - Quick start guide
+  - [Game Rules](docs/user-guide/game-rules.md) - Learn how to play
+  - [AI Opponents](docs/user-guide/ai-opponents.md) - Understanding AI players
+  - [Strategies](docs/user-guide/strategies.md) - Tips to improve your game
+  - [FAQ](docs/user-guide/faq.md) - Frequently asked questions
+
+### 👨‍💻 Developer Documentation
+- **[API Reference](docs/api/README.md)** - Complete API documentation
+  - [BitboardGame API](docs/api/bitboard-game.md) - Core game engine
+  - [Player API](docs/api/player-interface.md) - Player system
+  - [View API](docs/api/view-interface.md) - UI system
+- **[Architecture Guide](docs/architecture/README.md)** - System architecture
+  - [Design Principles](docs/architecture/design-principles.md) - Guiding principles
+  - [System Overview](docs/architecture/system-overview.md) - High-level view
+- **[Development Guide](docs/development/README.md)** - Development setup and workflow
+  - [Getting Started](docs/development/getting-started.md) - Dev environment setup
+  - [Testing Guide](docs/development/testing.md) - Writing and running tests
+  - [Code Style](docs/development/code-style.md) - Coding standards
+  - [Best Practices](docs/development/best-practices.md) - Development patterns
+
+### 🚀 Deployment & Installation
+- **[Deployment Guide](docs/deployment/README.md)** - Installation and deployment
+  - [Installation](docs/deployment/installation.md) - How to install
+  - [Building](docs/deployment/building.md) - Create executables
+  - [Configuration](docs/deployment/configuration.md) - Post-install setup
+
+### 🤝 Contributing
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
+- **[Code of Conduct](docs/contributing/README.md)** - Community guidelines
+- **[Security Policy](SECURITY.md)** - Reporting security issues
+- **[Changelog](CHANGELOG.md)** - Version history
+
+### 🎮 Player Documentation
 - **[Player Types Overview](docs/players/README.md)** - Complete player comparison and guide
 - **[Individual Player Docs](docs/players/)** - Detailed documentation for each player type
 
-### Technical Documentation
+### 🤖 AI & Technical Documentation
 - **[Features Guide](docs/FEATURES.md)** - Complete feature list
 - **[View Architecture](docs/VIEW_ARCHITECTURE.md)** - Modular view system (NEW in 3.1.0)
 - **[Board Module](src/Board/README.md)** - Board and view components
@@ -573,23 +607,23 @@ You should have received a copy of the GNU General Public License along with thi
 - **[Grandmaster AI](docs/GRANDMASTER_AI.md)** - Ultimate AI documentation
 - **[Strategy Improvements](docs/STRATEGY_IMPROVEMENTS.md)** - Advanced AI techniques
 - **[Parallel Engine](docs/HOW_TO_USE_PARALLEL.md)** - Multi-core usage guide
-- **[Build Guide](BUILD.md)** - Building distributions
-- **[Changelog](CHANGELOG.md)** - Version history
 
-### Tournament System Documentation
+### 🏆 Tournament System
 - **[Tournament System Guide](tournament/README.md)** - Complete tournament overview
 - **[Tournaments Guide](tournament/TOURNAMENTS_GUIDE.md)** - All 12 tournaments detailed
 - **[Tournament Configurations](tournament/ring/README.md)** - Configuration guide
 - **[Configuration System](tournament/CONFIGURATION_SYSTEM.md)** - Technical reference
 
-### Learn More About Reversi
-- Wikipedia: http://en.wikipedia.org/wiki/Reversi
-- Official Othello: http://www.fngo.it
-- World Othello Federation: https://www.worldothello.org/
+### 🎓 Learning Resources
+Want to improve your Othello skills? Check out these resources:
 
-### 🎓 Recommended Study Tools
-Want to improve your Othello skills? Check out these professional tools:
-- **[WOF Study Support](https://www.worldothello.org/about/study-othello/study-support)** - Recommended tools by World Othello Federation
+**External Resources:**
+- [World Othello Federation](https://www.worldothello.org/) - Official international organization
+- [FNGO](http://www.fngo.it) - Italian Othello Federation
+- [Reversi Wikipedia](http://en.wikipedia.org/wiki/Reversi) - Game history and rules
+
+**Recommended Study Tools:**
+- **[WOF Study Support](https://www.worldothello.org/about/study-othello/study-support)** - Tools recommended by World Othello Federation
   - **Egaroucid** - One of the strongest Othello solver AIs
   - **Othello Sensei** - Analysis program by Michele Borassi
   - **SAIO** - Professional engine by 3x Italian Champion Benedetto Romano
