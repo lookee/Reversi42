@@ -2,13 +2,13 @@ name: Documentation
 
 on:
   push:
-    branches: [ main, doc ]
+    branches: [ master, doc ]
     paths:
       - 'docs/**'
       - 'README.md'
       - '.github/workflows/docs.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'docs/**'
   workflow_dispatch:
@@ -75,7 +75,7 @@ jobs:
         retention-days: 30
     
     - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}

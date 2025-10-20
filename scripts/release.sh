@@ -36,10 +36,10 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 echo -e "${GREEN}✅ Working directory clean${NC}"
 
-# 2. Check on main branch
+# 2. Check on master branch
 CURRENT_BRANCH=$(git branch --show-current)
-if [ "$CURRENT_BRANCH" != "main" ]; then
-    echo -e "${YELLOW}⚠️  Not on main branch (currently on: $CURRENT_BRANCH)${NC}"
+if [ "$CURRENT_BRANCH" != "master" ]; then
+    echo -e "${YELLOW}⚠️  Not on master branch (currently on: $CURRENT_BRANCH)${NC}"
     read -p "Continue anyway? (y/N) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -49,7 +49,7 @@ fi
 
 # 3. Pull latest changes
 echo -e "\n${BLUE}→ Pulling latest changes...${NC}"
-git pull origin main
+git pull origin master
 
 # 4. Check version in files
 echo -e "\n${BLUE}→ Checking version consistency...${NC}"
