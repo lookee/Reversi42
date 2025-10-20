@@ -19,6 +19,20 @@ from Players.Player import Player
 from Players.PlayerApocalyptron import PlayerApocalyptron
 from Players.PlayerHuman import PlayerHuman
 
+# Epic Gladiators - 10 Legendary Fighters (from separate files)
+from Players.Gladiators import (
+    PlayerDivZero,
+    PlayerLightningStrike,
+    PlayerTheStrangler,
+    PlayerFortressEternal,
+    PlayerCornerReaper,
+    PlayerTheOracle,
+    PlayerBlitzDemon,
+    PlayerTheExecutioner,
+    PlayerGlitchLord,
+    PlayerZenMaster,
+)
+
 
 class PlayerFactory:
     """
@@ -31,10 +45,21 @@ class PlayerFactory:
     """
 
     # Registry of all player classes
-    # Apocalyptron is the ultimate AI
+    # Apocalyptron is the ultimate AI, followed by Epic Gladiators
     ALL_PLAYER_CLASSES = [
         PlayerHuman,  # Human player (disabled in menu, but available for API)
         PlayerApocalyptron,  # ⚡ Apocalyptron - The ultimate AI (enabled in menu)
+        # Epic Gladiators - 10 Legendary Fighters
+        PlayerDivZero,  # 💀 The Ultimate Singularity
+        PlayerLightningStrike,  # ⚡ Lightning Fast
+        PlayerTheStrangler,  # 🎯 Mobility Assassin
+        PlayerFortressEternal,  # 🛡️ Defensive Master
+        PlayerCornerReaper,  # 👑 Corner Specialist
+        PlayerTheOracle,  # 🔮 Endgame Prophet
+        PlayerBlitzDemon,  # 🔥 Speed Incarnate
+        PlayerTheExecutioner,  # ⚔️ Ruthless Destroyer
+        PlayerGlitchLord,  # 👾 Chaotic Anomaly
+        PlayerZenMaster,  # 🧘 Enlightened One
     ]
 
     # Build registry from metadata

@@ -448,6 +448,99 @@ row.add(Spacer(width=100))  # 100px gap
 row.add(Button("Right"))
 ```
 
+### Image - Auto-Resizing Images
+
+Auto-scaling image widget with intelligent fit modes.
+
+**API:**
+```python
+Image(
+    image_path: str,
+    width: int = 0,
+    height: int = 0,
+    fit: str = "contain",  # "contain", "cover", "fill", "none"
+    center_in_parent: bool = False
+)
+```
+
+**Fit Modes:**
+- `"contain"`: Scale to fit inside bounds, maintain aspect (default)
+- `"cover"`: Scale to cover bounds, maintain aspect (may crop)
+- `"fill"`: Stretch to exact size (may distort)
+- `"none"`: No scaling, original size
+
+**Example:**
+```python
+from ui.widgets.primitives import Image
+
+# Logo that auto-fits
+logo = Image("assets/logo.png", width=300, height=200, fit="contain")
+logo.center_in_parent = True
+
+# Background that fills screen
+bg = Image("bg.png", width=800, height=600, fit="cover")
+```
+
+### InputBox - Single-Line Text Input
+
+Single-line text input field.
+
+**API:**
+```python
+InputBox(
+    width: int = 200,
+    height: int = 30,
+    placeholder: str = "",
+    max_length: int = 50,
+    on_submit: Callable = None,
+    center_in_parent: bool = False
+)
+```
+
+**Example:**
+```python
+from ui.widgets.primitives import InputBox
+
+# Input with placeholder
+name_input = InputBox(
+    width=300,
+    placeholder="Enter your name...",
+    on_submit=lambda text: print(f"Submitted: {text}")
+)
+name_input.center_in_parent = True
+```
+
+### TextArea - Multi-Line Text Input
+
+Multi-line text editor with scrolling.
+
+**API:**
+```python
+TextArea(
+    width: int = 300,
+    height: int = 200,
+    placeholder: str = "",
+    max_lines: int = 100,
+    show_line_numbers: bool = False,
+    on_change: Callable = None,
+    center_in_parent: bool = False
+)
+```
+
+**Example:**
+```python
+from ui.widgets.primitives import TextArea
+
+# Multi-line editor
+notes = TextArea(
+    width=400,
+    height=300,
+    placeholder="Enter notes...",
+    show_line_numbers=True,
+    on_change=lambda text: save_notes(text)
+)
+```
+
 ### Divider - Visual Separator
 
 Line separator for visual grouping.

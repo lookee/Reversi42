@@ -5,8 +5,35 @@ Centralized configuration for all engine parameters.
 """
 
 from dataclasses import dataclass, field
+from typing import List, Dict, Any
 
 from AI.Apocalyptron.weights.evaluation_weights import EvaluationWeights
+
+
+@dataclass
+class EvaluatorConfig:
+    """
+    Configuration for a single evaluator.
+    
+    Allows customization of which evaluators to use and their weights.
+    """
+    evaluator_type: str  # 'mobility', 'positional', 'stability', 'parity'
+    weight: float = 1.0
+    custom_weights: Any = None  # Optional custom EvaluationWeights for this evaluator
+
+
+def _default_evaluators() -> List[EvaluatorConfig]:
+    """
+    Get default evaluator configuration.
+    
+    Returns standard 4-evaluator setup (same as before refactoring).
+    """
+    return [
+        EvaluatorConfig('mobility', weight=1.0),
+        EvaluatorConfig('positional', weight=1.0),
+        EvaluatorConfig('stability', weight=1.0),
+        EvaluatorConfig('parity', weight=1.0),
+    ]
 
 
 @dataclass
@@ -31,6 +58,19 @@ class ApocalyptronConfig:
 
     # Evaluation
     weights: EvaluationWeights = field(default_factory=EvaluationWeights)
+    
+    # Evaluator configuration (NEW - for custom evaluator combinations)
+    evaluators: List[EvaluatorConfig] = field(default_factory=_default_evaluators)
+    
+    # Search strategy configuration (NEW)
+    search_strategy: str = 'iterative_deepening'  # 'fixed_depth', 'iterative_deepening', 'adaptive'
+    
+    # Adaptive depth configuration (NEW - only used if search_strategy='adaptive')
+    adaptive_depths: Dict[str, int] = field(default_factory=lambda: {
+        'opening': 7,
+        'midgame': 9,
+        'endgame': 11
+    })
 
     # Pruning techniques (enable/disable)
     enable_null_move_pruning: bool = True
@@ -75,4 +115,13 @@ class ApocalyptronConfig:
             "enable_late_move_reduction": self.enable_late_move_reduction,
             "enable_multi_cut_pruning": self.enable_multi_cut_pruning,
             "weights": self.weights.to_dict(),
+            # NEW fields
+            "search_strategy": self.search_strategy,
+            "adaptive_depths": self.adaptive_depths,
+            "evaluators": [
+                {
+                    "type": e.evaluator_type,
+                    "weight": e.weight
+                } for e in self.evaluators
+            ],
         }

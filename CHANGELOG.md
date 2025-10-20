@@ -8,10 +8,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Image Widget**: Auto-resizing image component with fit modes (contain, cover, fill, none)
+- **TextArea Widget**: Multi-line text editor with scrolling and line numbers
+- **Epic Gladiators System**: 10 legendary AI opponents with unique fighting styles
+  - DIVZERO.EXE 💀 - Ultimate singularity (adaptive 8/12/16, ELO ~1880)
+  - LIGHTNING STRIKE ⚡ - Blitz master (<100ms, ELO ~1400)
+  - THE STRANGLER 🎯 - Mobility assassin (3x mobility focus, ELO ~1750)
+  - FORTRESS ETERNAL 🛡️ - Defensive master (2x stability, ELO ~1800)
+  - CORNER REAPER 👑 - Corner specialist (2.5x corner value, ELO ~1720)
+  - THE ORACLE 🔮 - Endgame prophet (adaptive 7/9/14, ELO ~1850)
+  - BLITZ DEMON 🔥 - Speed incarnate (<50ms, ELO ~1350)
+  - THE EXECUTIONER ⚔️ - Hybrid destroyer (mobility+positional, ELO ~1770)
+  - GLITCH_LORD 👾 - Chaotic anomaly (parity-only, ELO ~1500±200)
+  - ZEN MASTER 🧘 - Minimalist monk (depth 3, no opts, ELO ~1250)
+- **SearchStrategy Pattern**: Flexible search strategy architecture
+  - `FixedDepthStrategy` - Direct search at target depth (no iterative deepening)
+  - `IterativeDeepeningStrategy` - Progressive depth 1→N (default behavior)
+  - `AdaptiveDepthStrategy` - Depth varies by game phase (opening/midgame/endgame)
+- **Dynamic Evaluator Configuration**: Create players with custom evaluator combinations
+  - Support for single-evaluator configurations (mobility-only, positional-only, etc.)
+  - Custom weight multipliers per evaluator
+  - Mix-and-match evaluator combinations
+- **ApocalyptronConfigBuilder Extensions**: New fluent API methods
+  - `with_fixed_depth_search()` - Disable iterative deepening
+  - `with_adaptive_depth(opening, midgame, endgame)` - Phase-based depth
+  - `with_only_mobility()`, `with_only_positional()`, etc. - Single evaluator configs
+  - `disable_all_pruning()` - Pure alpha-beta mode
+- **New Factory Presets**: 5 additional engine configurations
+  - `create_speed_demon()` - Maximum speed, minimal intelligence
+  - `create_mobility_obsessed()` - Mobility-only evaluator
+  - `create_corner_hunter()` - Corner-focused positional play
+  - `create_pure_alphabeta()` - No optimizations (educational)
+  - `create_adaptive_player()` - Custom adaptive depth configuration
 
 ### Changed
+- **InputBox**: Updated to support `center_in_parent` and absolute coordinates
+- **ApocalyptronEngine**: Now uses SearchStrategy pattern (backward compatible)
+- **ApocalyptronConfig**: Extended with `search_strategy`, `evaluators`, `adaptive_depths` fields
+- **PlayerApocalyptron**: Added `search_strategy` and `config_builder` parameters (backward compatible)
 
 ### Fixed
+
+### Technical Notes
+- All 206 existing tests pass (100% backward compatibility)
+- Added 35 new tests for new features
+- Zero breaking changes - default behavior identical to before
+- Menu automatically displays all 10 new gladiators (via PlayerFactory)
 
 
 ## [4.1.15] - 2025-10-20

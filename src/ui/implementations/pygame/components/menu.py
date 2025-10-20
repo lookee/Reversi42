@@ -299,56 +299,90 @@ class Menu:
         )
         self.submenu_widget.add(back_btn)
 
-    def _build_difficulty_menu(self, player_color, player_type):
-        """Build difficulty selection submenu"""
-        panel_width = 400
-        panel_height = 400
-        self.submenu_widget = Panel(x=200, y=150, width=panel_width, height=panel_height)
-        self.submenu_widget.background_color = (30, 50, 40)
-        self.submenu_widget.border_color = MenuConfig.TITLE_COLOR
+    def _build_parameters_menu(self, player_color, player_type, metadata):
+        """Build parameters configuration menu (supports both old and new structure)"""
+        from ui.widgets.base import Stack, Center
 
-        # Title (centered)
-        title = Label(
-            f"Select Difficulty for {player_type}",
-            x=0,
-            y=20,
-            font_size=28,
-            color=MenuConfig.TITLE_COLOR,
-        )
-        title.x = (panel_width - 300) // 2  # Center title
-        self.submenu_widget.add(title)
+        # Panel with parameters - LARGO quasi tutto lo schermo (80%)
+        panel_width = int(self.width * 0.80)
 
-        # Difficulty buttons (centered)
-        button_width = 300
-        button_x = (panel_width - button_width) // 2  # Center buttons
-        y_pos = 80
+        panel = Stack(gap=20, align="center")
+        panel.background_color = (30, 50, 40)
+        panel.border_color = MenuConfig.TITLE_COLOR
+        panel.border_width = 2
+        panel.padding = 30
+        panel.center_in_parent = True
+        panel.set_size(panel_width, 0)  # Larghezza fissa 80%, altezza auto
 
-        for diff in self.difficulties:
-            btn = Button(
-                f"Level {diff}",
-                x=button_x,
-                y=y_pos,
-                width=button_width,
-                height=45,
-                on_click=lambda d=diff: self._select_difficulty(player_color, d),
-                color=(40, 40, 50),
-                text_color=MenuConfig.TEXT_COLOR,
-            )
-            self.submenu_widget.add(btn)
-            y_pos += 55
+        # Title
+        panel.add(Title(f"Configure {player_type}", font_size=32, color=MenuConfig.TITLE_COLOR))
 
-        # Back button (centered)
+        # Check for new parameters structure
+        if "parameters" in metadata and metadata["parameters"]:
+            params = metadata["parameters"]
+
+            # For now, handle "difficulty" parameter specially
+            if "difficulty" in params:
+                diff_param = params["difficulty"]
+                min_val = diff_param.get("min", 1)
+                max_val = diff_param.get("max", 12)
+                default_val = diff_param.get("default", 9)
+                description = diff_param.get("description", "Difficulty level")
+
+                # Add description label
+                desc_label = Label(description, font_size=20, color=MenuConfig.TEXT_COLOR)
+                desc_label.center_in_parent = True
+                panel.add(desc_label)
+
+                # Create buttons for each difficulty level
+                for level in range(min_val, max_val + 1):
+                    btn = Button(
+                        f"Depth {level}",
+                        width=300,
+                        height=45,
+                        on_click=lambda d=level: self._select_difficulty(player_color, d),
+                        color=(40, 40, 50),
+                        hover_color=(60, 60, 70),
+                        text_color=MenuConfig.TEXT_COLOR,
+                    )
+                    panel.add(btn)
+
+        # Fallback to old difficulty_levels structure
+        elif metadata.get("difficulty_levels", []):
+            for diff in metadata["difficulty_levels"]:
+                btn = Button(
+                    f"Level {diff}",
+                    width=300,
+                    height=45,
+                    on_click=lambda d=diff: self._select_difficulty(player_color, d),
+                    color=(40, 40, 50),
+                    hover_color=(60, 60, 70),
+                    text_color=MenuConfig.TEXT_COLOR,
+                )
+                panel.add(btn)
+
+        # Back button
         back_btn = Button(
             "Back",
-            x=(panel_width - 150) // 2,
-            y=panel_height - 70,
             width=150,
             height=40,
             on_click=lambda: self._back_to_player_selection(player_color),
             color=(60, 40, 40),
+            hover_color=(80, 60, 60),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        self.submenu_widget.add(back_btn)
+        panel.add(back_btn)
+
+        # Center the panel
+        center = Center(width=self.width, height=self.height)
+        center.add(panel)
+
+        self.submenu_widget = center
+
+    def _build_difficulty_menu(self, player_color, player_type):
+        """Legacy method - redirects to _build_parameters_menu"""
+        metadata = self.all_metadata.get(player_type, {})
+        self._build_parameters_menu(player_color, player_type, metadata)
 
     def _build_help_screen(self):
         """Build help screen"""
@@ -454,29 +488,33 @@ class Menu:
         self._build_player_selection_menu(color)
 
     def _select_player_type(self, color, player_type):
-        """Select player type and open difficulty if needed"""
-        # Check if player needs difficulty
+        """Select player type and open parameters config if needed"""
+        # Check if player needs parameters configuration
         metadata = self.all_metadata.get(player_type, {})
-        needs_difficulty = metadata.get("difficulty_levels", []) != []
+
+        # Check both old (difficulty_levels) and new (parameters) structure
+        has_old_difficulty = metadata.get("difficulty_levels", []) != []
+        has_new_params = "parameters" in metadata and metadata["parameters"]
+        needs_configuration = has_old_difficulty or has_new_params
 
         if color == "black":
             self.black_player = player_type
-            if not needs_difficulty:
+            if not needs_configuration:
                 self.black_difficulty = None
                 self._back_to_main()
             else:
-                # Open difficulty selection
+                # Open parameters configuration
                 self.current_screen = "difficulty_select"
-                self._build_difficulty_menu(color, player_type)
+                self._build_parameters_menu(color, player_type, metadata)
         else:
             self.white_player = player_type
-            if not needs_difficulty:
+            if not needs_configuration:
                 self.white_difficulty = None
                 self._back_to_main()
             else:
-                # Open difficulty selection
+                # Open parameters configuration
                 self.current_screen = "difficulty_select"
-                self._build_difficulty_menu(color, player_type)
+                self._build_parameters_menu(color, player_type, metadata)
 
     def _select_difficulty(self, color, difficulty):
         """Select difficulty and return to main"""

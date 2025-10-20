@@ -79,27 +79,20 @@ class ApocalyptronEngine:
         # Setup observers based on config
         self.observers = self._build_observers()
 
-        # Wrap with iterative deepening
-        if self.config.use_iterative_deepening:
-            self.search = IterativeDeepeningSearch(
-                self.alphabeta,
-                use_aspiration=self.config.use_aspiration_windows,
-                observers=self.observers,
-            )
-        else:
-            self.search = self.alphabeta
+        # Build search strategy (NEW - uses SearchStrategy pattern)
+        self.search_strategy = self._build_search_strategy()
 
         # Wrap with parallel search
         if self.config.use_parallel:
             self.parallel_search = ParallelSearch(
-                self.search,
+                self.search_strategy,  # Wrap the strategy (not alphabeta directly)
                 num_workers=self.config.num_workers,
                 parallel_threshold_depth=self.config.parallel_threshold_depth,
                 parallel_threshold_moves=self.config.parallel_threshold_moves,
                 observers=self.observers,
             )
         else:
-            self.parallel_search = self.search
+            self.parallel_search = self.search_strategy
 
         # Statistics
         self.searches_performed = 0
@@ -108,6 +101,7 @@ class ApocalyptronEngine:
         print(f"[ApocalyptronEngine] Initialized with modular components (NO GrandmasterEngine)!")
         print(f"  • Evaluators: {self.evaluator.get_evaluator_count()}")
         print(f"  • Orderers: {self.orderer.get_orderer_count()}")
+        print(f"  • Search strategy: {self.config.search_strategy}")  # NEW
         print(f"  • Null move: {self.config.enable_null_move_pruning}")
         print(f"  • Futility: {self.config.enable_futility_pruning}")
         print(f"  • LMR: {self.config.enable_late_move_reduction}")
@@ -116,12 +110,40 @@ class ApocalyptronEngine:
         print(f"  • Parallel: {self.config.use_parallel}")
 
     def _build_evaluator(self) -> CompositeEvaluator:
-        """Build composite evaluator with all components"""
+        """
+        Build composite evaluator from configuration.
+        
+        UPDATED: Now supports dynamic evaluator configuration.
+        Can build different combinations based on config.evaluators.
+        """
         evaluator = CompositeEvaluator()
-        evaluator.add_evaluator(MobilityEvaluator(self.weights), weight=1.0)
-        evaluator.add_evaluator(PositionalEvaluator(self.weights), weight=1.0)
-        evaluator.add_evaluator(StabilityEvaluator(self.weights), weight=1.0)
-        evaluator.add_evaluator(ParityEvaluator(self.weights), weight=1.0)
+        
+        # Build evaluators from configuration (dynamic!)
+        for eval_config in self.config.evaluators:
+            # Use custom weights if provided, otherwise use engine default weights
+            eval_weights = eval_config.custom_weights or self.weights
+            
+            if eval_config.evaluator_type == 'mobility':
+                evaluator.add_evaluator(
+                    MobilityEvaluator(eval_weights),
+                    weight=eval_config.weight
+                )
+            elif eval_config.evaluator_type == 'positional':
+                evaluator.add_evaluator(
+                    PositionalEvaluator(eval_weights),
+                    weight=eval_config.weight
+                )
+            elif eval_config.evaluator_type == 'stability':
+                evaluator.add_evaluator(
+                    StabilityEvaluator(eval_weights),
+                    weight=eval_config.weight
+                )
+            elif eval_config.evaluator_type == 'parity':
+                evaluator.add_evaluator(
+                    ParityEvaluator(eval_weights),
+                    weight=eval_config.weight
+                )
+        
         return evaluator
 
     def _build_orderer(self) -> CompositeOrderer:
@@ -149,6 +171,45 @@ class ApocalyptronEngine:
             return [ConsoleObserver()]
         else:
             return [QuietObserver()]
+    
+    def _build_search_strategy(self):
+        """
+        Build search strategy from configuration.
+        
+        NEW METHOD: Creates appropriate SearchStrategy based on config.search_strategy.
+        Supports: 'fixed_depth', 'iterative_deepening', 'adaptive'
+        """
+        from AI.Apocalyptron.search import (
+            FixedDepthStrategy,
+            IterativeDeepeningStrategy,
+            AdaptiveDepthStrategy
+        )
+        
+        if self.config.search_strategy == 'fixed_depth':
+            return FixedDepthStrategy(
+                self.alphabeta,
+                observers=self.observers
+            )
+        
+        elif self.config.search_strategy == 'iterative_deepening':
+            return IterativeDeepeningStrategy(
+                self.alphabeta,
+                use_aspiration=self.config.use_aspiration_windows,
+                observers=self.observers
+            )
+        
+        elif self.config.search_strategy == 'adaptive':
+            return AdaptiveDepthStrategy(
+                self.alphabeta,
+                depth_config=self.config.adaptive_depths,
+                observers=self.observers
+            )
+        
+        else:
+            raise ValueError(
+                f"Unknown search strategy: {self.config.search_strategy}. "
+                f"Valid options: 'fixed_depth', 'iterative_deepening', 'adaptive'"
+            )
 
     def get_best_move(
         self, game, depth: int, player_name: str = None, opening_book=None, game_history: str = None

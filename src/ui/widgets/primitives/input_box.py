@@ -39,6 +39,7 @@ class InputBox(Widget, Clickable):
         max_length: int = 50,
         on_submit: Optional[Callable] = None,
         default_text: str = "",
+        center_in_parent: bool = False,
     ):
         """
         Initialize input box.
@@ -50,8 +51,9 @@ class InputBox(Widget, Clickable):
             max_length: Maximum text length
             on_submit: Callback when Enter is pressed
             default_text: Initial text value
+            center_in_parent: Auto-center in parent
         """
-        Widget.__init__(self, x, y, width, height)
+        Widget.__init__(self, x, y, width, height, center_in_parent)
         Clickable.__init__(self)
 
         self.text = default_text
@@ -77,12 +79,15 @@ class InputBox(Widget, Clickable):
         if not self.visible:
             return
 
+        # Get absolute rect for rendering
+        abs_rect = self.get_absolute_rect()
+
         # Draw background
-        pygame.draw.rect(surface, self.color_background, self.rect, border_radius=4)
+        pygame.draw.rect(surface, self.color_background, abs_rect, border_radius=4)
 
         # Draw border (different color when focused)
         border_color = self.color_border_focus if self.focused else self.color_border
-        pygame.draw.rect(surface, border_color, self.rect, 2, border_radius=4)
+        pygame.draw.rect(surface, border_color, abs_rect, 2, border_radius=4)
 
         # Render text or placeholder
         if self.text:
@@ -91,16 +96,20 @@ class InputBox(Widget, Clickable):
             text_surface = self.font.render(self.placeholder, True, self.color_placeholder)
 
         # Position text with padding
-        text_rect = text_surface.get_rect(midleft=(self.rect.x + 10, self.rect.centery))
+        text_rect = text_surface.get_rect(midleft=(abs_rect.x + 10, abs_rect.centery))
         surface.blit(text_surface, text_rect)
 
         # Draw cursor if focused
         if self.focused and self.cursor_visible:
             cursor_x = text_rect.x + text_rect.width + 2
-            cursor_y1 = self.rect.y + 5
-            cursor_y2 = self.rect.y + self.rect.height - 5
+            cursor_y1 = abs_rect.y + 5
+            cursor_y2 = abs_rect.y + abs_rect.height - 5
             pygame.draw.line(
-                surface, self.color_cursor, (cursor_x, cursor_y1), (cursor_x, cursor_y2), 2
+                surface,
+                self.color_cursor,
+                (cursor_x, cursor_y1),
+                (cursor_x, cursor_y2),
+                2,
             )
 
     def handle_event(self, event: pygame.event.Event) -> bool:

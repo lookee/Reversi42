@@ -65,7 +65,14 @@ class PlayerApocalyptron(Player):
         },
     }
 
-    def __init__(self, depth=9, show_book_options=True, weights=None):
+    def __init__(
+        self,
+        depth=9,
+        show_book_options=True,
+        weights=None,
+        search_strategy='iterative_deepening',  # NEW parameter
+        config_builder=None  # NEW parameter for full control
+    ):
         """
         Initialize Apocalyptron AI.
 
@@ -73,6 +80,8 @@ class PlayerApocalyptron(Player):
             depth: Search depth (7-12 recommended, default 9)
             show_book_options: Show opening book information
             weights: EvaluationWeights instance for custom evaluation (None = default)
+            search_strategy: 'fixed_depth', 'iterative_deepening', 'adaptive' (NEW!)
+            config_builder: Custom ApocalyptronConfigBuilder for advanced control (NEW!)
         """
         # Don't call super().__init__() to avoid double initialization message
         # Instead, initialize directly (same as AIPlayerGrandmaster but with Apocalyptron branding)
@@ -90,14 +99,33 @@ class PlayerApocalyptron(Player):
         from AI.Apocalyptron import ApocalyptronConfigBuilder, ApocalyptronEngine
 
         # Build config for engine
-        engine_config = (
-            ApocalyptronConfigBuilder().with_depth(depth).enable_all_optimizations().build()
-        )
-
-        # Override weights if provided
-        if weights:
-            # Use provided EvaluationWeights directly
-            engine_config.weights = weights
+        if config_builder:
+            # Use custom builder if provided (full control)
+            engine_config = config_builder.build()
+        else:
+            # Build standard config with search strategy
+            builder = ApocalyptronConfigBuilder().with_depth(depth)
+            
+            # Configure search strategy (NEW!)
+            if search_strategy == 'fixed_depth':
+                builder.with_fixed_depth_search()
+            elif search_strategy == 'adaptive':
+                # Use adaptive with sensible defaults
+                builder.with_adaptive_depth(
+                    opening=max(4, depth - 2),
+                    midgame=depth,
+                    endgame=min(15, depth + 2)
+                )
+            else:  # 'iterative_deepening' (default)
+                builder.enable_iterative_deepening()
+            
+            builder.enable_all_optimizations()
+            
+            # Override weights if provided
+            if weights:
+                builder.with_weights(weights)
+            
+            engine_config = builder.build()
 
         self.bitboard_engine = ApocalyptronEngine(config=engine_config)
 
