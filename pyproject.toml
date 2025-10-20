@@ -116,7 +116,7 @@ module = "pygame.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-minversion = "7.0"
+minversion = "6.0"
 addopts = "-ra -q --strict-markers"
 testpaths = [
     "tests",

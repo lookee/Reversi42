@@ -5,8 +5,14 @@ Provides common fixtures and configuration for all Apocalyptron test suites.
 """
 
 import pytest
-from src.Reversi.BitboardGame import BitboardGame
-from src.AI.Apocalyptron.factory.factory import ApocalyptronFactory
+import sys
+import os
+
+# Add src to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+
+from Reversi.BitboardGame import BitboardGame
+from AI.Apocalyptron.factory.factory import ApocalyptronFactory
 
 
 # ==================== Fixtures ====================

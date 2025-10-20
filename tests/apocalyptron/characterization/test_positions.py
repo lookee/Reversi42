@@ -4,8 +4,7 @@ Test positions for characterization testing.
 Standard positions used throughout Reversi testing.
 """
 
-from Reversi.BitboardGame import BitboardGame
-from Reversi.Game import Move
+from src.Reversi.BitboardGame import BitboardGame
 
 
 class TestPositions:
@@ -21,7 +20,7 @@ class TestPositions:
     def after_first_move():
         """Position after F5"""
         game = BitboardGame()
-        game.move(Move(6, 5))  # F5
+        game = game.make_move(37)  # F5 (position 37)
         return game
     
     @staticmethod
@@ -29,21 +28,10 @@ class TestPositions:
         """Early midgame position - move 10"""
         game = BitboardGame()
         # Play a standard opening sequence
-        moves = [
-            Move(6, 5),  # F5
-            Move(6, 6),  # f6
-            Move(5, 5),  # E5
-            Move(6, 4),  # f4
-            Move(5, 3),  # E3
-            Move(4, 6),  # d6
-            Move(3, 5),  # C5
-            Move(4, 3),  # d3
-            Move(5, 6),  # e6
-            Move(3, 6),  # c6
-        ]
+        moves = [37, 38, 29, 36, 21, 26, 19, 20, 30, 22]  # F5, f6, E5, f4, E3, d6, C5, d3, e6, c6
         for move in moves:
-            if game.valid_move(move):
-                game.move(move)
+            if move in game.get_valid_moves(game.current_player):
+                game = game.make_move(move)
         return game
     
     @staticmethod
@@ -51,25 +39,10 @@ class TestPositions:
         """Midgame with tactical opportunities"""
         game = BitboardGame()
         # Sequence that creates tactical position
-        moves = [
-            Move(6, 5),  # F5
-            Move(4, 6),  # d6
-            Move(3, 5),  # C5
-            Move(5, 6),  # e6
-            Move(6, 6),  # F6
-            Move(6, 4),  # f4
-            Move(5, 7),  # E7
-            Move(6, 3),  # f3
-            Move(7, 5),  # G5
-            Move(3, 6),  # c6
-            Move(3, 7),  # C7
-            Move(4, 7),  # d7
-            Move(4, 3),  # D3
-            Move(5, 3),  # e3
-        ]
+        moves = [37, 26, 19, 30, 38, 36, 31, 35, 39, 22, 23, 24, 20, 21]  # F5, d6, C5, e6, F6, f4, E7, f3, G5, c6, C7, d7, D3, e3
         for move in moves:
-            if game.valid_move(move):
-                game.move(move)
+            if move in game.get_valid_moves(game.current_player):
+                game = game.make_move(move)
         return game
     
     @staticmethod
@@ -77,18 +50,10 @@ class TestPositions:
         """Late midgame - ~40 pieces on board"""
         game = BitboardGame()
         # Extended sequence
-        moves = [
-            Move(6, 5), Move(4, 6), Move(3, 5), Move(5, 6),
-            Move(6, 6), Move(6, 4), Move(5, 7), Move(6, 3),
-            Move(7, 5), Move(3, 6), Move(3, 7), Move(4, 7),
-            Move(4, 3), Move(5, 3), Move(6, 7), Move(7, 6),
-            Move(3, 4), Move(4, 5), Move(3, 3), Move(2, 4),
-            Move(5, 4), Move(2, 5), Move(2, 6), Move(2, 3),
-            Move(4, 2), Move(5, 2), Move(6, 2), Move(7, 3),
-        ]
+        moves = [37, 26, 19, 30, 38, 36, 31, 35, 39, 22, 23, 24, 20, 21, 40, 41, 18, 25, 17, 10, 28, 11, 12, 9, 8, 13, 14, 43]
         for move in moves:
-            if game.valid_move(move):
-                game.move(move)
+            if move in game.get_valid_moves(game.current_player):
+                game = game.make_move(move)
         return game
     
     @staticmethod
@@ -96,21 +61,10 @@ class TestPositions:
         """Endgame position - few empty squares"""
         game = BitboardGame()
         # Long sequence to reach endgame
-        moves = [
-            Move(6, 5), Move(4, 6), Move(3, 5), Move(5, 6),
-            Move(6, 6), Move(6, 4), Move(5, 7), Move(6, 3),
-            Move(7, 5), Move(3, 6), Move(3, 7), Move(4, 7),
-            Move(4, 3), Move(5, 3), Move(6, 7), Move(7, 6),
-            Move(3, 4), Move(4, 5), Move(3, 3), Move(2, 4),
-            Move(5, 4), Move(2, 5), Move(2, 6), Move(2, 3),
-            Move(4, 2), Move(5, 2), Move(6, 2), Move(7, 3),
-            Move(7, 4), Move(8, 5), Move(7, 2), Move(8, 3),
-            Move(3, 2), Move(2, 2), Move(1, 3), Move(1, 4),
-            Move(8, 4), Move(8, 6), Move(1, 5), Move(1, 6),
-        ]
+        moves = [37, 26, 19, 30, 38, 36, 31, 35, 39, 22, 23, 24, 20, 21, 40, 41, 18, 25, 17, 10, 28, 11, 12, 9, 8, 13, 14, 43, 44, 45, 42, 46, 15, 6, 1, 2, 47, 48, 3, 4]
         for move in moves:
-            if game.valid_move(move):
-                game.move(move)
+            if move in game.get_valid_moves(game.current_player):
+                game = game.make_move(move)
         return game
     
     @staticmethod
@@ -118,14 +72,10 @@ class TestPositions:
         """Position where corner can be captured"""
         game = BitboardGame()
         # Sequence leading to corner opportunity
-        moves = [
-            Move(6, 5), Move(4, 6), Move(3, 5), Move(5, 6),
-            Move(6, 6), Move(6, 4), Move(7, 5), Move(7, 6),
-            Move(8, 6), Move(8, 5), Move(7, 4), Move(6, 3),
-        ]
+        moves = [37, 26, 19, 30, 38, 36, 39, 40, 48, 47, 44, 35]
         for move in moves:
-            if game.valid_move(move):
-                game.move(move)
+            if move in game.get_valid_moves(game.current_player):
+                game = game.make_move(move)
         return game
     
     @staticmethod

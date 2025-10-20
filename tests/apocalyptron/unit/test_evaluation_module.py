@@ -10,12 +10,18 @@ Tests all evaluators:
 """
 
 import pytest
-from src.Reversi.BitboardGame import BitboardGame
-from src.AI.Apocalyptron.evaluation.mobility import MobilityEvaluator
-from src.AI.Apocalyptron.evaluation.stability import StabilityEvaluator
-from src.AI.Apocalyptron.evaluation.positional import PositionalEvaluator
-from src.AI.Apocalyptron.evaluation.parity import ParityEvaluator
-from src.AI.Apocalyptron.evaluation.composite import CompositeEvaluator
+import sys
+import os
+
+# Add src to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'src'))
+
+from Reversi.BitboardGame import BitboardGame
+from AI.Apocalyptron.evaluation.mobility import MobilityEvaluator
+from AI.Apocalyptron.evaluation.stability import StabilityEvaluator
+from AI.Apocalyptron.evaluation.positional import PositionalEvaluator
+from AI.Apocalyptron.evaluation.parity import ParityEvaluator
+from AI.Apocalyptron.evaluation.composite import CompositeEvaluator
 
 
 class TestMobilityEvaluator:
