@@ -128,7 +128,7 @@ Apocalyptron follows a **modular, composable architecture** where each optimizat
 │  │                                           │  │
 │  │  644 Professional Sequences               │  │
 │  │  Trie-based O(m) Lookup                   │  │
-│  └───────────────────────────────────────────┘  │
+│  └───────────────────────────────────────────┘  git│
 └─────────────────────────────────────────────────┘
 ```
 

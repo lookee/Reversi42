@@ -1,0 +1,69 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.dmg
+*.exe
+*.deb
+*.rpm
+*.AppImage
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# Saved games (keep structure, not files)
+saves/*.xot
+tournament/reports/*.txt
+
+# CI/CD
+.github/
+.coveragerc
+
+# Development
+requirements-dev.txt
+pyproject.toml
+setup.py
+MANIFEST.in
+

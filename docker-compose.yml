@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Main application
+  reversi42:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: reversi42:latest
+    container_name: reversi42
+    environment:
+      - REVERSI42_VIEW=headless
+      - REVERSI42_AI_DEPTH=9
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Persist saved games
+      - ./saves:/app/saves
+      # Persist tournament reports
+      - ./tournament/reports:/app/tournament/reports
+    command: ["--view", "headless"]
+    restart: unless-stopped
+  
+  # Development environment
+  reversi42-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: reversi42:dev
+    container_name: reversi42-dev
+    environment:
+      - REVERSI42_VIEW=headless
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Mount source for development
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./saves:/app/saves
+      - ./tournament:/app/tournament
+    command: ["/bin/bash"]
+    stdin_open: true
+    tty: true
+  
+  # Tournament runner
+  tournament:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: reversi42:latest
+    container_name: reversi42-tournament
+    environment:
+      - REVERSI42_VIEW=headless
+    volumes:
+      - ./tournament:/app/tournament
+    working_dir: /app/tournament
+    command: ["python", "tournament.py"]
+    restart: "no"
+
+volumes:
+  saves:
+  reports:
+
+networks:
+  default:
+    name: reversi42-network
+

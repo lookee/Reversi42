@@ -560,3 +560,10 @@ Website: https://www.lucaamore.com
 
 **Have fun playing Reversi42!** 🎮🎉
 
+## 🤖 CI/CD
+
+- CI/CD Reference: docs/ci-cd/README.md
+- CI/CD Plan: docs/deployment/ci-cd-plan.md
+- CI/CD Implementation: docs/deployment/CI_CD_IMPLEMENTATION.md
+- Scripts: scripts/README.md
+

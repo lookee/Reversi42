@@ -1,0 +1,98 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Weekly security scan (Sundays at 3 AM UTC)
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety pip-audit bandit
+    
+    - name: Check dependencies with Safety
+      run: |
+        pip install -r requirements.txt
+        safety check --json || echo "Safety check completed"
+      continue-on-error: true
+    
+    - name: Audit with pip-audit
+      run: |
+        pip-audit -r requirements.txt || echo "Audit completed"
+      continue-on-error: true
+  
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Bandit
+      run: |
+        pip install bandit[toml]
+    
+    - name: Run Bandit security scanner
+      run: |
+        bandit -r src/ -f json -o bandit-report.json || true
+        bandit -r src/ -ll
+      continue-on-error: true
+    
+    - name: Upload Bandit results
+      uses: actions/upload-artifact@v4
+      with:
+        name: bandit-report
+        path: bandit-report.json
+      if: always()
+
+  codeql-analysis:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: python
+        queries: security-and-quality
+    
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:python"
+

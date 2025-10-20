@@ -1,0 +1,195 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 3.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-python-package:
+    name: Build Python Package
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine wheel
+    
+    - name: Build package
+      run: |
+        python -m build
+    
+    - name: Check package
+      run: |
+        twine check dist/*
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package
+        path: dist/
+        retention-days: 30
+
+  build-executables:
+    name: Build Executables - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            artifact_name: reversi42-macos
+            asset_name: reversi42-macos.dmg
+          - os: windows-latest
+            artifact_name: reversi42-windows
+            asset_name: reversi42-windows.exe
+          - os: ubuntu-latest
+            artifact_name: reversi42-linux
+            asset_name: reversi42-linux.AppImage
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Build with PyInstaller (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        pyinstaller --name reversi42 \
+          --onefile \
+          --windowed \
+          --add-data "src/Images:Images" \
+          --add-data "src/domain/knowledge/data:domain/knowledge/data" \
+          src/reversi42.py
+    
+    - name: Build with PyInstaller (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        pyinstaller --name reversi42 ^
+          --onefile ^
+          --windowed ^
+          --add-data "src/Images;Images" ^
+          --add-data "src/domain/knowledge/data;domain/knowledge/data" ^
+          src/reversi42.py
+    
+    - name: Create DMG (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        # Create DMG installer (simplified version)
+        mkdir -p dist/dmg
+        cp dist/reversi42 dist/dmg/
+        hdiutil create -volname "Reversi42" -srcfolder dist/dmg -ov -format UDZO dist/${{ matrix.asset_name }}
+    
+    - name: Create AppImage (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        # Simplified - would use appimagetool in production
+        mv dist/reversi42 dist/${{ matrix.asset_name }}
+        chmod +x dist/${{ matrix.asset_name }}
+    
+    - name: Rename executable (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        move dist\reversi42.exe dist\${{ matrix.asset_name }}
+    
+    - name: Upload executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: dist/${{ matrix.asset_name }}
+        retention-days: 30
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-python-package, build-executables]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
+    
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        # Extract version from tag or input
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION=${GITHUB_REF#refs/tags/v}
+        fi
+        
+        # Extract relevant section from CHANGELOG
+        sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | head -n -1 > release_notes.md
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          artifacts/python-package/*
+          artifacts/reversi42-macos/*
+          artifacts/reversi42-windows/*
+          artifacts/reversi42-linux/*
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: create-release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Download package
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package
+        path: dist/
+    
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        skip_existing: true
+

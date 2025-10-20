@@ -1,0 +1,64 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "lucaamore"
+    assignees:
+      - "lucaamore"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    
+    # Group minor and patch updates
+    groups:
+      dev-dependencies:
+        patterns:
+          - "pytest*"
+          - "mypy*"
+          - "pylint*"
+          - "black*"
+          - "isort*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      production-dependencies:
+        patterns:
+          - "pygame*"
+        update-types:
+          - "patch"
+    
+    # Ignore specific packages if needed
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    
+    # Auto-merge patch updates for dev dependencies
+    allow:
+      - dependency-type: "development"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "lucaamore"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+

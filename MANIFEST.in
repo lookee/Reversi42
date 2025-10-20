@@ -1,0 +1,65 @@
+# MANIFEST.in - Include additional files in source distribution
+
+# Documentation
+include README.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include SECURITY.md
+include COPYING
+
+# Requirements
+include requirements.txt
+include requirements-dev.txt
+
+# Configuration
+include pyproject.toml
+include setup.py
+include .editorconfig
+
+# Images and assets
+recursive-include src/Images *.png
+
+# Opening book data
+recursive-include src/domain/knowledge/data *.txt
+
+# Saves directory structure (not the files)
+include saves/README.md
+
+# Tournament configuration
+include tournament/README.md
+recursive-include tournament *.py
+recursive-include tournament *.sh
+
+# Exclude unnecessary files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+global-exclude *.swp
+global-exclude *.swo
+
+# Exclude build artifacts
+prune build
+prune dist
+prune *.egg-info
+
+# Exclude tests from distribution
+prune tests
+
+# Exclude development files
+prune .github
+exclude .gitignore
+exclude .gitattributes
+exclude .coveragerc
+exclude docker-compose.yml
+exclude Dockerfile
+exclude .dockerignore
+
+# Exclude documentation (available online)
+prune docs
+
+# Exclude saved games
+exclude saves/*.xot
+
+# Exclude tournament reports
+exclude tournament/reports/*.txt
+
