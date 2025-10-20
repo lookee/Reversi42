@@ -2,7 +2,7 @@
 import sys
 sys.path.insert(0, 'src')
 
-from AI.OpeningBook import OpeningBook
+from domain.knowledge import OpeningBook
 from Reversi.Game import Game
 
 # Crea game e fai prima mossa

@@ -684,7 +684,7 @@ def get_default_opening_book(advantage_weight=0.2, variety_weight=0.1, only_eval
     """
     Get the default opening book instance.
     
-    Automatically loads ALL opening book files from Books/ directory.
+    Automatically loads ALL opening book files from domain/knowledge/data/ directory.
     Files are loaded in alphabetical order.
     
     Uses HYBRID evaluation strategy: AVERAGE + VARIETY_BONUS
@@ -705,9 +705,9 @@ def get_default_opening_book(advantage_weight=0.2, variety_weight=0.1, only_eval
     """
     import glob
     
+    # Data directory is relative to this module (Clean Architecture: self-contained package)
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(os.path.dirname(current_dir))
-    books_dir = os.path.join(project_root, 'Books')
+    books_dir = os.path.join(current_dir, 'data')
     
     # Create empty combined book with specified parameters
     combined_book = OpeningBook(
@@ -716,7 +716,7 @@ def get_default_opening_book(advantage_weight=0.2, variety_weight=0.1, only_eval
         only_evaluated_openings=only_evaluated_openings
     )
     
-    # Find all .txt files in Books/ directory (excluding README)
+    # Find all .txt files in data/ directory (excluding README)
     book_files = glob.glob(os.path.join(books_dir, '*.txt'))
     book_files.sort()  # Alphabetical order
     

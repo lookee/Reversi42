@@ -2,9 +2,11 @@
 import sys
 sys.path.insert(0, 'src')
 
-from AI.OpeningBook import OpeningBook
+from domain.knowledge import OpeningBook
 
-book = OpeningBook(book_path='Books/opening_book.txt')
+# Note: Books/ moved to src/domain/knowledge/data/
+# If you need a custom book file, place it in that directory
+book = OpeningBook(book_path='src/domain/knowledge/data/00_opening_ffo.txt')
 print(f"✓ Book loaded: {book.lines_loaded} positions\n")
 
 # Test parsing

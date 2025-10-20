@@ -102,7 +102,7 @@ class PlayerApocalyptron(Player):
         self.bitboard_engine = ApocalyptronEngine(config=engine_config)
         
         # Load opening book
-        from AI.OpeningBook import get_default_opening_book
+        from domain.knowledge import get_default_opening_book
         self.opening_book = get_default_opening_book()
         
         # Statistics

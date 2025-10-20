@@ -39,7 +39,7 @@ from ui.implementations.pygame.components.menu import Menu  # New location
 from ui.implementations.pygame.components.game_over import GameOver  # New location
 from ui.implementations.pygame.components.pause_menu import PauseMenu  # New location
 from infrastructure.persistence import GameIO
-from AI.OpeningBook import get_default_opening_book
+from domain.knowledge import get_default_opening_book
 
 def create_player(player_type, difficulty=6, engine_type='Minimax'):
     """Create a player instance using the PlayerFactory"""
