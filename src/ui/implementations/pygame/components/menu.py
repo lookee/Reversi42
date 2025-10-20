@@ -121,141 +121,124 @@ class Menu:
         pygame.time.wait(3000)
 
     def _build_main_menu(self):
-        """Build main menu widget with custom layout"""
-        # Create LARGER main panel (wider and taller)
-        panel_width = self.width - 100  # Much wider (was -200)
-        panel_height = self.height - 200  # Taller (was -300)
-        panel_x = (self.width - panel_width) // 2
-        panel_y = (self.height - panel_height - 80) // 2 + 10  # Leave space for title above and buttons below
+        """Build main menu with perfect HBox/VBox layout"""
+        from ui.widgets.base.container import VBox, HBox
         
-        self.main_menu_panel = Panel(x=panel_x, y=panel_y, width=panel_width, height=panel_height)
-        self.main_menu_panel.background_color = (30, 50, 40)
-        self.main_menu_panel.border_color = MenuConfig.TITLE_COLOR
+        # Main Container (VBox) - contiene tutto
+        main_container = VBox(
+            spacing=20,  # Spaziatura tra titolo e panel
+            x=0, y=0, width=self.width, height=self.height
+        )
         
-        # Title - ABOVE the panel, aligned with panel's left edge
-        title_x = panel_x + 20  # Align with panel's left border
-        title_y = panel_y - 60  # Above the panel
-        self.title_label = Label("Reversi42", x=title_x, y=title_y, font_size=40, color=MenuConfig.TITLE_COLOR)
+        # Titolo centrato (fuori dal panel)
+        self.title_label = Label("Reversi42", font_size=48, color=MenuConfig.TITLE_COLOR)
+        main_container.add(self.title_label)
         
-        # Calculate relative positions within panel
-        content_start_y = 60  # More space from top
+        # Panel (VBox) - contiene i bottoni di gioco
+        panel_container = VBox(spacing=25)
+        panel_container.background_color = (30, 50, 40)
+        panel_container.border_color = MenuConfig.TITLE_COLOR
         
-        # LARGER buttons positioned more to the right
-        button_width = 250  # Much wider (was 250)
-        button_y = content_start_y + 120  # Below title
-        spacing = 40  # More spacing between buttons
+        # Players Row (HBox)
+        players_row = HBox(spacing=30)
         
-        # Calculate position for player buttons (shifted more to the right)
-        total_width = button_width * 2 + spacing
-        start_x = (panel_width - total_width) // 2 + 100  # Shift 100px to the right (was 80)
-        
-        # Black Player (centered left) - using B for Black
-        black_piece = "⚫"  # Black circle
+        # Black Player Button
         black_text = f"B: {self.black_player}"
-        # Only show level for AI players, not for Human Player
         if self.black_difficulty and self.black_player != "Human Player":
             black_text += f" (Lv {self.black_difficulty})"
+        
         self.black_btn = Button(
             black_text,
-            x=start_x,
-            y=button_y,
-            width=button_width,
-            height=60,  # Taller button
+            width=280, height=50,
             on_click=lambda: self._open_player_selection("black"),
-            color=(50, 70, 90),  # Blu tendente al grigio
-            hover_color=(70, 90, 110),  # Blu più chiaro per hover
+            color=(50, 70, 90),
+            hover_color=(70, 90, 110),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        self.main_menu_panel.add(self.black_btn)
         
-        # White Player (centered right) - using W for White
-        white_piece = "⚪"  # White circle
+        # White Player Button
         white_text = f"W: {self.white_player}"
-        # Only show level for AI players, not for Human Player
         if self.white_difficulty and self.white_player != "Human Player":
             white_text += f" (Lv {self.white_difficulty})"
+        
         self.white_btn = Button(
             white_text,
-            x=start_x + button_width + spacing,
-            y=button_y,
-            width=button_width,
-            height=60,  # Taller button
+            width=280, height=50,
             on_click=lambda: self._open_player_selection("white"),
-            color=(50, 70, 90),  # Blu tendente al grigio
-            hover_color=(70, 90, 110),  # Blu più chiaro per hover
+            color=(50, 70, 90),
+            hover_color=(70, 90, 110),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        self.main_menu_panel.add(self.white_btn)
         
-        # Start Game button (larger, more to the right, lower)
-        start_btn_width = 400  # Much wider (was 300)
+        players_row.add(self.black_btn)
+        players_row.add(self.white_btn)
+        panel_container.add(players_row)
+        
+        # Start Game Button (centrato)
         self.start_btn = Button(
             "Start Game",
-            x=(panel_width - start_btn_width) // 2 + 100,  # Shift 100px to the right (was 80)
-            y=button_y + 140,  # Lower position
-            width=start_btn_width,
-            height=60,  # Taller (was 55)
+            width=300, height=55,
             on_click=lambda: self._handle_start_game(),
-            color=(130, 85, 55),  # Arancione tendente al grigio
-            hover_color=(155, 105, 70),  # Arancione più chiaro per hover
+            color=(130, 85, 55),  # Arancione
+            hover_color=(155, 105, 70),
             text_color=MenuConfig.TITLE_COLOR,
         )
-        self.main_menu_panel.add(self.start_btn)
+        panel_container.add(self.start_btn)
         
-        # Opening Book toggle (larger, more to the right, lower)
+        # Opening Book Button (centrato)
         opening_text = "Book: ON" if self.show_opening else "Book: OFF"
-        opening_btn_width = 380  # Wider (was 280)
         self.opening_btn = Button(
             opening_text,
-            x=(panel_width - opening_btn_width) // 2 + 100,  # Shift 100px to the right (was 80)
-            y=button_y + 240,  # Lower position
-            width=opening_btn_width,
-            height=60,  # Taller (was 45)
+            width=280, height=50,
             on_click=lambda: self._toggle_opening(),
             color=(40, 40, 50),
             text_color=MenuConfig.TEXT_COLOR,
         )
-        self.main_menu_panel.add(self.opening_btn)
+        panel_container.add(self.opening_btn)
         
-        # Bottom buttons (Help, About, Quit) - centered at bottom of screen
-        button_y = self.height - 80
-        button_width = 150
-        spacing = 30
-        total_button_width = button_width * 3 + spacing * 2
-        start_x = (self.width - total_button_width) // 2
+        # Aggiungi il panel al main container
+        main_container.add(panel_container)
+        
+        # Sections Row (HBox) - Help, About, Quit
+        sections_row = HBox(spacing=30)
         
         self.help_btn = Button(
             "Help",
-            x=start_x,
-            y=button_y,
-            width=button_width,
-            height=40,
+            width=150, height=40,
             on_click=lambda: self._show_help(),
-            color=(40, 40, 50),
+            color=(60, 60, 70),
+            hover_color=(80, 80, 90),
             text_color=MenuConfig.TEXT_COLOR,
         )
         
         self.about_btn = Button(
             "About",
-            x=start_x + button_width + spacing,
-            y=button_y,
-            width=button_width,
-            height=40,
+            width=150, height=40,
             on_click=lambda: self._show_about(),
-            color=(40, 40, 50),
+            color=(60, 60, 70),
+            hover_color=(80, 80, 90),
             text_color=MenuConfig.TEXT_COLOR,
         )
         
         self.quit_btn = Button(
             "Quit",
-            x=start_x + (button_width + spacing) * 2,
-            y=button_y,
-            width=button_width,
-            height=40,
+            width=150, height=40,
             on_click=lambda: self._quit(),
-            color=(60, 40, 40),
+            color=(80, 50, 50),  # Rosso scuro tendente al grigio
+            hover_color=(100, 60, 60),
             text_color=MenuConfig.TEXT_COLOR,
         )
+        
+        sections_row.add(self.help_btn)
+        sections_row.add(self.about_btn)
+        sections_row.add(self.quit_btn)
+        main_container.add(sections_row)
+        
+        # Centra il main container
+        main_container.x = (self.width - main_container.width) // 2
+        main_container.y = (self.height - main_container.height) // 2
+        
+        self.main_menu_panel = main_container
 
     def _build_player_selection_menu(self, player_color):
         """Build player selection submenu"""
@@ -564,12 +547,8 @@ class Menu:
                     if self.current_screen == "main":
                         # Handle title (above panel)
                         self.title_label.handle_event(event)
-                        # Handle panel (contains all main menu widgets)
+                        # Handle panel (contains all main menu widgets including bottom buttons)
                         self.main_menu_panel.handle_event(event)
-                        # Also handle bottom buttons (outside panel)
-                        self.help_btn.handle_event(event)
-                        self.about_btn.handle_event(event)
-                        self.quit_btn.handle_event(event)
                     elif (
                         self.current_screen in ["player_select", "difficulty_select"]
                         and self.submenu_widget
@@ -584,14 +563,8 @@ class Menu:
             self.screen.fill(self.bg_color)
 
             if self.current_screen == "main":
-                # Render title (above panel)
-                self.title_label.render(self.screen)
-                # Render main menu panel
+                # Render main menu panel (contains title, game buttons, and bottom buttons)
                 self.main_menu_panel.render(self.screen)
-                # Render bottom buttons (outside panel)
-                self.help_btn.render(self.screen)
-                self.about_btn.render(self.screen)
-                self.quit_btn.render(self.screen)
             elif (
                 self.current_screen in ["player_select", "difficulty_select"]
                 and self.submenu_widget
