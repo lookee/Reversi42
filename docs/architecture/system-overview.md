@@ -123,7 +123,7 @@ Reversi42 is a sophisticated Reversi/Othello implementation built on a layered a
 
 **Purpose**: Provide multiple interface options for different use cases.
 
-**Architecture**: MVC Pattern + Factory Pattern
+**Architecture**: MVP Pattern + Factory Pattern
 
 **View Types**:
 
@@ -147,7 +147,7 @@ Reversi42 is a sophisticated Reversi/Othello implementation built on a layered a
 
 **Components**:
 - **ViewFactory**: Creates appropriate view based on configuration
-- **BoardControl**: MVC controller coordinating model and view
+- **BoardControl**: MVP presenter coordinating model and view
 - **BoardModel**: Game state model
 - **Widgets**: Reusable UI components (board, menu, dialogs)
 

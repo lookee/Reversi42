@@ -32,16 +32,13 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 - ✅ **All 10 Players** - Including Terminal Human Player
 
 #### Tournament System
-- 🏆 **12 Pre-configured Tournaments** - Ready to run
-- 📊 **JSON Configurations** - Reusable tournament setups
-- 🎮 **Interactive Selector** - Visual menu for tournament selection
-- 🤖 **Full AI Support** - Grandmaster, Parallel, all variants
-- ⚡ **Batch Execution** - Run all tournaments with one command
+- 🏆 **Tournament Support** - Run AI competitions
+- 📊 **Configurable** - Customizable tournament setups
 
 #### Documentation
-- 📚 **13 Player Guides** - Complete documentation in docs/players/
+- 📚 **Comprehensive Documentation** - Complete guides for users and developers
 - 📖 **View Architecture** - Modular UI system documentation
-- 📝 **Tournament Guides** - Complete tournament system docs
+- 📝 **Architecture Documentation** - Technical deep dives and design principles
 
 ### What's New in 3.0.0
 
@@ -59,7 +56,7 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 - ⚡ **Ultra-Fast Bitboard AI** - 50-100x faster than standard implementation
 - 🤖 **Multiple AI Types** - From random to deep bitboard search (depth 1-12)
 - 📚 **Opening Book System** - 57+ classic openings with visual learning mode
-- 🏆 **Tournament System** - 12 pre-configured tournaments, batch execution
+- 🏆 **Tournament System** - Run AI competitions and benchmarks
 - 💾 **Save/Load** - XOT (eXtended Othello Transcript) format
 - 🎯 **Modular Design** - Metadata-driven player system, pluggable views
 - 🔄 **Resizable Window** - Adaptive graphics (Pygame mode)
@@ -70,7 +67,7 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 
 ## 🎮 Player Types
 
-The game features a **metadata-driven player system** with 8 distinct playing styles.
+The game features a **metadata-driven player system** with several AI opponents.
 
 ### Complete Player Roster (v3.1.0)
 
@@ -190,25 +187,7 @@ The game features a **metadata-driven player system** with 8 distinct playing st
 
 **For Speed Testing:** Bitboard Blitz vs The Oracle (tournament mode)
 
-*See [ADDING_PLAYERS.md](docs/ADDING_PLAYERS.md) for creating custom player types*
-
-### 📚 Detailed Player Documentation
-
-Complete documentation for each player type is available in the `docs/players/` directory:
-
-- **[Player Types Overview](docs/players/README.md)** - Complete guide and comparison
-- **[Base Player Class](docs/players/Player.md)** - Foundation for all players
-- **[Human Player](docs/players/HumanPlayer.md)** - Interactive gameplay
-- **[Random Chaos](docs/players/Monkey.md)** - Random move generator
-- **[Greedy Goblin](docs/players/GreedyPlayer.md)** - Maximize immediate captures
-- **[Heuristic Scout](docs/players/HeuristicPlayer.md)** - Fast positional evaluation
-- **[Alpha-Beta AI](docs/players/AIPlayer.md)** - Classic minimax implementation
-- **[Opening Scholar](docs/players/AIPlayerBook.md)** - AI with opening book
-- **[Bitboard Blitz](docs/players/AIPlayerBitboard.md)** - Ultra-fast bitboard engine
-- **[The Oracle](docs/players/AIPlayerBitboardBook.md)** - Bitboard + opening book
-- **[Parallel Oracle](docs/players/AIPlayerBitboardBookParallel.md)** - Multi-core AI
-- **[Grandmaster](docs/players/AIPlayerGrandmaster.md)** - Ultimate AI with all features
-- **[Network Player](docs/players/NetworkPlayer.md)** - Network play (not implemented)
+For technical details on the AI system, see the [Architecture Documentation](docs/architecture/apocalyptron-engine.md).
 
 ---
 
@@ -276,65 +255,14 @@ When "Show Opening" is enabled in the menu:
 
 ## 🏆 Tournament System
 
-Comprehensive tournament system with **12 pre-configured tournaments** ready to run!
-
-### Quick Start - Interactive Tournament Selector ⭐
+Tournament system for running AI competitions.
 
 ```bash
 cd tournament
-./select_tournament.sh
-```
-
-**Features:**
-- ✨ Visual menu with all 12 tournaments
-- 📊 Detailed info (players, games, runtime estimates)
-- 🎨 Color-coded categories (Quick/Elite/Ultimate/Easy/Test)
-- ✓ One-command tournament launch
-
-### Available Tournaments (12 Configurations)
-
-| Tournament | Players | Games | Time | Category |
-|------------|---------|-------|------|----------|
-| **Quick Tournament** | 9 | 144 | 10-15 min | ⚡ Best AI Showcase |
-| **Tournament of Champions** | 7 | 294 | 45-60 min | 🏆 Epic Battle |
-| **Grandmaster Challenge** | 6 | 150 | 30-45 min | 👑 Ultimate Test |
-| **Elite Tournament** | 5 | 100 | 20-30 min | 🏆 Top Tier |
-| **Beginner Friendly** | 5 | 60 | 3-5 min | 🎓 Learning |
-| **Rapid Fire** | 3 | 60 | 1-2 min | ⚡ Ultra Fast |
-| Plus 6 more specialized tournaments! | | | | |
-
-### Tournament System Features
-
-- **Round-Robin Format** - Every AI plays every other AI
-- **Both Colors** - Each matchup played as Black and White
-- **JSON Configuration** - Save and reuse tournament setups
-- **Detailed Statistics** - Win rates, scores, move times, color advantage
-- **Move History** - Optional complete game transcripts
-- **Interactive Selection** - Easy-to-use menu system
-- **Auto-Discovery** - Automatically finds all available AI types
-- **Comprehensive Reports** - Saved to `tournament/reports/` with timestamps
-
-### Running Tournaments
-
-```bash
-# Interactive selector (recommended)
-./select_tournament.sh
-
-# Quick tournament
-./run_quick_tournament.sh
-
-# Specific configuration
-./run_tournament.sh elite_tournament.json
-
-# Interactive configuration
 python3 tournament.py
 ```
 
-**Complete Documentation:**
-- **[Tournament System Guide](tournament/README.md)** - Complete overview
-- **[Tournament Configurations](tournament/ring/README.md)** - All 12 tournaments detailed
-- **[Tournaments Guide](tournament/TOURNAMENTS_GUIDE.md)** - Usage guide and tips
-- **[Configuration System](tournament/CONFIGURATION_SYSTEM.md)** - Technical reference
+See [Tournament Documentation](tournament/README.md) for details.
 
 ---
 
@@ -512,20 +440,11 @@ python3 tournament/quick_tournament.py
 
 ## 🔧 Development
 
-### Adding Custom Players
-
-1. Create a new class inheriting from `Player`
-2. Define `PLAYER_METADATA` with display name, description, and parameters
-3. Implement `get_move(game, moves, control)` method
-4. Add to `PlayerFactory.ALL_PLAYER_CLASSES`
-
-*See `ADDING_PLAYERS.md` and `src/Players/CustomPlayerExample.py`*
-
-### Creating Custom Evaluators
-
-1. Inherit from `Evaluator`
-2. Implement `evaluate(game)` method
-3. Register in `PlayerFactory.EVALUATORS`
+See the [Development Guide](docs/development/README.md) for:
+- Setting up your development environment
+- Code style guidelines
+- Testing and contributing
+- Building and packaging
 
 ---
 
@@ -594,25 +513,14 @@ You should have received a copy of the GNU General Public License along with thi
 - **[Security Policy](SECURITY.md)** - Reporting security issues
 - **[Changelog](CHANGELOG.md)** - Version history
 
-### 🎮 Player Documentation
-- **[Player Types Overview](docs/players/README.md)** - Complete player comparison and guide
-- **[Individual Player Docs](docs/players/)** - Detailed documentation for each player type
-
 ### 🤖 AI & Technical Documentation
-- **[Features Guide](docs/FEATURES.md)** - Complete feature list
-- **[View Architecture](docs/VIEW_ARCHITECTURE.md)** - Modular view system (NEW in 3.1.0)
-- **[Board Module](src/Board/README.md)** - Board and view components
-- **[Adding Players](docs/ADDING_PLAYERS.md)** - Custom player development
-- **[Bitboard Implementation](docs/BITBOARD_IMPLEMENTATION.md)** - Technical deep dive
-- **[Grandmaster AI](docs/GRANDMASTER_AI.md)** - Ultimate AI documentation
-- **[Strategy Improvements](docs/STRATEGY_IMPROVEMENTS.md)** - Advanced AI techniques
-- **[Parallel Engine](docs/HOW_TO_USE_PARALLEL.md)** - Multi-core usage guide
+- **[Apocalyptron Engine](docs/architecture/apocalyptron-engine.md)** - Complete AI engine documentation
+- **[Bitboard Implementation](docs/architecture/bitboard.md)** - Technical deep dive
+- **[System Architecture](docs/architecture/system-overview.md)** - Complete system design
+- **[Design Principles](docs/architecture/design-principles.md)** - Architectural principles
 
 ### 🏆 Tournament System
-- **[Tournament System Guide](tournament/README.md)** - Complete tournament overview
-- **[Tournaments Guide](tournament/TOURNAMENTS_GUIDE.md)** - All 12 tournaments detailed
-- **[Tournament Configurations](tournament/ring/README.md)** - Configuration guide
-- **[Configuration System](tournament/CONFIGURATION_SYSTEM.md)** - Technical reference
+- **[Tournament System](tournament/README.md)** - Tournament system overview
 
 ### 🎓 Learning Resources
 Want to improve your Othello skills? Check out these resources:

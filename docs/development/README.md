@@ -133,7 +133,7 @@ reversi42/
 │   │   ├── Player.py      # Base player class
 │   │   ├── PlayerHuman.py  # Human player
 │   │   └── PlayerApocalyptron.py  # AI players
-│   ├── Board/             # MVC board system
+│   ├── Board/             # MVP board system
 │   │   ├── BoardModel.py  # Game state model
 │   │   ├── BoardControl.py  # Controller
 │   │   └── ViewFactory.py  # View creation

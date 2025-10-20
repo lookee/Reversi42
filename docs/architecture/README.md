@@ -17,7 +17,7 @@ Reversi42 is built with a modular, layered architecture that separates concerns 
 ### Component Documentation
 - [**Game Engine**](game-engine.md) - Core game logic and bitboard implementation
 - [**AI System**](ai-system.md) - AI architecture and algorithms
-- [**UI Layer**](ui-layer.md) - View system and MVC pattern
+- [**UI Layer**](ui-layer.md) - View system and MVP pattern
 - [**Player System**](player-system.md) - Player abstractions and implementations
 
 ### Technical Deep Dives
@@ -84,23 +84,20 @@ Reversi42 is built with a modular, layered architecture that separates concerns 
 
 ## Key Design Patterns
 
-### 1. Model-View-Controller (MVC)
+### 1. Model-View-Presenter (MVP)
 
 **Used in**: Board and UI system
 
 ```
 ┌─────────┐      ┌──────────────┐      ┌──────┐
-│  Model  │◄─────┤  Controller  │─────►│ View │
+│  Model  │◄─────┤  Presenter   │─────►│ View │
 └─────────┘      └──────────────┘      └──────┘
-     │                                      │
-     └──────────────────────────────────────┘
-               (Observer Pattern)
 ```
 
 **Benefits**:
 - Separation of concerns
-- Multiple views for same model
-- Testability
+- Testable business logic in presenter
+- View is passive and easily replaceable
 
 ### 2. Strategy Pattern
 
@@ -195,7 +192,7 @@ class BitboardGame:
            │        ┌──────────────┴─────────────┐
            │        │                            │
     ┌──────▼────────▼──────┐          ┌─────────▼─────────┐
-    │   BoardControl (MVC) │          │   Player Types    │
+    │   BoardControl (MVP) │          │   Player Types    │
     │    Controller        │          │   (AI, Human)     │
     └──────┬───────────────┘          └─────────┬─────────┘
            │                                     │

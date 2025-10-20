@@ -102,7 +102,7 @@ Quick reference and specific topics.
 ### Features
 - [**Features Guide**](FEATURES.md) - Complete feature list
 - [**View Architecture**](VIEW_ARCHITECTURE.md) - Modular UI system
-- [**Board Module**](../src/Board/README.md) - MVC board system
+- [**Board Module**](../src/Board/README.md) - MVP board system
 - [**Strategy Improvements**](STRATEGY_IMPROVEMENTS.md) - AI techniques
 
 ### Player Types
