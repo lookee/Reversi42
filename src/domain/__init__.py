@@ -11,4 +11,3 @@ The domain layer should have NO dependencies on:
 
 Other layers depend on domain, but domain depends on nothing!
 """
-

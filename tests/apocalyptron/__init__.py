@@ -1,2 +1,1 @@
 """Apocalyptron refactoring tests"""
-

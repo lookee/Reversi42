@@ -5,7 +5,6 @@ ASCII/ANSI rendering components for terminal UI.
 """
 
 from .ascii_renderer import ASCIIRenderer
-from .ascii_theme import ASCIITheme, ANSIColors
+from .ascii_theme import ANSIColors, ASCIITheme
 
-__all__ = ['ASCIIRenderer', 'ASCIITheme', 'ANSIColors']
-
+__all__ = ["ASCIIRenderer", "ASCIITheme", "ANSIColors"]

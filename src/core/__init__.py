@@ -7,5 +7,4 @@ Part of Clean Architecture - Core Layer.
 
 from .config import GameConfig, UIConfig
 
-__all__ = ['GameConfig', 'UIConfig']
-
+__all__ = ["GameConfig", "UIConfig"]

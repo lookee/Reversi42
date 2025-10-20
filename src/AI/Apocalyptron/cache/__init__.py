@@ -4,8 +4,7 @@ from AI.Apocalyptron.cache.transposition_table import TranspositionTable, TTEntr
 from AI.Apocalyptron.cache.zobrist_hash import ZobristHasher
 
 __all__ = [
-    'TranspositionTable',
-    'TTEntry',
-    'ZobristHasher',
+    "TranspositionTable",
+    "TTEntry",
+    "ZobristHasher",
 ]
-

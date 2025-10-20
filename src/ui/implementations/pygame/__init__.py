@@ -11,6 +11,5 @@ from .input_handler import PygameInputHandler
 
 __all__ = [
     # 'PygameView',  # TODO
-    'PygameInputHandler'
+    "PygameInputHandler"
 ]
-

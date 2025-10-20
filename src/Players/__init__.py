@@ -11,10 +11,11 @@ Version: 3.1.0
 
 __all__ = []
 
+
 def __getattr__(name):
     """Lazy import to avoid circular dependencies"""
-    if name == 'TerminalHumanPlayer':
+    if name == "TerminalHumanPlayer":
         from ui.implementations.terminal import TerminalHumanPlayer
+
         return TerminalHumanPlayer
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
-

@@ -1,5 +1,4 @@
-
-#------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 #    Copyright (C) 2011 Luca Amore <luca.amore at gmail.com>
 #
 #    Reversi42 is free software: you can redistribute it and/or modify
@@ -14,12 +13,13 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Reversi42.  If not, see <http://www.gnu.org/licenses/>.
-#------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+
 
 class BoardModel(object):
 
     def __init__(self, sizex, sizey):
-       
+
         self.sizex = sizex
         self.sizey = sizey
 
@@ -33,4 +33,3 @@ class BoardModel(object):
 
     def getPoint(self, x, y):
         return self.matrix[x][y]
-

@@ -12,22 +12,23 @@ from typing import Any, Dict, Optional
 class SearchObserver(ABC):
     """
     Abstract base class for search observers.
-    
+
     Observers are notified of search events:
     - Search start/end
     - Iteration start/end
     - Move evaluation
     - Statistics updates
-    
+
     This allows complete separation of search logic from output/UI.
     """
-    
+
     @abstractmethod
-    def on_search_start(self, depth: int, player_name: Optional[str], game: Any,
-                       mode: str = "sequential"):
+    def on_search_start(
+        self, depth: int, player_name: Optional[str], game: Any, mode: str = "sequential"
+    ):
         """
         Called when search starts.
-        
+
         Args:
             depth: Target search depth
             player_name: Player name (optional)
@@ -35,14 +36,19 @@ class SearchObserver(ABC):
             mode: "sequential", "parallel", or "hybrid"
         """
         pass
-    
+
     @abstractmethod
-    def on_iteration_start(self, current_depth: int, target_depth: int,
-                          use_aspiration: bool = False,
-                          alpha: int = 0, beta: int = 0):
+    def on_iteration_start(
+        self,
+        current_depth: int,
+        target_depth: int,
+        use_aspiration: bool = False,
+        alpha: int = 0,
+        beta: int = 0,
+    ):
         """
         Called when an iteration starts (iterative deepening).
-        
+
         Args:
             current_depth: Current iteration depth
             target_depth: Target final depth
@@ -50,13 +56,14 @@ class SearchObserver(ABC):
             alpha, beta: Aspiration window bounds
         """
         pass
-    
+
     @abstractmethod
-    def on_move_evaluated(self, move: Any, value: int, is_best: bool,
-                         nodes: int, pruning: int, elapsed_time: float):
+    def on_move_evaluated(
+        self, move: Any, value: int, is_best: bool, nodes: int, pruning: int, elapsed_time: float
+    ):
         """
         Called after each move is evaluated.
-        
+
         Args:
             move: Move that was evaluated
             value: Evaluation score
@@ -66,13 +73,19 @@ class SearchObserver(ABC):
             elapsed_time: Time elapsed for this move
         """
         pass
-    
+
     @abstractmethod
-    def on_iteration_complete(self, depth: int, best_move: Any, value: int,
-                            iteration_time: float, aspiration_success: bool = True):
+    def on_iteration_complete(
+        self,
+        depth: int,
+        best_move: Any,
+        value: int,
+        iteration_time: float,
+        aspiration_success: bool = True,
+    ):
         """
         Called when an iteration completes.
-        
+
         Args:
             depth: Depth that was completed
             best_move: Best move found at this depth
@@ -81,15 +94,21 @@ class SearchObserver(ABC):
             aspiration_success: Whether aspiration window succeeded
         """
         pass
-    
+
     @abstractmethod
-    def on_search_complete(self, best_move: Any, value: int, 
-                          statistics: Dict, total_time: float,
-                          opening_book: Any = None, game_history: str = None,
-                          game: Any = None):
+    def on_search_complete(
+        self,
+        best_move: Any,
+        value: int,
+        statistics: Dict,
+        total_time: float,
+        opening_book: Any = None,
+        game_history: str = None,
+        game: Any = None,
+    ):
         """
         Called when search completes.
-        
+
         Args:
             best_move: Best move found
             value: Final evaluation
@@ -100,24 +119,23 @@ class SearchObserver(ABC):
             game: Game instance (optional, for display)
         """
         pass
-    
+
     @abstractmethod
     def on_parallel_phase_start(self, depth: int, num_workers: int):
         """
         Called when parallel search phase starts.
-        
+
         Args:
             depth: Depth for parallel search
             num_workers: Number of worker processes
         """
         pass
-    
+
     @abstractmethod
-    def on_parallel_result(self, move: Any, value: int, is_best: bool,
-                          nodes: int, pruning: int):
+    def on_parallel_result(self, move: Any, value: int, is_best: bool, nodes: int, pruning: int):
         """
         Called for each parallel search result.
-        
+
         Args:
             move: Move evaluated
             value: Evaluation score
@@ -126,14 +144,20 @@ class SearchObserver(ABC):
             pruning: Nodes pruned
         """
         pass
-    
+
     @abstractmethod
-    def on_phase1_complete(self, stats: Dict, time_elapsed: float, 
-                          final_depth: int, target_depth: int,
-                          best_move: Any = None, best_value: int = 0):
+    def on_phase1_complete(
+        self,
+        stats: Dict,
+        time_elapsed: float,
+        final_depth: int,
+        target_depth: int,
+        best_move: Any = None,
+        best_value: int = 0,
+    ):
         """
         Called when Phase 1 (sequential iterative deepening) completes.
-        
+
         Args:
             stats: Statistics from Phase 1
             time_elapsed: Time spent in Phase 1
@@ -143,4 +167,3 @@ class SearchObserver(ABC):
             best_value: Best value from Phase 1 (optional)
         """
         pass
-

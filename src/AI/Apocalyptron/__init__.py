@@ -11,13 +11,14 @@ Main exports:
     - ApocalyptronConfigBuilder: Builder for fluent configuration
 """
 
+from AI.Apocalyptron.core.config import ApocalyptronConfig
+
 # Core
 from AI.Apocalyptron.core.engine import ApocalyptronEngine
-from AI.Apocalyptron.core.config import ApocalyptronConfig
+from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
 
 # Factory & Builder
 from AI.Apocalyptron.factory.factory import ApocalyptronFactory
-from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
 
 # Weights
 from AI.Apocalyptron.weights.evaluation_weights import EvaluationWeights
@@ -25,20 +26,17 @@ from AI.Apocalyptron.weights.weight_presets import get_preset_weights, list_pres
 
 __all__ = [
     # Core
-    'ApocalyptronEngine',
-    'ApocalyptronConfig',
-    
+    "ApocalyptronEngine",
+    "ApocalyptronConfig",
     # Factory & Builder
-    'ApocalyptronFactory',
-    'ApocalyptronConfigBuilder',
-    
+    "ApocalyptronFactory",
+    "ApocalyptronConfigBuilder",
     # Weights
-    'EvaluationWeights',
-    'get_preset_weights',
-    'list_presets',
+    "EvaluationWeights",
+    "get_preset_weights",
+    "list_presets",
 ]
 
-__version__ = '1.0.0'
-__author__ = 'Luca Amore'
-__description__ = 'Ultimate Reversi AI with clean architecture'
-
+__version__ = "1.0.0"
+__author__ = "Luca Amore"
+__description__ = "Ultimate Reversi AI with clean architecture"

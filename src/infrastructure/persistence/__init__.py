@@ -6,5 +6,4 @@ Handles game save/load operations and other persistence concerns.
 
 from .game_io import GameIO
 
-__all__ = ['GameIO']
-
+__all__ = ["GameIO"]

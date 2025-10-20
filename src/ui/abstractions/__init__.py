@@ -7,12 +7,11 @@ No implementation details, only contracts.
 Version: 3.1.0
 """
 
-from .view_interface import AbstractView
 from .input_interface import AbstractInputHandler, InputEvent
+from .view_interface import AbstractView
 
 __all__ = [
-    'AbstractView',
-    'AbstractInputHandler',
-    'InputEvent',
+    "AbstractView",
+    "AbstractInputHandler",
+    "InputEvent",
 ]
-

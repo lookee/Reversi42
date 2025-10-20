@@ -8,4 +8,3 @@ This package contains infrastructure layer components:
 
 Part of Clean Architecture - Infrastructure Layer.
 """
-

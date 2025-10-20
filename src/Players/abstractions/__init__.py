@@ -11,7 +11,6 @@ from .input_provider import InputProvider
 from .player_interface import PlayerInterface
 
 __all__ = [
-    'InputProvider',
-    'PlayerInterface',
+    "InputProvider",
+    "PlayerInterface",
 ]
-

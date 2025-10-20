@@ -10,16 +10,27 @@ Design Patterns:
 - Observer: Event propagation
 """
 
-from .base import Widget, Container, VBox, HBox, Grid, Interactive
-from .primitives import Button, Label, Panel, InputBox, Dialog
-from .game import BoardWidget, ScorePanel, OpeningTooltip, MoveIndicator
+from .base import Container, Grid, HBox, Interactive, VBox, Widget
+from .game import BoardWidget, MoveIndicator, OpeningTooltip, ScorePanel
+from .primitives import Button, Dialog, InputBox, Label, Panel
 
 __all__ = [
     # Base
-    'Widget', 'Container', 'VBox', 'HBox', 'Grid', 'Interactive',
+    "Widget",
+    "Container",
+    "VBox",
+    "HBox",
+    "Grid",
+    "Interactive",
     # Primitives
-    'Button', 'Label', 'Panel', 'InputBox', 'Dialog',
+    "Button",
+    "Label",
+    "Panel",
+    "InputBox",
+    "Dialog",
     # Game-specific
-    'BoardWidget', 'ScorePanel', 'OpeningTooltip', 'MoveIndicator',
+    "BoardWidget",
+    "ScorePanel",
+    "OpeningTooltip",
+    "MoveIndicator",
 ]
-

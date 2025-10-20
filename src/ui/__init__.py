@@ -16,9 +16,10 @@ Architecture: Clean MVC with Dependency Inversion
 # Old: from .core.state import GameState
 # New: Use ui/widgets/ and ui/implementations/*/presenters/
 
+from .abstractions.input_interface import AbstractInputHandler, InputEvent
+
 # Abstract interfaces (safe to import - no dependencies)
 from .abstractions.view_interface import AbstractView
-from .abstractions.input_interface import AbstractInputHandler, InputEvent
 
 # Lazy imports to avoid circular dependencies
 # Import implementations and factories only when needed
@@ -32,10 +33,9 @@ from .abstractions.input_interface import AbstractInputHandler, InputEvent
 
 __all__ = [
     # Abstractions (safe exports)
-    'AbstractView',
-    'AbstractInputHandler',
-    'InputEvent',
-    
+    "AbstractView",
+    "AbstractInputHandler",
+    "InputEvent",
     # Note: Import components directly:
     #   from ui.widgets import Button, Label, Panel
     #   from ui.common import Theme, LayoutManager, EventBus
@@ -43,5 +43,4 @@ __all__ = [
     #   from ui.implementations.pygame.renderers import BoardRenderer
 ]
 
-__version__ = '3.1.0'
-
+__version__ = "3.1.0"
