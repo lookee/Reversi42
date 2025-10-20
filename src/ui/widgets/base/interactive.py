@@ -50,6 +50,7 @@ class Clickable:
         """
         self.on_click = on_click
         self.click_sound: Optional[pygame.mixer.Sound] = None
+        self.pressed = False
 
     def handle_click_event(self, event: pygame.event.Event) -> bool:
         """

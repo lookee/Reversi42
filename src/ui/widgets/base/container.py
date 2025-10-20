@@ -107,16 +107,21 @@ class VBox(Container):
     Arranges children vertically with configurable spacing.
     """
 
-    def __init__(self, children: Optional[List[Widget]] = None, spacing: int = 5):
+    def __init__(self, children: Optional[List[Widget]] = None, spacing: int = 5, **kwargs):
         """
         Initialize VBox.
 
         Args:
             children: List of child widgets
             spacing: Space between children
+            **kwargs: Additional arguments (x, y, width, height) - set as attributes
         """
         super().__init__()
         self.spacing = spacing
+        
+        # Support legacy x, y, width, height parameters
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
         if children:
             for child in children:
@@ -151,16 +156,21 @@ class HBox(Container):
     Arranges children horizontally with configurable spacing.
     """
 
-    def __init__(self, children: Optional[List[Widget]] = None, spacing: int = 5):
+    def __init__(self, children: Optional[List[Widget]] = None, spacing: int = 5, **kwargs):
         """
         Initialize HBox.
 
         Args:
             children: List of child widgets
             spacing: Space between children
+            **kwargs: Additional arguments (x, y, width, height) - set as attributes
         """
         super().__init__()
         self.spacing = spacing
+        
+        # Support legacy x, y, width, height parameters
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
         if children:
             for child in children:

@@ -38,6 +38,7 @@ class InputBox(Widget, Clickable):
         placeholder: str = "",
         max_length: int = 50,
         on_submit: Optional[Callable] = None,
+        default_text: str = "",
     ):
         """
         Initialize input box.
@@ -48,11 +49,12 @@ class InputBox(Widget, Clickable):
             placeholder: Placeholder text
             max_length: Maximum text length
             on_submit: Callback when Enter is pressed
+            default_text: Initial text value
         """
         Widget.__init__(self, x, y, width, height)
         Clickable.__init__(self)
 
-        self.text = ""
+        self.text = default_text
         self.placeholder = placeholder
         self.max_length = max_length
         self.on_submit = on_submit

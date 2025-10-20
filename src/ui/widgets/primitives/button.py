@@ -37,6 +37,7 @@ class Button(Widget, Clickable, Hoverable):
         width: int = 150,
         height: int = 40,
         on_click: Optional[Callable] = None,
+        **kwargs
     ):
         """
         Initialize button.
@@ -46,6 +47,7 @@ class Button(Widget, Clickable, Hoverable):
             x, y: Position
             width, height: Size
             on_click: Click callback
+            **kwargs: Additional arguments (color, text_color, hover_color) - ignored for backward compatibility
         """
         Widget.__init__(self, x, y, width, height)
         Clickable.__init__(self, on_click)
@@ -54,11 +56,11 @@ class Button(Widget, Clickable, Hoverable):
         self.text = text
         self.font = pygame.font.Font(None, 28)
 
-        # Colors
-        self.color_normal = (60, 60, 70)
-        self.color_hover = (80, 80, 90)
+        # Colors (defaults)
+        self.color_normal = kwargs.get('color', (60, 60, 70))
+        self.color_hover = kwargs.get('hover_color', (80, 80, 90))
         self.color_pressed = (40, 40, 50)
-        self.color_text = (240, 240, 245)
+        self.color_text = kwargs.get('text_color', (240, 240, 245))
         self.color_border = (100, 100, 110)
 
     def render(self, surface: pygame.Surface):
