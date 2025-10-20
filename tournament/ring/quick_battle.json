@@ -1,0 +1,37 @@
+{
+  "name": "⚡ Quick Battle - Gladiators Clash",
+  "description": "Fast 4-player tournament featuring top gladiators. Quick games for testing.",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "DIVZERO.EXE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE ORACLE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "FORTRESS ETERNAL",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE STRANGLER",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    }
+  ],
+  "games_per_matchup": 2,
+  "include_move_history": false
+}
+

@@ -1,0 +1,30 @@
+{
+  "name": "🔥 BLITZ MADNESS - Rapid Fire Championship",
+  "description": "INSANE SPEED! 20 games per matchup! Fast gladiators compete in rapid-fire action!",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "LIGHTNING STRIKE",
+      "difficulty": 4,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "BLITZ DEMON",
+      "difficulty": 5,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "ZEN MASTER",
+      "difficulty": 3,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    }
+  ],
+  "games_per_matchup": 20,
+  "include_move_history": false
+}
+

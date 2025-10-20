@@ -20,6 +20,8 @@ Perfect for players who want to enjoy the game.
 ### Advanced Features
 - [**Tournament Guide**](user-guide/tournaments.md) - Run AI tournaments
 - [**Player Documentation**](players/README.md) - Detailed player docs
+- [**Epic Gladiators**](EPIC_GLADIATORS.md) - 10 legendary AI fighters ⭐ NEW
+- [**Gladiators Summary**](GLADIATORS_SUMMARY.md) - Quick reference guide ⭐ NEW
 
 ## 👨‍💻 Developer Documentation
 
@@ -36,6 +38,11 @@ For contributors and developers extending Reversi42.
 - [**Code Style Guide**](development/code-style.md) - Coding standards
 - [**Debugging Guide**](development/debugging.md) - Debugging techniques
 - [**Best Practices**](development/best-practices.md) - Development patterns
+
+### Tutorials
+- [**Create Custom Player**](tutorials/CREATE_CUSTOM_PLAYER.md) - Step-by-step guide to creating AI players ⭐ NEW
+- [**Search Strategy Guide**](tutorials/search-strategies.md) - Understanding search strategies
+- [**Evaluator Customization**](tutorials/custom-evaluators.md) - Custom evaluation functions
 
 ### API Reference
 - [**API Overview**](api/README.md) - Complete API documentation

@@ -1,0 +1,37 @@
+{
+  "name": "👾 CHAOS REALM - The Unpredictables",
+  "description": "Bizarre tournament of the most chaotic and unpredictable gladiators! Expect the unexpected!",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "GLITCH_LORD",
+      "difficulty": 6,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "ZEN MASTER",
+      "difficulty": 3,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Greedy",
+      "name": "Greedy Goblin",
+      "difficulty": 1,
+      "engine": "Greedy",
+      "evaluator": "Greedy"
+    },
+    {
+      "type": "Monkey",
+      "name": "Random Chaos",
+      "difficulty": 1,
+      "engine": "Random",
+      "evaluator": "Random"
+    }
+  ],
+  "games_per_matchup": 6,
+  "include_move_history": false
+}
+

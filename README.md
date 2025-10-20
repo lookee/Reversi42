@@ -67,115 +67,315 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 
 ## 🎮 Player Types
 
-The game features a **metadata-driven player system** with several AI opponents.
+Reversi42 features **12 AI opponents** including the legendary **Epic Gladiators** - each with unique configurations, personalities, and fighting styles!
 
-### Complete Player Roster (v3.1.0)
+### 🏆 Complete Player Roster (v4.2.0)
 
-| Player Name | Type | Engine | Speed | Depth | Opening Book | Best For |
-|------------|------|--------|-------|-------|--------------|----------|
-| **Human Player** | Human | Manual | - | - | ❌ | You! Interactive play with visual learning |
-| **Alpha-Beta AI** | AI | Minimax | 1x | 1-10 | ❌ | Practice, reliable opponent |
-| **Opening Scholar** | AI | Minimax+Book | 1x | 1-10 | ✅ 57 | Learning openings, strong early game |
-| **Bitboard Blitz** | AI | Bitboard | **50x** | 1-12 | ❌ | Fast analysis, deep searches |
-| **The Oracle** | AI | Bitboard+Book | **100x** | 1-12 | ✅ 57 | Strong challenge, fast games |
-| **Parallel Oracle** 🏆 | AI | Parallel+Book | **200-500x** | 7-12 | ✅ 57 | Ultimate AI, multi-core |
-| **⚡ Apocalyptron** 🏆⚡ | AI | Ultimate | **3500-14000x** | 7-12 | ✅ 644 | **DEFAULT - All optimizations, depth 9** |
-| **Heuristic Scout** | AI | Heuristic | Fast | - | ❌ | Quick games, medium difficulty |
-| **Greedy Goblin** | AI | Greedy | Fast | - | ❌ | Educational, shows greedy pitfalls |
-| **Random Chaos** | Random | RNG | Instant | - | ❌ | Testing, benchmarking, fun |
+#### Quick Comparison Table
 
-### Detailed Player Descriptions
+| Player | Type | Power | Speed | Response | ELO | Best For |
+|--------|------|-------|-------|----------|-----|----------|
+| **Human Player** | Human | - | - | Interactive | - | You! |
+| **Apocalyptron** | AI | 9/10 | 5/10 | ~1s | 1850 | Standard strong AI |
+| **DIVZERO.EXE** 💀 | AI | **10/10** | 4/10 | ~5s | **1880** | **Final Boss** |
+| **THE ORACLE** 🔮 | AI | 9/10 | 4/10 | ~3s | 1850 | Endgame master |
+| **FORTRESS ETERNAL** 🛡️ | AI | 8/10 | 4/10 | ~6s | 1800 | Defensive play |
+| **THE EXECUTIONER** ⚔️ | AI | 8/10 | 6/10 | ~4s | 1770 | Aggressive tactics |
+| **THE STRANGLER** 🎯 | AI | 7/10 | 5/10 | ~12s | 1750 | Mobility control |
+| **CORNER REAPER** 👑 | AI | 7/10 | 5/10 | ~2s | 1720 | Positional play |
+| **GLITCH_LORD** 👾 | AI | 5/10 | 7/10 | ~0.2s | 1500±200 | Fun/chaos |
+| **LIGHTNING STRIKE** ⚡ | AI | 4/10 | **10/10** | **<0.1s** | 1400 | Speed games |
+| **BLITZ DEMON** 🔥 | AI | 3/10 | **10/10** | **<0.05s** | 1350 | Quick matches |
+| **ZEN MASTER** 🧘 | AI | 2/10 | **10/10** | **~0.03s** | 1250 | Beginners |
 
-#### 👤 Human Player
-**You control the game!**
-- **Controls**: Mouse click or keyboard navigation (C + arrows)
-- **Features**: Opening book tooltips when enabled
-- **Learning**: See golden moves and opening names while you play
-- **Best For**: Everyone - this is you!
+---
 
-#### 🤖 Alpha-Beta AI
-**Classic AI with proven minimax algorithm**
-- **Technology**: Alpha-beta pruning, transposition tables
-- **Strength**: Configurable depth 1-10
-- **Style**: Strategic, reliable, well-balanced
-- **Best For**: Learning AI basics, consistent practice opponent
-- **Performance**: ~2,000 nodes/second at depth 6
+### 🎯 Detailed Gladiator Profiles
 
-#### 📚 Opening Scholar  
-**Master of opening theory**
-- **Technology**: 57 professional openings + minimax fallback
-- **Strength**: Instant in book, depth 1-10 when out
-- **Style**: Strong early game, follows master sequences
-- **Best For**: Learning openings, tournament preparation
-- **Special**: Randomly selects from multiple book options for variety
-- **Performance**: Instant book moves, standard speed out of book
+#### 💀 **DIVZERO.EXE** - The Ultimate Singularity
 
-#### ⚡ Bitboard Blitz
-**Pure computational speed**
-- **Technology**: 64-bit bitboard representation
-- **Strength**: Depth 1-12 practical in real-time
-- **Style**: Aggressive deep searches, no opening knowledge
-- **Best For**: Analysis, deep tactical positions
-- **Performance**: **50-100x faster** - 50,000+ nodes/second
-- **Special**: Can search depth 10-12 in seconds
+```
+HEADLINE:  THE SINGULARITY HAS ARRIVED
+STRATEGY:  Adaptive Depth: 8/12/16 | Parallel Cores: 8 | Opening Book: 644 sequences
+```
 
-#### 🔮 The Oracle
-**Ultimate single-core Reversi AI**
-- **Technology**: Bitboard engine + 57 opening sequences
-- **Strength**: Depth 1-12 with instant opening responses
-- **Style**: Perfect opening play, deep midgame search
-- **Best For**: Strong challenge, fast games
-- **Performance**: **100x faster** when in book, 50x when searching
-- **Special**: Combines speed AND knowledge
+**Combat Parameters**: Power ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ | Speed ⭐⭐⭐⭐ | Accuracy ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
 
-#### ⚡ Parallel Oracle 🏆
-**Ultimate multi-core Reversi AI**
-- **Technology**: Parallel bitboard (2-5x) + 57 opening sequences
-- **Strength**: Depth 7-12 with multi-core parallel search
-- **Style**: Perfect opening play + ultra-deep parallel search
-- **Best For**: Maximum challenge, tournaments, deep analysis (4+ cores)
-- **Performance**: **200-500x faster** than standard, 2-5x vs single-core
-- **Special**: Auto-adaptive (sequential for depth <7, parallel for >=7)
-- **Intelligence**: Master openings + 12+ ply lookahead with multiprocessing
+- **Strength**: THE STRONGEST (ELO ~1880)
+- **Search**: Adaptive Depth (8 opening → 12 midgame → 16 endgame!)
+- **Evaluators**: ALL 4 (Mobility, Positional, Stability, Parity)
+- **Optimizations**: ALL enabled
+- **Parallel**: 8 cores
+- **Response**: ~5 seconds
+- **Philosophy**: *"Division by zero initiated. Perfection incarnate."*
 
-#### ⚡ Apocalyptron (NEW - DEFAULT) 🏆⚡
-**The ultimate Reversi AI with all optimizations**
-- **Technology**: All techniques combined - Iterative Deepening, Null Move, Futility, LMR, Multi-Cut, Aspiration Windows, History Heuristic
-- **Strength**: Depth 7-12, default at depth 9 for optimal play
-- **Style**: Perfect opening play (644 sequences) + ultimate search optimizations
-- **Best For**: Maximum challenge, tournaments, learning from perfect play
-- **Performance**: **3500-14000x faster** than standard AI
-- **Win Rate**: +40-50% vs base parallel AI
-- **Special**: Clean architecture, all Grandmaster features + new optimizations
-- **Default**: Selected by default at depth 9 for new games
-- **Intelligence**: Master openings + advanced pruning + parallel power
-- **Opening Book**: 644 professional sequences with positional evaluations
+---
 
-#### 🎯 Heuristic Scout
-**Fast intuitive player**
-- **Technology**: Positional heuristics, pattern recognition
-- **Strength**: Medium (no deep search)
-- **Style**: Quick decisions, position-based
-- **Best For**: Fast games, variety in play style
-- **Performance**: Instant moves
+#### 🎯 **THE STRANGLER** - The Suffocator
 
-#### 👹 Greedy Goblin
-**Educational opponent**
-- **Technology**: Immediate piece count maximization
-- **Strength**: Weak (short-sighted strategy)
-- **Style**: Always captures maximum pieces available
-- **Best For**: Beginners learning why greedy play fails
-- **Educational Value**: Shows importance of position over piece count
-- **Performance**: Instant moves
+```
+HEADLINE:  SUFFOCATION MODE ENGAGED
+STRATEGY:  Mobility Destruction | Depth: 10 | Mercy: NONE
+```
 
-#### 🎲 Random Chaos
-**Pure unpredictability**
-- **Technology**: Random number generator
-- **Strength**: None (random)
-- **Style**: Completely unpredictable
-- **Best For**: Testing, benchmarking, comic relief
-- **Performance**: Instant moves
-- **Warning**: Will make terrible moves!
+**Combat Parameters**: Power ⭐⭐⭐⭐⭐⭐⭐ | Speed ⭐⭐⭐⭐⭐ | Lethality ⭐⭐⭐⭐⭐⭐⭐⭐⭐
+
+- **Strength**: Strong (ELO ~1750)
+- **Search**: Iterative Deepening 1→10
+- **Evaluators**: Mobility ONLY (weight ×3.0)
+- **Special**: ALL mobility metrics ×3
+- **Response**: ~12 seconds
+- **Philosophy**: *"Watch your options disappear. Then watch them vanish completely."*
+
+---
+
+#### ⚡ **LIGHTNING STRIKE** - The Blitz Master
+
+```
+HEADLINE:  SPEED MODE ACTIVATED
+STRATEGY:  Response time: <100ms | Depth: 4 | Blitz
+```
+
+**Combat Parameters**: Power ⭐⭐⭐⭐ | Speed ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ | Accuracy ⭐⭐⭐⭐⭐
+
+- **Strength**: Medium-Weak (ELO ~1400)
+- **Search**: Fixed Depth 4
+- **Evaluators**: Positional ONLY
+- **Optimizations**: NONE
+- **Response**: <100ms guaranteed
+- **Philosophy**: *"Faster than thought. Quicker than death."*
+
+---
+
+#### 🛡️ **FORTRESS ETERNAL** - The Immovable Object
+
+```
+HEADLINE:  DEFENSE PROTOCOL ACTIVE
+STRATEGY:  Impenetrable Stability | Depth: 10
+```
+
+**Combat Parameters**: Power ⭐⭐⭐⭐⭐⭐⭐⭐ | Speed ⭐⭐⭐⭐ | Defense ⭐⭐⭐⭐⭐⭐⭐
+
+- **Strength**: Very Strong (ELO ~1800)
+- **Search**: Iterative Deepening 1→10
+- **Evaluators**: Stability (×2.0) + Positional (×1.5)
+- **Preset**: Defensive
+- **Response**: ~6 seconds
+- **Philosophy**: *"You may attack, but my walls will never fall."*
+
+---
+
+#### 👑 **CORNER REAPER** - Lord of the Corners
+
+```
+HEADLINE:  TERRITORIAL CONQUEST MODE
+STRATEGY:  Corner Domination | Depth: 9
+```
+
+**Combat Parameters**: Power ⭐⭐⭐⭐⭐⭐⭐ | Speed ⭐⭐⭐⭐⭐ | Accuracy ⭐⭐⭐⭐⭐⭐⭐⭐
+
+- **Strength**: Strong (ELO ~1720)
+- **Search**: Iterative Deepening 1→9
+- **Evaluators**: Positional ONLY
+- **Preset**: Corner Hunter (corner ×2.5)
+- **Response**: ~2 seconds
+- **Philosophy**: *"The corners are mine. The board follows."*
+
+---
+
+#### 🔮 **THE ORACLE** - Seer of Fates
+
+```
+HEADLINE:  PROPHETIC VISION ACTIVATED
+STRATEGY:  Adaptive 7/9/14 | Focus: Endgame Mastery
+```
+
+**Combat Parameters**: Power ⭐⭐⭐⭐⭐⭐⭐⭐⭐ | Speed ⭐⭐⭐⭐ | Depth ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
+
+- **Strength**: Very Strong (ELO ~1850)
+- **Search**: Adaptive Depth (7 → 9 → 14)
+- **Evaluators**: Parity (×2.0) + Stability (×1.5) + Positional
+- **Preset**: Endgame Specialist
+- **Response**: ~3 seconds
+- **Philosophy**: *"I don't predict the future. I create it."*
+
+---
+
+#### 🔥 **BLITZ DEMON** - The Chaos Incarnate
+
+```
+HEADLINE:  CHAOS MODE ENGAGED
+STRATEGY:  Pure Speed | Depth: 5 | Think Time: <50ms
+```
+
+**Combat Parameters**: Power ⭐⭐⭐ | Speed ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ | Accuracy ⭐⭐⭐
+
+- **Strength**: Weak (ELO ~1350)
+- **Search**: Fixed Depth 5
+- **Evaluators**: ALL 4 (but shallow)
+- **Optimizations**: NONE
+- **Response**: <50ms
+- **Philosophy**: *"Think fast or die slow."*
+
+---
+
+#### ⚔️ **THE EXECUTIONER** - The Ruthless Destroyer
+
+```
+HEADLINE:  ANNIHILATION PROTOCOL
+STRATEGY:  Hybrid Destruction | Depth: 9 | Mercy: ZERO
+```
+
+**Combat Parameters**: Power ⭐⭐⭐⭐⭐⭐⭐⭐ | Speed ⭐⭐⭐⭐⭐⭐ | Lethality ⭐⭐⭐⭐⭐⭐⭐⭐⭐
+
+- **Strength**: Strong (ELO ~1770)
+- **Search**: Iterative Deepening 1→9
+- **Evaluators**: Mobility (×2.0) + Positional (×1.5)
+- **Preset**: Aggressive
+- **Response**: ~4 seconds
+- **Philosophy**: *"Mercy is for the weak. I am not weak."*
+
+---
+
+#### 👾 **GLITCH_LORD** - The Chaotic Anomaly
+
+```
+HEADLINE:  REALITY.EXE HAS STOPPED WORKING
+STRATEGY:  ??????? | Logic: UNDEFINED | Sanity: NULL
+```
+
+**Combat Parameters**: Power ⭐⭐⭐⭐⭐ | Speed ⭐⭐⭐⭐⭐⭐⭐ | Chaos ⭐⭐⭐
+
+- **Strength**: Medium (ELO ~1500, ±200 variance!)
+- **Search**: Fixed Depth 6
+- **Evaluators**: Parity ONLY
+- **Special**: Falls back to random on errors
+- **Response**: ~200ms
+- **Philosophy**: *"ERROR 404: Sanity not found. Proceeding anyway."*
+
+---
+
+#### 🧘 **ZEN MASTER** - The Enlightened One
+
+```
+HEADLINE:  INNER PEACE ACTIVATED
+STRATEGY:  Philosophy: Be Water | Complexity: Zero | Enlightenment: Maximum
+```
+
+**Combat Parameters**: Power ⭐⭐ | Speed ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ | Accuracy ⭐⭐
+
+- **Strength**: Very Weak (ELO ~1250)
+- **Search**: Fixed Depth 3 (the sacred number)
+- **Evaluators**: ALL 4 (balanced harmony)
+- **Optimizations**: NONE (simplicity is enlightenment)
+- **Response**: ~30ms (FASTEST!)
+- **Philosophy**: *"The best move is no thought. Just... be."*
+
+---
+
+### 📊 Comprehensive Comparison Matrix
+
+| Feature | DIVZERO | ORACLE | FORTRESS | EXECUT. | STRANGLER | CORNER | GLITCH | LIGHTNING | BLITZ | ZEN |
+|---------|---------|--------|----------|---------|-----------|--------|--------|-----------|-------|-----|
+| **ELO Rating** | 1880 | 1850 | 1800 | 1770 | 1750 | 1720 | 1500± | 1400 | 1350 | 1250 |
+| **Power** | 10/10 | 9/10 | 8/10 | 8/10 | 7/10 | 7/10 | 5/10 | 4/10 | 3/10 | 2/10 |
+| **Speed** | 4/10 | 4/10 | 4/10 | 6/10 | 5/10 | 5/10 | 7/10 | **10/10** | **10/10** | **10/10** |
+| **Response Time** | ~5s | ~3s | ~6s | ~4s | ~12s | ~2s | ~0.2s | **<0.1s** | **<0.05s** | **~0.03s** |
+| **Search Strategy** | Adaptive | Adaptive | ID 1→10 | ID 1→9 | ID 1→10 | ID 1→9 | Fixed 6 | Fixed 4 | Fixed 5 | Fixed 3 |
+| **Opening Depth** | 8 | 7 | - | - | - | - | 6 | 4 | 5 | 3 |
+| **Midgame Depth** | 12 | 9 | 10 | 9 | 10 | 9 | 6 | 4 | 5 | 3 |
+| **Endgame Depth** | **16** | **14** | 10 | 9 | 10 | 9 | 6 | 4 | 5 | 3 |
+| **Evaluators** | All 4 | 3 custom | 2 custom | 2 custom | Mob only | Pos only | Par only | Pos only | All 4 | All 4 |
+| **Mobility Focus** | ✅ | ✅ | - | ✅✅ | ✅✅✅ | - | - | - | ✅ | ✅ |
+| **Positional Focus** | ✅ | ✅ | ✅✅ | ✅✅ | - | ✅✅✅ | - | ✅ | ✅ | ✅ |
+| **Stability Focus** | ✅ | ✅✅ | ✅✅✅ | - | - | - | - | - | ✅ | ✅ |
+| **Parity Focus** | ✅ | ✅✅✅ | - | - | - | - | ✅✅✅ | - | ✅ | ✅ |
+| **Null-Move Pruning** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Futility Pruning** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Late Move Reduction** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Multi-Cut Pruning** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Aspiration Windows** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Parallel Search** | ✅ (8) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Opening Book** | ✅ 644 | ✅ 644 | ✅ 644 | ✅ 644 | ✅ 644 | ✅ 644 | ✅ 644 | ✅ 644 | ✅ 644 | ✅ 644 |
+| **Personality** | Perfect | Prophetic | Fortress | Ruthless | Suffocate | Hunter | Chaotic | Lightning | Chaos | Zen |
+| **Fun Factor** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+
+**Legend**: ✅ = Enabled | ❌ = Disabled | ✅✅✅ = Triple Focus | (8) = 8 cores
+
+---
+
+### 🎯 Quick Selection Guide
+
+**Want to WIN?** → 💀 **DIVZERO.EXE** (ELO 1880)  
+**Want SPEED?** → 🧘 **ZEN MASTER** (~30ms) or ⚡ **LIGHTNING STRIKE** (<100ms)  
+**Want to LEARN?** → 🧘 **ZEN MASTER** (beginner) or 🎯 **THE STRANGLER** (mobility)  
+**Want FUN?** → 👾 **GLITCH_LORD** (chaos) or 🔥 **BLITZ DEMON** (rapid-fire)  
+**Want BALANCE?** → 🏆 **Apocalyptron** (standard strong AI)  
+**Want CHALLENGE?** → 🔮 **THE ORACLE** (endgame genius) or 🛡️ **FORTRESS** (impenetrable)  
+
+---
+
+### 🎓 Recommended Progression
+
+```
+Level 1: Beginner
+  └─ 🧘 ZEN MASTER (ELO 1250)
+      ↓
+Level 2: Easy
+  └─ 🔥 BLITZ DEMON (ELO 1350) or 👾 GLITCH_LORD (ELO 1500±200)
+      ↓
+Level 3: Medium
+  └─ ⚡ LIGHTNING STRIKE (ELO 1400) or 👑 CORNER REAPER (ELO 1720)
+      ↓
+Level 4: Hard
+  └─ 🎯 THE STRANGLER (ELO 1750) or ⚔️ THE EXECUTIONER (ELO 1770)
+      ↓
+Level 5: Very Hard
+  └─ 🛡️ FORTRESS ETERNAL (ELO 1800) or 🏆 Apocalyptron (ELO 1850)
+      ↓
+Level 6: Expert
+  └─ 🔮 THE ORACLE (ELO 1850)
+      ↓
+Level 7: FINAL BOSS
+  └─ 💀 DIVZERO.EXE (ELO 1880) ← Beat this and you're a master!
+```
+
+---
+
+### 💡 Playing Style Recommendations
+
+**Aggressive Players** (restrict opponent mobility):
+- 🎯 THE STRANGLER (mobility ×3)
+- ⚔️ THE EXECUTIONER (hybrid)
+- 🏆 Apocalyptron (aggressive)
+
+**Defensive Players** (build stable positions):
+- 🛡️ FORTRESS ETERNAL (stability ×2)
+- 👑 CORNER REAPER (corner control)
+- 🔮 THE ORACLE (long-term planning)
+
+**Speed Players** (fast response):
+- 🧘 ZEN MASTER (~30ms) ← Fastest!
+- 🔥 BLITZ DEMON (<50ms)
+- ⚡ LIGHTNING STRIKE (<100ms)
+
+**Fun/Chaos Players**:
+- 👾 GLITCH_LORD (unpredictable)
+- 🔥 BLITZ DEMON (rapid chaos)
+- 🧘 ZEN MASTER (zen philosophy)
+
+---
+
+### 📚 Complete Documentation
+
+For epic descriptions, technical configurations, and creation tutorials:
+
+- **[Epic Gladiators Guide](docs/EPIC_GLADIATORS.md)** - Complete epic descriptions with lore
+- **[Gladiators Summary](docs/GLADIATORS_SUMMARY.md)** - Quick technical reference
+- **[Create Custom Player Tutorial](docs/tutorials/CREATE_CUSTOM_PLAYER.md)** - Build your own AI fighter
+- **[Apocalyptron Engine](docs/architecture/apocalyptron-engine.md)** - Engine architecture and v4.2.0 features
+
+---
 
 ### Quick Comparison
 
@@ -382,37 +582,191 @@ cd build
 
 ```
 Reversi42/
-├── src/               # Source code
-│   ├── Reversi/       # Core game logic
-│   ├── Board/         # Modular view system (MVC) ⭐ NEW
-│   │   ├── AbstractBoardView.py     # View interface
-│   │   ├── PygameBoardView.py       # Pygame UI
-│   │   ├── TerminalBoardView.py     # ASCII art
-│   │   ├── HeadlessBoardView.py     # No rendering
-│   │   ├── ViewFactory.py           # View factory
-│   │   ├── BoardControl.py          # MVC Controller
-│   │   └── BoardModel.py            # MVC Model
-│   ├── AI/            # AI engines and evaluators
-│   ├── Players/       # Player implementations
-│   ├── examples/      # Demo scripts
-│   └── reversi42.py   # Main entry point
-├── docs/              # Documentation
-│   ├── players/       # Detailed player documentation (13 files)
-│   ├── VIEW_ARCHITECTURE.md  # View system docs ⭐ NEW
-│   ├── FEATURES.md    # Complete feature list
-│   ├── ADDING_PLAYERS.md
-│   ├── BITBOARD_IMPLEMENTATION.md
-│   ├── GRANDMASTER_AI.md
-│   └── STRATEGY_IMPROVEMENTS.md
-├── tournament/        # Tournament system (12 configs)
-│   └── ring/          # Tournament configurations ⭐
-├── Books/             # Opening book library
-├── saves/             # Saved games (XOT format)
-├── build/             # Build scripts
-├── CHANGELOG.md       # Version history ⭐ NEW
-├── TERMINAL_MODE_COMPLETE.md          # Terminal mode implementation
-└── reversi42          # Executable wrapper
+├── src/                           # Source code
+│   ├── Reversi/                   # Core game logic
+│   │   ├── BitboardGame.py        # Ultra-fast bitboard engine (50-100x faster)
+│   │   ├── Game.py                # Standard game engine
+│   │   └── Move.py                # Move representation
+│   │
+│   ├── Board/                     # Modular view system (MVC) ⭐ v3.1.0
+│   │   ├── AbstractBoardView.py   # View interface
+│   │   ├── PygameBoardView.py     # Pygame graphical UI
+│   │   ├── TerminalBoardView.py   # ASCII art terminal view
+│   │   ├── HeadlessBoardView.py   # No rendering (tournaments)
+│   │   ├── ViewFactory.py         # View factory pattern
+│   │   ├── BoardControl.py        # MVC Controller
+│   │   └── BoardModel.py          # MVC Model
+│   │
+│   ├── AI/                        # AI engines and evaluators
+│   │   ├── Apocalyptron/          # Ultimate AI engine ⭐ v4.2.0
+│   │   │   ├── core/              # Core components
+│   │   │   │   ├── engine.py      # Main Apocalyptron engine
+│   │   │   │   ├── config.py      # Configuration & EvaluatorConfig ⭐ NEW
+│   │   │   │   └── context.py     # Search context
+│   │   │   │
+│   │   │   ├── search/            # Search strategies ⭐ v4.2.0
+│   │   │   │   ├── strategy_interface.py          # SearchStrategy base ⭐ NEW
+│   │   │   │   ├── alphabeta.py                   # Alpha-Beta search
+│   │   │   │   ├── iterative_deepening.py         # ID search
+│   │   │   │   ├── iterative_deepening_strategy.py # ID strategy wrapper ⭐ NEW
+│   │   │   │   ├── fixed_depth.py                 # Fixed depth strategy ⭐ NEW
+│   │   │   │   ├── adaptive_depth.py              # Adaptive depth strategy ⭐ NEW
+│   │   │   │   └── parallel.py                    # Parallel search
+│   │   │   │
+│   │   │   ├── evaluation/        # Position evaluators
+│   │   │   │   ├── mobility.py    # Mobility evaluator
+│   │   │   │   ├── positional.py  # Positional evaluator
+│   │   │   │   ├── stability.py   # Stability evaluator
+│   │   │   │   ├── parity.py      # Parity evaluator
+│   │   │   │   └── composite.py   # Composite evaluator
+│   │   │   │
+│   │   │   ├── ordering/          # Move ordering
+│   │   │   │   ├── move_orderer.py     # Main move orderer
+│   │   │   │   ├── killer_moves.py     # Killer moves heuristic
+│   │   │   │   └── history.py          # History heuristic
+│   │   │   │
+│   │   │   ├── pruning/           # Pruning techniques
+│   │   │   │   ├── null_move.py        # Null-move pruning
+│   │   │   │   ├── futility.py         # Futility pruning
+│   │   │   │   ├── lmr.py              # Late Move Reduction
+│   │   │   │   └── multi_cut.py        # Multi-cut pruning
+│   │   │   │
+│   │   │   ├── caching/           # Transposition tables
+│   │   │   │   └── transposition_table.py
+│   │   │   │
+│   │   │   ├── factory/           # Factory & Builder patterns
+│   │   │   │   ├── factory.py     # ApocalyptronFactory + 5 presets ⭐ NEW
+│   │   │   │   └── builder.py     # ApocalyptronConfigBuilder ⭐ UPDATED
+│   │   │   │
+│   │   │   ├── observers/         # Observer pattern
+│   │   │   │   ├── observer_interface.py
+│   │   │   │   ├── statistics.py
+│   │   │   │   └── quiet.py
+│   │   │   │
+│   │   │   └── weights.py         # EvaluationWeights & presets
+│   │   │
+│   │   ├── Heuristic/             # Heuristic AI
+│   │   ├── Greedy/                # Greedy AI
+│   │   └── Random/                # Random AI
+│   │
+│   ├── Players/                   # Player implementations
+│   │   ├── Player.py              # Base Player class
+│   │   ├── PlayerHuman.py         # Human player
+│   │   ├── PlayerApocalyptron.py  # Standard Apocalyptron ⭐ UPDATED
+│   │   ├── PlayerFactory.py       # Player factory ⭐ UPDATED
+│   │   │
+│   │   └── Gladiators/            # Epic Gladiators system ⭐ v4.2.0 NEW
+│   │       ├── __init__.py        # Exports all gladiators
+│   │       ├── PlayerDivZero.py           # 💀 DIVZERO.EXE (ELO 1880)
+│   │       ├── PlayerTheOracle.py         # 🔮 THE ORACLE (ELO 1850)
+│   │       ├── PlayerFortressEternal.py   # 🛡️ FORTRESS ETERNAL (ELO 1800)
+│   │       ├── PlayerTheExecutioner.py    # ⚔️ THE EXECUTIONER (ELO 1770)
+│   │       ├── PlayerTheStrangler.py      # 🎯 THE STRANGLER (ELO 1750)
+│   │       ├── PlayerCornerReaper.py      # 👑 CORNER REAPER (ELO 1720)
+│   │       ├── PlayerGlitchLord.py        # 👾 GLITCH_LORD (ELO 1500±200)
+│   │       ├── PlayerLightningStrike.py   # ⚡ LIGHTNING STRIKE (ELO 1400)
+│   │       ├── PlayerBlitzDemon.py        # 🔥 BLITZ DEMON (ELO 1350)
+│   │       └── PlayerZenMaster.py         # 🧘 ZEN MASTER (ELO 1250)
+│   │
+│   ├── ui/                        # UI components
+│   │   ├── implementations/       # UI implementations
+│   │   │   └── pygame/            # Pygame UI
+│   │   │       ├── components/    
+│   │   │       │   └── menu.py    # Menu system ⭐ UPDATED (95%x90% panel)
+│   │   │       └── views/
+│   │   │
+│   │   └── widgets/               # UI widgets (Bootstrap-like)
+│   │       ├── base.py            # Base widget classes
+│   │       ├── layout.py          # Layout components (Stack, HBox, Center)
+│   │       └── primitives/        # Primitive widgets
+│   │
+│   ├── domain/                    # Domain logic
+│   │   └── knowledge.py           # Opening book management (644 sequences)
+│   │
+│   ├── examples/                  # Demo scripts
+│   │   ├── evaluator_comparison.py
+│   │   └── opening_book_demo.py
+│   │
+│   └── reversi42.py               # Main entry point
+│
+├── docs/                          # Documentation
+│   ├── architecture/              # Architecture documentation
+│   │   ├── README.md              # Architecture overview
+│   │   ├── apocalyptron-engine.md # Apocalyptron deep dive ⭐ UPDATED
+│   │   ├── bitboard.md            # Bitboard implementation
+│   │   ├── ui-layout-system.md    # UI layout system
+│   │   ├── system-overview.md     # System design
+│   │   ├── design-principles.md   # Design principles
+│   │   ├── data-flow.md           # Data flow diagrams
+│   │   └── adr/                   # Architecture Decision Records
+│   │
+│   ├── tutorials/                 # Step-by-step tutorials ⭐ v4.2.0
+│   │   └── CREATE_CUSTOM_PLAYER.md # Create your own AI player ⭐ NEW (40KB)
+│   │
+│   ├── players/                   # Player documentation (13 files)
+│   ├── user-guide/                # User guides
+│   ├── development/               # Development guides
+│   ├── api/                       # API reference
+│   ├── deployment/                # Deployment guides
+│   │
+│   ├── EPIC_GLADIATORS.md         # Epic Gladiators complete guide ⭐ NEW
+│   ├── GLADIATORS_SUMMARY.md      # Gladiators quick reference ⭐ NEW
+│   ├── DOCUMENTATION_INDEX.md     # Complete documentation index ⭐ UPDATED
+│   ├── VIEW_ARCHITECTURE.md       # View system documentation
+│   ├── FEATURES.md                # Complete feature list
+│   ├── ADDING_PLAYERS.md          # How to add new players
+│   ├── BITBOARD_IMPLEMENTATION.md # Bitboard details
+│   ├── GRANDMASTER_AI.md          # Grandmaster AI guide
+│   └── STRATEGY_IMPROVEMENTS.md   # Strategy improvements
+│
+├── tests/                         # Test suite (220+ tests, 100% pass rate)
+│   ├── apocalyptron/              # Apocalyptron tests ⭐ EXPANDED
+│   │   ├── unit/                  # Unit tests (196 tests)
+│   │   │   └── test_search_strategies.py   # Search strategy tests ⭐ NEW
+│   │   │
+│   │   └── integration/           # Integration tests (24 tests)
+│   │       ├── test_apocalyptron_basic.py
+│   │       ├── test_diverse_configurations.py # Diverse configs ⭐ NEW
+│   │       └── test_epic_gladiators.py        # Gladiators tests ⭐ NEW
+│   │
+│   ├── reversi/                   # Game logic tests
+│   ├── ui/                        # UI tests
+│   └── players/                   # Player tests
+│
+├── tournament/                    # Tournament system
+│   ├── quick_tournament.py        # Quick tournament runner
+│   └── ring/                      # Tournament configurations (12 configs)
+│
+├── Books/                         # Opening book library
+│   └── WTH_2005_Eng.txt          # 644 professional opening sequences
+│
+├── Images/                        # Image assets
+│   └── ... (other images)
+│
+├── saves/                         # Saved games directory (XOT format)
+│
+├── build/                         # Build scripts
+│   └── build_macos_app.sh        # macOS app builder
+│
+├── reversi42-splash.png          # Splash screen ⭐ MOVED to root
+├── reversi42                      # Executable wrapper
+├── README.md                      # This file ⭐ UPDATED
+├── CHANGELOG.md                   # Version history ⭐ UPDATED
+├── CONTRIBUTING.md                # Contribution guidelines
+├── LICENSE                        # GPL v3.0 license
+└── requirements.txt               # Python dependencies
 ```
+
+### 📊 Statistics (v4.2.0)
+
+- **Total Files**: 300+
+- **Lines of Code**: ~15,000
+- **AI Players**: 12 (2 standard + 10 Epic Gladiators)
+- **Search Strategies**: 3 (Iterative Deepening, Fixed Depth, Adaptive)
+- **Tests**: 220+ (100% pass rate)
+- **Documentation**: 40+ files (~200KB)
+- **Opening Book**: 644 sequences
+- **Supported Views**: 3 (Pygame, Terminal, Headless)
 
 ---
 
@@ -474,6 +828,28 @@ You should have received a copy of the GNU General Public License along with thi
 
 - **Pygame Community**  
   For the excellent SDL bindings for Python
+
+---
+
+## 🤖 AI-Human Collaboration
+
+**Experimental Development Notice:**
+
+This software has been developed as an **experimental project** in strong collaboration between a human developer and multiple generative AI systems. This collaborative approach represents a novel paradigm in software development, combining:
+
+- **Human Vision & Direction**: Architectural decisions, design philosophy, and strategic direction
+- **AI Assistance**: Code generation, optimization suggestions, documentation, and iterative refinement
+- **Collaborative Innovation**: Synergistic problem-solving leveraging both human creativity and AI capabilities
+
+This project serves as a demonstration of how human expertise and artificial intelligence can work together to create sophisticated software systems. The Epic Gladiators system (v4.2.0), comprehensive documentation, and advanced AI configurations are products of this unique collaborative development process.
+
+**Technologies Used in Development:**
+- Multiple Large Language Models for code generation and refinement
+- AI-assisted documentation and technical writing
+- Collaborative debugging and optimization
+- Iterative design through human-AI dialogue
+
+We believe this collaborative approach represents an exciting direction for future software development, where human creativity and AI capabilities complement each other to achieve results neither could accomplish alone.
 
 ---
 

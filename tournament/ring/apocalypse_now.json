@@ -1,0 +1,51 @@
+{
+  "name": "💥 APOCALYPSE NOW - Maximum Carnage",
+  "description": "The most brutal tournament! All top gladiators in an extended match. Expect epic battles!",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "DIVZERO.EXE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE ORACLE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "FORTRESS ETERNAL",
+      "difficulty": 10,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE EXECUTIONER",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE STRANGLER",
+      "difficulty": 10,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "CORNER REAPER",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    }
+  ],
+  "games_per_matchup": 6,
+  "include_move_history": true
+}
+

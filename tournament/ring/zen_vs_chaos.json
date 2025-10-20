@@ -1,0 +1,37 @@
+{
+  "name": "🧘 ZEN vs CHAOS - Philosophy Wars",
+  "description": "Battle of philosophies! Enlightenment vs Insanity. Simplicity vs Chaos. Who will prevail?",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "ZEN MASTER",
+      "difficulty": 3,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "GLITCH_LORD",
+      "difficulty": 6,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "BLITZ DEMON",
+      "difficulty": 5,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Monkey",
+      "name": "Random Chaos",
+      "difficulty": 1,
+      "engine": "Random",
+      "evaluator": "Random"
+    }
+  ],
+  "games_per_matchup": 8,
+  "include_move_history": false
+}
+

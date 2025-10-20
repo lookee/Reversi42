@@ -249,28 +249,36 @@ class Menu:
         self.main_menu_layout = main_layout
 
     def _build_player_selection_menu(self, player_color):
-        """Build player selection submenu"""
-        panel_width = 500
-        panel_height = 500
-        self.submenu_widget = Panel(x=150, y=100, width=panel_width, height=panel_height)
+        """Build player selection submenu - ULTRA COMPACT for 10+ players"""
+        # Panel allargato al massimo (95% larghezza, 90% altezza)
+        panel_width = int(self.width * 0.95)
+        panel_height = int(self.height * 0.90)
+        
+        # Centra il panel
+        panel_x = (self.width - panel_width) // 2
+        panel_y = (self.height - panel_height) // 2
+        
+        self.submenu_widget = Panel(x=panel_x, y=panel_y, width=panel_width, height=panel_height)
         self.submenu_widget.background_color = (30, 50, 40)
         self.submenu_widget.border_color = MenuConfig.TITLE_COLOR
 
-        # Title (centered)
-        title = Label(
-            f"Select {player_color.capitalize()} Player",
-            x=0,
-            y=20,
-            font_size=36,
-            color=MenuConfig.TITLE_COLOR,
-        )
-        title.x = (panel_width - 350) // 2  # Center title
-        self.submenu_widget.add(title)
+        # TITOLO RIMOSSO (come richiesto)
 
-        # Player type buttons (centered)
-        button_width = 400
+        # Player type buttons (centered, ULTRA COMPATTI)
+        button_width = min(500, panel_width - 100)  # Larghezza adattiva
         button_x = (panel_width - button_width) // 2  # Center buttons
-        y_pos = 80
+        
+        # Calcola spacing MINIMO per far stare tutti i giocatori
+        num_players = len(self.player_types)
+        button_height = 35  # RIDOTTO a 35px (da 40) per compattezza massima
+        back_button_space = 55  # Spazio per back button
+        total_buttons_space = panel_height - back_button_space  # Spazio disponibile
+        
+        # Calcola spacing - più giocatori = meno spacing
+        spacing = (total_buttons_space - (num_players * button_height)) // (num_players + 1)
+        spacing = max(3, min(spacing, 30))  # Minimo 3px, massimo 30px
+        
+        y_pos = spacing  # Inizia con spacing dall'alto
 
         for player_type in self.player_types:
             btn = Button(
@@ -278,23 +286,26 @@ class Menu:
                 x=button_x,
                 y=y_pos,
                 width=button_width,
-                height=45,
+                height=button_height,
                 on_click=lambda pt=player_type: self._select_player_type(player_color, pt),
                 color=(40, 40, 50),
+                hover_color=(60, 60, 70),
                 text_color=MenuConfig.TEXT_COLOR,
+                font_size=18,  # Font leggermente ridotto per compattezza
             )
             self.submenu_widget.add(btn)
-            y_pos += 55
+            y_pos += button_height + spacing
 
-        # Back button (centered)
+        # Back button (centrato in basso, compatto)
         back_btn = Button(
             "Back",
-            x=(panel_width - 150) // 2,
-            y=panel_height - 70,
-            width=150,
+            x=(panel_width - 160) // 2,
+            y=panel_height - 50,
+            width=160,
             height=40,
             on_click=lambda: self._back_to_main(),
             color=(60, 40, 40),
+            hover_color=(80, 60, 60),
             text_color=MenuConfig.TEXT_COLOR,
         )
         self.submenu_widget.add(back_btn)

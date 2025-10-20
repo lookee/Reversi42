@@ -1,0 +1,51 @@
+{
+  "name": "💀 FINAL BOSS CHALLENGE - Can You Beat DIVZERO?",
+  "description": "Everyone vs DIVZERO.EXE! Can anyone defeat the singularity? The ultimate test!",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "DIVZERO.EXE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE ORACLE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "FORTRESS ETERNAL",
+      "difficulty": 10,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE EXECUTIONER",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE STRANGLER",
+      "difficulty": 10,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "CORNER REAPER",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    }
+  ],
+  "games_per_matchup": 2,
+  "include_move_history": false
+}
+

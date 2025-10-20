@@ -14,6 +14,8 @@ Complete technical documentation of the Apocalyptron AI engine, the most advance
 - **Opening Book**: 644 professional sequences
 - **Search Speed**: 100K-1M nodes/second
 - **Response Time**: <1 second at depth 9
+- **Search Strategies**: 3 (Fixed Depth, Iterative Deepening, Adaptive) **NEW!**
+- **Epic Gladiators**: 10 legendary fighters with unique configurations **NEW!**
 
 ### Architecture Philosophy
 
@@ -22,6 +24,8 @@ Apocalyptron follows a **modular, composable architecture** where each optimizat
 - Separately configurable
 - Composable with others
 - Observable and measurable
+
+**NEW in v4.2.0**: The engine now supports **flexible search strategies** and **custom evaluator combinations**, enabling creation of players with radically different fighting styles (see Epic Gladiators system).
 
 ## System Architecture
 
@@ -1281,6 +1285,205 @@ config.tt_size_mb = 256  # Larger TT
 # Create engine
 engine = ApocalyptronFactory.create_engine(config)
 ```
+
+## NEW in v4.2.0: SearchStrategy Pattern & Custom Configurations
+
+### Overview
+
+The Apocalyptron engine has been refactored to support **flexible search strategies** and **custom evaluator combinations**, enabling creation of players with radically different fighting styles.
+
+### Search Strategies
+
+Three search strategies are now available:
+
+#### 1. **Iterative Deepening Strategy** (Default)
+Progressive depth search from 1 → N with aspiration windows.
+
+```python
+from AI.Apocalyptron import ApocalyptronConfigBuilder
+
+config = (
+    ApocalyptronConfigBuilder()
+    .with_depth(9)
+    .with_search_strategy('iterative_deepening')  # Default
+    .enable_all_optimizations()
+    .build()
+)
+```
+
+**Advantages**:
+- Time management capability
+- Better move ordering from shallow searches
+- Aspiration window optimization
+- Progressive refinement
+
+#### 2. **Fixed Depth Strategy** (NEW!)
+Direct search at target depth without iterative deepening.
+
+```python
+config = (
+    ApocalyptronConfigBuilder()
+    .with_depth(9)
+    .with_fixed_depth_search()  # No 1→9 progression
+    .enable_all_optimizations()
+    .build()
+)
+```
+
+**Advantages**:
+- Simpler (no aspiration complexity)
+- Slightly faster for exact depth
+- Predictable behavior
+- Consistent depth throughout game
+
+**Use Cases**:
+- Speed-optimized players (LIGHTNING STRIKE)
+- Consistent difficulty levels
+- Educational purposes
+
+#### 3. **Adaptive Depth Strategy** (NEW!)
+Depth varies by game phase (opening/midgame/endgame).
+
+```python
+config = (
+    ApocalyptronConfigBuilder()
+    .with_adaptive_depth(
+        opening=7,   # Fast in opening
+        midgame=9,   # Standard in midgame
+        endgame=14   # Deep in endgame
+    )
+    .enable_all_optimizations()
+    .build()
+)
+```
+
+**Advantages**:
+- Resource optimization (shallow when less critical)
+- Deeper endgame calculation (when exactness matters)
+- Better time management
+- Stronger overall play
+
+**Use Cases**:
+- Tournament play (DIVZERO.EXE, THE ORACLE)
+- Maximum strength players
+- Adaptive difficulty
+
+### Custom Evaluator Combinations
+
+You can now create players with specific evaluator mixes:
+
+#### Single Evaluator Players
+
+```python
+# Mobility-only player (THE STRANGLER)
+config = (
+    ApocalyptronConfigBuilder()
+    .with_depth(10)
+    .with_only_mobility(weight=3.0)  # Tripled weight!
+    .enable_all_optimizations()
+    .build()
+)
+
+# Positional-only player (CORNER REAPER)
+config = (
+    ApocalyptronConfigBuilder()
+    .with_depth(9)
+    .with_only_positional()
+    .with_preset_weights('corner_hunter')
+    .enable_all_optimizations()
+    .build()
+)
+
+# Parity-only player (GLITCH_LORD - chaotic!)
+config = (
+    ApocalyptronConfigBuilder()
+    .with_depth(6)
+    .with_only_parity()
+    .build()
+)
+```
+
+#### Custom Evaluator Mixes
+
+```python
+from AI.Apocalyptron.core.config import EvaluatorConfig
+
+# Hybrid destroyer (THE EXECUTIONER)
+config = (
+    ApocalyptronConfigBuilder()
+    .with_depth(9)
+    .with_evaluators([
+        EvaluatorConfig('mobility', weight=2.0),    # Double mobility
+        EvaluatorConfig('positional', weight=1.5),  # Enhanced positional
+    ])
+    .enable_all_optimizations()
+    .build()
+)
+
+# Defensive specialist (FORTRESS ETERNAL)
+config = (
+    ApocalyptronConfigBuilder()
+    .with_depth(10)
+    .with_evaluators([
+        EvaluatorConfig('stability', weight=2.0),   # Double stability
+        EvaluatorConfig('positional', weight=1.5),  # Enhanced positional
+    ])
+    .with_preset_weights('defensive')
+    .enable_all_optimizations()
+    .build()
+)
+```
+
+### New Factory Presets
+
+Five new presets for common configurations:
+
+```python
+from AI.Apocalyptron.factory import ApocalyptronFactory
+
+# Speed Demon - maximum speed, minimal intelligence
+engine = ApocalyptronFactory.create_speed_demon(depth=6)
+# Config: Fixed depth 4, positional-only, no optimizations
+
+# Mobility Obsessed - only cares about move count
+engine = ApocalyptronFactory.create_mobility_obsessed(depth=9)
+# Config: Mobility-only evaluator, all optimizations
+
+# Corner Hunter - obsessed with corners
+engine = ApocalyptronFactory.create_corner_hunter(depth=9)
+# Config: Positional-only, corner_hunter weights
+
+# Pure Alpha-Beta - no fancy optimizations
+engine = ApocalyptronFactory.create_pure_alphabeta(depth=7)
+# Config: All evaluators, no pruning techniques
+
+# Adaptive Player - depth varies by game phase
+engine = ApocalyptronFactory.create_adaptive_player(
+    opening_depth=7,
+    mid_depth=9,
+    end_depth=13
+)
+# Config: Adaptive depth strategy, all optimizations
+```
+
+### Epic Gladiators System
+
+The new architecture enabled creation of **10 Epic Gladiators**, each with unique configurations:
+
+| Gladiator | Configuration | ELO |
+|-----------|---------------|-----|
+| **DIVZERO.EXE** | Adaptive 8/12/16, all evaluators, all opts | 1880 |
+| **THE ORACLE** | Adaptive 7/9/14, parity+stability focus | 1850 |
+| **FORTRESS ETERNAL** | ID 1→10, stability×2, defensive | 1800 |
+| **THE EXECUTIONER** | ID 1→9, mobility×2 + positional×1.5 | 1770 |
+| **THE STRANGLER** | ID 1→10, mobility×3, aggressive×3 | 1750 |
+| **CORNER REAPER** | ID 1→9, positional-only, corner×2.5 | 1720 |
+| **GLITCH_LORD** | Fixed 6, parity-only, LMR-only | 1500±200 |
+| **LIGHTNING STRIKE** | Fixed 4, positional-only, no opts | 1400 |
+| **BLITZ DEMON** | Fixed 5, all evaluators, no opts | 1350 |
+| **ZEN MASTER** | Fixed 3, all evaluators, no opts | 1250 |
+
+See [EPIC_GLADIATORS.md](../EPIC_GLADIATORS.md) for complete documentation.
 
 ## Usage Examples
 

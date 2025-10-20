@@ -1,0 +1,51 @@
+{
+  "name": "⚔️ DAVID vs GOLIATH - Underdogs Challenge",
+  "description": "Weakest vs Strongest! Can the underdogs surprise the titans? Speed vs Power!",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "DIVZERO.EXE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE ORACLE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "ZEN MASTER",
+      "difficulty": 3,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "BLITZ DEMON",
+      "difficulty": 5,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "LIGHTNING STRIKE",
+      "difficulty": 4,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "GLITCH_LORD",
+      "difficulty": 6,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    }
+  ],
+  "games_per_matchup": 3,
+  "include_move_history": false
+}
+

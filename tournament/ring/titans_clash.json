@@ -1,0 +1,44 @@
+{
+  "name": "💀 TITANS CLASH - The Strongest Warriors",
+  "description": "Only the strongest gladiators! ELO 1750+. Epic battles of intelligence and power.",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "DIVZERO.EXE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE ORACLE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "FORTRESS ETERNAL",
+      "difficulty": 10,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE EXECUTIONER",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "THE STRANGLER",
+      "difficulty": 10,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    }
+  ],
+  "games_per_matchup": 4,
+  "include_move_history": false
+}
+

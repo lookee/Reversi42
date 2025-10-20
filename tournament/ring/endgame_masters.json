@@ -1,0 +1,30 @@
+{
+  "name": "🔮 ENDGAME MASTERS - Prophets of Victory",
+  "description": "Tournament of strategic masterminds. Long-term planning, adaptive depth, endgame specialists.",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "THE ORACLE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "DIVZERO.EXE",
+      "difficulty": 9,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "FORTRESS ETERNAL",
+      "difficulty": 10,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    }
+  ],
+  "games_per_matchup": 4,
+  "include_move_history": false
+}
+

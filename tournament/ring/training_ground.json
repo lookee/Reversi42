@@ -1,0 +1,44 @@
+{
+  "name": "🎓 TRAINING GROUND - Beginners Arena",
+  "description": "Training tournament for weaker gladiators. Learn, grow, improve!",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "ZEN MASTER",
+      "difficulty": 3,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "BLITZ DEMON",
+      "difficulty": 5,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "LIGHTNING STRIKE",
+      "difficulty": 4,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Greedy",
+      "name": "Greedy Goblin",
+      "difficulty": 1,
+      "engine": "Greedy",
+      "evaluator": "Greedy"
+    },
+    {
+      "type": "Heuristic",
+      "name": "Heuristic Scout",
+      "difficulty": 1,
+      "engine": "Heuristic",
+      "evaluator": "Heuristic"
+    }
+  ],
+  "games_per_matchup": 4,
+  "include_move_history": false
+}
+
