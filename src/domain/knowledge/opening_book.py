@@ -54,6 +54,16 @@ class OpeningBook:
 
         if book_path and os.path.exists(book_path):
             self._load_book(book_path)
+    
+    def load_additional_book(self, book_path):
+        """
+        Load additional opening book file (merges with existing data).
+        
+        Args:
+            book_path: Path to additional book file
+        """
+        if book_path and os.path.exists(book_path):
+            self._load_book(book_path)
 
     def _load_book(self, book_path):
         """Load opening book from file into Trie structure"""

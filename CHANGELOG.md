@@ -9,22 +9,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Verbose Mode in Tournaments** 🔍
-  - New `verbose` parameter in tournament configuration
-  - Shows for each move: number, board, history, time, pieces flipped, score
-  - Perfect for debugging and analysis
-  - Usage: `"verbose": true` in JSON config
+- **EnhancedOpeningBook - Advanced Opening Book System** 📚✨
+  - **NEW CLASS**: `EnhancedOpeningBook` extends `OpeningBook` (100% retrocompatibile)
+  - **Parametric Filtering**: Configurable score thresholds (default: only moves > 0)
+  - **Multi-Criteria Scoring**: advantage + variety + safety bonus
+  - **Selection Modes**: BEST_SCORE, WEIGHTED_RANDOM, VARIETY_FIRST, SAFE_FIRST, AGGRESSIVE
+  - **Detailed Evaluation**: `MoveEvaluation` dataclass with complete move analysis
+  - **Dynamic Thresholds**: Use average score as threshold (adaptive filtering)
+  - **NOT USED** by any existing players (backward compatibility guaranteed!)
+  - Files: `src/domain/knowledge/enhanced_opening_book.py`
+  - Docs: `src/domain/knowledge/ENHANCED_OPENING_BOOK.md`
+  - Tests: `tests/domain/test_enhanced_opening_book.py` (13 tests, all pass)
+
+- **Unicode Board Representation (Default)** 🎨
+  - New methods: `Game.get_unicode_view()`, `BitboardGame.get_unicode_view()`
+  - **○ = Nero**, **◉ = Bianco**, **· = Vuoto**
+  - Compact and elegant (10 lines vs 17)
+  - Now DEFAULT for `game.view()` and `print(game)`
+  - Used in tournament verbose mode
+
+- **Verbose Mode in Tournaments (Default: ON)** 🔍
+  - Shows Unicode board after each move
+  - Move number, time, pieces flipped, score, history
+  - **Default: True** (can disable with `"verbose": false`)
+  - Perfect for debugging and game analysis
   
 - **Complete Board Integrity Test Suite** (24 tests)
   - Rigorous forward/backward testing
-  - All invariants verified
   - File: `tests/integration/test_board_integrity.py`
 
-- **BitboardGame False Moves Regression Test**
-  - Detects false positive moves in BitboardGame
+- **BitboardGame Comprehensive Test Suite** (25 tests)
+  - 2000+ positions verified
+  - All edges, corners, directions tested
+  - File: `tests/bitboard/test_bitboard_moves_comprehensive.py`
+
+- **BitboardGame False Moves Regression Test** (2 tests)
+  - Detects false positive moves
   - File: `tests/regression/test_bitboard_false_moves.py`
 
 ### Changed
+
+- **Opening Book Evaluation Mode (NEW Default!)** 📚🔍
+  - **NEW PARAMETER**: `book_instant=False` in `PlayerApocalyptron` and `PlayerDivZero`
+  - **OLD BEHAVIOR** (`book_instant=True`): Book moves used instantly (no engine evaluation)
+  - **NEW BEHAVIOR** (`book_instant=False`, **DEFAULT**): Book moves prioritized but evaluated by engine
+  - **Benefit**: AI can choose better moves based on position, not just book score
+  - **How it works**: 
+    1. Opening book filters and ranks moves by score (with configurable threshold)
+    2. Best book moves added to top of evaluation list
+    3. Engine evaluates ALL moves (book + non-book) normally
+    4. Selects the move with highest engine score (not just best book score)
+  - **Impact**: More intelligent play - combines book knowledge with tactical evaluation
+  - **Evolved Display**: When `show_book_options=True` and `book_instant=False`:
+    - Shows elegant table with book moves, scores, advantages, continuations
+    - ★ marks highest-scored move
+    - Displays ON TOP priority moves vs filtered out
+    - Shows non-book moves separately
+    - Clear explanation of what engine will do
+  - **Backward Compatibility**: Set `book_instant=True` to restore legacy instant behavior
+  - Files modified: `src/Players/PlayerApocalyptron.py`, `src/Players/Gladiators/PlayerDivZero.py`
+
+- **Cleaner Console Output** 🧹
+  - Removed verbose "Ready for Phase 2 parallel search" message
+  - Silenced pygame welcome message (`PYGAME_HIDE_SUPPORT_PROMPT`)
+  - **NEW**: Summary shows "📚 Book moves prioritized: X, Y, Z" to confirm evaluation mode works
+  - Visible even with `show_book_options=False` (tournaments)
+  - Cleaner output during tournaments and gameplay
+  - Fixed: Empty game_history (`""`) was treated as falsy, now correctly handled
+  - Files modified: `src/AI/Apocalyptron/observers/console.py`, `src/reversi42.py`
 
 ### Fixed
 

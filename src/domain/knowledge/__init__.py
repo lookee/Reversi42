@@ -14,5 +14,13 @@ This organization keeps related code and data together (Cohesion principle).
 """
 
 from .opening_book import OpeningBook, get_default_opening_book
+from .enhanced_opening_book import EnhancedOpeningBook, get_enhanced_opening_book, SelectionMode, MoveEvaluation
 
-__all__ = ["OpeningBook", "get_default_opening_book"]
+__all__ = [
+    "OpeningBook", 
+    "get_default_opening_book",
+    "EnhancedOpeningBook",
+    "get_enhanced_opening_book", 
+    "SelectionMode",
+    "MoveEvaluation"
+]

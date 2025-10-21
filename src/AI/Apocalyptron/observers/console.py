@@ -124,7 +124,7 @@ class ConsoleObserver(SearchObserver):
         print(f"🤖 ITERATIVE DEEPENING SUMMARY:")
 
         # Opening book info
-        if opening_book and game_history:
+        if opening_book and game_history is not None:
             self._print_opening_info(opening_book, game_history, game)
 
         # Statistics
@@ -226,8 +226,9 @@ class ConsoleObserver(SearchObserver):
         if "move_progression" in stats and len(stats["move_progression"]) > 0:
             self._print_move_stability(stats["move_progression"])
 
-        print(f"\n⚡ Ready for Phase 2 parallel search at depth {target_depth}")
-        print("=" * 80 + "\n")
+        # Removed verbose parallel search message for cleaner output
+        # print(f"\n⚡ Ready for Phase 2 parallel search at depth {target_depth}")
+        # print("=" * 80 + "\n")
 
     def _print_move_stability(self, move_progression):
         """Print move stability analysis from Phase 1"""
@@ -286,6 +287,12 @@ class ConsoleObserver(SearchObserver):
         """Print opening book information"""
         current_opening = opening_book.get_current_opening_name(game_history)
         all_openings = opening_book.get_remaining_openings(game_history)
+        
+        # Check if we have book moves for THIS position (before the move)
+        # We want to show which moves WERE prioritized for evaluation
+        book_moves = []
+        if hasattr(opening_book, 'get_book_moves') and game_history is not None:
+            book_moves = opening_book.get_book_moves(game_history) or []
 
         if current_opening:
             advantage = opening_book.get_opening_advantage(game_history)
@@ -307,6 +314,12 @@ class ConsoleObserver(SearchObserver):
 
         if len(all_openings) > 0:
             print(f"   • Openings in book: {len(all_openings)} available")
+        
+        # NEW: Indicate if book moves were prioritized for evaluation
+        if book_moves and len(book_moves) > 0:
+            print(f"   📚 Book moves prioritized: {', '.join(str(m).upper() for m in book_moves[:5])}")
+            if len(book_moves) > 5:
+                print(f"      (+ {len(book_moves) - 5} more evaluated with priority)")
 
     def _print_statistics(self, stats: Dict, total_time: float, best_move: Any, value: int):
         """Print detailed statistics"""

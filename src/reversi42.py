@@ -23,6 +23,9 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Silence pygame welcome message
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 import pygame
 from pygame.locals import *
 

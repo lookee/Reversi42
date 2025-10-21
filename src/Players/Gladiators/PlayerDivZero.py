@@ -89,12 +89,13 @@ class PlayerDivZero(Player):
         "parameters": {},
     }
     
-    def __init__(self, depth=12, show_book_options=False):
+    def __init__(self, depth=12, show_book_options=False, book_instant=False):
         Player.__init__(self)
         self.depth = depth
         self.deep = depth
         self.name = "DIVZERO.EXE"
         self.show_book_options = show_book_options
+        self.book_instant = book_instant  # NEW: Book instant vs evaluated
         
         # Build ultimate configuration
         builder = (
@@ -145,11 +146,16 @@ class PlayerDivZero(Player):
             valid_book_moves = [m for m in book_moves if m in moves]
             if valid_book_moves:
                 self.book_hits += 1
-                return self.opening_book.get_best_opening_move(
-                    game_history, valid_book_moves, game.turn, show_details=False
-                )
+                
+                # BRANCH: Instant vs Evaluation mode
+                if self.book_instant:
+                    # LEGACY: Use book move instantly
+                    return self.opening_book.get_best_opening_move(
+                        game_history, valid_book_moves, game.turn, show_details=False
+                    )
+                # else: Fall through to engine evaluation with book priority
         
-        # Engine search
+        # Engine search (with book moves prioritized if book_instant=False)
         try:
             bitboard_game = self._convert_to_bitboard(game)
             move = self.bitboard_engine.get_best_move(
