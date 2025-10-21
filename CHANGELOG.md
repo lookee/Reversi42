@@ -9,9 +9,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Verbose Mode in Tournaments** 🔍
+  - New `verbose` parameter in tournament configuration
+  - Shows for each move: number, board, history, time, pieces flipped, score
+  - Perfect for debugging and analysis
+  - Usage: `"verbose": true` in JSON config
+  
+- **Complete Board Integrity Test Suite** (24 tests)
+  - Rigorous forward/backward testing
+  - All invariants verified
+  - File: `tests/integration/test_board_integrity.py`
+
+- **BitboardGame False Moves Regression Test**
+  - Detects false positive moves in BitboardGame
+  - File: `tests/regression/test_bitboard_false_moves.py`
+
 ### Changed
 
 ### Fixed
+
+- **CRITICAL: BitboardGame Generates Invalid Moves** 🔴✅
+  - **Issue**: BitboardGame.get_valid_moves() generated FALSE POSITIVE moves
+    - After specific game sequences, returned A5 and A3 as valid moves
+    - Game.get_move_list() correctly excluded these moves (they don't capture anything!)
+    - **Effect**: AI selects invalid moves → game corruption → unexpected behavior
+  - **Root Cause**: Wrong edge mask for NE (North-East) direction
+    - Bug: `(-7, 0xFEFEFEFEFEFEFE00)` ← masks column A instead of H!
+    - NE = up + right → must mask row 1 (top) AND column H (right edge)
+    - The mask was masking column A (left) instead of column H (right)
+  - **Solution**: Corrected NE edge mask
+    - Fixed: `(-7, 0x7F7F7F7F7F7F7F00)` ← now correctly masks column H
+    - Added detailed comments explaining each mask
+  - **Impact**: 
+    - This bug affected ALL Apocalyptron-based players (DIVZERO, ORACLE, etc.)
+    - Caused invalid move selection in tournaments
+    - Explained mysterious "wins" at unexpected moments
+  - **Test Coverage**: 
+    - ✅ test_bitboard_false_positive_a5 (regression test)
+    - ✅ test_bitboard_game_move_parity (10 random games, 200 moves total)
+  - **Files Modified**: `src/Reversi/BitboardGame.py` (1 line fix)
+
+- **Critical: Incorrect undo_move() Implementation** 🔴✅
+  - **Issue**: Stack saved only board, not turn/turn_cnt
+  - **Solution**: Save tuple `(board, turn, turn_cnt)` with backward compatibility
+  - **Files Modified**: `src/Reversi/Game.py`
+
+- **Tournament Position Detection** ✅
+  - Include turn in position key: `(board, turn)`
+  - **Files Modified**: `tournament/tournament.py`
 
 
 ## [4.1.16] - 2025-10-20

@@ -130,8 +130,58 @@ class Game(object):
         return out
 
     def view(self):
-        """print to stdout the simplest rappresentation of board status"""
-        print(self.get_view())
+        """print to stdout the board (uses Unicode representation by default)"""
+        print(self.get_unicode_view())
+    
+    def get_unicode_view(self):
+        """
+        Get elegant Unicode representation of the board.
+        
+        Uses:
+        - ○ for black pieces (circle)
+        - ◉ for white pieces (fisheye - visible on dark backgrounds)
+        - · for empty squares
+        
+        Returns:
+            str: Unicode board representation
+        """
+        lines = []
+        
+        # Header with column coordinates
+        lines.append("      A  B  C  D  E  F  G  H")
+        
+        for row in range(1, 9):
+            # Row number on left
+            line = f"    {row} "
+            
+            for col in range(1, 9):
+                cell = self.matrix[row][col]
+                
+                if cell == 'B':
+                    symbol = "○"  # Circle for black
+                elif cell == 'W':
+                    symbol = "◉"  # Fisheye for white
+                else:
+                    symbol = "·"  # Empty square
+                
+                line += f"{symbol}  "  # Symbol + 2 spaces for alignment
+            
+            # Row number on right
+            line += f"{row}"
+            lines.append(line)
+        
+        # Footer
+        lines.append("      A  B  C  D  E  F  G  H")
+        
+        # Info line
+        turn_symbol = "○" if self.turn == "B" else "◉"
+        lines.append(f"       {turn_symbol} Turno:{self.turn}  ○ Nero:{self.black_cnt}  ◉ Bianco:{self.white_cnt}")
+        
+        return "\n".join(lines)
+    
+    def print_unicode_view(self):
+        """Print Unicode board representation to stdout"""
+        print(self.get_unicode_view())
 
     def export_str(self):
         """export the board status into a string"""
@@ -246,8 +296,8 @@ class Game(object):
 
         x, y = move.x, move.y
 
-        # store previus move
-        self.board_position_stack.append(self.export_str())
+        # store previus move (board + turn + turn_cnt for correct undo)
+        self.board_position_stack.append((self.export_str(), self.turn, self.turn_cnt))
 
         # fix destination
         self.matrix[y][x] = self.turn
@@ -312,8 +362,8 @@ class Game(object):
         self.switch_player()
 
     def pass_turn(self):
-        # store previus move
-        self.board_position_stack.append(self.export_str())
+        # store previus move (board + turn + turn_cnt for correct undo)
+        self.board_position_stack.append((self.export_str(), self.turn, self.turn_cnt))
         self.switch_player()
         self.turn_cnt += 1
 
@@ -327,10 +377,21 @@ class Game(object):
 
     def undo_move(self):
         """undo previus move"""
-        previus_move = self.board_position_stack.pop()
-        self.import_str(previus_move)
-        self.switch_player()
-        self.turn_cnt -= 1
+        # Pop saved state (board, turn, turn_cnt)
+        saved_state = self.board_position_stack.pop()
+        
+        # Unpack saved state
+        if isinstance(saved_state, tuple):
+            # New format: (board, turn, turn_cnt)
+            previus_board, previus_turn, previus_turn_cnt = saved_state
+            self.import_str(previus_board)
+            self.turn = previus_turn
+            self.turn_cnt = previus_turn_cnt
+        else:
+            # Old format (backward compatibility): just board string
+            self.import_str(saved_state)
+            self.switch_player()
+            self.turn_cnt -= 1
 
         # Remove last move from history (2 characters: letter+digit)
         if len(self.history) >= 2:
@@ -341,8 +402,8 @@ class Game(object):
         return self.turn
 
     def __str__(self):
-        """board rappresentations"""
-        return self.get_view()
+        """board rappresentations (Unicode by default)"""
+        return self.get_unicode_view()
 
     def evaluate(self):
         """evaluate position"""

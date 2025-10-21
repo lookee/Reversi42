@@ -24,13 +24,19 @@ class BitboardGame:
     # NOTE: Masks are applied BEFORE shift to prevent edge wrapping
     # For left shifts (+): mask out bits that would go beyond board (right/bottom edges)
     # For right shifts (-): mask out bits that would come from beyond board (left/top edges)
+    # 
+    # CRITICAL: Masks must prevent wrap-around at board edges!
+    # - Row 1 (top):    bits 0-7   → mask 0x00 in last byte
+    # - Row 8 (bottom): bits 56-63 → mask 0x00 in first byte
+    # - Col A (left):   bits 0,8,16,24,32,40,48,56 → mask 0xFE (all except bit 0 in each byte)
+    # - Col H (right):  bits 7,15,23,31,39,47,55,63 → mask 0x7F (all except bit 7 in each byte)
     DIRECTIONS = [
         (-8, 0xFFFFFFFFFFFFFF00),  # North: mask row 1 (bits 0-7)
-        (-7, 0xFEFEFEFEFEFEFE00),  # NE: mask row 1 AND col H
-        (1, 0x7F7F7F7F7F7F7F7F),  # East: mask col H
-        (9, 0x007F7F7F7F7F7F7F),  # SE: mask row 8 AND col H
-        (8, 0x00FFFFFFFFFFFFFF),  # South: mask row 8 (bits 56-63)
-        (7, 0x00FEFEFEFEFEFEFE),  # SW: mask row 8 AND col A
+        (-7, 0x7F7F7F7F7F7F7F00),  # NE: mask row 1 AND col H (FIXED: was 0xFEFE...FE00)
+        (1, 0x7F7F7F7F7F7F7F7F),   # East: mask col H
+        (9, 0x007F7F7F7F7F7F7F),   # SE: mask row 8 AND col H
+        (8, 0x00FFFFFFFFFFFFFF),   # South: mask row 8 (bits 56-63)
+        (7, 0x00FEFEFEFEFEFEFE),   # SW: mask row 8 AND col A
         (-1, 0xFEFEFEFEFEFEFEFE),  # West: mask col A
         (-9, 0xFEFEFEFEFEFEFE00),  # NW: mask row 1 AND col A
     ]
@@ -325,54 +331,68 @@ class BitboardGame:
         return "\n".join(result)
 
     def view(self):
-        """Print board to console with elegant compact layout"""
-        print()
-
-        # Compact header
-        print("─" * 40)
-        print(
-            "  Turn: %-2s   ●:%2d  ○:%2d   Move:%2d"
-            % (self.turn, self.black_cnt, self.white_cnt, self.turn_cnt)
-        )
-        print("─" * 40)
-        print()
-
-        # Compact column headers
-        print("    A B C D E F G H")
-
-        # Top border
-        print("  ┌" + "─" * 15 + "┐")
-
-        # Board rows
-        for row in range(8):
-            print(f"{row + 1} │", end="")
-            for col in range(8):
-                bit = row * 8 + col
-                mask = 1 << bit
-                if self.black & mask:
-                    print("●", end="")
-                elif self.white & mask:
-                    print("○", end="")
-                else:
-                    print("·", end="")
-
-                # Space between cells except at the end
-                if col < 7:
-                    print(" ", end="")
-
-            print(f"│ {row + 1}")
-
-        # Bottom border
-        print("  └" + "─" * 15 + "┘")
-
-        # Column headers at bottom
-        print("    A B C D E F G H")
-        print()
+        """Print board to console (uses Unicode representation by default)"""
+        print(self.get_unicode_view())
+    
+    def __str__(self):
+        """String representation (Unicode by default)"""
+        return self.get_unicode_view()
 
     def get_zobrist_hash(self):
         """Get Zobrist hash for transposition table (to be implemented)"""
         # For now, use simple hash
         return hash((self.black, self.white, self.turn))
+    
+    def get_unicode_view(self):
+        """
+        Get elegant Unicode representation of the board.
+        
+        Uses:
+        - ○ for black pieces (circle)
+        - ◉ for white pieces (fisheye - visible on dark backgrounds)
+        - · for empty squares
+        
+        Returns:
+            str: Unicode board representation
+        """
+        # Use virtual matrix for display (compatible with Game)
+        lines = []
+        
+        # Header with column coordinates
+        lines.append("      A  B  C  D  E  F  G  H")
+        
+        for row in range(1, 9):
+            # Row number on left
+            line = f"    {row} "
+            
+            for col in range(1, 9):
+                cell = self.matrix[row][col]
+                
+                if cell == 'B':
+                    symbol = "○"  # Circle for black
+                elif cell == 'W':
+                    symbol = "◉"  # Fisheye for white
+                else:
+                    symbol = "·"  # Empty square
+                
+                line += f"{symbol}  "  # Symbol + 2 spaces for alignment
+            
+            # Row number on right
+            line += f"{row}"
+            lines.append(line)
+        
+        # Footer
+        lines.append("      A  B  C  D  E  F  G  H")
+        
+        # Info line
+        turn_symbol = "○" if self.turn == "B" else "◉"
+        lines.append(f"       {turn_symbol} Turno:{self.turn}  ○ Nero:{self.black_cnt}  ◉ Bianco:{self.white_cnt}")
+        
+        return "\n".join(lines)
+    
+    def print_unicode_view(self):
+        """Print Unicode board representation to stdout"""
+        print(self.get_unicode_view())
 
     def clone(self):
         """Create a copy of the game state - O(1) with bitboards!"""
