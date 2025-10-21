@@ -104,6 +104,7 @@ tournament/
 - ✅ **Sistema di Configurazione JSON** - Tornei riutilizzabili e condivisibili ⭐ NEW
 - ✅ **Script Shell** - Esecuzione rapida con `./run_tournament.sh`
 - ✅ **Supporto AI Avanzati** - Bitboard, Parallel Oracle, Grandmaster ⭐ NEW
+- ✅ **Modalità Verbose** - Visualizzazione completa board + storico durante le partite ⭐ NEW
 - ✅ Round-robin completo (tutti contro tutti)
 - ✅ Bilanciamento colori (stesso numero di partite come Nero e Bianco)
 - ✅ Esecuzione veloce senza grafica
@@ -333,6 +334,20 @@ Crea `ring/my_tournament.json`:
   ]
 }
 ```
+
+**Parametri di Configurazione**:
+- `name`: Nome del torneo
+- `description`: Descrizione
+- `games_per_matchup`: Numero di partite per matchup (ogni coppia di colori)
+- `include_move_history`: Se `true`, include lo storico completo delle mosse nel report
+- `verbose`: Se `true`, mostra board, storico mosse e dettagli durante ogni partita (**default: true**)
+  - ✅ Visualizzazione board Unicode dopo ogni mossa (○ Nero, ◉ Bianco)
+  - ✅ Numero mossa sempre visibile
+  - ✅ Storico mosse completo
+  - ✅ Tempo impiegato per mossa
+  - ✅ Pezzi girati
+  - ✅ Score aggiornato
+  - ℹ️  Per disattivare: `"verbose": false` (output minimale, più veloce)
 
 Esegui:
 ```bash

@@ -1,0 +1,24 @@
+{
+  "name": "🧪 Test Verbose Mode",
+  "description": "Test della modalità verbose con visualizzazione completa della partita",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "ZEN MASTER",
+      "difficulty": 3,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "LIGHTNING STRIKE",
+      "difficulty": 4,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    }
+  ],
+  "games_per_matchup": 1,
+  "include_move_history": false,
+  "verbose": true
+}
+

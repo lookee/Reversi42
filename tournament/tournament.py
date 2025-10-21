@@ -100,7 +100,7 @@ class Tournament:
     """Tournament manager and statistics"""
     
     def __init__(self, players_config, games_per_matchup, include_move_history=False, 
-                 name="Reversi42 Tournament", description=""):
+                 name="Reversi42 Tournament", description="", verbose=True):
         """
         Initialize tournament
         
@@ -110,12 +110,14 @@ class Tournament:
             include_move_history: If True, include full move history in report
             name: Tournament name
             description: Tournament description
+            verbose: If True, show board, move history and move numbers during games (default: True)
         """
         self.name = name
         self.description = description
         self.players_config = players_config
         self.games_per_matchup = games_per_matchup
         self.include_move_history = include_move_history
+        self.verbose = verbose
         self.games = []
         self.player_stats = {}
         self.start_time = None
@@ -153,7 +155,8 @@ class Tournament:
             games_per_matchup=config.get('games_per_matchup', 1),
             include_move_history=config.get('include_move_history', False),
             name=config.get('name', 'Reversi42 Tournament'),
-            description=config.get('description', '')
+            description=config.get('description', ''),
+            verbose=config.get('verbose', True)  # Default: True (show Unicode board)
         )
     
     def to_config_dict(self):
@@ -179,7 +182,8 @@ class Tournament:
             'description': self.description,
             'players': players,
             'games_per_matchup': self.games_per_matchup,
-            'include_move_history': self.include_move_history
+            'include_move_history': self.include_move_history,
+            'verbose': self.verbose
         }
     
     def save_config(self, filepath):
@@ -270,7 +274,12 @@ class Tournament:
         game_stat = TournamentGame(black_player.name, white_player.name)
         
         # Track progress
-        print(f"  Game {game_number}/{total_games}: {black_player.name} (B) vs {white_player.name} (W)... ", end='', flush=True)
+        if self.verbose:
+            print(f"\n{'='*80}")
+            print(f"  Game {game_number}/{total_games}: {black_player.name} (B) vs {white_player.name} (W)")
+            print(f"{'='*80}\n")
+        else:
+            print(f"  Game {game_number}/{total_games}: {black_player.name} (B) vs {white_player.name} (W)... ", end='', flush=True)
         
         game_start = time.perf_counter()
         move_times_by_player = {black_player.name: [], white_player.name: []}
@@ -295,6 +304,22 @@ class Tournament:
                 move_times_by_player[player.name].append(move_time)
                 game_stat.move_times.append(move_time)
                 
+                # Save state BEFORE move for verbose output
+                if self.verbose:
+                    pieces_before = g.black_cnt + g.white_cnt
+                    black_before = g.black_cnt
+                    white_before = g.white_cnt
+                
+                # VERBOSE: Stampa stato PRIMA della mossa
+                if self.verbose:
+                    print(f"\n{'▼'*80}")
+                    print(f">>> MOSSA #{game_stat.moves_count + 1} <<<")
+                    print(f"{'▼'*80}")
+                    print(f"  🎮 Gioca: {turn} ({player.name})")
+                    print(f"  📊 Pezzi sulla board: {pieces_before}")
+                    print(f"  📍 Mossa scelta: {move}")
+                    print(f"  ⏱️  Tempo impiegato: {move_time*1000:.1f}ms")
+                
                 # Make move
                 g.move(move)
                 game_stat.moves_count += 1
@@ -304,10 +329,54 @@ class Tournament:
                     game_stat.game_history += str(move).upper()
                 else:
                     game_stat.game_history += str(move).lower()
+                
+                # VERBOSE: Stampa board e storico DOPO la mossa
+                if self.verbose:
+                    pieces_after = g.black_cnt + g.white_cnt
+                    
+                    # Calcolo CORRETTO dei pezzi catturati
+                    # Il giocatore piazza 1 pezzo e gira N pezzi avversari
+                    # Delta del mio score = 1 (piazzato) + N (girati)
+                    if turn == 'B':
+                        black_gain = g.black_cnt - black_before
+                        pieces_flipped = black_gain - 1  # Tolgo il pezzo piazzato
+                    else:
+                        white_gain = g.white_cnt - white_before  
+                        pieces_flipped = white_gain - 1  # Tolgo il pezzo piazzato
+                    
+                    print(f"  📥 Pezzi girati: {pieces_flipped}")
+                    print(f"  📊 Score attuale: Black {g.black_cnt} - White {g.white_cnt}")
+                    print(f"  📈 Totale pezzi: {pieces_before} → {pieces_after} (+{pieces_after - pieces_before})")
+                    print(f"\n  Board:")
+                    # Stampa la board elegante con Unicode (usa metodo di Game)
+                    for line in g.get_unicode_view().split('\n'):
+                        print(f"    {line}")
+                    print(f"\n  📜 Storico mosse: {game_stat.game_history}")
+                    print(f"{'─'*80}\n")
             else:
+                # Pass turn
+                if self.verbose:
+                    print(f"\n{'⏭'*80}")
+                    print(f">>> PASS TURNO (Mossa #{game_stat.moves_count + 1}) <<<")
+                    print(f"{'⏭'*80}")
+                    print(f"  🎮 Giocatore: {turn} ({player.name})")
+                    print(f"  ⚠️  Nessuna mossa disponibile - deve passare")
+                    print(f"  📊 Score: Black {g.black_cnt} - White {g.white_cnt}")
+                
                 g.pass_turn()
                 next_moves = g.get_move_list()
+                
+                if self.verbose:
+                    next_turn = g.get_turn()
+                    next_player_name = black_player.name if next_turn == 'B' else white_player.name
+                    print(f"  ➡️  Turno passa a: {next_turn} ({next_player_name})")
+                    print(f"  🎲 Mosse disponibili: {len(next_moves)}")
+                
                 if len(next_moves) == 0:
+                    if self.verbose:
+                        print(f"\n  🏁 FINE PARTITA!")
+                        print(f"     Entrambi i giocatori non hanno mosse disponibili")
+                        print(f"{'─'*80}\n")
                     break
         
         game_stat.duration = time.perf_counter() - game_start
@@ -319,13 +388,34 @@ class Tournament:
         # Determine winner
         if g.black_cnt > g.white_cnt:
             game_stat.winner = black_player.name
-            print(f"Winner: {black_player.name} ({g.black_cnt}-{g.white_cnt})")
+            if self.verbose:
+                print(f"\n{'='*80}")
+                print(f"🏆 VITTORIA: {black_player.name} ({g.black_cnt}-{g.white_cnt})")
+                print(f"   Durata partita: {game_stat.duration:.2f}s")
+                print(f"   Mosse totali: {game_stat.moves_count}")
+                print(f"{'='*80}\n")
+            else:
+                print(f"Winner: {black_player.name} ({g.black_cnt}-{g.white_cnt})")
         elif g.white_cnt > g.black_cnt:
             game_stat.winner = white_player.name
-            print(f"Winner: {white_player.name} ({g.white_cnt}-{g.black_cnt})")
+            if self.verbose:
+                print(f"\n{'='*80}")
+                print(f"🏆 VITTORIA: {white_player.name} ({g.white_cnt}-{g.black_cnt})")
+                print(f"   Durata partita: {game_stat.duration:.2f}s")
+                print(f"   Mosse totali: {game_stat.moves_count}")
+                print(f"{'='*80}\n")
+            else:
+                print(f"Winner: {white_player.name} ({g.white_cnt}-{g.black_cnt})")
         else:
             game_stat.winner = "Draw"
-            print(f"Draw ({g.black_cnt}-{g.white_cnt})")
+            if self.verbose:
+                print(f"\n{'='*80}")
+                print(f"🤝 PAREGGIO ({g.black_cnt}-{g.white_cnt})")
+                print(f"   Durata partita: {game_stat.duration:.2f}s")
+                print(f"   Mosse totali: {game_stat.moves_count}")
+                print(f"{'='*80}\n")
+            else:
+                print(f"Draw ({g.black_cnt}-{g.white_cnt})")
         
         # Update player stats
         self.player_stats[black_player.name].add_game(

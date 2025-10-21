@@ -1,0 +1,24 @@
+{
+  "name": "🔇 Test Quiet Mode",
+  "description": "Test senza visualizzazione board (solo risultati finali)",
+  "players": [
+    {
+      "type": "Apocalyptron",
+      "name": "ZEN MASTER",
+      "difficulty": 3,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    },
+    {
+      "type": "Apocalyptron",
+      "name": "LIGHTNING STRIKE",
+      "difficulty": 4,
+      "engine": "Apocalyptron",
+      "evaluator": "Composite"
+    }
+  ],
+  "games_per_matchup": 1,
+  "include_move_history": false,
+  "verbose": false
+}
+
