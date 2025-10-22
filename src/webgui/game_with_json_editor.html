@@ -95,6 +95,19 @@
     .historyMove:hover{color:var(--txt)}
     .historyMove.active{color:var(--txt); font-weight:700}
     
+    /* Last move indicator */
+    .lastMove{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      pointer-events:none; z-index:10}
+    .lastMove::after{content:''; width:12px; height:12px; border-radius:999px;
+      background:radial-gradient(circle at 35% 35%, #ff6b7a, #ff4757);
+      box-shadow:0 0 18px rgba(255,71,87,.95), 0 0 30px rgba(255,71,87,.6);
+      animation:lastMovePulse 2s ease-in-out infinite}
+    
+    @keyframes lastMovePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.15); }
+    }
+    
     /* Opening suggestions */
     .opening-move{background:var(--gold); color:#000; font-weight:700; padding:2px 6px; border-radius:4px; font-size:12px}
 
@@ -285,6 +298,7 @@
         <div class="flex flex-wrap items-center gap-3 text-[13px]" style="color:var(--muted);margin-top:14px">
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Disco Nero</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>Disco Bianco</span>
+          <span class="chip"><span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:radial-gradient(circle, #ff4757, #ee2f3f);box-shadow:0 0 8px rgba(255,71,87,.6)"></span>Ultima mossa</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Mossa valida</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;border:2px solid var(--gold)"></span>Opening suggerito</span>
         </div>
@@ -324,22 +338,22 @@
   <script id="reversi-data" type="application/json">
 {
   "version": "1.0.0",
-  "meta": {
+  "game_metadata": {
     "variant": "Reversi/Othello",
-    "size": 8,
+    "board_size": 8,
     "theme": "green-elegant-light",
     "timestamp": "2025-10-21T12:00:00Z",
     "game_id": "match-001"
   },
-  "players": {
-    "black": {
+  "player_information": {
+    "black_player": {
       "name": "Luca Amore",
       "avatar": "LA",
       "type": "human",
       "rating": 1850,
       "config": null
     },
-    "white": {
+    "white_player": {
       "name": "Apocalyptron",
       "avatar": "AP",
       "type": "ai",
@@ -353,7 +367,7 @@
       }
     }
   },
-  "game_state": {
+  "current_game_state": {
     "current_ply": 3,
     "max_ply": 3,
     "current_move": 2,
@@ -361,7 +375,7 @@
     "winner": null,
     "final_score": null
   },
-  "status": {
+  "match_status": {
     "round": 1,
     "board_no": 1,
     "turn_by_ply": ["B", "W", "B", "W"],
@@ -386,7 +400,7 @@
     "G1": null, "G2": null, "G3": null, "G4": null, "G5": null, "G6": null, "G7": null, "G8": null,
     "H1": null, "H2": null, "H3": null, "H4": null, "H5": null, "H6": null, "H7": null, "H8": null
   },
-  "move_details": [
+  "move_history_details": [
     {
       "ply": 1,
       "move": "C4",
@@ -418,9 +432,9 @@
       "opening_name": null
     }
   ],
-  "moves": ["C4", "E3", "F5"],
-  "valid_moves": ["B4", "C5", "C6", "E6", "G6"],
-  "opening_suggestions": [
+  "moves_played": ["C4", "E3", "F5"],
+  "available_moves": ["B4", "C5", "C6", "E6", "G6"],
+  "opening_book_suggestions": [
     {
       "move": "D6",
       "score": "85+",
@@ -450,7 +464,7 @@
     }
   ],
   "_comment_ai": "Dati AI per la mossa corrente. In LIVE mode viene recuperato dal backend con GET /api/ai_stats/{ply}",
-  "ai_stats": {
+  "ai_analysis_data": {
     "title": "🎯 AI ANALYSIS",
     "rows": [
       { "label": "Engine", "value": "Apocalyptron", "detail": null },
@@ -475,7 +489,7 @@
       { "label": "Selected move", "value": "E3", "detail": "(value: -10)" }
     ]
   },
-  "tournament": {
+  "tournament_information": {
     "name": "Blitz Madness Championship",
     "round": 1,
     "board": 1,
@@ -483,7 +497,7 @@
     "time_control": "5+2",
     "verbose": true
   },
-  "annotations": [
+  "game_annotations": [
     {
       "ply": 1,
       "type": "opening",
@@ -495,7 +509,7 @@
       "text": "Strong response following book theory."
     }
   ],
-  "ui_settings": {
+  "user_interface_settings": {
     "show_valid_moves": true,
     "show_opening_hints": true,
     "show_coordinates": true,
@@ -583,10 +597,10 @@
     
     function getDefaultGameData() {
       return {
-        meta: { variant: "Reversi/Othello", size: 8 },
-        players: {
-          black: { name: "Player 1", avatar: "P1" },
-          white: { name: "Player 2", avatar: "P2" }
+        game_metadata: { variant: "Reversi/Othello", board_size: 8 },
+        player_information: {
+          black_player: { name: "Player 1", avatar: "P1" },
+          white_player: { name: "Player 2", avatar: "P2" }
         },
         board: {
           "A1": null, "A2": null, "A3": null, "A4": null, "A5": null, "A6": null, "A7": null, "A8": null,
@@ -598,10 +612,10 @@
           "G1": null, "G2": null, "G3": null, "G4": null, "G5": null, "G6": null, "G7": null, "G8": null,
           "H1": null, "H2": null, "H3": null, "H4": null, "H5": null, "H6": null, "H7": null, "H8": null
         },
-        moves: [],
-        valid_moves: ["C4","D3","E6","F5"],
-        opening_suggestions: [],
-        ai_stats: null
+        moves_played: [],
+        available_moves: ["C4","D3","E6","F5"],
+        opening_book_suggestions: [],
+        ai_analysis_data: null
       };
     }
 
@@ -828,7 +842,7 @@
       });
       
       qs('copyBtn')?.addEventListener('click', () => {
-        const moves = (gameData.moves || []).join(' ');
+        const moves = (gameData.moves_played || []).join(' ');
         navigator.clipboard?.writeText(moves);
       });
       
@@ -978,10 +992,10 @@
       qs('plyMax').textContent = maxPly;
       
       // Update player info
-      qs('p1Name').textContent = gameData.players?.black?.name || '—';
-      qs('p2Name').textContent = gameData.players?.white?.name || '—';
-      qs('p1Avatar').textContent = gameData.players?.black?.avatar || initials(gameData.players?.black?.name);
-      qs('p2Avatar').textContent = gameData.players?.white?.avatar || initials(gameData.players?.white?.name);
+      qs('p1Name').textContent = gameData.player_information?.black_player?.name || '—';
+      qs('p2Name').textContent = gameData.player_information?.white_player?.name || '—';
+      qs('p1Avatar').textContent = gameData.player_information?.black_player?.avatar || initials(gameData.player_information?.black_player?.name);
+      qs('p2Avatar').textContent = gameData.player_information?.white_player?.avatar || initials(gameData.player_information?.white_player?.name);
       
       // Render board
       renderBoard();
@@ -1003,6 +1017,13 @@
     function renderBoard() {
       const elBoard = document.getElementById('board');
       const board = gameData.board || {};
+      const moves = gameData.moves_played || [];
+      
+      // Get last move coordinate if exists
+      let lastMoveCoord = null;
+      if (moves.length > 0) {
+        lastMoveCoord = moves[moves.length - 1];
+      }
       
       for (let i = 0; i < 64; i++) {
         const coord = coordFromIdx(i);
@@ -1017,6 +1038,14 @@
           const disc = document.createElement('div');
           disc.className = 'disc ' + (piece === 'B' ? 'black' : 'white');
           inner.appendChild(disc);
+          
+          // Add last move marker if this is the last move
+          if (coord === lastMoveCoord) {
+            const marker = document.createElement('div');
+            marker.className = 'lastMove';
+            marker.title = 'Ultima mossa';
+            inner.appendChild(marker);
+          }
         }
       }
     }
@@ -1024,7 +1053,7 @@
     function renderValidMoves() {
       const elBoard = document.getElementById('board');
       const validMovesCount = document.getElementById('validMovesCount');
-      const validMoves = gameData.valid_moves || [];
+      const validMoves = gameData.available_moves || [];
       
       // Update valid moves count
       if (validMovesCount) {
@@ -1044,7 +1073,7 @@
       const openingsCount = document.getElementById('openingsCount');
       const totalVariants = document.getElementById('totalVariants');
       const elBoard = document.getElementById('board');
-      const openings = gameData.opening_suggestions || [];
+      const openings = gameData.opening_book_suggestions || [];
       
       openingsUl.innerHTML = '';
       
@@ -1124,7 +1153,7 @@
         return;
       }
       
-      const moves = gameData.moves || [];
+      const moves = gameData.moves_played || [];
       console.log('renderHistory called with', moves.length, 'moves:', moves);
       
       historyGrid.innerHTML = '';
@@ -1224,7 +1253,7 @@
       
       // In Mock mode, use embedded JSON (same data for all plies in mock)
       // Il JSON contiene solo i dati della mossa corrente, non un array
-      return gameData.ai_stats || null;
+      return gameData.ai_analysis_data || null;
     }
     
     async function renderAI() {
