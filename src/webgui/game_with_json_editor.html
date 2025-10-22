@@ -235,7 +235,12 @@
           <!-- Right column: openings + history + AI -->
           <aside class="flex flex-col gap-4">
             <div>
-              <div class="text-sm font-semibold mb-2">Suggerimenti apertura</div>
+              <div class="text-sm font-semibold mb-2">Mosse valide <span id="validMovesCount" class="chip text-xs">0</span></div>
+              <div class="text-xs mb-2" style="color:var(--muted)">Caselle dove è possibile eseguire una mossa</div>
+            </div>
+            <div>
+              <div class="text-sm font-semibold mb-2">Suggerimenti apertura <span id="openingsCount" class="chip text-xs">0</span></div>
+              <div class="text-xs mb-2" style="color:var(--muted)">Mosse del book con <span id="totalVariants" class="font-semibold">0</span> varianti totali</div>
               <div id="openings" class="card" style="max-height:220px;overflow:auto">
                 <ul id="openingsUl" class="py-2 px-3 text-[14px]" style="color:var(--muted)"></ul>
               </div>
@@ -1005,7 +1010,13 @@
     
     function renderValidMoves() {
       const elBoard = document.getElementById('board');
+      const validMovesCount = document.getElementById('validMovesCount');
       const validMoves = gameData.valid_moves || [];
+      
+      // Update valid moves count
+      if (validMovesCount) {
+        validMovesCount.textContent = validMoves.length;
+      }
       
       validMoves.map(coordToIdx).forEach(i => {
         const inner = elBoard.children[i].firstElementChild;
@@ -1017,10 +1028,23 @@
     
     function renderOpenings() {
       const openingsUl = document.getElementById('openingsUl');
+      const openingsCount = document.getElementById('openingsCount');
+      const totalVariants = document.getElementById('totalVariants');
       const elBoard = document.getElementById('board');
       const openings = gameData.opening_suggestions || [];
       
       openingsUl.innerHTML = '';
+      
+      // Calculate total variants (sum of all continuations)
+      const totalVariantsCount = openings.reduce((sum, sug) => sum + (sug.continuations || 0), 0);
+      
+      // Update counts
+      if (openingsCount) {
+        openingsCount.textContent = openings.length;
+      }
+      if (totalVariants) {
+        totalVariants.textContent = totalVariantsCount;
+      }
       
       if (openings.length === 0) {
         openingsUl.innerHTML = '<li class="py-2 text-xs" style="color:var(--muted)">Nessun suggerimento per questa posizione</li>';
