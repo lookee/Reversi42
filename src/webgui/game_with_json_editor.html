@@ -575,6 +575,7 @@
       // First render
       render();
       renderAI();
+      renderHistory();
     }
 
     // ========================================================================
@@ -744,6 +745,7 @@
           // Re-render everything
           render();
           renderAI();
+          renderHistory();
           updateJsonDisplay();
           
           jsonStatus.innerHTML = '<span style="color:var(--accent)">●</span> Applied! GUI updated';
@@ -874,6 +876,7 @@
             ply = 0;
             render();
             renderAI();
+            renderHistory();
             updateJsonDisplay();
           } catch(e) {
             console.error('JSON non valido', e);
@@ -1015,6 +1018,80 @@
       highlightCurrentMove();
     }
     
+    function renderHistory() {
+      const historyGrid = document.getElementById('historyGrid');
+      const histHead = document.getElementById('histHead');
+      const movesOl = document.getElementById('movesOl');
+      
+      if (!historyGrid) {
+        console.error('historyGrid not found');
+        return;
+      }
+      
+      const moves = gameData.moves || [];
+      console.log('renderHistory called with', moves.length, 'moves:', moves);
+      
+      // Hide old format, show grid format
+      movesOl.style.display = 'none';
+      historyGrid.style.display = 'grid';
+      histHead.style.display = 'grid';
+      
+      historyGrid.innerHTML = '';
+      
+      if (moves.length === 0) {
+        historyGrid.innerHTML = '<div style="grid-column: 1/-1; padding: 1rem; text-align: center; color: var(--muted)">Nessuna mossa ancora</div>';
+        return;
+      }
+      
+      // Group moves in pairs (move number: black, white)
+      for (let i = 0; i < moves.length; i += 2) {
+        const moveNum = Math.floor(i / 2) + 1;
+        const blackMove = moves[i];
+        const whiteMove = moves[i + 1] || '';
+        
+        // Move number
+        const numCell = document.createElement('div');
+        numCell.className = 'historyCell historyNo';
+        numCell.textContent = moveNum;
+        
+        // Black move
+        const blackCell = document.createElement('div');
+        blackCell.className = 'historyCell historyMove';
+        blackCell.textContent = blackMove;
+        blackCell.dataset.ply = i + 1;
+        blackCell.style.cursor = 'pointer';
+        
+        blackCell.addEventListener('click', () => {
+          ply = i + 1;
+          render();
+        });
+        
+        // White move (if exists)
+        const whiteCell = document.createElement('div');
+        whiteCell.className = 'historyCell historyMove';
+        if (whiteMove) {
+          whiteCell.textContent = whiteMove;
+          whiteCell.dataset.ply = i + 2;
+          whiteCell.style.cursor = 'pointer';
+          
+          whiteCell.addEventListener('click', () => {
+            ply = i + 2;
+            render();
+          });
+        } else {
+          whiteCell.textContent = '—';
+          whiteCell.style.cursor = 'default';
+        }
+        
+        // Append cells directly to historyGrid (not in rowDiv)
+        historyGrid.appendChild(numCell);
+        historyGrid.appendChild(blackCell);
+        historyGrid.appendChild(whiteCell);
+      }
+      
+      console.log('History rendered:', historyGrid.children.length, 'cells created');
+    }
+    
     function renderBoard() {
       const elBoard = document.getElementById('board');
       const position = normalize64(gameData.positions?.[ply]);
@@ -1115,12 +1192,17 @@
     }
     
     function highlightCurrentMove() {
-      const movesOl = document.getElementById('movesOl');
-      [...movesOl.children].forEach(li => li.classList.remove('active'));
+      const historyGrid = document.getElementById('historyGrid');
+      if (!historyGrid) return;
       
+      // Remove all active classes
+      const allMoves = historyGrid.querySelectorAll('.historyMove');
+      allMoves.forEach(cell => cell.classList.remove('active'));
+      
+      // Highlight current move
       if (ply > 0) {
-        const li = [...movesOl.children].find(el => +el.dataset.ply === ply);
-        if (li) li.classList.add('active');
+        const currentMove = historyGrid.querySelector(`[data-ply="${ply}"]`);
+        if (currentMove) currentMove.classList.add('active');
       }
     }
 
