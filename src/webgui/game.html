@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Reversi42 • Board (JSON-driven, Tournament Green)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{
+      --bg:#0b1210; --panel:#10241c; --line:#2b4d3e; --txt:#e8f2eb; --muted:#a5b5a9;
+      --accent:#10b981; --accent2:#34d399; --gold:#f4c15d;
+      --discW:#f7f9fc; --discB:#0b0f14;
+    }
+    html,body{
+      background:
+        radial-gradient(1100px 600px at 100% -10%, rgba(52,211,153,.08), transparent),
+        radial-gradient(900px 600px at 0% 110%, rgba(16,185,129,.07), transparent),
+        var(--bg);
+      color:var(--txt); margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;
+    }
+    .container{max-width:1160px;margin:0 auto;padding:24px}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
+      border:1px solid rgba(255,255,255,.06); border-radius:16px; overflow:hidden;
+      box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35);
+    }
+    .chip{border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04);
+          border-radius:999px; padding:.4rem .7rem; display:inline-flex; gap:.45rem; align-items:center}
+    .btn{border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05);
+         border-radius:10px; padding:.5rem .8rem; cursor:pointer}
+    .btn:hover{background:rgba(255,255,255,.08)}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent)}
+
+    /* Avatars */
+    .avatar{width:72px;height:72px;border-radius:14px;display:grid;place-items:center;font-weight:900;
+            font-size:22px; letter-spacing:.5px;
+            color:#e6f6ec;border:1px solid rgba(255,255,255,.14);box-shadow:0 6px 18px rgba(16,185,129,.18)}
+    .avatar.b{background:radial-gradient(circle at 35% 35%, #0b9b70, #0a6c4f)}
+    .avatar.w{background:radial-gradient(circle at 35% 35%, #9ba7a0, #636f69)}
+
+    /* Board */
+    .board{display:grid; grid-template-columns:repeat(8,1fr); gap:4px;
+      border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px;
+      background:linear-gradient(180deg,#1d3c31,#17362b)}
+    .cell{position:relative; width:100%}
+    .cell::before{content:""; display:block; padding-top:100%}
+    .cell-content{position:absolute; inset:0;
+      background:linear-gradient(180deg,#255744,#204e3d);
+      border:1px solid var(--line); border-radius:10px}
+
+    .disc{position:absolute; inset:12%; border-radius:50%;
+      box-shadow:0 0 0 1.5px rgba(255,255,255,.06), 0 10px 20px rgba(0,0,0,.45)}
+    .disc.white{background:radial-gradient(circle at 35% 35%, #ffffff, #e7eef7 60%, #cdd7e5)}
+    .disc.black{background:radial-gradient(circle at 35% 35%, #2a3531, #0b0f14 65%, #000)}
+
+    .valid{position:absolute; inset:32%; border-radius:999px;
+      box-shadow:0 0 0 2px rgba(16,185,129,.85) inset;
+      background:radial-gradient(circle, rgba(16,185,129,.28), transparent 60%)}
+    .hint{position:absolute; inset:16%; border-radius:999px; border:3px solid var(--gold);
+      box-shadow:0 0 20px rgba(244,193,93,.75), 0 0 40px rgba(244,193,93,.25) inset;
+      display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--gold);
+      background:rgba(0,0,0,.10); font-size:15px; letter-spacing:.02em}
+
+    /* Hoshi */
+    .centerMark{position:absolute; left:50%; top:50%; width:clamp(6px,1vw,8px); height:clamp(6px,1vw,8px);
+      transform:translate(-50%,-50%); border-radius:999px; pointer-events:none; background: rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.08); box-shadow: inset 0 1px 2px rgba(0,0,0,.45), 0 0 0 2px rgba(0,0,0,.05);
+      opacity:.85; z-index:0}
+
+    /* Moves list */
+    #movesOl li.active{ color:#e8f2eb; font-weight:700 }
+    #movesOl li::marker{ color:var(--muted) }
+      /* Compact tournament history (50 moves demo) */
+    .historyHead{position:sticky; top:0; z-index:1; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
+      border-bottom:1px solid rgba(255,255,255,.08)}
+    .historyGrid{display:grid; grid-template-columns:48px 1fr 1fr}
+    .historyRow{display:contents}
+    .historyCell{padding:.35rem .5rem; font-variant-numeric:tabular-nums}
+    .historyNo{color:var(--muted); text-align:right}
+    .historyMove{color:var(--muted); cursor:pointer; text-align:center}
+    .historyGrid .historyRow:nth-child(odd) .historyCell{background:rgba(255,255,255,.02)}
+    .historyMove:hover{color:var(--txt)}
+    .historyMove.active{color:var(--txt); font-weight:700}
+    .historyBadge{margin-left:.5rem; font-size:11px; color:var(--muted)}
+    /* Partial clock styling (safe, minimal) */
+    .pclock{font-variant-numeric:tabular-nums}
+    .pclock .sep{opacity:.4; padding:0 .25rem}
+    .pclock .partial{opacity:.8; font-size:.9em}
+    /* Partial clock styling (safe, minimal) */
+    .pclock{font-variant-numeric:tabular-nums}
+    .pclock .sep{opacity:.4; padding:0 .25rem}
+    .pclock .partial{opacity:.8; font-size:.9em}
+
+    /* Board coordinates alignment */
+    .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
+    .rows-nums{display:grid; grid-template-rows:repeat(8,1fr); gap:4px; align-self:start; margin-top:12px; width:1.6rem; height:auto; justify-self:end; margin-right:-18px}  
+    .rows-nums .coords{display:flex; align-items:center; justify-content:flex-end}
+    .col-letters{position:absolute; left:0; right:0; top:-22px; display:grid; grid-template-columns:repeat(8,1fr); gap:4px; padding:0 12px; place-items:center; pointer-events:none}
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="container" style="padding-bottom:0">
+    <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-4 md:gap-8">
+      <!-- LEFT: Black -->
+      <div class="flex items-center md:items-start justify-start gap-3">
+        <div class="avatar b" id="p1Avatar">LA</div>
+        <div class="min-w-0">
+          <div id="p1Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
+          <div class="flex items-center gap-2 flex-wrap text-[13px]" style="color:var(--muted)">
+            <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span> Nero</span>
+            <span id="p1Count" class="chip">● 0</span>
+            <span id="p1Delta" class="chip">±0</span>
+            <span class="chip">♻︎ <span id="p1Cat">0</span></span>
+          </div>
+          <div class="mt-1 text-sm font-bold" style="font-variant-numeric:tabular-nums" id="blackClock">00:00</div>
+        </div>
+      </div>
+
+      <!-- CENTER: Match panel -->
+      <div class="flex flex-col items-center text-center gap-1.5"><div class="chip text-xs" aria-live="polite">
+          <span id="turnDot" style="display:inline-block;width:10px;height:10px;border-radius:999px;background:var(--accent)"></span>
+          <span id="turnText">A muovere: —</span>
+        </div>
+        <div id="matchClock" class="text-2xl md:text-3xl font-extrabold" style="font-variant-numeric:tabular-nums">00:00</div>
+        <div class="text-xs" style="color:var(--muted)">Mossa <span id="moveNo">0</span> · Ply <span id="plyLbl">0</span>/<span id="plyMax">0</span></div>
+      </div>
+
+      <!-- RIGHT: White -->
+      <div class="flex items-center md:items-start justify-end gap-3">
+        <div class="min-w-0 text-right">
+          <div id="p2Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
+          <div class="flex items-center gap-2 flex-wrap justify-end text-[13px]" style="color:var(--muted)">
+            <span id="p2Count" class="chip">○ 0</span>
+            <span id="p2Delta" class="chip">±0</span>
+            <span class="chip">♻︎ <span id="p2Cat">0</span></span>
+            <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span> Bianco</span>
+          </div>
+          <div class="mt-1 text-sm font-bold" style="font-variant-numeric:tabular-nums" id="whiteClock">00:00</div>
+        </div>
+        <div class="avatar w" id="p2Avatar">AP</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="container">
+    <article class="card">
+      <div style="padding:18px 22px">
+        <div class="grid gap-6 md:grid-cols-[auto_1fr_320px]">
+          <!-- Row numbers -->
+          <div class="rows-nums">
+            <div class="coords" style="text-align:right">1</div><div class="coords" style="text-align:right">2</div>
+            <div class="coords" style="text-align:right">3</div><div class="coords" style="text-align:right">4</div>
+            <div class="coords" style="text-align:right">5</div><div class="coords" style="text-align:right">6</div>
+            <div class="coords" style="text-align:right">7</div><div class="coords" style="text-align:right">8</div>
+          </div>
+
+          <!-- Board -->
+          <div style="position:relative">
+            <div id="board" class="board" role="grid" aria-label="Scacchiera Reversi"></div>
+            <div class="col-letters">
+              <span class="coords">A</span><span class="coords">B</span><span class="coords">C</span><span class="coords">D</span>
+              <span class="coords">E</span><span class="coords">F</span><span class="coords">G</span><span class="coords">H</span>
+            </div>
+          </div>
+
+          <!-- Right column: openings + history + AI -->
+          <aside class="flex flex-col gap-4">
+            <div>
+              <div class="text-sm font-semibold mb-2">Suggerimenti apertura</div>
+              <div id="openings" class="card" style="max-height:220px;overflow:auto">
+                <ul id="openingsUl" class="py-2 px-3 text-[14px]" style="color:var(--muted)"></ul>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <button id="undoBtn" class="btn" title="Undo">⟲</button>
+                <button id="redoBtn" class="btn" title="Redo">⟳</button>
+                <button id="copyBtn" class="btn" title="Copia mosse">⧉</button>
+                <button id="saveBtn" class="btn" title="Salva JSON">💾</button>
+                <button id="loadBtn" class="btn" title="Carica JSON">⤓</button>
+                <button id="fsBtn" class="btn" title="Fullscreen">⛶</button>
+              </div>
+              <div class="text-sm font-semibold mb-2">Storico mosse <span id="histBadge" class="historyBadge hidden">· 50 posizioni simulate</span></div>
+              <div class="card" style="max-height:300px;overflow:auto">
+                <div id="histHead" class="historyHead historyGrid text-[12px] hidden">
+                  <div class="historyCell historyNo">#</div>
+                  <div class="historyCell">Nero</div>
+                  <div class="historyCell">Bianco</div>
+                </div>
+                <div id="historyGrid" class="historyGrid text-[14px] hidden"></div>
+                <ol id="movesOl" class="list-decimal pl-6 py-2 pr-3 text-[14px]" style="color:var(--muted)"></ol>
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-semibold mb-2">AI Player</div>
+              <div class="card">
+                <div class="p-4 text-[14px] leading-6">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="font-semibold">🤖 DEEPENING SUMMARY</div>
+                    <button id="aiCopyBtn" class="btn text-xs" title="Copia riepilogo">⧉ Copy</button>
+                  </div>
+                  <div id="aiBox" class="grid grid-cols-1 gap-2" style="color:var(--muted)">
+                    <!-- Popolato da JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex flex-wrap items-center gap-3 text-[13px]" style="color:var(--muted);margin-top:14px">
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Disco Nero</span>
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>Disco Bianco</span>
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Mossa valida</span>
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;border:2px solid var(--gold)"></span>Opening suggerito</span>
+          <span class="chip"><span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:rgba(0,0,0,.45);box-shadow:0 0 0 2px rgba(255,255,255,.25)"></span>Star point</span>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <!-- ======= JSON (unico punto di verità) ======= -->
+  <script id="reversi-data" type="application/json">
+  {
+    "meta": { "variant": "Reversi/Othello", "size": 8, "theme": "green-elegant-light" },
+    "players": {
+      "black": { "name": "Luca Amore",   "avatar": "LA" },
+      "white": { "name": "Apocalyptron", "avatar": "AP" }
+    },
+    "status": {
+      "round": 3,
+      "board_no": 12,
+      "turn_by_ply": ["B","W","B","W"],
+      "match_time_start": 0,
+      "clock": { "match_ms": 0, "black_ms": 0, "white_ms": 0, "byoyomi_s": 0, "inc_ms": 0 }
+    },
+    "positions": [
+      "...........................WB......BW...........................",
+      "..........................BBB......BW...........................",
+      "....................W.....BBW......BW...........................",
+      "....................W.....BBW......BBB.........................."
+    ],
+    "moves": ["C4","E3","F5"],
+    "valid_by_ply": [
+      ["C4","D3","E6","F5"],
+      ["C3","C5","E3"],
+      ["F2","F3","F4","F5","F6"],
+      ["B4","C5","C6","E6","G6"]
+    ],
+    "opening_by_ply": [
+      [
+        { "move": "C4", "score": "99+", "line": "C4 c3 D3 c5 B3 f4", "tags": ["book","classic"] },
+        { "move": "E6", "score": "57",  "line": "E6 f4 D3 c4",       "tags": ["book"] }
+      ],
+      [
+        { "move": "E3", "score": "88+", "line": "E3 f4 F5",          "tags": ["book"] },
+        { "move": "C3", "score": "72",  "line": "C3 d3 C5",          "tags": ["alt"] }
+      ],
+      [],
+      []
+    ],
+    "ai": {
+      "engine": "Reversi42",
+      "id_summary": {
+        "final_depth": 8,
+        "total_nodes": 9,
+        "alpha_beta_pruned": 0,
+        "alpha_beta_pct": 0.0,
+        "lmr_reductions": 1105,
+        "lmr_researches": 178,
+        "lmr_research_pct": 16.1,
+        "futility_cut": 26,
+        "null_move_cutoffs": 198,
+        "null_move_trials": 420,
+        "null_move_success_pct": 47.1,
+        "history_entries": 44,
+        "total_time_s": 0.001,
+        "avg_nps": 16559,
+        "selected_move": "C2",
+        "selected_value": -10
+      }
+    }
+  }
+  </script>
+
+  <!-- ======= Render dal JSON (no motore) ======= -->
+  <script>
+    'use strict';
+    // Inizializza SOLO quando il DOM è pronto, per evitare null refs e race.
+    window.addEventListener('DOMContentLoaded', init);
+
+    function init(){
+      // Parse JSON safe
+      const dataScript = document.getElementById('reversi-data');
+      if(!dataScript){ console.error('JSON embedded mancante'); return; }
+      let data;
+      try{ data = JSON.parse(dataScript.textContent || '{}'); }
+      catch(e){ console.error('JSON non valido:', e); return; }
+
+      // Header bind
+      qs('p1Name').textContent   = data.players?.black?.name || '—';
+      qs('p2Name').textContent   = data.players?.white?.name || '—';
+      qs('p1Avatar').textContent = data.players?.black?.avatar || initials(data.players?.black?.name);
+      qs('p2Avatar').textContent = data.players?.white?.avatar || initials(data.players?.white?.name);// Build board
+      const elBoard = document.getElementById('board');
+      for (let i=0;i<64;i++){
+        const cell = document.createElement('div'); cell.className = 'cell';
+        const inner = document.createElement('div'); inner.className = 'cell-content';
+        cell.appendChild(inner); elBoard.appendChild(cell);
+      }
+      // Hoshi
+      [idx(3,3), idx(3,4), idx(4,3), idx(4,4)].forEach(i=>{
+        const dot=document.createElement('div'); dot.className='centerMark';
+        elBoard.children[i].firstElementChild.appendChild(dot);
+      });
+
+      // History state
+      let ply = 0; const maxPly = (data.positions?.length || 1) - 1; qs('plyMax').textContent = maxPly;
+
+      // Moves list
+      const movesOl = document.getElementById('movesOl');
+      movesOl.innerHTML = '';
+      (data.moves||[]).forEach((m,i)=>{
+        const li = document.createElement('li'); li.textContent = m; li.dataset.ply = i+1;
+        li.addEventListener('click', ()=>{ ply = i+1; render(); });
+        movesOl.appendChild(li);
+      });
+
+      const openingsUl = document.getElementById('openingsUl');
+
+      // ===== Demo: mostra lo storico come 50 mosse, compatto e leggibile (nella stessa sezione) =====
+      const histHead = document.getElementById('histHead');
+      const histGrid = document.getElementById('historyGrid');
+      const histBadge = document.getElementById('histBadge');
+      function buildDemo50(){
+        if(!histGrid || !histHead) return;
+        // Genera 50 coordinate plausibili (non valida legalità, è una demo visiva)
+        const coords = ['C4','E3','F5','D3','E6','C3','C5','F4','D6','G5','B4','C6','E2','F3','G4','H5','A4','B5','C2','D2','E7','F6','G3','H4','A5','B6','C7','D7','E8','F7','G6','H6','A6','B7','C8','D8','E1','F2','G2','H3','A3','B3','A2','B2','A1','B1','G1','H1','G8','H8'];
+        const demoMoves=[]; for(let i=0;i<50;i++){ demoMoves.push(coords[i%coords.length]); }
+        // Costruisci griglia (#, Nero, Bianco)
+        histGrid.innerHTML='';
+        let rowNo=1;
+        for(let i=0;i<demoMoves.length; i+=2){
+          const b = demoMoves[i] || ''; const w = demoMoves[i+1] || '';
+          const row = document.createElement('div'); row.className='historyRow'; row.dataset.row=rowNo;
+          const cNo = document.createElement('div'); cNo.className='historyCell historyNo'; cNo.textContent=rowNo;
+          const cB = document.createElement('div'); cB.className='historyCell historyMove'; cB.textContent=b; cB.title = `Mossa ${rowNo} (Nero)`;
+          const cW = document.createElement('div'); cW.className='historyCell historyMove'; cW.textContent=w; cW.title = `Mossa ${rowNo} (Bianco)`;
+          // Click-to-jump: attivo solo se il ply esiste davvero nella partita corrente
+          cB.onclick = ()=>{ const targetPly = (rowNo-1)*2 + 1; if(targetPly<=maxPly){ ply = targetPly; render(); highlightDemoRow(rowNo, /*isWhite*/false); } };
+          cW.onclick = ()=>{ const targetPly = (rowNo-1)*2 + 2; if(targetPly<=maxPly){ ply = targetPly; render(); highlightDemoRow(rowNo, /*isWhite*/true); } };
+          row.appendChild(cNo); row.appendChild(cB); row.appendChild(cW); histGrid.appendChild(row);
+          rowNo++;
+        }
+        // Mostra griglia e badge, nascondi la lista ol
+        histBadge?.classList.remove('hidden');
+        histHead.classList.remove('hidden');
+        histGrid.classList.remove('hidden');
+        movesOl?.classList.add('hidden');
+        // Evidenzia riga secondo ply corrente
+        highlightDemoRow(Math.max(1, Math.ceil(ply/2)), ply%2===0);
+      }
+      function highlightDemoRow(rowNo, isWhite){
+        if(!histGrid) return;
+        histGrid.querySelectorAll('.historyMove').forEach(n=>n.classList.remove('active'));
+        const row = histGrid.querySelector(`.historyRow[data-row="${rowNo}"]`);
+        if(row){ const cell = row.children[isWhite?2:1]; cell?.classList.add('active'); row.scrollIntoView({block:'nearest'}); }
+      }
+      buildDemo50();
+
+      // --- Coord sync: align row numbers height to the board inner grid (clientHeight - 2*padding) ---
+      const rowsNums = document.querySelector('.rows-nums');
+      function syncRowCoords(){
+        if(!rowsNums || !elBoard) return;
+        const PADDING = 12; // must match .board padding in CSS
+        const innerHeight = Math.max(0, elBoard.clientHeight - (PADDING*2));
+        rowsNums.style.height = innerHeight + 'px';
+        rowsNums.style.marginTop = PADDING + 'px'; // aligns with grid top inside board
+        // keep numbers tucked close to the board edge even if gap utilities change
+        rowsNums.style.marginRight = '-18px';
+      }
+      // initial + observe resize
+      syncRowCoords();
+      const ro = new ResizeObserver(()=> syncRowCoords());
+      ro.observe(elBoard);
+      window.addEventListener('resize', syncRowCoords);
+
+
+      // Toolbar
+      const undoBtn = qs('undoBtn');
+      const redoBtn = qs('redoBtn');
+      const copyBtn = qs('copyBtn');
+      const saveBtn = qs('saveBtn');
+      const loadBtn = qs('loadBtn');
+      const fsBtn   = qs('fsBtn');
+
+      if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(ply>0){ ply--; render(); } });
+      if (redoBtn) redoBtn.addEventListener('click', ()=>{ if(ply<maxPly){ ply++; render(); } });
+      if (copyBtn) copyBtn.addEventListener('click', ()=>{ navigator.clipboard?.writeText((data.moves||[]).join(' ')); });
+      if (saveBtn) saveBtn.addEventListener('click', ()=>{
+        const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'reversi42-match.json'; a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+      });
+      if (loadBtn) loadBtn.addEventListener('click', ()=>{
+        const inp = document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+        inp.onchange = async ()=>{
+          const file = inp.files?.[0]; if(!file) return;
+          try{ const next = JSON.parse(await file.text()); dataScript.textContent = JSON.stringify(next); location.reload(); }
+          catch(e){ console.error('JSON non valido', e); }
+        }; inp.click();
+      });
+      if (fsBtn) fsBtn.addEventListener('click', ()=>{ if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); } else { document.exitFullscreen?.(); } });
+
+      // Clocks
+      const clkMatch = qs('matchClock');
+      const clkB = qs('blackClock');
+      const clkW = qs('whiteClock');
+      const base = { match: data.status?.clock?.match_ms||0, B: data.status?.clock?.black_ms||0, W: data.status?.clock?.white_ms||0 };
+      const partial = { B: 0, W: 0 };
+      let last = Date.now();
+      let lastTurn = null;
+      // helper safe renderer
+      const paintClock = (el, totalMs, partialMs)=>{
+        if(!el) return;
+        el.classList.add('pclock');
+        el.innerHTML = `<strong>${msToClock(totalMs)}</strong><span class="sep">·</span><span class="partial">+${msToClock(partialMs)}</span>`;
+      };
+      setInterval(()=>{
+        const now = Date.now(); const dt = now - last; last = now;
+        const turn = (data.status?.turn_by_ply && data.status.turn_by_ply[ply]) || (ply%2===0 ? 'B':'W');
+        if(lastTurn===null) lastTurn = turn;
+        if (turn !== lastTurn) { // reset partial on side change
+          partial[turn] = 0; lastTurn = turn;
+        }
+        base.match += dt;
+        if (turn==='B'){ base.B += dt; partial.B += dt; }
+        else { base.W += dt; partial.W += dt; }
+        if (clkMatch) clkMatch.textContent = msToClock(base.match);
+        paintClock(clkB, base.B, partial.B);
+        paintClock(clkW, base.W, partial.W);
+      }, 500);
+
+      // Keyboard
+      window.addEventListener('keydown', (e)=>{
+        if(e.key==='ArrowLeft'){ if(ply>0){ ply--; render(); } }
+        if(e.key==='ArrowRight'){ if(ply<maxPly){ ply++; render(); } }
+      });
+
+      // First render + AI
+      render();
+      renderAI(data.ai);
+
+      function render(){
+        // keep rows numbers aligned after any layout change
+        try{ syncRowCoords(); }catch(_){}
+        const turn = (data.status?.turn_by_ply && data.status.turn_by_ply[ply]) || (ply%2===0 ? 'B':'W');
+        // ensure partial resets on jump/undo/redo safely
+        if(typeof partial!=='undefined'){
+          if(typeof lastTurn==='undefined' || lastTurn===null) lastTurn = turn;
+          if(turn !== lastTurn){ partial[turn]=0; lastTurn = turn; }
+        }
+        qs('turnText').textContent = `A muovere: ${turn==='B'?'Nero':'Bianco'}`;
+        qs('turnDot').style.background = (turn==='B') ? 'var(--accent)' : 'var(--accent2)';
+        qs('moveNo').textContent = String(Math.ceil(ply/2));
+
+        // Board position
+        const s = normalize64(data.positions?.[ply]);
+        for(let i=0;i<64;i++){
+          const inner = elBoard.children[i].firstElementChild;
+          const center = inner.querySelector('.centerMark');
+          inner.innerHTML=''; if(center) inner.appendChild(center);
+          if(s[i]==='B' || s[i]==='W'){
+            const d=document.createElement('div'); d.className='disc '+(s[i]==='B'?'black':'white'); inner.appendChild(d);
+          }
+        }
+
+        // Valid moves
+        const vm = (data.valid_by_ply?.[ply]) || [];
+        vm.map(coordToIdx).forEach(i=>{
+          const dot=document.createElement('div'); dot.className='valid';
+          elBoard.children[i].firstElementChild.appendChild(dot);
+        });
+
+        // Openings
+        openingsUl.innerHTML='';
+        const openings = (data.opening_by_ply?.[ply]) || [];
+        openings.forEach(sug=>{
+          const i = coordToIdx(sug.move);
+          const badge = document.createElement('div'); badge.className='hint'; badge.textContent = sug.score || '★';
+          elBoard.children[i].firstElementChild.appendChild(badge);
+          const li=document.createElement('li'); li.className='py-1';
+          const tagSpan = (sug.tags||[]).map(t=>`<span class="chip" style="margin-left:.4rem">${escapeHtml(t)}</span>`).join('');
+          li.innerHTML = `<strong>${escapeHtml(sug.move)}</strong> <span style="color:var(--gold);font-weight:800">${escapeHtml(sug.score||'')}</span>
+                          <div class="text-xs mt-1" style="color:var(--muted)">${escapeHtml(sug.line||'')}</div>
+                          <div class="mt-1">${tagSpan}</div>`;
+          openingsUl.appendChild(li);
+        });
+
+        // Counts + delta + catturate
+        const counts = countBW(s); qs('p1Count').textContent = `● ${counts.b}`; qs('p2Count').textContent = `○ ${counts.w}`;
+        const prev = normalize64(data.positions?.[Math.max(0, ply-1)]);
+        const prevCounts = countBW(prev); const adv = counts.b - counts.w; setDelta('p1Delta', adv); setDelta('p2Delta', -adv);
+        let capB = 0, capW = 0; if(ply>0){ const mover = (data.status?.turn_by_ply?.[ply]) ? (data.status.turn_by_ply[ply]==='B'?'W':'B') : ( (ply%2===0)?'W':'B' );
+          if(mover==='B') capB = Math.max(0, (counts.b - prevCounts.b) - 1);
+          if(mover==='W') capW = Math.max(0, (counts.w - prevCounts.w) - 1); }
+        qs('p1Cat').textContent = capB; qs('p2Cat').textContent = capW;
+
+        // highlight
+        qs('plyLbl').textContent = ply; [...movesOl.children].forEach(li=> li.classList.remove('active'));
+        if(ply>0){ const li = [...movesOl.children].find(el => +el.dataset.ply === ply); if(li) li.classList.add('active'); }
+      }
+
+      // Self-tests (non intrusivi + extra struttura)
+      runSelfTests();
+      function runSelfTests(){
+        const tests = [];
+        const ok = (name, cond)=> tests.push({ name, pass: !!cond });
+        try{
+          ok('documentElement è HTML', document.documentElement && document.documentElement.tagName === 'HTML');
+          ok('body presente', !!document.body);
+          ok('msToClock 0 -> 00:00', msToClock(0)==='00:00');
+          ok('msToClock 65000 -> 01:05', msToClock(65000)==='01:05');
+          ok('coordToIdx A1 -> 0', coordToIdx('A1')===0);
+          ok('coordToIdx H8 -> 63', coordToIdx('H8')===63);
+          const def = normalize64('x'); ok('normalize64 size 64', Array.isArray(def) && def.length===64);
+          ok('normalize64 start shape', def[27]==='W' && def[28]==='B' && def[35]==='B' && def[36]==='W');
+          const counts = countBW(('B'.repeat(2)+'W'.repeat(3)).padEnd(64,'.').split('')); ok('countBW 2/3', counts.b===2 && counts.w===3);
+          ok('DOM 64 celle', document.querySelectorAll('#board .cell').length===64);
+          ok('Header clocks', !!qs('blackClock') && !!qs('whiteClock') && !!qs('matchClock'));
+          ok('Openings UL esiste', !!qs('openingsUl'));
+          ok('AI box render', !!qs('aiBox'));
+          ok('Toolbar btns', !!qs('undoBtn') && !!qs('redoBtn') && !!qs('copyBtn') && !!qs('saveBtn') && !!qs('loadBtn') && !!qs('fsBtn'));
+        }catch(e){ console.error(e); }
+        console.table(tests);
+      }
+    }
+
+    // === Utils ===
+    function qs(id){ return document.getElementById(id); }
+    function idx(r,c){ return r*8 + c; }
+    function coordToIdx(coord){ const L='ABCDEFGH'; const c=L.indexOf(String(coord).toUpperCase()[0]); const r=parseInt(String(coord).slice(1),10)-1; return r*8 + c; }
+    function initials(name){ return (name||'').trim().split(/\s+/).map(s=>s[0]).join('').slice(0,2).toUpperCase() || '?'; }
+    function normalize64(s){ const raw = (s||'').trim(); if(raw.length!==64){ const a = Array(64).fill('.'); a[27]='W'; a[28]='B'; a[35]='B'; a[36]='W'; return a; } return raw.split(''); }
+    function countBW(arr){ let b=0,w=0; for(const ch of arr){ if(ch==='B') b++; else if(ch==='W') w++; } return {b,w}; }
+    function msToClock(ms){ const s = Math.max(0, Math.floor(ms/1000)); const m = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return `${m}:${ss}`; }
+    function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function setDelta(id, n){ const el = qs(id); if(!el) return; if(n===0){ el.textContent = '±0'; return; } el.textContent = `${n>0?'+':'−'}${Math.abs(n)}`; }
+
+    // === AI RENDERING ===
+    function renderAI(ai){
+      const box = qs('aiBox'); if(!box){ return; }
+      if(!ai || !ai.id_summary){ box.innerHTML = '<div class="text-sm" style="color:var(--muted)">Nessun dato AI disponibile.</div>'; return; }
+      const s = ai.id_summary; const rows = [];
+      const p = (label, value, sub='')=>{
+        rows.push(`<div class="flex items-center justify-between gap-4">
+          <span class="text-[13px]">${escapeHtml(label)}</span>
+          <span class="text-[13px] font-semibold" style="color:var(--txt)">${value}${sub?` <span style=\"color:var(--muted)\">${sub}</span>`:''}</span>
+        </div>`);
+      };
+      p('Final depth', `<strong>${s.final_depth}</strong>`);
+      p('Total nodes', `<strong>${fmtInt(s.total_nodes)}</strong>`);
+      p('Alpha-beta pruning', `<strong>${fmtInt(s.alpha_beta_pruned||0)}</strong>`, `(${fmtPct(s.alpha_beta_pct||0)})`);
+      p('Late move reduction', `<strong>${fmtInt(s.lmr_reductions||0)}</strong>`, `${fmtInt(s.lmr_researches||0)} re-searches (${fmtPct(s.lmr_research_pct||0)})`);
+      p('Futility pruning', `<strong>${fmtInt(s.futility_cut||0)}</strong> hopeless positions cut`);
+      p('Null move pruning', `<strong>${fmtInt(s.null_move_cutoffs||0)}</strong>/<strong>${fmtInt(s.null_move_trials||0)}</strong>`, `(${fmtPct(s.null_move_success_pct||0)} success)`);
+      p('History table entries', `<strong>${fmtInt(s.history_entries||0)}</strong>`);
+      p('Total time', `<strong>${fmtTimeS(s.total_time_s||0)}</strong>`);
+      p('Average rate', `<strong>${fmtRate(s.avg_nps||0)}</strong>`);
+      p('Selected move', `<strong>${escapeHtml(s.selected_move||'-')}</strong>`, `(value: <strong>${s.selected_value??'-'}</strong>)`);
+      box.innerHTML = rows.join('');
+
+      const copyBtn = qs('aiCopyBtn');
+      if(copyBtn){
+        copyBtn.onclick = () => {
+          const plain = [
+            'DEEPENING SUMMARY:',
+            `Final depth: ${s.final_depth}`,
+            `Total nodes: ${s.total_nodes}`,
+            `Alpha-beta pruning: ${s.alpha_beta_pruned||0} (${(s.alpha_beta_pct||0).toFixed(1)}%)`,
+            `Late move reduction: ${s.lmr_reductions||0} reductions, ${s.lmr_researches||0} re-searches (${(s.lmr_research_pct||0).toFixed(1)}%)`,
+            `Futility pruning: ${s.futility_cut||0} hopeless positions cut`,
+            `Null move pruning: ${s.null_move_cutoffs||0}/${s.null_move_trials||0} cutoffs (${(s.null_move_success_pct||0).toFixed(1)}% success)`,
+            `History table entries: ${s.history_entries||0}`,
+            `Total time: ${fmtTimeS(s.total_time_s||0)}`,
+            `Average rate: ${fmtRate(s.avg_nps||0)}`,
+            `Selected move: ${s.selected_move||'-'} (value: ${s.selected_value??'-'})`
+          ].join('\n');
+          navigator.clipboard?.writeText(plain);
+        };
+      }
+    }
+
+    // Helpers per AI box
+    function fmtInt(n){ const x = Math.floor(Number(n)||0); try{ return new Intl.NumberFormat('en-US').format(x); }catch{ return String(x); } }
+    function fmtPct(x){ return `${(Number(x)||0).toFixed(1)}%`; }
+    function fmtTimeS(s){ const x = Number(s)||0; if(x<1) return `${x.toFixed(3)}s`; return `${x.toFixed(3).replace(/\.000$/, '')}s`; }
+    function fmtRate(nps){ return `${fmtInt(nps)} nodes/sec`; }
+  </script>
+
+  <noscript>
+    <div style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#10241c;color:#fff;padding:8px 12px;border-radius:8px;border:1px solid #2b4d3e">
+      Attiva JavaScript: la pagina mostra solo i dati presenti nel JSON incorporato.
+    </div>
+  </noscript>
+</body>
+</html>
