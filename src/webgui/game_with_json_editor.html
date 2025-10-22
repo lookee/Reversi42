@@ -376,12 +376,16 @@
       "inc_ms": 0
     }
   },
-  "positions": [
-    "...........................WB......BW...........................",
-    "..........................BBB......BW...........................",
-    "....................W.....BBW......BW...........................",
-    "....................W.....BBW......BBB.........................."
-  ],
+  "board": {
+    "A1": null, "A2": null, "A3": null, "A4": null, "A5": null, "A6": null, "A7": null, "A8": null,
+    "B1": null, "B2": null, "B3": null, "B4": null, "B5": null, "B6": null, "B7": null, "B8": null,
+    "C1": null, "C2": null, "C3": null, "C4": null, "C5": null, "C6": null, "C7": null, "C8": null,
+    "D1": null, "D2": null, "D3": null, "D4": "W", "D5": "B", "D6": null, "D7": null, "D8": null,
+    "E1": null, "E2": null, "E3": null, "E4": "B", "E5": "W", "E6": null, "E7": null, "E8": null,
+    "F1": null, "F2": null, "F3": null, "F4": null, "F5": null, "F6": null, "F7": null, "F8": null,
+    "G1": null, "G2": null, "G3": null, "G4": null, "G5": null, "G6": null, "G7": null, "G8": null,
+    "H1": null, "H2": null, "H3": null, "H4": null, "H5": null, "H6": null, "H7": null, "H8": null
+  },
   "move_details": [
     {
       "ply": 1,
@@ -565,13 +569,13 @@
         gameData = getDefaultGameData();
       }
       
-      maxPly = (gameData.positions?.length || 1) - 1;
+      maxPly = 0; // Single board state
       
       // Initialize ply from game_state if available
       if (gameData.game_state?.current_ply !== undefined) {
         ply = Math.min(gameData.game_state.current_ply, maxPly);
       } else {
-        ply = Math.min(ply, maxPly);
+        ply = 0;
       }
       
       console.log('Game loaded - ply:', ply, 'maxPly:', maxPly);
@@ -584,7 +588,16 @@
           black: { name: "Player 1", avatar: "P1" },
           white: { name: "Player 2", avatar: "P2" }
         },
-        positions: ["...........................WB......BW..........................."],
+        board: {
+          "A1": null, "A2": null, "A3": null, "A4": null, "A5": null, "A6": null, "A7": null, "A8": null,
+          "B1": null, "B2": null, "B3": null, "B4": null, "B5": null, "B6": null, "B7": null, "B8": null,
+          "C1": null, "C2": null, "C3": null, "C4": null, "C5": null, "C6": null, "C7": null, "C8": null,
+          "D1": null, "D2": null, "D3": null, "D4": "W", "D5": "B", "D6": null, "D7": null, "D8": null,
+          "E1": null, "E2": null, "E3": null, "E4": "B", "E5": "W", "E6": null, "E7": null, "E8": null,
+          "F1": null, "F2": null, "F3": null, "F4": null, "F5": null, "F6": null, "F7": null, "F8": null,
+          "G1": null, "G2": null, "G3": null, "G4": null, "G5": null, "G6": null, "G7": null, "G8": null,
+          "H1": null, "H2": null, "H3": null, "H4": null, "H5": null, "H6": null, "H7": null, "H8": null
+        },
         moves: [],
         valid_moves: ["C4","D3","E6","F5"],
         opening_suggestions: [],
@@ -714,8 +727,8 @@
           dataScript.textContent = JSON.stringify(newData, null, 2);
           
           // Reload state
-          maxPly = (gameData.positions?.length || 1) - 1;
-          ply = Math.min(ply, maxPly);
+          maxPly = 0; // Single board state
+          ply = 0;
           
           // Re-render everything
           render();
@@ -840,7 +853,7 @@
             gameData = newData;
             const dataScript = document.getElementById('reversi-data');
             dataScript.textContent = JSON.stringify(newData, null, 2);
-            maxPly = (gameData.positions?.length || 1) - 1;
+            maxPly = 0; // Single board state
             ply = 0;
             render();
             renderAI();
@@ -989,21 +1002,21 @@
     
     function renderBoard() {
       const elBoard = document.getElementById('board');
-      const position = normalize64(gameData.positions?.[ply]);
-      
+      const board = gameData.board || {};
       
       for (let i = 0; i < 64; i++) {
+        const coord = coordFromIdx(i);
+        const piece = board[coord];
         const inner = elBoard.children[i].firstElementChild;
         
         // Clear cell
         inner.innerHTML = '';
         
         // Add piece if exists
-        if (position[i] === 'B' || position[i] === 'W') {
+        if (piece === 'B' || piece === 'W') {
           const disc = document.createElement('div');
-          disc.className = 'disc ' + (position[i] === 'B' ? 'black' : 'white');
+          disc.className = 'disc ' + (piece === 'B' ? 'black' : 'white');
           inner.appendChild(disc);
-          
         }
       }
     }
@@ -1081,8 +1094,14 @@
     }
     
     function updateCounts() {
-      const position = normalize64(gameData.positions?.[ply]);
-      const counts = countBW(position);
+      const board = gameData.board || {};
+      const counts = { b: 0, w: 0 };
+      
+      // Count pieces from board object
+      Object.values(board).forEach(piece => {
+        if (piece === 'B') counts.b++;
+        else if (piece === 'W') counts.w++;
+      });
       
       qs('p1Count').textContent = `● ${counts.b}`;
       qs('p2Count').textContent = `○ ${counts.w}`;
