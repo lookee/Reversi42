@@ -78,12 +78,13 @@
       box-shadow:0 0 20px rgba(244,193,93,.75), 0 0 40px rgba(244,193,93,.25) inset;
       display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--gold);
       background:rgba(0,0,0,.10); font-size:15px; letter-spacing:.02em}
-
-    /* Hoshi */
-    .centerMark{position:absolute; left:50%; top:50%; width:clamp(6px,1vw,8px); height:clamp(6px,1vw,8px);
-      transform:translate(-50%,-50%); border-radius:999px; pointer-events:none; background: rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.08); box-shadow: inset 0 1px 2px rgba(0,0,0,.45), 0 0 0 2px rgba(0,0,0,.05);
-      opacity:.85; z-index:0}
+    
+    .lastMove{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      pointer-events:none; z-index:10}
+    .lastMove::after{content:''; width:12px; height:12px; border-radius:999px;
+      background:radial-gradient(circle at 35% 35%, #ff6b7a, #ff4757);
+      box-shadow:0 0 18px rgba(255,71,87,.95), 0 0 30px rgba(255,71,87,.6);
+      animation:lastMovePulse 2s ease-in-out infinite}
 
     /* Moves list */
     #movesOl li.active{ color:#e8f2eb; font-weight:700 }
@@ -136,6 +137,12 @@
     .CodeMirror-gutters {
       border-right: 1px solid rgba(255,255,255,.1);
     }
+    
+    @keyframes lastMovePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.15); }
+    }
+    
     .json-controls{
       position: sticky;
       top: 0;
@@ -284,9 +291,9 @@
         <div class="flex flex-wrap items-center gap-3 text-[13px]" style="color:var(--muted);margin-top:14px">
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Disco Nero</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>Disco Bianco</span>
+          <span class="chip"><span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:radial-gradient(circle, #ff4757, #ee2f3f);box-shadow:0 0 8px rgba(255,71,87,.6)"></span>Ultima mossa</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Mossa valida</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;border:2px solid var(--gold)"></span>Opening suggerito</span>
-          <span class="chip"><span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:rgba(0,0,0,.45);box-shadow:0 0 0 2px rgba(255,255,255,.25)"></span>Star point</span>
         </div>
       </div>
     </article>
@@ -831,13 +838,6 @@
         elBoard.appendChild(cell);
       }
       
-      // Add hoshi marks
-      [idx(3,3), idx(3,4), idx(4,3), idx(4,4)].forEach(i => {
-        const dot = document.createElement('div');
-        dot.className = 'centerMark';
-        elBoard.children[i].firstElementChild.appendChild(dot);
-      });
-      
       // Sync row coordinates
       syncRowCoords();
       const ro = new ResizeObserver(() => syncRowCoords());
@@ -1119,19 +1119,31 @@
       const elBoard = document.getElementById('board');
       const position = normalize64(gameData.positions?.[ply]);
       
+      // Get last move index if ply > 0
+      let lastMoveIdx = -1;
+      if (ply > 0 && gameData.moves && gameData.moves[ply - 1]) {
+        lastMoveIdx = coordToIdx(gameData.moves[ply - 1]);
+      }
+      
       for (let i = 0; i < 64; i++) {
         const inner = elBoard.children[i].firstElementChild;
-        const center = inner.querySelector('.centerMark');
         
-        // Clear cell (keep hoshi)
+        // Clear cell
         inner.innerHTML = '';
-        if (center) inner.appendChild(center);
         
         // Add piece if exists
         if (position[i] === 'B' || position[i] === 'W') {
           const disc = document.createElement('div');
           disc.className = 'disc ' + (position[i] === 'B' ? 'black' : 'white');
           inner.appendChild(disc);
+          
+          // Add last move marker if this is the last move
+          if (i === lastMoveIdx) {
+            const marker = document.createElement('div');
+            marker.className = 'lastMove';
+            marker.title = 'Ultima mossa';
+            inner.appendChild(marker);
+          }
         }
       }
     }
