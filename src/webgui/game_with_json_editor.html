@@ -9,6 +9,17 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <!-- CodeMirror for editable JSON with syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/brace-fold.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.css">
   <style>
     :root{
       --bg:#0b1210; --panel:#10241c; --line:#2b4d3e; --txt:#e8f2eb; --muted:#a5b5a9;
@@ -113,6 +124,17 @@
       width: 100%;
       min-height: 400px;
       resize: vertical;
+    }
+    /* CodeMirror customization */
+    .CodeMirror {
+      height: 500px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+    .CodeMirror-gutters {
+      border-right: 1px solid rgba(255,255,255,.1);
     }
     .json-controls{
       position: sticky;
@@ -291,9 +313,9 @@
         <pre class="language-json" style="margin:0"><code id="jsonCode" class="language-json"></code></pre>
       </div>
       
-      <!-- JSON Editor (Editable Textarea) -->
+      <!-- JSON Editor (CodeMirror with Syntax Highlighting) -->
       <div id="jsonEditorContainer" style="display:none;padding:20px">
-        <textarea id="jsonTextarea" class="json-editor" spellcheck="false"></textarea>
+        <div id="jsonCodeMirror"></div>
       </div>
     </article>
   </main>
@@ -624,6 +646,8 @@
     // JSON EDITOR
     // ========================================================================
     
+    let codeMirrorEditor = null;
+    
     function setupJsonEditor() {
       const toggleBtn = document.getElementById('toggleEditorBtn');
       const formatBtn = document.getElementById('formatBtn');
@@ -631,11 +655,26 @@
       const applyBtn = document.getElementById('applyBtn');
       const jsonPreview = document.getElementById('jsonPreview');
       const jsonEditorContainer = document.getElementById('jsonEditorContainer');
-      const jsonTextarea = document.getElementById('jsonTextarea');
       const jsonCode = document.getElementById('jsonCode');
       const jsonStatus = document.getElementById('jsonStatus');
       
       let editorVisible = false;
+      
+      // Initialize CodeMirror
+      const codeMirrorDiv = document.getElementById('jsonCodeMirror');
+      codeMirrorEditor = CodeMirror(codeMirrorDiv, {
+        mode: { name: "javascript", json: true },
+        theme: "monokai",
+        lineNumbers: true,
+        lineWrapping: true,
+        indentUnit: 2,
+        tabSize: 2,
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        foldGutter: true,
+        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+        value: JSON.stringify(gameData, null, 2)
+      });
       
       // Initialize with current data
       updateJsonDisplay();
@@ -646,7 +685,8 @@
         if (editorVisible) {
           jsonPreview.style.display = 'none';
           jsonEditorContainer.style.display = 'block';
-          jsonTextarea.value = JSON.stringify(gameData, null, 2);
+          codeMirrorEditor.setValue(JSON.stringify(gameData, null, 2));
+          codeMirrorEditor.refresh();
           toggleBtn.textContent = '👁️ Hide Editor';
         } else {
           jsonPreview.style.display = 'block';
@@ -659,8 +699,8 @@
       formatBtn.addEventListener('click', () => {
         if (editorVisible) {
           try {
-            const parsed = JSON.parse(jsonTextarea.value);
-            jsonTextarea.value = JSON.stringify(parsed, null, 2);
+            const parsed = JSON.parse(codeMirrorEditor.getValue());
+            codeMirrorEditor.setValue(JSON.stringify(parsed, null, 2));
             jsonStatus.innerHTML = '<span style="color:var(--accent)">●</span> Formatted';
           } catch(e) {
             jsonStatus.innerHTML = '<span style="color:#ef4444">●</span> Invalid JSON';
@@ -672,7 +712,7 @@
       validateBtn.addEventListener('click', () => {
         if (editorVisible) {
           try {
-            JSON.parse(jsonTextarea.value);
+            JSON.parse(codeMirrorEditor.getValue());
             jsonStatus.innerHTML = '<span style="color:var(--accent)">●</span> Valid JSON';
           } catch(e) {
             jsonStatus.innerHTML = `<span style="color:#ef4444">●</span> Error: ${e.message}`;
@@ -690,7 +730,7 @@
         }
         
         try {
-          const newData = JSON.parse(jsonTextarea.value);
+          const newData = JSON.parse(codeMirrorEditor.getValue());
           gameData = newData;
           
           // Update embedded script
@@ -719,11 +759,11 @@
       
       // Auto-validate on typing (debounced)
       let validateTimeout;
-      jsonTextarea.addEventListener('input', () => {
+      codeMirrorEditor.on('change', () => {
         clearTimeout(validateTimeout);
         validateTimeout = setTimeout(() => {
           try {
-            JSON.parse(jsonTextarea.value);
+            JSON.parse(codeMirrorEditor.getValue());
             jsonStatus.innerHTML = '<span style="color:var(--accent)">●</span> Valid (not applied)';
           } catch(e) {
             jsonStatus.innerHTML = `<span style="color:#ef4444">●</span> ${e.message}`;
