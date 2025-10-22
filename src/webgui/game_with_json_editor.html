@@ -268,7 +268,7 @@
               <div class="card">
                 <div class="p-4 text-[14px] leading-6">
                   <div class="flex items-center justify-between mb-2">
-                    <div class="font-semibold">🤖 DEEPENING SUMMARY</div>
+                    <div id="aiTitle" class="font-semibold">—</div>
                     <button id="aiCopyBtn" class="btn text-xs" title="Copia riepilogo">⧉ Copy</button>
                   </div>
                   <div id="aiBox" class="grid grid-cols-1 gap-2" style="color:var(--muted)">
@@ -463,47 +463,62 @@
       }
     ],
     [],
-    []
+    [
+      {
+        "move": "D6",
+        "score": "85+",
+        "line": "D6 f4 C3 d3",
+        "opening_name": "Tiger Opening",
+        "advantage": "=",
+        "continuations": 48,
+        "tags": ["book", "balanced"]
+      },
+      {
+        "move": "C5",
+        "score": "78",
+        "line": "C5 b4 C3",
+        "opening_name": "Cow Opening",
+        "advantage": "w",
+        "continuations": 22,
+        "tags": ["book"]
+      },
+      {
+        "move": "E6",
+        "score": "72",
+        "line": "E6 f6 G5",
+        "opening_name": "Alternative Line",
+        "advantage": "b",
+        "continuations": 15,
+        "tags": ["alt"]
+      }
+    ]
   ],
-  "ai_stats_by_ply": [
-    null,
-    {
-      "engine": "Apocalyptron",
-      "version": "4.1.16",
-      "depth": 8,
-      "nodes": 6825,
-      "alpha_beta_pruned": 1729,
-      "alpha_beta_pct": 25.3,
-      "lmr_reductions": 253,
-      "lmr_researches": 46,
-      "lmr_research_pct": 18.2,
-      "futility_cut": 1,
-      "null_move_cutoffs": 63,
-      "null_move_trials": 144,
-      "null_move_success_pct": 43.8,
-      "history_entries": 50,
-      "aspiration_hits": 12,
-      "aspiration_fails": 0,
-      "time_ms": 823,
-      "nps": 8291,
-      "selected_move": "E3",
-      "selected_value": -10,
-      "pv_line": ["E3", "F4", "F5", "D6"],
-      "book_moves_prioritized": ["E3", "C3"]
-    },
-    null,
-    {
-      "engine": "Apocalyptron",
-      "depth": 9,
-      "nodes": 15234,
-      "alpha_beta_pruned": 4521,
-      "alpha_beta_pct": 29.7,
-      "time_ms": 1456,
-      "nps": 10465,
-      "selected_move": "F5",
-      "selected_value": 20
-    }
-  ],
+  "_comment_ai": "Dati AI per la mossa corrente. In LIVE mode viene recuperato dal backend con GET /api/ai_stats/{ply}",
+  "ai_stats": {
+    "title": "🎯 AI ANALYSIS",
+    "rows": [
+      { "label": "Engine", "value": "Apocalyptron", "detail": null },
+      { "label": "Search depth", "value": "9", "detail": null },
+      { "label": "Nodes explored", "value": "15,234", "detail": null },
+      { "label": "Pruning efficiency", "value": "4,521 cuts", "detail": "(29.7%)" },
+      { "label": "Search time", "value": "1.456s", "detail": null },
+      { "label": "Node speed", "value": "10,465 nodes/sec", "detail": null },
+      { "label": "Best move", "value": "F5", "detail": "(+20)" }
+    ]
+  },
+  "_example_ai_ply1": {
+    "_comment": "Esempio di formato dati AI per ply 1 (non usato nel rendering, solo documentazione)",
+    "title": "🤖 DEEPENING SUMMARY",
+    "rows": [
+      { "label": "Engine", "value": "Apocalyptron v4.1.16", "detail": null },
+      { "label": "Final depth", "value": "8", "detail": null },
+      { "label": "Total nodes", "value": "6,825", "detail": null },
+      { "label": "Alpha-beta pruning", "value": "1,729", "detail": "(25.3%)" },
+      { "label": "Late move reduction", "value": "253", "detail": "46 re-searches (18.2%)" },
+      { "label": "Null move pruning", "value": "63/144", "detail": "(43.8% success)" },
+      { "label": "Selected move", "value": "E3", "detail": "(value: -10)" }
+    ]
+  },
   "tournament": {
     "name": "Blitz Madness Championship",
     "round": 1,
@@ -599,7 +614,15 @@
       }
       
       maxPly = (gameData.positions?.length || 1) - 1;
-      ply = Math.min(ply, maxPly);
+      
+      // Initialize ply from game_state if available
+      if (gameData.game_state?.current_ply !== undefined) {
+        ply = Math.min(gameData.game_state.current_ply, maxPly);
+      } else {
+        ply = Math.min(ply, maxPly);
+      }
+      
+      console.log('Game loaded - ply:', ply, 'maxPly:', maxPly);
     }
     
     function getDefaultGameData() {
@@ -613,7 +636,7 @@
         moves: [],
         valid_by_ply: [["C4","D3","E6","F5"]],
         opening_by_ply: [[]],
-        ai_stats_by_ply: [null]
+        ai_stats: null
       };
     }
 
@@ -1132,6 +1155,11 @@
       
       openingsUl.innerHTML = '';
       
+      if (openings.length === 0) {
+        openingsUl.innerHTML = '<li class="py-2 text-xs" style="color:var(--muted)">Nessun suggerimento per questo ply</li>';
+        return;
+      }
+      
       openings.forEach(sug => {
         const i = coordToIdx(sug.move);
         
@@ -1210,60 +1238,82 @@
     // AI RENDERING
     // ========================================================================
     
-    function renderAI() {
+    async function fetchAIDataForPly(plyNum) {
+      // In Live mode, fetch from backend for the specific ply
+      if (dataMode === 'live') {
+        try {
+          console.log(`Fetching AI data from backend for ply ${plyNum}...`);
+          const response = await fetch(`/api/ai_stats/${plyNum}`);
+          if (!response.ok) {
+            console.warn(`Backend returned ${response.status} for ply ${plyNum}`);
+            return null;
+          }
+          const data = await response.json();
+          console.log(`AI data received from backend for ply ${plyNum}:`, data);
+          return data;
+        } catch (error) {
+          console.error('Error fetching AI data from backend:', error);
+          return null;
+        }
+      }
+      
+      // In Mock mode, use embedded JSON (same data for all plies in mock)
+      // Il JSON contiene solo i dati della mossa corrente, non un array
+      return gameData.ai_stats || null;
+    }
+    
+    async function renderAI() {
       const box = qs('aiBox');
-      if (!box) return;
+      const titleEl = qs('aiTitle');
       
-      const aiStats = gameData.ai_stats_by_ply?.[ply];
-      
-      if (!aiStats) {
-        box.innerHTML = '<div class="text-sm" style="color:var(--muted)">Nessun dato AI per questo ply.</div>';
+      if (!box) {
+        console.error('aiBox not found');
         return;
       }
       
+      console.log('renderAI() called for ply:', ply, 'mode:', dataMode);
+      
+      // Show loading state
+      if (titleEl) titleEl.textContent = '⏳ Loading...';
+      box.innerHTML = '<div class="text-sm" style="color:var(--muted)">Caricamento dati AI...</div>';
+      
+      // Fetch AI data (from backend if live, from JSON if mock)
+      const aiData = await fetchAIDataForPly(ply);
+      
+      if (!aiData) {
+        if (titleEl) titleEl.textContent = '—';
+        box.innerHTML = '<div class="text-sm" style="color:var(--muted)">Nessun dato AI per questo ply (' + ply + ').</div>';
+        console.log('No AI data for ply', ply);
+        return;
+      }
+      
+      console.log('AI data found for ply', ply, ':', aiData);
+      
+      // Set title (parametric)
+      if (titleEl) {
+        titleEl.textContent = aiData.title || '—';
+      }
+      
+      // Render rows (parametric)
       const rows = [];
-      const p = (label, value, sub = '') => {
-        rows.push(`
-          <div class="flex items-center justify-between gap-4">
-            <span class="text-[13px]">${escapeHtml(label)}</span>
-            <span class="text-[13px] font-semibold" style="color:var(--txt)">
-              ${value}${sub ? ` <span style="color:var(--muted)">${sub}</span>` : ''}
-            </span>
-          </div>
-        `);
-      };
       
-      p('Engine', `<strong>${escapeHtml(aiStats.engine || 'Unknown')}</strong>`);
-      p('Final depth', `<strong>${aiStats.depth}</strong>`);
-      p('Total nodes', `<strong>${fmtInt(aiStats.nodes)}</strong>`);
-      p('Alpha-beta pruning', `<strong>${fmtInt(aiStats.alpha_beta_pruned || 0)}</strong>`, `(${fmtPct(aiStats.alpha_beta_pct || 0)})`);
-      
-      if (aiStats.lmr_reductions) {
-        p('Late move reduction', `<strong>${fmtInt(aiStats.lmr_reductions)}</strong>`, 
-          `${fmtInt(aiStats.lmr_researches || 0)} re-searches (${fmtPct(aiStats.lmr_research_pct || 0)})`);
-      }
-      
-      if (aiStats.futility_cut) {
-        p('Futility pruning', `<strong>${fmtInt(aiStats.futility_cut)}</strong> hopeless cut`);
-      }
-      
-      if (aiStats.null_move_cutoffs) {
-        p('Null move pruning', 
-          `<strong>${fmtInt(aiStats.null_move_cutoffs)}</strong>/<strong>${fmtInt(aiStats.null_move_trials || 0)}</strong>`,
-          `(${fmtPct(aiStats.null_move_success_pct || 0)} success)`);
-      }
-      
-      if (aiStats.history_entries) {
-        p('History table entries', `<strong>${fmtInt(aiStats.history_entries)}</strong>`);
-      }
-      
-      p('Total time', `<strong>${fmtTimeS((aiStats.time_ms || 0) / 1000)}</strong>`);
-      p('Average rate', `<strong>${fmtRate(aiStats.nps || 0)}</strong>`);
-      p('Selected move', `<strong>${escapeHtml(aiStats.selected_move || '-')}</strong>`, 
-        `(value: <strong>${aiStats.selected_value ?? '-'}</strong>)`);
-      
-      if (aiStats.book_moves_prioritized && aiStats.book_moves_prioritized.length > 0) {
-        p('Book moves prioritized', `<strong>${aiStats.book_moves_prioritized.join(', ')}</strong>`);
+      if (aiData.rows && Array.isArray(aiData.rows)) {
+        aiData.rows.forEach(row => {
+          const label = escapeHtml(row.label || '');
+          const value = escapeHtml(row.value || '');
+          const detail = row.detail ? ` <span style="color:var(--muted)">${escapeHtml(row.detail)}</span>` : '';
+          
+          rows.push(`
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-[13px]">${label}</span>
+              <span class="text-[13px] font-semibold" style="color:var(--txt)">
+                ${value}${detail}
+              </span>
+            </div>
+          `);
+        });
+      } else {
+        rows.push('<div class="text-sm" style="color:var(--muted)">Formato dati non valido</div>');
       }
       
       box.innerHTML = rows.join('');
@@ -1272,9 +1322,12 @@
       const copyBtn = qs('aiCopyBtn');
       if (copyBtn) {
         copyBtn.onclick = () => {
-          const text = Object.entries(aiStats)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join('\n');
+          const text = (aiData.title || 'AI Stats') + '\n\n' +
+            (aiData.rows || []).map(row => {
+              let line = `${row.label}: ${row.value}`;
+              if (row.detail) line += ` ${row.detail}`;
+              return line;
+            }).join('\n');
           navigator.clipboard?.writeText(text);
         };
       }
