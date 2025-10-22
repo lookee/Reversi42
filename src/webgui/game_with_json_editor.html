@@ -79,30 +79,24 @@
       display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--gold);
       background:rgba(0,0,0,.10); font-size:15px; letter-spacing:.02em}
     
-    .lastMove{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      pointer-events:none; z-index:10}
-    .lastMove::after{content:''; width:12px; height:12px; border-radius:999px;
-      background:radial-gradient(circle at 35% 35%, #ff6b7a, #ff4757);
-      box-shadow:0 0 18px rgba(255,71,87,.95), 0 0 30px rgba(255,71,87,.6);
-      animation:lastMovePulse 2s ease-in-out infinite}
 
-    /* Moves list */
-    #movesOl li.active{ color:#e8f2eb; font-weight:700 }
-    #movesOl li::marker{ color:var(--muted) }
+    .pclock{font-variant-numeric:tabular-nums}
+    .pclock .sep{opacity:.4; padding:0 .25rem}
+    .pclock .partial{opacity:.8; font-size:.9em}
+
+    /* History */
     .historyHead{position:sticky; top:0; z-index:1; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
       border-bottom:1px solid rgba(255,255,255,.08)}
     .historyGrid{display:grid; grid-template-columns:48px 1fr 1fr}
-    .historyRow{display:contents}
     .historyCell{padding:.35rem .5rem; font-variant-numeric:tabular-nums}
     .historyNo{color:var(--muted); text-align:right}
     .historyMove{color:var(--muted); cursor:pointer; text-align:center}
     .historyGrid .historyRow:nth-child(odd) .historyCell{background:rgba(255,255,255,.02)}
     .historyMove:hover{color:var(--txt)}
     .historyMove.active{color:var(--txt); font-weight:700}
-    .historyBadge{margin-left:.5rem; font-size:11px; color:var(--muted)}
-    .pclock{font-variant-numeric:tabular-nums}
-    .pclock .sep{opacity:.4; padding:0 .25rem}
-    .pclock .partial{opacity:.8; font-size:.9em}
+    
+    /* Opening suggestions */
+    .opening-move{background:var(--gold); color:#000; font-weight:700; padding:2px 6px; border-radius:4px; font-size:12px}
 
     /* Board coordinates alignment */
     .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
@@ -138,10 +132,6 @@
       border-right: 1px solid rgba(255,255,255,.1);
     }
     
-    @keyframes lastMovePulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(1.15); }
-    }
     
     .json-controls{
       position: sticky;
@@ -259,15 +249,14 @@
                 <button id="loadBtn" class="btn" title="Carica JSON">⤓</button>
                 <button id="fsBtn" class="btn" title="Fullscreen">⛶</button>
               </div>
-              <div class="text-sm font-semibold mb-2">Storico mosse <span id="histBadge" class="historyBadge hidden">· 50 posizioni simulate</span></div>
+              <div class="text-sm font-semibold mb-2">Storico mosse</div>
               <div class="card" style="max-height:300px;overflow:auto">
-                <div id="histHead" class="historyHead historyGrid text-[12px] hidden">
+                <div id="histHead" class="historyHead historyGrid text-[12px]">
                   <div class="historyCell historyNo">#</div>
                   <div class="historyCell">Nero</div>
                   <div class="historyCell">Bianco</div>
                 </div>
-                <div id="historyGrid" class="historyGrid text-[14px] hidden"></div>
-                <ol id="movesOl" class="list-decimal pl-6 py-2 pr-3 text-[14px]" style="color:var(--muted)"></ol>
+                <div id="historyGrid" class="historyGrid text-[14px]"></div>
               </div>
             </div>
             <div>
@@ -291,7 +280,6 @@
         <div class="flex flex-wrap items-center gap-3 text-[13px]" style="color:var(--muted);margin-top:14px">
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Disco Nero</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>Disco Bianco</span>
-          <span class="chip"><span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:radial-gradient(circle, #ff4757, #ee2f3f);box-shadow:0 0 8px rgba(255,71,87,.6)"></span>Ultima mossa</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Mossa valida</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;border:2px solid var(--gold)"></span>Opening suggerito</span>
         </div>
@@ -389,7 +377,6 @@
     "....................W.....BBW......BW...........................",
     "....................W.....BBW......BBB.........................."
   ],
-  "moves": ["C4", "E3", "F5"],
   "move_details": [
     {
       "ply": 1,
@@ -422,83 +409,36 @@
       "opening_name": null
     }
   ],
-  "valid_by_ply": [
-    ["C4", "D3", "E6", "F5"],
-    ["C3", "C5", "E3"],
-    ["F2", "F3", "F4", "F5", "F6"],
-    ["B4", "C5", "C6", "E6", "G6"]
-  ],
-  "opening_by_ply": [
-    [
-      {
-        "move": "C4",
-        "score": "99+",
-        "line": "C4 c3 D3 c5 B3 f4",
-        "opening_name": "Diagonal Opening",
-        "advantage": "=",
-        "continuations": 586,
-        "tags": ["book", "classic"]
-      },
-      {
-        "move": "E6",
-        "score": "57",
-        "line": "E6 f4 D3 c4",
-        "opening_name": "Perpendicular",
-        "advantage": "w",
-        "continuations": 12,
-        "tags": ["book"]
-      }
-    ],
-    [
-      {
-        "move": "E3",
-        "score": "88+",
-        "line": "E3 f4 F5",
-        "opening_name": "Diagonal - Variant",
-        "advantage": "=",
-        "continuations": 24,
-        "tags": ["book"]
-      },
-      {
-        "move": "C3",
-        "score": "72",
-        "line": "C3 d3 C5",
-        "opening_name": "Parallel Opening",
-        "advantage": "b",
-        "continuations": 8,
-        "tags": ["alt"]
-      }
-    ],
-    [],
-    [
-      {
-        "move": "D6",
-        "score": "85+",
-        "line": "D6 f4 C3 d3",
-        "opening_name": "Tiger Opening",
-        "advantage": "=",
-        "continuations": 48,
-        "tags": ["book", "balanced"]
-      },
-      {
-        "move": "C5",
-        "score": "78",
-        "line": "C5 b4 C3",
-        "opening_name": "Cow Opening",
-        "advantage": "w",
-        "continuations": 22,
-        "tags": ["book"]
-      },
-      {
-        "move": "E6",
-        "score": "72",
-        "line": "E6 f6 G5",
-        "opening_name": "Alternative Line",
-        "advantage": "b",
-        "continuations": 15,
-        "tags": ["alt"]
-      }
-    ]
+  "moves": ["C4", "E3", "F5"],
+  "valid_moves": ["B4", "C5", "C6", "E6", "G6"],
+  "opening_suggestions": [
+    {
+      "move": "D6",
+      "score": "85+",
+      "line": "D6 f4 C3 d3",
+      "opening_name": "Tiger Opening",
+      "advantage": "=",
+      "continuations": 48,
+      "tags": ["book", "balanced"]
+    },
+    {
+      "move": "C5",
+      "score": "78",
+      "line": "C5 b4 C3",
+      "opening_name": "Cow Opening",
+      "advantage": "w",
+      "continuations": 22,
+      "tags": ["book"]
+    },
+    {
+      "move": "E6",
+      "score": "72",
+      "line": "E6 f6 G5",
+      "opening_name": "Alternative Line",
+      "advantage": "b",
+      "continuations": 15,
+      "tags": ["alt"]
+    }
   ],
   "_comment_ai": "Dati AI per la mossa corrente. In LIVE mode viene recuperato dal backend con GET /api/ai_stats/{ply}",
   "ai_stats": {
@@ -641,8 +581,8 @@
         },
         positions: ["...........................WB......BW..........................."],
         moves: [],
-        valid_by_ply: [["C4","D3","E6","F5"]],
-        opening_by_ply: [[]],
+        valid_moves: ["C4","D3","E6","F5"],
+        opening_suggestions: [],
         ai_stats: null
       };
     }
@@ -1041,10 +981,100 @@
       highlightCurrentMove();
     }
     
+    
+    function renderBoard() {
+      const elBoard = document.getElementById('board');
+      const position = normalize64(gameData.positions?.[ply]);
+      
+      
+      for (let i = 0; i < 64; i++) {
+        const inner = elBoard.children[i].firstElementChild;
+        
+        // Clear cell
+        inner.innerHTML = '';
+        
+        // Add piece if exists
+        if (position[i] === 'B' || position[i] === 'W') {
+          const disc = document.createElement('div');
+          disc.className = 'disc ' + (position[i] === 'B' ? 'black' : 'white');
+          inner.appendChild(disc);
+          
+        }
+      }
+    }
+    
+    function renderValidMoves() {
+      const elBoard = document.getElementById('board');
+      const validMoves = gameData.valid_moves || [];
+      
+      validMoves.map(coordToIdx).forEach(i => {
+        const inner = elBoard.children[i].firstElementChild;
+        const dot = document.createElement('div');
+        dot.className = 'valid';
+        inner.appendChild(dot);
+      });
+    }
+    
+    function renderOpenings() {
+      const openingsUl = document.getElementById('openingsUl');
+      const elBoard = document.getElementById('board');
+      const openings = gameData.opening_suggestions || [];
+      
+      openingsUl.innerHTML = '';
+      
+      if (openings.length === 0) {
+        openingsUl.innerHTML = '<li class="py-2 text-xs" style="color:var(--muted)">Nessun suggerimento per questa posizione</li>';
+        return;
+      }
+      
+      openings.forEach(sug => {
+        const i = coordToIdx(sug.move);
+        
+        // Add hint badge on board
+        const badge = document.createElement('div');
+        badge.className = 'hint';
+        badge.textContent = sug.score || '★';
+        elBoard.children[i].firstElementChild.appendChild(badge);
+        
+        // Add to openings list
+        const li = document.createElement('li');
+        li.className = 'py-1';
+        li.dataset.move = sug.move;
+        
+        li.innerHTML = `
+          <div class="flex items-center gap-2 mb-1">
+            <span class="opening-move">${sug.move}</span>
+            <span class="text-white" style="color:var(--muted)">- ${sug.continuations} varianti</span>
+          </div>
+          <div class="text-white ml-4">
+            ${sug.opening_name}
+          </div>
+        `;
+        
+        
+        openingsUl.appendChild(li);
+      });
+    }
+    
+    function updateCounts() {
+      const position = normalize64(gameData.positions?.[ply]);
+      const counts = countBW(position);
+      
+      qs('p1Count').textContent = `● ${counts.b}`;
+      qs('p2Count').textContent = `○ ${counts.w}`;
+      
+      // Delta
+      const adv = counts.b - counts.w;
+      setDelta('p1Delta', adv);
+      setDelta('p2Delta', -adv);
+      
+      // Captured pieces
+      qs('p1Cat').textContent = counts.b;
+      qs('p2Cat').textContent = counts.w;
+    }
+    
     function renderHistory() {
       const historyGrid = document.getElementById('historyGrid');
-      const histHead = document.getElementById('histHead');
-      const movesOl = document.getElementById('movesOl');
       
       if (!historyGrid) {
         console.error('historyGrid not found');
@@ -1053,11 +1083,6 @@
       
       const moves = gameData.moves || [];
       console.log('renderHistory called with', moves.length, 'moves:', moves);
-      
-      // Hide old format, show grid format
-      movesOl.style.display = 'none';
-      historyGrid.style.display = 'grid';
-      histHead.style.display = 'grid';
       
       historyGrid.innerHTML = '';
       
@@ -1106,129 +1131,13 @@
           whiteCell.style.cursor = 'default';
         }
         
-        // Append cells directly to historyGrid (not in rowDiv)
+        // Append cells directly to historyGrid
         historyGrid.appendChild(numCell);
         historyGrid.appendChild(blackCell);
         historyGrid.appendChild(whiteCell);
       }
       
       console.log('History rendered:', historyGrid.children.length, 'cells created');
-    }
-    
-    function renderBoard() {
-      const elBoard = document.getElementById('board');
-      const position = normalize64(gameData.positions?.[ply]);
-      
-      // Get last move index if ply > 0
-      let lastMoveIdx = -1;
-      if (ply > 0 && gameData.moves && gameData.moves[ply - 1]) {
-        lastMoveIdx = coordToIdx(gameData.moves[ply - 1]);
-      }
-      
-      for (let i = 0; i < 64; i++) {
-        const inner = elBoard.children[i].firstElementChild;
-        
-        // Clear cell
-        inner.innerHTML = '';
-        
-        // Add piece if exists
-        if (position[i] === 'B' || position[i] === 'W') {
-          const disc = document.createElement('div');
-          disc.className = 'disc ' + (position[i] === 'B' ? 'black' : 'white');
-          inner.appendChild(disc);
-          
-          // Add last move marker if this is the last move
-          if (i === lastMoveIdx) {
-            const marker = document.createElement('div');
-            marker.className = 'lastMove';
-            marker.title = 'Ultima mossa';
-            inner.appendChild(marker);
-          }
-        }
-      }
-    }
-    
-    function renderValidMoves() {
-      const elBoard = document.getElementById('board');
-      const validMoves = (gameData.valid_by_ply?.[ply]) || [];
-      
-      validMoves.map(coordToIdx).forEach(i => {
-        const inner = elBoard.children[i].firstElementChild;
-        const dot = document.createElement('div');
-        dot.className = 'valid';
-        inner.appendChild(dot);
-      });
-    }
-    
-    function renderOpenings() {
-      const openingsUl = document.getElementById('openingsUl');
-      const elBoard = document.getElementById('board');
-      const openings = (gameData.opening_by_ply?.[ply]) || [];
-      
-      openingsUl.innerHTML = '';
-      
-      if (openings.length === 0) {
-        openingsUl.innerHTML = '<li class="py-2 text-xs" style="color:var(--muted)">Nessun suggerimento per questo ply</li>';
-        return;
-      }
-      
-      openings.forEach(sug => {
-        const i = coordToIdx(sug.move);
-        
-        // Add hint badge on board
-        const badge = document.createElement('div');
-        badge.className = 'hint';
-        badge.textContent = sug.score || '★';
-        elBoard.children[i].firstElementChild.appendChild(badge);
-        
-        // Add to openings list
-        const li = document.createElement('li');
-        li.className = 'py-1';
-        const tagSpan = (sug.tags || []).map(t => 
-          `<span class="chip" style="margin-left:.4rem">${escapeHtml(t)}</span>`
-        ).join('');
-        
-        li.innerHTML = `
-          <strong>${escapeHtml(sug.move)}</strong> 
-          <span style="color:var(--gold);font-weight:800">${escapeHtml(sug.score || '')}</span>
-          <div class="text-xs mt-1" style="color:var(--muted)">${escapeHtml(sug.line || '')}</div>
-          <div class="mt-1">${tagSpan}</div>
-        `;
-        
-        openingsUl.appendChild(li);
-      });
-    }
-    
-    function updateCounts() {
-      const position = normalize64(gameData.positions?.[ply]);
-      const counts = countBW(position);
-      
-      qs('p1Count').textContent = `● ${counts.b}`;
-      qs('p2Count').textContent = `○ ${counts.w}`;
-      
-      // Delta
-      if (ply > 0) {
-        const prevPosition = normalize64(gameData.positions?.[ply - 1]);
-        const prevCounts = countBW(prevPosition);
-        const adv = counts.b - counts.w;
-        setDelta('p1Delta', adv);
-        setDelta('p2Delta', -adv);
-        
-        // Captured pieces
-        const turn = getCurrentTurn();
-        const mover = turn === 'B' ? 'W' : 'B'; // Previous mover
-        let capB = 0, capW = 0;
-        if (mover === 'B') capB = Math.max(0, (counts.b - prevCounts.b) - 1);
-        if (mover === 'W') capW = Math.max(0, (counts.w - prevCounts.w) - 1);
-        
-        qs('p1Cat').textContent = capB;
-        qs('p2Cat').textContent = capW;
-      } else {
-        setDelta('p1Delta', 0);
-        setDelta('p2Delta', 0);
-        qs('p1Cat').textContent = 0;
-        qs('p2Cat').textContent = 0;
-      }
     }
     
     function highlightCurrentMove() {
@@ -1245,6 +1154,7 @@
         if (currentMove) currentMove.classList.add('active');
       }
     }
+    
 
     // ========================================================================
     // AI RENDERING
