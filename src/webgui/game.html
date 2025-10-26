@@ -5,10 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Reversi42 • Board (JSON-driven, Tournament Green)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Prism.js per syntax highlighting -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <!-- CodeMirror for editable JSON -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
   <style>
     :root{
       --bg:#0b1210; --panel:#10241c; --line:#2b4d3e; --txt:#e8f2eb; --muted:#a5b5a9;
@@ -98,6 +101,19 @@
 
     /* Board coordinates alignment */
     .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
+
+    /* CodeMirror styling */
+    .CodeMirror{
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      height: auto;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .CodeMirror-scroll{
+      min-height: 400px;
+    }
     .rows-nums{display:grid; grid-template-rows:repeat(8,1fr); gap:4px; align-self:start; margin-top:12px; width:1.6rem; height:auto; justify-self:end; margin-right:-18px}  
     .rows-nums .coords{display:flex; align-items:center; justify-content:flex-end}
     .col-letters{position:absolute; left:0; right:0; top:-22px; display:grid; grid-template-columns:repeat(8,1fr); gap:4px; padding:0 12px; place-items:center; pointer-events:none}
@@ -261,7 +277,7 @@
     "status": {
       "round": 3,
       "board_no": 12,
-      "turn_by_ply": ["B","W","B","W"],
+      "turn_by_ply": ["B"],
       "match_time_start": 0,
       "clock": { "match_ms": 0, "black_ms": 0, "white_ms": 0, "byoyomi_s": 0, "inc_ms": 0 }
     },
@@ -275,57 +291,11 @@
         "A6": ".", "B6": ".", "C6": ".", "D6": ".", "E6": ".", "F6": ".", "G6": ".", "H6": ".",
         "A7": ".", "B7": ".", "C7": ".", "D7": ".", "E7": ".", "F7": ".", "G7": ".", "H7": ".",
         "A8": ".", "B8": ".", "C8": ".", "D8": ".", "E8": ".", "F8": ".", "G8": ".", "H8": "."
-      },
-      {
-        "A1": ".", "B1": ".", "C1": ".", "D1": ".", "E1": ".", "F1": ".", "G1": ".", "H1": ".",
-        "A2": ".", "B2": ".", "C2": ".", "D2": ".", "E2": ".", "F2": ".", "G2": ".", "H2": ".",
-        "A3": ".", "B3": ".", "C3": ".", "D3": ".", "E3": ".", "F3": ".", "G3": ".", "H3": ".",
-        "A4": ".", "B4": ".", "C4": "B", "D4": "B", "E4": "B", "F4": ".", "G4": ".", "H4": ".",
-        "A5": ".", "B5": ".", "C5": ".", "D5": "B", "E5": "W", "F5": ".", "G5": ".", "H5": ".",
-        "A6": ".", "B6": ".", "C6": ".", "D6": ".", "E6": ".", "F6": ".", "G6": ".", "H6": ".",
-        "A7": ".", "B7": ".", "C7": ".", "D7": ".", "E7": ".", "F7": ".", "G7": ".", "H7": ".",
-        "A8": ".", "B8": ".", "C8": ".", "D8": ".", "E8": ".", "F8": ".", "G8": ".", "H8": "."
-      },
-      {
-        "A1": ".", "B1": ".", "C1": ".", "D1": ".", "E1": ".", "F1": ".", "G1": ".", "H1": ".",
-        "A2": ".", "B2": ".", "C2": ".", "D2": ".", "E2": ".", "F2": ".", "G2": ".", "H2": ".",
-        "A3": ".", "B3": ".", "C3": ".", "D3": ".", "E3": ".", "F3": ".", "G3": ".", "H3": ".",
-        "A4": ".", "B4": ".", "C4": ".", "D4": "W", "E4": "B", "F4": ".", "G4": ".", "H4": ".",
-        "A5": ".", "B5": "W", "C5": ".", "D5": "B", "E5": "W", "F5": ".", "G5": ".", "H5": ".",
-        "A6": ".", "B6": ".", "C6": ".", "D6": ".", "E6": ".", "F6": ".", "G6": ".", "H6": ".",
-        "A7": ".", "B7": ".", "C7": ".", "D7": ".", "E7": ".", "F7": ".", "G7": ".", "H7": ".",
-        "A8": ".", "B8": ".", "C8": ".", "D8": ".", "E8": ".", "F8": ".", "G8": ".", "H8": "."
-      },
-      {
-        "A1": ".", "B1": ".", "C1": ".", "D1": ".", "E1": ".", "F1": ".", "G1": ".", "H1": ".",
-        "A2": ".", "B2": ".", "C2": ".", "D2": ".", "E2": ".", "F2": ".", "G2": ".", "H2": ".",
-        "A3": ".", "B3": ".", "C3": ".", "D3": ".", "E3": ".", "F3": ".", "G3": ".", "H3": ".",
-        "A4": ".", "B4": ".", "C4": ".", "D4": "W", "E4": "B", "F4": ".", "G4": ".", "H4": ".",
-        "A5": ".", "B5": "W", "C5": ".", "D5": "B", "E5": "B", "F5": ".", "G5": ".", "H5": ".",
-        "A6": ".", "B6": ".", "C6": ".", "D6": ".", "E6": ".", "F6": ".", "G6": ".", "H6": ".",
-        "A7": ".", "B7": ".", "C7": ".", "D7": ".", "E7": ".", "F7": ".", "G7": ".", "H7": ".",
-        "A8": ".", "B8": ".", "C8": ".", "D8": ".", "E8": ".", "F8": ".", "G8": ".", "H8": "."
       }
     ],
-    "moves": ["C4","E3","F5"],
-    "valid_by_ply": [
-      ["C4","D3","E6","F5"],
-      ["C3","C5","E3"],
-      ["F2","F3","F4","F5","F6"],
-      ["B4","C5","C6","E6","G6"]
-    ],
-    "opening_by_ply": [
-      [
-        { "move": "C4", "score": "99+", "line": "C4 c3 D3 c5 B3 f4", "tags": ["book","classic"] },
-        { "move": "E6", "score": "57",  "line": "E6 f4 D3 c4",       "tags": ["book"] }
-      ],
-      [
-        { "move": "E3", "score": "88+", "line": "E3 f4 F5",          "tags": ["book"] },
-        { "move": "C3", "score": "72",  "line": "C3 d3 C5",          "tags": ["alt"] }
-      ],
-      [],
-      []
-    ],
+    "moves": [],
+    "valid_by_ply": [[]],
+    "opening_by_ply": [[]],
     "deepening_summary_title": "Deepening Summary",
     "deepening_summary": {
       "final_depth": 8,
@@ -659,15 +629,15 @@
         <button class="btn text-xs" id="closeJsonEditor">✕ Close</button>
       </div>
     </div>
-    <textarea id="jsonEditor" spellcheck="false" style="width:100%;min-height:400px;padding:20px;border:none;outline:none;resize:vertical;font-family:'Courier New',monospace;font-size:14px;background:#1a1a1a;color:#e8e8e8;line-height:1.6;tab-size:2"></textarea>
+    <div id="jsonEditorContainer" style="width:100%;min-height:400px;"></div>
   </div>
 
   <script>
-    // JSON Editor functionality
+    // JSON Editor functionality with CodeMirror
     function q(id){ return document.getElementById(id); }
     const toggleBtn = q('toggleJsonEditor');
     const editorWrapper = q('jsonEditorWrapper');
-    const jsonEditor = q('jsonEditor');
+    const jsonEditorContainer = q('jsonEditorContainer');
     const formatBtn = q('formatJson');
     const validateBtn = q('validateJson');
     const applyBtn = q('applyJson');
@@ -675,13 +645,48 @@
     const jsonStatus = q('jsonStatus');
 
     let currentData = null;
+    let cmEditor = null;
+
+    // Initialize CodeMirror
+    function initCodeMirror(initialValue = ''){
+      if(!cmEditor && jsonEditorContainer){
+        cmEditor = CodeMirror(jsonEditorContainer, {
+          value: initialValue,
+          mode: {name: 'javascript', json: true},
+          theme: 'monokai',
+          lineNumbers: true,
+          lineWrapping: true,
+          matchBrackets: true,
+          autoCloseBrackets: true,
+          indentUnit: 2,
+          tabSize: 2
+        });
+        
+        // Update status on change
+        cmEditor.on('change', () => {
+          try{
+            JSON.parse(cmEditor.getValue());
+            updateStatus('Ready', true);
+          }catch(e){
+            updateStatus('Invalid JSON', false);
+          }
+        });
+      }
+    }
 
     if(toggleBtn) toggleBtn.addEventListener('click', () => {
       const isVisible = editorWrapper.style.display !== 'none';
       editorWrapper.style.display = isVisible ? 'none' : 'block';
       if(!isVisible){
         currentData = JSON.parse(document.getElementById('reversi-data').textContent);
-        updateJsonEditor();
+        const jsonStr = JSON.stringify(currentData, null, 2);
+        
+        // Initialize CodeMirror if not already
+        if(!cmEditor){
+          initCodeMirror(jsonStr);
+        } else {
+          cmEditor.setValue(jsonStr);
+        }
       }
     });
 
@@ -689,16 +694,14 @@
       editorWrapper.style.display = 'none';
     });
 
-    function updateJsonEditor(){
-      const jsonStr = JSON.stringify(currentData, null, 2);
-      jsonEditor.value = jsonStr;
-    }
+
 
     if(formatBtn) formatBtn.addEventListener('click', () => {
+      if(!cmEditor) return;
       try{
-        const parsed = JSON.parse(jsonEditor.value);
+        const parsed = JSON.parse(cmEditor.getValue());
         const formatted = JSON.stringify(parsed, null, 2);
-        jsonEditor.value = formatted;
+        cmEditor.setValue(formatted);
         updateStatus('Formatted', true);
       }catch(e){
         updateStatus('Invalid JSON', false);
@@ -706,8 +709,9 @@
     });
 
     if(validateBtn) validateBtn.addEventListener('click', () => {
+      if(!cmEditor) return;
       try{
-        JSON.parse(jsonEditor.value);
+        JSON.parse(cmEditor.getValue());
         updateStatus('Valid ✓', true);
       }catch(e){
         updateStatus(`Invalid: ${e.message}`, false);
@@ -715,13 +719,14 @@
     });
 
     if(applyBtn) applyBtn.addEventListener('click', () => {
+      if(!cmEditor) return;
       try{
-        const newData = JSON.parse(jsonEditor.value);
+        const newData = JSON.parse(cmEditor.getValue());
         
         // Update the embedded JSON
         const dataScript = document.getElementById('reversi-data');
         if(dataScript){
-          dataScript.textContent = jsonEditor.value;
+          dataScript.textContent = cmEditor.getValue();
         }
         
         // Re-parse data in the main script
@@ -742,17 +747,7 @@
       jsonStatus.className = 'chip text-xs ' + (isValid ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300');
     }
 
-    // Real-time syntax highlighting (optional enhancement)
-    if(jsonEditor){
-      jsonEditor.addEventListener('input', () => {
-        try{
-          JSON.parse(jsonEditor.value);
-          updateStatus('Ready', true);
-        }catch(e){
-          updateStatus('Invalid JSON', false);
-        }
-      });
-    }
+
   </script>
 </body>
 </html>
