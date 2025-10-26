@@ -342,19 +342,17 @@
         });
       }
 
-      // Update notes title if exists
-      const notesTitle = qs('deepeningSummaryTitle');
-      if(notesTitle && data.notes) {
-        notesTitle.textContent = data.notes.title || 'Notes';
-      } else if(notesTitle) {
-        notesTitle.textContent = 'Notes';
-      }
-      
       // Re-render with new data
       ply = 0; // Reset to start
       render();
       
+      // Update notes if available
       if(data.notes){
+        // Update title
+        const notesTitle = qs('deepeningSummaryTitle');
+        if(notesTitle) {
+          notesTitle.textContent = data.players?.white?.name || 'Notes';
+        }
         renderNotes(data.notes);
       }
       
@@ -783,24 +781,35 @@
 
     // === AI VISUAL FEEDBACK ===
     function updateAIAnalysis(aiData){
-      if(!data || !data.notes) return;
+      if(!data) return;
       
-      // Update notes with AI analysis
-      const updatedNotes = { ...data.notes };
+      // Create dynamic AI analysis notes
+      const aiAnalysis = {
+        // Always update title to show AI name
+        title: data.players?.white?.name || 'DIVZERO.EXE',
+        
+        // Analysis data (shown while thinking)
+        status: aiData.move ? 'Move selected' : 'Thinking...',
+        selected_move: aiData.move || 'Calculating...',
+        evaluation: aiData.evaluation !== undefined ? String(aiData.evaluation) : '...',
+        depth: aiData.depth !== undefined ? aiData.depth : '...',
+        
+        // Static info from initial state (if available)
+        total_nodes: data.notes?.total_nodes || 'N/A',
+        alpha_beta_pruned: data.notes?.alpha_beta_pruned || 'N/A'
+      };
       
-      if(aiData.evaluation !== undefined){
-        updatedNotes.selected_value = String(aiData.evaluation);
-      }
-      if(aiData.depth !== undefined){
-        updatedNotes.final_depth = aiData.depth;
-      }
-      if(aiData.move){
-        updatedNotes.selected_move = aiData.move;
+      // Update title
+      const notesTitle = qs('deepeningSummaryTitle');
+      if(notesTitle) {
+        notesTitle.textContent = aiAnalysis.title;
       }
       
-      // Re-render notes
-      renderNotes(updatedNotes);
-      data.notes = updatedNotes;
+      // Re-render notes with AI analysis
+      renderNotes(aiAnalysis);
+      
+      // Store for reference
+      data.notes = aiAnalysis;
     }
     
 
