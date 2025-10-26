@@ -159,7 +159,7 @@
         <div class="min-w-0">
           <div id="p1Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
           <div class="flex items-center gap-2 flex-wrap text-[13px]" style="color:var(--muted)">
-            <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span> Nero</span>
+            <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span> Black</span>
             <span id="p1Count" class="chip">● 0</span>
             <span id="p1Delta" class="chip">±0</span>
           </div>
@@ -170,9 +170,9 @@
       <div class="flex flex-col items-center text-center gap-1.5">
         <div class="chip text-xs" aria-live="polite">
           <span id="turnDot" style="display:inline-block;width:10px;height:10px;border-radius:999px;background:var(--accent)"></span>
-          <span id="turnText">A muovere: —</span>
+          <span id="turnText">To move: —</span>
         </div>
-        <div class="text-xs" style="color:var(--muted)">Mossa <span id="moveNo">0</span> · Ply <span id="plyLbl">0</span>/<span id="plyMax">0</span></div>
+        <div class="text-xs" style="color:var(--muted)">Move <span id="moveNo">0</span></div>
       </div>
 
       <!-- RIGHT: White -->
@@ -182,7 +182,7 @@
           <div class="flex items-center gap-2 flex-wrap justify-end text-[13px]" style="color:var(--muted)">
             <span id="p2Count" class="chip">○ 0</span>
             <span id="p2Delta" class="chip">±0</span>
-            <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span> Bianco</span>
+            <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span> White</span>
           </div>
         </div>
         <div class="avatar w" id="p2Avatar">AP</div>
@@ -218,17 +218,17 @@
               <div class="flex items-center gap-2 mb-2">
                 <button id="undoBtn" class="btn" title="Undo">⟲</button>
                 <button id="redoBtn" class="btn" title="Redo">⟳</button>
-                <button id="copyBtn" class="btn" title="Copia mosse">⧉</button>
-                <button id="saveBtn" class="btn" title="Salva JSON">💾</button>
-                <button id="loadBtn" class="btn" title="Carica JSON">⤓</button>
+                <button id="copyBtn" class="btn" title="Copy moves">⧉</button>
+                <button id="saveBtn" class="btn" title="Save JSON">💾</button>
+                <button id="loadBtn" class="btn" title="Load JSON">⤓</button>
                 <button id="fsBtn" class="btn" title="Fullscreen">⛶</button>
               </div>
-              <div class="text-sm font-semibold mb-2">Storico mosse <span id="histBadge" class="historyBadge hidden">· 50 posizioni simulate</span></div>
+              <div class="text-sm font-semibold mb-2">Move History <span id="histBadge" class="historyBadge hidden">· 50 simulated positions</span></div>
               <div class="card" style="max-height:300px;overflow:auto">
                 <div id="histHead" class="historyHead historyGrid text-[12px] hidden">
                   <div class="historyCell historyNo">#</div>
-                  <div class="historyCell">Nero</div>
-                  <div class="historyCell">Bianco</div>
+                  <div class="historyCell">Black</div>
+                  <div class="historyCell">White</div>
                 </div>
                 <div id="historyGrid" class="historyGrid text-[14px] hidden"></div>
                 <ol id="movesOl" class="list-decimal pl-6 py-2 pr-3 text-[14px]" style="color:var(--muted)"></ol>
@@ -249,9 +249,9 @@
 
         <!-- Legend -->
         <div class="flex flex-wrap items-center gap-3 text-[13px]" style="color:var(--muted);margin-top:14px">
-          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Disco Nero</span>
-          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>Disco Bianco</span>
-          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Mossa valida</span>
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Black Disc</span>
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>White Disc</span>
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Valid Move</span>
           <!-- JSON Editor Button -->
           <button class="json-editor-toggle" id="toggleJsonEditor" style="position:relative;bottom:0;right:0;margin-left:auto">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -337,9 +337,8 @@
       qs('p1Avatar').textContent = data.players?.black?.avatar || initials(data.players?.black?.name);
       qs('p2Avatar').textContent = data.players?.white?.avatar || initials(data.players?.white?.name);
       
-      // Update plyMax
+      // Update maxPly for calculations
       const maxPly = (data.positions?.length || 1) - 1;
-      qs('plyMax').textContent = maxPly;
 
       // Update moves list if exists
       const movesOl = document.getElementById('movesOl');
@@ -420,8 +419,8 @@
           const b = demoMoves[i] || ''; const w = demoMoves[i+1] || '';
           const row = document.createElement('div'); row.className='historyRow'; row.dataset.row=rowNo;
           const cNo = document.createElement('div'); cNo.className='historyCell historyNo'; cNo.textContent=rowNo;
-          const cB = document.createElement('div'); cB.className='historyCell historyMove'; cB.textContent=b; cB.title = `Mossa ${rowNo} (Nero)`;
-          const cW = document.createElement('div'); cW.className='historyCell historyMove'; cW.textContent=w; cW.title = `Mossa ${rowNo} (Bianco)`;
+          const cB = document.createElement('div'); cB.className='historyCell historyMove'; cB.textContent=b;                   cB.title = `Move ${rowNo} (Black)`;
+          const cW = document.createElement('div'); cW.className='historyCell historyMove'; cW.textContent=w; cW.title = `Move ${rowNo} (White)`;
           cB.onclick = ()=>{ const targetPly = (rowNo-1)*2 + 1; if(targetPly<=maxPly){ ply = targetPly; render(); highlightDemoRow(rowNo, /*isWhite*/false); } };
           cW.onclick = ()=>{ const targetPly = (rowNo-1)*2 + 2; if(targetPly<=maxPly){ ply = targetPly; render(); highlightDemoRow(rowNo, /*isWhite*/true); } };
           row.appendChild(cNo); row.appendChild(cB); row.appendChild(cW); histGrid.appendChild(row);
@@ -448,19 +447,19 @@
       const rowsNums = document.querySelector('.rows-nums');
       const elBoard = document.getElementById('board');
       
-      function syncRowCoords(){
+      window.syncRowCoords = function(){
         if(!rowsNums || !elBoard) return;
         const PADDING = 12;
         const innerHeight = Math.max(0, elBoard.clientHeight - (PADDING*2));
         rowsNums.style.height = innerHeight + 'px';
         rowsNums.style.marginTop = PADDING + 'px';
         rowsNums.style.marginRight = '-18px';
-      }
+      };
       
-      syncRowCoords();
-      const ro = new ResizeObserver(()=> syncRowCoords());
+      window.syncRowCoords();
+      const ro = new ResizeObserver(()=> window.syncRowCoords());
       ro.observe(elBoard);
-      window.addEventListener('resize', syncRowCoords);
+      window.addEventListener('resize', window.syncRowCoords);
     }
     
     function setupToolbar(){
@@ -497,14 +496,14 @@
       const movesOl = document.getElementById('movesOl');
       
       // keep rows numbers aligned after any layout change
-      try{ syncRowCoords(); }catch(_){}
+      try{ window.syncRowCoords(); }catch(_){}
       const turn = (data.status?.turn_by_ply && data.status.turn_by_ply[ply]) || (ply%2===0 ? 'B':'W');
       // ensure partial resets on jump/undo/redo safely
       if(typeof partial!=='undefined'){
         if(typeof lastTurn==='undefined' || lastTurn===null) lastTurn = turn;
         if(turn !== lastTurn){ partial[turn]=0; lastTurn = turn; }
       }
-      qs('turnText').textContent = `A muovere: ${turn==='B'?'Nero':'Bianco'}`;
+      qs('turnText').textContent = `To move: ${turn==='B'?'Black':'White'}`;
       qs('turnDot').style.background = (turn==='B') ? 'var(--accent)' : 'var(--accent2)';
       qs('moveNo').textContent = String(Math.ceil(ply/2));
 
@@ -533,8 +532,7 @@
       setDelta('p1Delta', adv); 
       setDelta('p2Delta', -adv);
 
-      // highlight
-      qs('plyLbl').textContent = ply; 
+      // highlight (removed ply display) 
       if(movesOl){
         [...movesOl.children].forEach(li=> li.classList.remove('active'));
         if(ply>0){ const li = [...movesOl.children].find(el => +el.dataset.ply === ply); if(li) li.classList.add('active'); }
@@ -582,7 +580,7 @@
       if(!box){ return; }
       
       if(!summary || Object.keys(summary).length === 0){ 
-        box.innerHTML = '<div class="text-sm" style="color:var(--muted)">Nessun dato disponibile.</div>'; 
+        box.innerHTML = '<div class="text-sm" style="color:var(--muted)">No data available.</div>'; 
         return; 
       }
       
