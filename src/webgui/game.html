@@ -162,7 +162,6 @@
             <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span> Nero</span>
             <span id="p1Count" class="chip">● 0</span>
             <span id="p1Delta" class="chip">±0</span>
-            <span class="chip">♻︎ <span id="p1Cat">0</span></span>
           </div>
         </div>
       </div>
@@ -183,7 +182,6 @@
           <div class="flex items-center gap-2 flex-wrap justify-end text-[13px]" style="color:var(--muted)">
             <span id="p2Count" class="chip">○ 0</span>
             <span id="p2Delta" class="chip">±0</span>
-            <span class="chip">♻︎ <span id="p2Cat">0</span></span>
             <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span> Bianco</span>
           </div>
         </div>
@@ -527,14 +525,13 @@
         elBoard.children[i].firstElementChild.appendChild(dot);
       });
 
-      // Counts + delta + catturate
-      const counts = countBW(s); qs('p1Count').textContent = `● ${counts.b}`; qs('p2Count').textContent = `○ ${counts.w}`;
-      const prev = normalize64(data.positions?.[Math.max(0, ply-1)]);
-      const prevCounts = countBW(prev); const adv = counts.b - counts.w; setDelta('p1Delta', adv); setDelta('p2Delta', -adv);
-      let capB = 0, capW = 0; if(ply>0){ const mover = (data.status?.turn_by_ply?.[ply]) ? (data.status.turn_by_ply[ply]==='B'?'W':'B') : ( (ply%2===0)?'W':'B' );
-        if(mover==='B') capB = Math.max(0, (counts.b - prevCounts.b) - 1);
-        if(mover==='W') capW = Math.max(0, (counts.w - prevCounts.w) - 1); }
-      qs('p1Cat').textContent = capB; qs('p2Cat').textContent = capW;
+      // Counts + delta
+      const counts = countBW(s); 
+      qs('p1Count').textContent = `● ${counts.b}`; 
+      qs('p2Count').textContent = `○ ${counts.w}`;
+      const adv = counts.b - counts.w; 
+      setDelta('p1Delta', adv); 
+      setDelta('p2Delta', -adv);
 
       // highlight
       qs('plyLbl').textContent = ply; 
