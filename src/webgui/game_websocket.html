@@ -99,6 +99,7 @@
     .historyGrid .historyRow:nth-child(odd) .historyCell{background:rgba(255,255,255,.02)}
     .historyMove:hover{color:var(--txt)}
     .historyMove.active{color:var(--txt); font-weight:700}
+.historyMove.last-move{color:var(--accent2); font-weight:700; text-shadow:0 0 8px rgba(52,211,153,.5)}
     .historyBadge{margin-left:.5rem; font-size:11px; color:var(--muted)}
     /* Partial clock styling (safe, minimal) */
     .pclock{font-variant-numeric:tabular-nums}
@@ -455,7 +456,7 @@
             }
           }
           // Update notes with AI analysis if available
-          if(message.data.evaluation !== undefined || message.data.depth){
+          if(message.data.evaluation !== undefined || message.data.depth || message.data.move){
             updateAIAnalysis(message.data);
           }
           break;
@@ -463,6 +464,14 @@
         case 'ai_thinking':
           console.log(message.message);
           showThinkingMessage(message.message);
+          // Also update notes to show thinking status
+          if(data && data.notes){
+            const thinkingNotes = {
+              ...data.notes,
+              thinking: message.message
+            };
+            renderNotes(thinkingNotes);
+          }
           break;
           
         case 'error':
@@ -595,7 +604,33 @@
         histHead.classList.remove('hidden');
         histGrid.classList.remove('hidden');
         movesOl?.classList.add('hidden');
-        highlightDemoRow(Math.max(1, Math.ceil(ply/2)), ply%2===0);
+        
+        // Highlight only the last move (most recent move)
+        highlightLastMove(moves);
+      }
+      
+      function highlightLastMove(moves){
+        if(!histGrid || !moves || moves.length === 0) return;
+        
+        // Clear all active states
+        histGrid.querySelectorAll('.historyMove').forEach(n=>n.classList.remove('active', 'last-move'));
+        
+        // Find the last non-empty move
+        let lastNonEmptyIdx = moves.length - 1;
+        while(lastNonEmptyIdx >= 0 && (!moves[lastNonEmptyIdx] || moves[lastNonEmptyIdx] === '' || moves[lastNonEmptyIdx] === '-')) {
+          lastNonEmptyIdx--;
+        }
+        
+        if(lastNonEmptyIdx >= 0) {
+          const rowNo = Math.floor(lastNonEmptyIdx / 2) + 1;
+          const isWhite = lastNonEmptyIdx % 2 === 1;
+          const row = histGrid.querySelector(`.historyRow[data-row="${rowNo}"]`);
+          if(row){ 
+            const cell = row.children[isWhite?2:1]; 
+            cell?.classList.add('active', 'last-move'); 
+            row.scrollIntoView({block:'nearest'}); 
+          }
+        }
       }
       
       function highlightDemoRow(rowNo, isWhite){
@@ -754,6 +789,12 @@
       
       // Update notes with AI analysis
       const updatedNotes = { ...data.notes };
+      
+      // Remove thinking status if present
+      if(updatedNotes.thinking){
+        delete updatedNotes.thinking;
+      }
+      
       if(aiData.evaluation !== undefined){
         updatedNotes.selected_value = String(aiData.evaluation);
       }

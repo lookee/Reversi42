@@ -327,12 +327,16 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
                     print(f"Playing AI move: {coord} (x={ai_move.x}, y={ai_move.y})")
                     session.game.move(ai_move)
                     
+                    # Get AI analysis data
+                    ai_eval = getattr(ai_move, 'evaluation', None)
+                    ai_depth = getattr(session.ai_player, 'last_depth', None)
+                    
                     await send_to_connection(websocket, {
                         "type": "ai_move",
                         "data": {
                             "move": coord,
-                            "evaluation": getattr(ai_move, 'evaluation', None),
-                            "depth": getattr(session.ai_player, 'last_depth', None)
+                            "evaluation": ai_eval,
+                            "depth": ai_depth
                         }
                     })
                 else:
