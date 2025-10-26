@@ -477,7 +477,7 @@
         return;
       }
       if(!isHumanTurn){
-        console.log('Cannot submit move: not human turn');
+        console.log('Cannot submit move: not human turn. Current isHumanTurn:', isHumanTurn);
         return;
       }
       console.log('Submitting move:', move);
@@ -485,6 +485,7 @@
         type: 'human_move',
         move: move
       }));
+      console.log('Move submitted, setting isHumanTurn to false');
       isHumanTurn = false; // Prevent double moves
     }
     
