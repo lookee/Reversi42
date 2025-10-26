@@ -114,16 +114,15 @@
             <span id="p1Delta" class="chip">±0</span>
             <span class="chip">♻︎ <span id="p1Cat">0</span></span>
           </div>
-          <div class="mt-1 text-sm font-bold" style="font-variant-numeric:tabular-nums" id="blackClock">00:00</div>
         </div>
       </div>
 
       <!-- CENTER: Match panel -->
-      <div class="flex flex-col items-center text-center gap-1.5"><div class="chip text-xs" aria-live="polite">
+      <div class="flex flex-col items-center text-center gap-1.5">
+        <div class="chip text-xs" aria-live="polite">
           <span id="turnDot" style="display:inline-block;width:10px;height:10px;border-radius:999px;background:var(--accent)"></span>
           <span id="turnText">A muovere: —</span>
         </div>
-        <div id="matchClock" class="text-2xl md:text-3xl font-extrabold" style="font-variant-numeric:tabular-nums">00:00</div>
         <div class="text-xs" style="color:var(--muted)">Mossa <span id="moveNo">0</span> · Ply <span id="plyLbl">0</span>/<span id="plyMax">0</span></div>
       </div>
 
@@ -137,7 +136,6 @@
             <span class="chip">♻︎ <span id="p2Cat">0</span></span>
             <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span> Bianco</span>
           </div>
-          <div class="mt-1 text-sm font-bold" style="font-variant-numeric:tabular-nums" id="whiteClock">00:00</div>
         </div>
         <div class="avatar w" id="p2Avatar">AP</div>
       </div>
@@ -166,14 +164,8 @@
             </div>
           </div>
 
-          <!-- Right column: openings + history + AI -->
+          <!-- Right column: history + AI -->
           <aside class="flex flex-col gap-4">
-            <div>
-              <div class="text-sm font-semibold mb-2">Suggerimenti apertura</div>
-              <div id="openings" class="card" style="max-height:220px;overflow:auto">
-                <ul id="openingsUl" class="py-2 px-3 text-[14px]" style="color:var(--muted)"></ul>
-              </div>
-            </div>
             <div>
               <div class="flex items-center gap-2 mb-2">
                 <button id="undoBtn" class="btn" title="Undo">⟲</button>
@@ -195,15 +187,11 @@
               </div>
             </div>
             <div>
-              <div class="text-sm font-semibold mb-2">AI Player</div>
+              <div class="text-sm font-semibold mb-2"><span id="deepeningSummaryTitle">Deepening Summary</span></div>
               <div class="card">
                 <div class="p-4 text-[14px] leading-6">
-                  <div class="flex items-center justify-between mb-2">
-                    <div class="font-semibold">🤖 DEEPENING SUMMARY</div>
-                    <button id="aiCopyBtn" class="btn text-xs" title="Copia riepilogo">⧉ Copy</button>
-                  </div>
-                  <div id="aiBox" class="grid grid-cols-1 gap-2" style="color:var(--muted)">
-                    <!-- Popolato da JS -->
+                  <div id="deepeningSummary" class="grid grid-cols-1 gap-2" style="color:var(--muted)">
+                    <!-- Popolato da JS: chiave, valore, valore2 (in grigio) -->
                   </div>
                 </div>
               </div>
@@ -216,7 +204,6 @@
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Disco Nero</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>Disco Bianco</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Mossa valida</span>
-          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;border:2px solid var(--gold)"></span>Opening suggerito</span>
           <span class="chip"><span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:rgba(0,0,0,.45);box-shadow:0 0 0 2px rgba(255,255,255,.25)"></span>Star point</span>
         </div>
       </div>
@@ -330,7 +317,7 @@
         movesOl.appendChild(li);
       });
 
-      const openingsUl = document.getElementById('openingsUl');
+
 
       // ===== Demo: mostra lo storico come 50 mosse, compatto e leggibile (nella stessa sezione) =====
       const histHead = document.getElementById('histHead');
