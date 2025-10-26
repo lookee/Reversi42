@@ -235,7 +235,7 @@
               </div>
             </div>
             <div>
-              <div class="text-sm font-semibold mb-2"><span id="deepeningSummaryTitle">Deepening Summary</span></div>
+              <div class="text-sm font-semibold mb-2"><span id="deepeningSummaryTitle">Notes</span></div>
               <div class="card">
                 <div class="p-4 text-[14px] leading-6">
                   <div id="deepeningSummary" class="grid grid-cols-1 gap-2" style="color:var(--muted)">
@@ -273,11 +273,7 @@
       "white": { "name": "Apocalyptron", "avatar": "AP" }
     },
     "status": {
-      "round": 3,
-      "board_no": 12,
-      "turn_by_ply": ["B"],
-      "match_time_start": 0,
-      "clock": { "match_ms": 0, "black_ms": 0, "white_ms": 0, "byoyomi_s": 0, "inc_ms": 0 }
+      "turn_by_ply": ["B"]
     },
     "positions": [
       {
@@ -294,8 +290,8 @@
     "moves": [],
     "valid_by_ply": [[]],
     "opening_by_ply": [[]],
-    "deepening_summary_title": "Deepening Summary",
-    "deepening_summary": {
+    "notes": {
+      "title": "Notes",
       "final_depth": 8,
       "total_nodes": "9,234",
       "alpha_beta_pruned": {
@@ -351,14 +347,18 @@
         });
       }
 
-      // Update deepening summary title if exists
-      const deepeningTitle = qs('deepeningSummaryTitle');
-      if(deepeningTitle) deepeningTitle.textContent = data.deepening_summary_title || 'Deepening Summary';
+      // Update notes title if exists
+      const notesTitle = qs('deepeningSummaryTitle');
+      if(notesTitle && data.notes) {
+        notesTitle.textContent = data.notes.title || 'Notes';
+      } else if(notesTitle) {
+        notesTitle.textContent = 'Notes';
+      }
       
       // Re-render with new data
       render();
-      if(data.deepening_summary){
-        renderDeepeningSummary(data.deepening_summary);
+      if(data.notes){
+        renderNotes(data.notes);
       }
     }
     
@@ -574,18 +574,23 @@
     function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
     function setDelta(id, n){ const el = qs(id); if(!el) return; if(n===0){ el.textContent = '±0'; return; } el.textContent = `${n>0?'+':'−'}${Math.abs(n)}`; }
 
-    // === AI RENDERING ===
-    function renderDeepeningSummary(summary){
+    // === NOTES RENDERING ===
+    function renderNotes(notes){
       const box = qs('deepeningSummary'); 
       if(!box){ return; }
       
-      if(!summary || Object.keys(summary).length === 0){ 
+      // Filter out the title field and handle the rest
+      const notesData = { ...notes };
+      const title = notesData.title;
+      delete notesData.title;
+      
+      if(!notesData || Object.keys(notesData).length === 0){ 
         box.innerHTML = '<div class="text-sm" style="color:var(--muted)">No data available.</div>'; 
         return; 
       }
       
       const rows = [];
-      for(const [key, valueObj] of Object.entries(summary)){
+      for(const [key, valueObj] of Object.entries(notesData)){
         const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         const value = typeof valueObj === 'object' && valueObj !== null ? valueObj.value : valueObj;
         const value2 = typeof valueObj === 'object' && valueObj !== null ? valueObj.value2 : null;
