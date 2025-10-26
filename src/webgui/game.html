@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Reversi42 • Board (JSON-driven, Tournament Green)</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Prism.js per syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
   <style>
     :root{
       --bg:#0b1210; --panel:#10241c; --line:#2b4d3e; --txt:#e8f2eb; --muted:#a5b5a9;
@@ -97,6 +101,36 @@
     .rows-nums{display:grid; grid-template-rows:repeat(8,1fr); gap:4px; align-self:start; margin-top:12px; width:1.6rem; height:auto; justify-self:end; margin-right:-18px}  
     .rows-nums .coords{display:flex; align-items:center; justify-content:flex-end}
     .col-letters{position:absolute; left:0; right:0; top:-22px; display:grid; grid-template-columns:repeat(8,1fr); gap:4px; padding:0 12px; place-items:center; pointer-events:none}
+
+    /* JSON Editor */
+    .json-editor-toggle{
+      background:rgba(16,185,129,.1);
+      border:1px solid rgba(16,185,129,.3);
+      color:#10b981;
+      font-weight:500;
+      padding:8px 14px;
+      font-size:13px;
+      border-radius:8px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:all 0.2s ease;
+      white-space:nowrap
+    }
+    .json-editor-toggle:hover{
+      background:rgba(16,185,129,.2);
+      border-color:rgba(16,185,129,.5);
+      color:#34d399
+    }
+    .json-editor-toggle span{
+      font-size:13px;
+      letter-spacing:0.2px
+    }
+    #jsonEditorWrapper{position:fixed;bottom:0;left:0;right:0;max-height:60vh;overflow:auto;background:var(--panel);border-top:2px solid rgba(255,255,255,.1);padding:0;z-index:999}
+    .json-editor-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(0,0,0,.2);border-bottom:1px solid rgba(255,255,255,.1)}
+    #jsonEditor{background:#1e1e1e;font-family:'Courier New',monospace;font-size:13px;line-height:1.6}
+    code.language-json{font-size:13px}
   </style>
 </head>
 <body>
@@ -204,7 +238,13 @@
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Disco Nero</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>Disco Bianco</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Mossa valida</span>
-          <span class="chip"><span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:rgba(0,0,0,.45);box-shadow:0 0 0 2px rgba(255,255,255,.25)"></span>Star point</span>
+          <!-- JSON Editor Button -->
+          <button class="json-editor-toggle" id="toggleJsonEditor" style="position:relative;bottom:0;right:0;margin-left:auto">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            <span>JSON Editor</span>
+          </button>
         </div>
       </div>
     </article>
@@ -270,55 +310,106 @@
     // Inizializza SOLO quando il DOM è pronto, per evitare null refs e race.
     window.addEventListener('DOMContentLoaded', init);
 
+    // Global variables
+    let data = null;
+    let ply = 0;
+    
     function init(){
       // Parse JSON safe
       const dataScript = document.getElementById('reversi-data');
       if(!dataScript){ console.error('JSON embedded mancante'); return; }
-      let data;
       try{ data = JSON.parse(dataScript.textContent || '{}'); }
       catch(e){ console.error('JSON non valido:', e); return; }
+      
+      loadGameData(data);
+    }
+    
+    function loadGameData(gameData){
+      data = gameData;
 
-      // Header bind
+      // Update header only (don't rebuild board)
       qs('p1Name').textContent   = data.players?.black?.name || '—';
       qs('p2Name').textContent   = data.players?.white?.name || '—';
       qs('p1Avatar').textContent = data.players?.black?.avatar || initials(data.players?.black?.name);
-      qs('p2Avatar').textContent = data.players?.white?.avatar || initials(data.players?.white?.name);// Build board
+      qs('p2Avatar').textContent = data.players?.white?.avatar || initials(data.players?.white?.name);
+      
+      // Update plyMax
+      const maxPly = (data.positions?.length || 1) - 1;
+      qs('plyMax').textContent = maxPly;
+
+      // Update moves list if exists
+      const movesOl = document.getElementById('movesOl');
+      if(movesOl && !movesOl.classList.contains('hidden')){
+        movesOl.innerHTML = '';
+        (data.moves||[]).forEach((m,i)=>{
+          const li = document.createElement('li'); li.textContent = m; li.dataset.ply = i+1;
+          li.addEventListener('click', ()=>{ ply = i+1; render(); });
+          movesOl.appendChild(li);
+        });
+      }
+
+      // Update deepening summary title if exists
+      const deepeningTitle = qs('deepeningSummaryTitle');
+      if(deepeningTitle) deepeningTitle.textContent = data.deepening_summary_title || 'Deepening Summary';
+      
+      // Re-render with new data
+      render();
+      if(data.deepening_summary){
+        renderDeepeningSummary(data.deepening_summary);
+      }
+    }
+    
+    // Build board only once during init
+    function buildBoard(){
       const elBoard = document.getElementById('board');
       for (let i=0;i<64;i++){
         const cell = document.createElement('div'); cell.className = 'cell';
         const inner = document.createElement('div'); inner.className = 'cell-content';
         cell.appendChild(inner); elBoard.appendChild(cell);
       }
-      // Hoshi
-      [idx(3,3), idx(3,4), idx(4,3), idx(4,4)].forEach(i=>{
-        const dot=document.createElement('div'); dot.className='centerMark';
-        elBoard.children[i].firstElementChild.appendChild(dot);
+    }
+
+    function init(){
+      // Parse JSON safe
+      const dataScript = document.getElementById('reversi-data');
+      if(!dataScript){ console.error('JSON embedded mancante'); return; }
+      try{ data = JSON.parse(dataScript.textContent || '{}'); }
+      catch(e){ console.error('JSON non valido:', e); return; }
+      
+      // Build board once
+      buildBoard();
+      
+      // Full initialization
+      loadGameData(data);
+      
+      // Toolbar setup
+      setupToolbar();
+      
+      // History grid demo setup
+      setupHistoryDemo();
+      
+      // Coord sync setup
+      setupCoordSync();
+      
+      // Keyboard shortcuts
+      window.addEventListener('keydown', (e)=>{
+        const maxPly = (data.positions?.length || 1) - 1;
+        if(e.key==='ArrowLeft'){ if(ply>0){ ply--; render(); } }
+        if(e.key==='ArrowRight'){ if(ply<maxPly){ ply++; render(); } }
       });
-
-      // History state
-      let ply = 0; const maxPly = (data.positions?.length || 1) - 1; qs('plyMax').textContent = maxPly;
-
-      // Moves list
-      const movesOl = document.getElementById('movesOl');
-      movesOl.innerHTML = '';
-      (data.moves||[]).forEach((m,i)=>{
-        const li = document.createElement('li'); li.textContent = m; li.dataset.ply = i+1;
-        li.addEventListener('click', ()=>{ ply = i+1; render(); });
-        movesOl.appendChild(li);
-      });
-
-
-
-      // ===== Demo: mostra lo storico come 50 mosse, compatto e leggibile (nella stessa sezione) =====
+    }
+    
+    function setupHistoryDemo(){
       const histHead = document.getElementById('histHead');
       const histGrid = document.getElementById('historyGrid');
       const histBadge = document.getElementById('histBadge');
+      const movesOl = document.getElementById('movesOl');
+      const maxPly = (data.positions?.length || 1) - 1;
+      
       function buildDemo50(){
         if(!histGrid || !histHead) return;
-        // Genera 50 coordinate plausibili (non valida legalità, è una demo visiva)
         const coords = ['C4','E3','F5','D3','E6','C3','C5','F4','D6','G5','B4','C6','E2','F3','G4','H5','A4','B5','C2','D2','E7','F6','G3','H4','A5','B6','C7','D7','E8','F7','G6','H6','A6','B7','C8','D8','E1','F2','G2','H3','A3','B3','A2','B2','A1','B1','G1','H1','G8','H8'];
         const demoMoves=[]; for(let i=0;i<50;i++){ demoMoves.push(coords[i%coords.length]); }
-        // Costruisci griglia (#, Nero, Bianco)
         histGrid.innerHTML='';
         let rowNo=1;
         for(let i=0;i<demoMoves.length; i+=2){
@@ -327,53 +418,56 @@
           const cNo = document.createElement('div'); cNo.className='historyCell historyNo'; cNo.textContent=rowNo;
           const cB = document.createElement('div'); cB.className='historyCell historyMove'; cB.textContent=b; cB.title = `Mossa ${rowNo} (Nero)`;
           const cW = document.createElement('div'); cW.className='historyCell historyMove'; cW.textContent=w; cW.title = `Mossa ${rowNo} (Bianco)`;
-          // Click-to-jump: attivo solo se il ply esiste davvero nella partita corrente
           cB.onclick = ()=>{ const targetPly = (rowNo-1)*2 + 1; if(targetPly<=maxPly){ ply = targetPly; render(); highlightDemoRow(rowNo, /*isWhite*/false); } };
           cW.onclick = ()=>{ const targetPly = (rowNo-1)*2 + 2; if(targetPly<=maxPly){ ply = targetPly; render(); highlightDemoRow(rowNo, /*isWhite*/true); } };
           row.appendChild(cNo); row.appendChild(cB); row.appendChild(cW); histGrid.appendChild(row);
           rowNo++;
         }
-        // Mostra griglia e badge, nascondi la lista ol
         histBadge?.classList.remove('hidden');
         histHead.classList.remove('hidden');
         histGrid.classList.remove('hidden');
         movesOl?.classList.add('hidden');
-        // Evidenzia riga secondo ply corrente
         highlightDemoRow(Math.max(1, Math.ceil(ply/2)), ply%2===0);
       }
+      
       function highlightDemoRow(rowNo, isWhite){
         if(!histGrid) return;
         histGrid.querySelectorAll('.historyMove').forEach(n=>n.classList.remove('active'));
         const row = histGrid.querySelector(`.historyRow[data-row="${rowNo}"]`);
         if(row){ const cell = row.children[isWhite?2:1]; cell?.classList.add('active'); row.scrollIntoView({block:'nearest'}); }
       }
+      
       buildDemo50();
-
-      // --- Coord sync: align row numbers height to the board inner grid (clientHeight - 2*padding) ---
+    }
+    
+    function setupCoordSync(){
       const rowsNums = document.querySelector('.rows-nums');
+      const elBoard = document.getElementById('board');
+      
       function syncRowCoords(){
         if(!rowsNums || !elBoard) return;
-        const PADDING = 12; // must match .board padding in CSS
+        const PADDING = 12;
         const innerHeight = Math.max(0, elBoard.clientHeight - (PADDING*2));
         rowsNums.style.height = innerHeight + 'px';
-        rowsNums.style.marginTop = PADDING + 'px'; // aligns with grid top inside board
-        // keep numbers tucked close to the board edge even if gap utilities change
+        rowsNums.style.marginTop = PADDING + 'px';
         rowsNums.style.marginRight = '-18px';
       }
-      // initial + observe resize
+      
       syncRowCoords();
       const ro = new ResizeObserver(()=> syncRowCoords());
       ro.observe(elBoard);
       window.addEventListener('resize', syncRowCoords);
-
-
-      // Toolbar
+    }
+    
+    function setupToolbar(){
       const undoBtn = qs('undoBtn');
       const redoBtn = qs('redoBtn');
       const copyBtn = qs('copyBtn');
       const saveBtn = qs('saveBtn');
       const loadBtn = qs('loadBtn');
       const fsBtn   = qs('fsBtn');
+      const dataScript = document.getElementById('reversi-data');
+      const maxPly = (data.positions?.length || 1) - 1;
 
       if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(ply>0){ ply--; render(); } });
       if (redoBtn) redoBtn.addEventListener('click', ()=>{ if(ply<maxPly){ ply++; render(); } });
@@ -392,94 +486,60 @@
         }; inp.click();
       });
       if (fsBtn) fsBtn.addEventListener('click', ()=>{ if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); } else { document.exitFullscreen?.(); } });
+    }
 
+    function render(){
+      const elBoard = document.getElementById('board');
+      const movesOl = document.getElementById('movesOl');
+      
+      // keep rows numbers aligned after any layout change
+      try{ syncRowCoords(); }catch(_){}
+      const turn = (data.status?.turn_by_ply && data.status.turn_by_ply[ply]) || (ply%2===0 ? 'B':'W');
+      // ensure partial resets on jump/undo/redo safely
+      if(typeof partial!=='undefined'){
+        if(typeof lastTurn==='undefined' || lastTurn===null) lastTurn = turn;
+        if(turn !== lastTurn){ partial[turn]=0; lastTurn = turn; }
+      }
+      qs('turnText').textContent = `A muovere: ${turn==='B'?'Nero':'Bianco'}`;
+      qs('turnDot').style.background = (turn==='B') ? 'var(--accent)' : 'var(--accent2)';
+      qs('moveNo').textContent = String(Math.ceil(ply/2));
 
+      // Board position
+      const s = normalize64(data.positions?.[ply]);
+      for(let i=0;i<64;i++){
+        const inner = elBoard.children[i].firstElementChild;
+        inner.innerHTML='';
+        if(s[i]==='B' || s[i]==='W'){
+          const d=document.createElement('div'); d.className='disc '+(s[i]==='B'?'black':'white'); inner.appendChild(d);
+        }
+      }
 
-      // Keyboard
-      window.addEventListener('keydown', (e)=>{
-        if(e.key==='ArrowLeft'){ if(ply>0){ ply--; render(); } }
-        if(e.key==='ArrowRight'){ if(ply<maxPly){ ply++; render(); } }
+      // Valid moves
+      const vm = (data.valid_by_ply?.[ply]) || [];
+      vm.map(coordToIdx).forEach(i=>{
+        const dot=document.createElement('div'); dot.className='valid';
+        elBoard.children[i].firstElementChild.appendChild(dot);
       });
 
-      // Deepening Summary title (parametrizable)
-      const deepeningTitle = qs('deepeningSummaryTitle');
-      if(deepeningTitle) deepeningTitle.textContent = data.deepening_summary_title || 'Deepening Summary';
-      
-      // First render + Deepening Summary
-      render();
-      if(data.deepening_summary){
-        renderDeepeningSummary(data.deepening_summary);
-      }
+      // Counts + delta + catturate
+      const counts = countBW(s); qs('p1Count').textContent = `● ${counts.b}`; qs('p2Count').textContent = `○ ${counts.w}`;
+      const prev = normalize64(data.positions?.[Math.max(0, ply-1)]);
+      const prevCounts = countBW(prev); const adv = counts.b - counts.w; setDelta('p1Delta', adv); setDelta('p2Delta', -adv);
+      let capB = 0, capW = 0; if(ply>0){ const mover = (data.status?.turn_by_ply?.[ply]) ? (data.status.turn_by_ply[ply]==='B'?'W':'B') : ( (ply%2===0)?'W':'B' );
+        if(mover==='B') capB = Math.max(0, (counts.b - prevCounts.b) - 1);
+        if(mover==='W') capW = Math.max(0, (counts.w - prevCounts.w) - 1); }
+      qs('p1Cat').textContent = capB; qs('p2Cat').textContent = capW;
 
-      function render(){
-        // keep rows numbers aligned after any layout change
-        try{ syncRowCoords(); }catch(_){}
-        const turn = (data.status?.turn_by_ply && data.status.turn_by_ply[ply]) || (ply%2===0 ? 'B':'W');
-        // ensure partial resets on jump/undo/redo safely
-        if(typeof partial!=='undefined'){
-          if(typeof lastTurn==='undefined' || lastTurn===null) lastTurn = turn;
-          if(turn !== lastTurn){ partial[turn]=0; lastTurn = turn; }
-        }
-        qs('turnText').textContent = `A muovere: ${turn==='B'?'Nero':'Bianco'}`;
-        qs('turnDot').style.background = (turn==='B') ? 'var(--accent)' : 'var(--accent2)';
-        qs('moveNo').textContent = String(Math.ceil(ply/2));
-
-        // Board position
-        const s = normalize64(data.positions?.[ply]);
-        for(let i=0;i<64;i++){
-          const inner = elBoard.children[i].firstElementChild;
-          const center = inner.querySelector('.centerMark');
-          inner.innerHTML=''; if(center) inner.appendChild(center);
-          if(s[i]==='B' || s[i]==='W'){
-            const d=document.createElement('div'); d.className='disc '+(s[i]==='B'?'black':'white'); inner.appendChild(d);
-          }
-        }
-
-        // Valid moves
-        const vm = (data.valid_by_ply?.[ply]) || [];
-        vm.map(coordToIdx).forEach(i=>{
-          const dot=document.createElement('div'); dot.className='valid';
-          elBoard.children[i].firstElementChild.appendChild(dot);
-        });
-
-
-
-        // Counts + delta + catturate
-        const counts = countBW(s); qs('p1Count').textContent = `● ${counts.b}`; qs('p2Count').textContent = `○ ${counts.w}`;
-        const prev = normalize64(data.positions?.[Math.max(0, ply-1)]);
-        const prevCounts = countBW(prev); const adv = counts.b - counts.w; setDelta('p1Delta', adv); setDelta('p2Delta', -adv);
-        let capB = 0, capW = 0; if(ply>0){ const mover = (data.status?.turn_by_ply?.[ply]) ? (data.status.turn_by_ply[ply]==='B'?'W':'B') : ( (ply%2===0)?'W':'B' );
-          if(mover==='B') capB = Math.max(0, (counts.b - prevCounts.b) - 1);
-          if(mover==='W') capW = Math.max(0, (counts.w - prevCounts.w) - 1); }
-        qs('p1Cat').textContent = capB; qs('p2Cat').textContent = capW;
-
-        // highlight
-        qs('plyLbl').textContent = ply; [...movesOl.children].forEach(li=> li.classList.remove('active'));
+      // highlight
+      qs('plyLbl').textContent = ply; 
+      if(movesOl){
+        [...movesOl.children].forEach(li=> li.classList.remove('active'));
         if(ply>0){ const li = [...movesOl.children].find(el => +el.dataset.ply === ply); if(li) li.classList.add('active'); }
       }
-
-      // Self-tests (non intrusivi + extra struttura)
-      runSelfTests();
-      function runSelfTests(){
-        const tests = [];
-        const ok = (name, cond)=> tests.push({ name, pass: !!cond });
-        try{
-          ok('documentElement è HTML', document.documentElement && document.documentElement.tagName === 'HTML');
-          ok('body presente', !!document.body);
-          ok('msToClock 0 -> 00:00', msToClock(0)==='00:00');
-          ok('msToClock 65000 -> 01:05', msToClock(65000)==='01:05');
-          ok('coordToIdx A1 -> 0', coordToIdx('A1')===0);
-          ok('coordToIdx H8 -> 63', coordToIdx('H8')===63);
-          const def = normalize64('x'); ok('normalize64 size 64', Array.isArray(def) && def.length===64);
-          ok('normalize64 start shape', def[27]==='W' && def[28]==='B' && def[35]==='B' && def[36]==='W');
-          const counts = countBW(('B'.repeat(2)+'W'.repeat(3)).padEnd(64,'.').split('')); ok('countBW 2/3', counts.b===2 && counts.w===3);
-          ok('DOM 64 celle', document.querySelectorAll('#board .cell').length===64);
-          ok('Deepening Summary', !!qs('deepeningSummary'));
-          ok('Toolbar btns', !!qs('undoBtn') && !!qs('redoBtn') && !!qs('copyBtn') && !!qs('saveBtn') && !!qs('loadBtn') && !!qs('fsBtn'));
-        }catch(e){ console.error(e); }
-        console.table(tests);
-      }
     }
+    
+    // Make function globally accessible
+    window.reloadGameData = loadGameData;
 
     // === Utils ===
     function qs(id){ return document.getElementById(id); }
@@ -525,5 +585,117 @@
       Attiva JavaScript: la pagina mostra solo i dati presenti nel JSON incorporato.
     </div>
   </noscript>
+
+
+
+  <!-- JSON Editor Panel -->
+  <div id="jsonEditorWrapper" style="display:none">
+    <div class="json-editor-header">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold">JSON Editor</span>
+        <span class="chip text-xs" id="jsonStatus">Ready</span>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn text-xs" id="formatJson">✨ Format</button>
+        <button class="btn text-xs" id="validateJson">✓ Validate</button>
+        <button class="btn text-xs active" id="applyJson">🔄 Apply Changes</button>
+        <button class="btn text-xs" id="closeJsonEditor">✕ Close</button>
+      </div>
+    </div>
+    <textarea id="jsonEditor" spellcheck="false" style="width:100%;min-height:400px;padding:20px;border:none;outline:none;resize:vertical;font-family:'Courier New',monospace;font-size:14px;background:#1a1a1a;color:#e8e8e8;line-height:1.6;tab-size:2"></textarea>
+  </div>
+
+  <script>
+    // JSON Editor functionality
+    function q(id){ return document.getElementById(id); }
+    const toggleBtn = q('toggleJsonEditor');
+    const editorWrapper = q('jsonEditorWrapper');
+    const jsonEditor = q('jsonEditor');
+    const formatBtn = q('formatJson');
+    const validateBtn = q('validateJson');
+    const applyBtn = q('applyJson');
+    const closeBtn = q('closeJsonEditor');
+    const jsonStatus = q('jsonStatus');
+
+    let currentData = null;
+
+    if(toggleBtn) toggleBtn.addEventListener('click', () => {
+      const isVisible = editorWrapper.style.display !== 'none';
+      editorWrapper.style.display = isVisible ? 'none' : 'block';
+      if(!isVisible){
+        currentData = JSON.parse(document.getElementById('reversi-data').textContent);
+        updateJsonEditor();
+      }
+    });
+
+    if(closeBtn) closeBtn.addEventListener('click', () => {
+      editorWrapper.style.display = 'none';
+    });
+
+    function updateJsonEditor(){
+      const jsonStr = JSON.stringify(currentData, null, 2);
+      jsonEditor.value = jsonStr;
+    }
+
+    if(formatBtn) formatBtn.addEventListener('click', () => {
+      try{
+        const parsed = JSON.parse(jsonEditor.value);
+        const formatted = JSON.stringify(parsed, null, 2);
+        jsonEditor.value = formatted;
+        updateStatus('Formatted', true);
+      }catch(e){
+        updateStatus('Invalid JSON', false);
+      }
+    });
+
+    if(validateBtn) validateBtn.addEventListener('click', () => {
+      try{
+        JSON.parse(jsonEditor.value);
+        updateStatus('Valid ✓', true);
+      }catch(e){
+        updateStatus(`Invalid: ${e.message}`, false);
+      }
+    });
+
+    if(applyBtn) applyBtn.addEventListener('click', () => {
+      try{
+        const newData = JSON.parse(jsonEditor.value);
+        
+        // Update the embedded JSON
+        const dataScript = document.getElementById('reversi-data');
+        if(dataScript){
+          dataScript.textContent = jsonEditor.value;
+        }
+        
+        // Re-parse data in the main script
+        if(window.reloadGameData){
+          window.reloadGameData(newData);
+        }
+        
+        // Close editor
+        editorWrapper.style.display = 'none';
+        updateStatus('Applied ✓', true);
+      }catch(e){
+        updateStatus(`Error: ${e.message}`, false);
+      }
+    });
+
+    function updateStatus(text, isValid){
+      jsonStatus.textContent = text;
+      jsonStatus.className = 'chip text-xs ' + (isValid ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300');
+    }
+
+    // Real-time syntax highlighting (optional enhancement)
+    if(jsonEditor){
+      jsonEditor.addEventListener('input', () => {
+        try{
+          JSON.parse(jsonEditor.value);
+          updateStatus('Ready', true);
+        }catch(e){
+          updateStatus('Invalid JSON', false);
+        }
+      });
+    }
+  </script>
 </body>
 </html>
