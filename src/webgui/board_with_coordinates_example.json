@@ -1,0 +1,140 @@
+{
+  "_description": "Formati di board che includono le coordinate per massima leggibilità",
+  
+  "FORMAT_WITH_COORDS_ARRAY": {
+    "description": "Ogni cella ha la propria coordinata esplicita",
+    "pro": "Massima chiarezza, nessuna ambiguità sulla posizione",
+    "example": {
+      "positions": [
+        [
+          {"coord": "A1", "row": 1, "col": 1, "piece": "."},
+          {"coord": "B1", "row": 1, "col": 2, "piece": "."},
+          {"coord": "C1", "row": 1, "col": 3, "piece": "."},
+          {"coord": "D1", "row": 1, "col": 4, "piece": "."},
+          {"coord": "E1", "row": 1, "col": 5, "piece": "."},
+          {"coord": "F1", "row": 1, "col": 6, "piece": "."},
+          {"coord": "G1", "row": 1, "col": 7, "piece": "."},
+          {"coord": "H1", "row": 1, "col": 8, "piece": "."},
+          
+          {"coord": "A2", "row": 2, "col": 1, "piece": "."},
+          {"coord": "B2", "row": 2, "col": 2, "piece": "."},
+          {"coord": "C2", "row": 2, "col": 3, "piece": "."},
+          {"coord": "D2", "row": 2, "col": 4, "piece": "."},
+          {"coord": "E2", "row": 2, "col": 5, "piece": "."},
+          {"coord": "F2", "row": 2, "col": 6, "piece": "."},
+          {"coord": "G2", "row": 2, "col": 7, "piece": "."},
+          {"coord": "H2", "row": 2, "col": 8, "piece": "."},
+          
+          {"coord": "D4", "row": 4, "col": 4, "piece": "W"},
+          {"coord": "E4", "row": 4, "col": 5, "piece": "B"},
+          {"coord": "D5", "row": 5, "col": 4, "piece": "B"},
+          {"coord": "E5", "row": 5, "col": 5, "piece": "W"}
+        ]
+      ]
+    }
+  },
+
+  "FORMAT_GRID_WITH_COORDS": {
+    "description": "Struttura a griglia con coordinate come chiavi",
+    "pro": "Accesso diretto per coordinate, struttura chiara",
+    "example": {
+      "positions": [
+        {
+          "A1": ".", "B1": ".", "C1": ".", "D1": ".", "E1": ".", "F1": ".", "G1": ".", "H1": ".",
+          "A2": ".", "B2": ".", "C2": ".", "D2": ".", "E2": ".", "F2": ".", "G2": ".", "H2": ".",
+          "A3": ".", "B3": ".", "C3": ".", "D3": ".", "E3": ".", "F3": ".", "G3": ".", "H3": ".",
+          "A4": ".", "B4": ".", "C4": ".", "D4": "W", "E4": "B", "F4": ".", "G4": ".", "H4": ".",
+          "A5": ".", "B5": ".", "C5": ".", "D5": "B", "E5": "W", "F5": ".", "G5": ".", "H5": ".",
+          "A6": ".", "B6": ".", "C6": ".", "D6": ".", "E6": ".", "F6": ".", "G6": ".", "H6": ".",
+          "A7": ".", "B7": ".", "C7": ".", "D7": ".", "E7": ".", "F7": ".", "G7": ".", "H7": ".",
+          "A8": ".", "B8": ".", "C8": ".", "D8": ".", "E8": ".", "F8": ".", "G8": ".", "H8": "."
+        }
+      ]
+    }
+  },
+
+  "FORMAT_GROUPED_BY_TYPE": {
+    "description": "Coordinate raggruppate per tipo di pezzo",
+    "pro": "Immediatamente chiaro quali pedine sono dove",
+    "example": {
+      "positions": [
+        {
+          "black": {
+            "D5": {"row": 5, "col": 4},
+            "E4": {"row": 4, "col": 5}
+          },
+          "white": {
+            "D4": {"row": 4, "col": 4},
+            "E5": {"row": 5, "col": 5}
+          }
+        }
+      ]
+    }
+  },
+
+  "FORMAT_COMPACT_COORDS": {
+    "description": "Formato compatto che include solo celle occupate con coordinate",
+    "pro": "Minimo spazio, massima informazione",
+    "example": {
+      "positions": [
+        {
+          "occupied": [
+            ["D4", "W"],
+            ["E4", "B"],
+            ["D5", "B"],
+            ["E5", "W"]
+          ]
+        }
+      ]
+    }
+  },
+
+  "FORMAT_NESTED_GRID": {
+    "description": "Griglia nidificata con coordinate A-H come chiavi esterne",
+    "pro": "Struttura simile a scacchiera reale, accesso intuitivo",
+    "example": {
+      "positions": [
+        {
+          "A": [".", ".", ".", ".", ".", ".", ".", "."],
+          "B": [".", ".", ".", ".", ".", ".", ".", "."],
+          "C": [".", ".", ".", ".", ".", ".", ".", "."],
+          "D": [".", ".", ".", "W", "B", ".", ".", "."],
+          "E": [".", ".", ".", "B", "W", ".", ".", "."],
+          "F": [".", ".", ".", ".", ".", ".", ".", "."],
+          "G": [".", ".", ".", ".", ".", ".", ".", "."],
+          "H": [".", ".", ".", ".", ".", ".", ".", "."]
+        }
+      ],
+      "_note": "Gli indici dell'array corrispondono alle righe 1-8"
+    }
+  },
+
+  "FORMAT_LEGEND_STYLE": {
+    "description": "Stile leggenda con intestazioni di colonna e riga",
+    "pro": "Molto simile a come si presenta una scacchiera",
+    "example": {
+      "positions": [
+        {
+          "cols": ["A", "B", "C", "D", "E", "F", "G", "H"],
+          "rows": [
+            {"num": 1, "cells": [".", ".", ".", ".", ".", ".", ".", "."]},
+            {"num": 2, "cells": [".", ".", ".", ".", ".", ".", ".", "."]},
+            {"num": 3, "cells": [".", ".", ".", ".", ".", ".", ".", "."]},
+            {"num": 4, "cells": [".", ".", ".", "W", "B", ".", ".", "."]},
+            {"num": 5, "cells": [".", ".", ".", "B", "W", ".", ".", "."]},
+            {"num": 6, "cells": [".", ".", ".", ".", ".", ".", ".", "."]},
+            {"num": 7, "cells": [".", ".", ".", ".", ".", ".", ".", "."]},
+            {"num": 8, "cells": [".", ".", ".", ".", ".", ".", ".", "."]}
+          ]
+        }
+      ]
+    }
+  },
+
+  "COMPARISON": {
+    "most_readable_with_coords": "FORMAT_GRID_WITH_COORDS",
+    "most_compact_with_coords": "FORMAT_COMPACT_COORDS",
+    "best_structured": "FORMAT_NESTED_GRID",
+    "most_visual": "FORMAT_LEGEND_STYLE"
+  }
+}

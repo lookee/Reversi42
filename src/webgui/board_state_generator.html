@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Board State Generator • Reversi42</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{
+      --bg:#0b1210; --panel:#10241c; --line:#2b4d3e; --txt:#e8f2eb; --muted:#a5b5a9;
+      --accent:#10b981; --accent2:#34d399;
+      --discW:#f7f9fc; --discB:#0b0f14;
+    }
+    body{ background:var(--bg); color:var(--txt); font-family:system-ui; padding:2rem; }
+    .grid-preview{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:12px;
+      background:#1d3c31;border:1px solid var(--line);border-radius:14px;max-width:500px}
+    .preview-cell{aspect-ratio:1;background:#255744;border:1px solid var(--line);border-radius:8px;
+      display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer}
+    .preview-cell:hover{background:#2a6249}
+    .btn{background:var(--accent);color:white;padding:0.5rem 1rem;border:none;
+      border-radius:8px;cursor:pointer;font-weight:600}
+    .btn:hover{background:#0d9868}
+    textarea{width:100%;min-height:200px;padding:1rem;background:#1a1a1a;
+      color:#e8e8e8;border:1px solid #333;border-radius:8px;font-family:monospace}
+    .preset-btn{background:#2b4d3e;color:var(--txt);padding:0.4rem 0.8rem;
+      border:1px solid var(--line);border-radius:6px;cursor:pointer;margin:0.25rem}
+    .preset-btn:hover{background:#3d6a54}
+    .copy-btn{background:var(--accent2);}
+  </style>
+</head>
+<body>
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">🎯 Board State Generator</h1>
+    
+    <!-- Preset Buttons -->
+    <div class="mb-6 p-4 rounded-lg" style="background:var(--panel);border:1px solid var(--line)">
+      <h2 class="text-xl font-semibold mb-3">Preset Configurations</h2>
+      <div>
+        <button class="preset-btn" onclick="setPreset('start')">🏁 Start Position</button>
+        <button class="preset-btn" onclick="setPreset('empty')">⬜ Empty Board</button>
+        <button class="preset-btn" onclick="setPreset('full_black')">⚫ Full Black</button>
+        <button class="preset-btn" onclick="setPreset('full_white')">⚪ Full White</button>
+        <button class="preset-btn" onclick="setPreset('mid_game')">🎲 Mid Game</button>
+        <button class="preset-btn" onclick="setPreset('end_game')">🏁 End Game</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Left: Visual Editor -->
+      <div>
+        <h2 class="text-xl font-semibold mb-3">Visual Editor</h2>
+        <div class="grid-preview" id="boardGrid"></div>
+        <div class="mt-4 flex gap-2">
+          <button class="btn" onclick="clearBoard()">Clear</button>
+          <button class="btn" onclick="toggleColor()">Toggle: <span id="currentColor">B</span></button>
+        </div>
+      </div>
+
+      <!-- Right: JSON Output -->
+      <div>
+        <h2 class="text-xl font-semibold mb-3">JSON Output</h2>
+        <textarea id="jsonOutput" readonly></textarea>
+        <button class="btn copy-btn mt-2" onclick="copyToClipboard()">📋 Copy JSON</button>
+        <button class="btn copy-btn mt-2 ml-2" onclick="openInGame()">🎮 Open in Game</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentColor = 'B'; // Black or White
+    let board = Array(64).fill('.');
+    
+    const presets = {
+      start: '...........................WB......BW...........................',
+      empty: '................................................................',
+      full_black: 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+      full_white: 'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW',
+      mid_game: '.....WBW........WWB...BBWWWW...BBWWWWB...BBBBBBW..............',
+      end_game: 'BBBBBBBWBBBBBBBBBBBWBBBWBBBBBBWBBBBBBBBBBWBBBBBBBBBBBBBBBBBBBW'
+    };
+
+    function init() {
+      renderBoard();
+      updateJson();
+    }
+
+    function renderBoard() {
+      const grid = document.getElementById('boardGrid');
+      grid.innerHTML = '';
+      for(let i=0; i<64; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'preview-cell';
+        cell.textContent = board[i] !== '.' ? (board[i] === 'B' ? '●' : '○') : '';
+        cell.onclick = () => { clickCell(i); };
+        grid.appendChild(cell);
+      }
+    }
+
+    function clickCell(idx) {
+      if(board[idx] === '.') {
+        board[idx] = currentColor;
+      } else if(board[idx] === currentColor) {
+        board[idx] = currentColor === 'B' ? 'W' : 'B';
+      } else {
+        board[idx] = '.';
+      }
+      renderBoard();
+      updateJson();
+    }
+
+    function toggleColor() {
+      currentColor = currentColor === 'B' ? 'W' : 'B';
+      document.getElementById('currentColor').textContent = currentColor;
+    }
+
+    function clearBoard() {
+      board = Array(64).fill('.');
+      renderBoard();
+      updateJson();
+    }
+
+    function setPreset(name) {
+      board = presets[name].split('');
+      renderBoard();
+      updateJson();
+    }
+
+    function updateJson() {
+      const position = board.join('');
+      const json = {
+        "positions": [position],
+        "valid_by_ply": [[]],
+        "turn_by_ply": ["B"]
+      };
+      document.getElementById('jsonOutput').value = JSON.stringify(json, null, 2);
+    }
+
+    function copyToClipboard() {
+      const textarea = document.getElementById('jsonOutput');
+      textarea.select();
+      document.execCommand('copy');
+      alert('✓ JSON copied to clipboard!');
+    }
+
+    function openInGame() {
+      const json = document.getElementById('jsonOutput').value;
+      const blob = new Blob([json], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      window.open(url);
+    }
+
+    // Initialize
+    init();
+  </script>
+</body>
+</html>

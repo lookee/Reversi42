@@ -1,0 +1,145 @@
+{
+  "_description": "Diverse rappresentazioni della board di Reversi per comparazione",
+  "_note": "Questo file mostra alternative per rappresentare lo stato della scacchiera",
+
+  "FORMAT_1_STRING_64_CHARS": {
+    "description": "Formato attuale: stringa di 64 caratteri",
+    "pro": "Compatto, facile da copiare, minimo overhead",
+    "contro": "Non leggibile, difficile da editare manualmente",
+    "example": {
+      "positions": [
+        "...........................WB......BW..........................."
+      ]
+    }
+  },
+
+  "FORMAT_2_ARRAY_OF_ROWS": {
+    "description": "Array di 8 righe, ogni riga è una stringa",
+    "pro": "Leggibile, mantiene struttura 8x8",
+    "contro": "Le stringhe sono ancora difficili da modificare",
+    "example": {
+      "positions": [
+        [
+          "........",
+          "........",
+          "........",
+          "...WB...",
+          "...BW...",
+          "........",
+          "........",
+          "........"
+        ]
+      ]
+    }
+  },
+
+  "FORMAT_3_ARRAY_OF_OBJECTS": {
+    "description": "Array di oggetti {row, col, piece}",
+    "pro": "Molto leggibile, facile da capire e modificare",
+    "contro": "Verboso, non compatto",
+    "example": {
+      "positions": [
+        [
+          {"row": 1, "col": 1, "piece": "."},
+          {"row": 1, "col": 2, "piece": "."},
+          {"row": 1, "col": 3, "piece": "."},
+          {"row": 1, "col": 4, "piece": "."},
+          {"row": 4, "col": 4, "piece": "W"},
+          {"row": 4, "col": 5, "piece": "B"}
+        ]
+      ]
+    }
+  },
+
+  "FORMAT_4_MATRIX_2D": {
+    "description": "Matrice 2D completa (tutte le celle)",
+    "pro": "Struttura chiara, accesso diretto con indici",
+    "contro": "Repetitivo, include anche celle vuote",
+    "example": {
+      "positions": [
+        [
+          [".", ".", ".", ".", ".", ".", ".", "."],
+          [".", ".", ".", ".", ".", ".", ".", "."],
+          [".", ".", ".", ".", ".", ".", ".", "."],
+          [".", ".", ".", "W", "B", ".", ".", "."],
+          [".", ".", ".", "B", "W", ".", ".", "."],
+          [".", ".", ".", ".", ".", ".", ".", "."],
+          [".", ".", ".", ".", ".", ".", ".", "."],
+          [".", ".", ".", ".", ".", ".", ".", "."]
+        ]
+      ]
+    }
+  },
+
+  "FORMAT_5_COORDINATES_ONLY": {
+    "description": "Solo le celle occupate con coordinate",
+    "pro": "Minimo, solo informazioni necessarie",
+    "contro": "Non ricostruisce facilmente la board completa",
+    "example": {
+      "positions": [
+        [
+          {"coord": "D4", "piece": "W"},
+          {"coord": "E4", "piece": "B"},
+          {"coord": "D5", "piece": "B"},
+          {"coord": "E5", "piece": "W"}
+        ]
+      ]
+    }
+  },
+
+  "FORMAT_6_HUMAN_READABLE": {
+    "description": "Formato ottimale per leggibilità umana",
+    "pro": "Leggibilissimo, mantiene compattezza, separa bianchi e neri",
+    "contro": "Richiede parsing leggermente più complesso",
+    "example": {
+      "positions": [
+        {
+          "empty": "A1-8,B1-8,C1-8,D1-3,D6-8,E1-3,E6-8,F1-8,G1-8,H1-8",
+          "black": ["D5", "E4"],
+          "white": ["D4", "E5"]
+        }
+      ]
+    }
+  },
+
+  "FORMAT_7_VISUAL_ASCII": {
+    "description": "Rappresentazione visuale ASCII art",
+    "pro": "Immediatamente comprensibile",
+    "contro": "Non è JSON valido, richiede parser speciale",
+    "example": {
+      "positions": [
+        "    A B C D E F G H\n" +
+        "  1 . . . . . . . .\n" +
+        "  2 . . . . . . . .\n" +
+        "  3 . . . . . . . .\n" +
+        "  4 . . . W B . . .\n" +
+        "  5 . . . B W . . .\n" +
+        "  6 . . . . . . . .\n" +
+        "  7 . . . . . . . .\n" +
+        "  8 . . . . . . . ."
+      ]
+    }
+  },
+
+  "FORMAT_8_BITBOARD": {
+    "description": "Rappresentazione bitboard (numeri binari)",
+    "pro": "Estremamente efficiente per AI, operazioni bitwise veloci",
+    "contro": "Completamente illeggibile per umani",
+    "example": {
+      "positions": [
+        {
+          "black_bits": "0x0000000810000000",
+          "white_bits": "0x0000001008000000"
+        }
+      ]
+    }
+  },
+
+  "COMPARISON_SUMMARY": {
+    "most_readable": "FORMAT_3_ARRAY_OF_OBJECTS o FORMAT_6_HUMAN_READABLE",
+    "most_compact": "FORMAT_1_STRING_64_CHARS",
+    "best_balance": "FORMAT_2_ARRAY_OF_ROWS",
+    "most_efficient": "FORMAT_8_BITBOARD",
+    "easiest_to_edit": "FORMAT_3_ARRAY_OF_OBJECTS"
+  }
+}
