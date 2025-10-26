@@ -151,6 +151,10 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
     }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
 
     /* JSON Editor */
     .json-editor-toggle{
@@ -444,7 +448,7 @@
           
         case 'ai_move':
           console.log(`${data.players.white.name} played:`, message.data.move);
-          removeThinkingMessage(); // Remove thinking indicator
+          removeThinkingIconFromPlayerName(); // Remove thinking icon from player name
           // Show AI move animation
           if(message.data.move){
             const moveCoord = message.data.move;
@@ -463,15 +467,9 @@
           
         case 'ai_thinking':
           console.log(message.message);
-          showThinkingMessage(message.message);
-          // Also update notes to show thinking status
-          if(data && data.notes){
-            const thinkingNotes = {
-              ...data.notes,
-              thinking: message.message
-            };
-            renderNotes(thinkingNotes);
-          }
+          // Add thinking icon to AI player name
+          addThinkingIconToPlayerName();
+          // Don't show the floating message or update notes with thinking status
           break;
           
         case 'error':
@@ -790,11 +788,6 @@
       // Update notes with AI analysis
       const updatedNotes = { ...data.notes };
       
-      // Remove thinking status if present
-      if(updatedNotes.thinking){
-        delete updatedNotes.thinking;
-      }
-      
       if(aiData.evaluation !== undefined){
         updatedNotes.selected_value = String(aiData.evaluation);
       }
@@ -810,24 +803,28 @@
       data.notes = updatedNotes;
     }
     
-    function showThinkingMessage(message){
-      // Create or update thinking indicator
-      let indicator = document.getElementById('ai-thinking-indicator');
-      if(!indicator){
-        indicator = document.createElement('div');
-        indicator.id = 'ai-thinking-indicator';
-        indicator.className = 'ai-thinking';
-        indicator.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(16,36,28,0.95);padding:12px 20px;border-radius:12px;border:1px solid var(--accent2);color:var(--accent2);font-size:14px;z-index:1000;animation:pulse 1.5s infinite;';
-        document.body.appendChild(indicator);
+
+    
+    function addThinkingIconToPlayerName(){
+      // Add rotating icon to p2Name (AI player - white)
+      const p2Name = qs('p2Name');
+      if(p2Name && !p2Name.querySelector('.thinking-icon')){
+        const icon = document.createElement('span');
+        icon.className = 'thinking-icon';
+        icon.innerHTML = '↻';
+        icon.style.cssText = 'display:inline-block;margin-right:8px;animation:spin 1s linear infinite;color:var(--accent2);font-size:1.2em;vertical-align:middle;';
+        p2Name.insertBefore(icon, p2Name.firstChild);
       }
-      indicator.textContent = message;
     }
     
-    // Remove thinking indicator when AI move is received
-    function removeThinkingMessage(){
-      const indicator = document.getElementById('ai-thinking-indicator');
-      if(indicator){
-        indicator.remove();
+    function removeThinkingIconFromPlayerName(){
+      // Remove rotating icon from p2Name
+      const p2Name = qs('p2Name');
+      if(p2Name){
+        const icon = p2Name.querySelector('.thinking-icon');
+        if(icon){
+          icon.remove();
+        }
       }
     }
     
