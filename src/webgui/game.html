@@ -250,26 +250,16 @@
       [],
       []
     ],
-    "ai": {
-      "engine": "Reversi42",
-      "id_summary": {
-        "final_depth": 8,
-        "total_nodes": 9,
-        "alpha_beta_pruned": 0,
-        "alpha_beta_pct": 0.0,
-        "lmr_reductions": 1105,
-        "lmr_researches": 178,
-        "lmr_research_pct": 16.1,
-        "futility_cut": 26,
-        "null_move_cutoffs": 198,
-        "null_move_trials": 420,
-        "null_move_success_pct": 47.1,
-        "history_entries": 44,
-        "total_time_s": 0.001,
-        "avg_nps": 16559,
-        "selected_move": "C2",
-        "selected_value": -10
-      }
+    "deepening_summary_title": "Deepening Summary",
+    "deepening_summary": {
+      "final_depth": 8,
+      "total_nodes": "9,234",
+      "alpha_beta_pruned": {
+        "value": "1,729",
+        "value2": "(25.3%)"
+      },
+      "selected_move": "E3",
+      "selected_value": "-10"
     }
   }
   </script>
@@ -403,34 +393,7 @@
       });
       if (fsBtn) fsBtn.addEventListener('click', ()=>{ if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); } else { document.exitFullscreen?.(); } });
 
-      // Clocks
-      const clkMatch = qs('matchClock');
-      const clkB = qs('blackClock');
-      const clkW = qs('whiteClock');
-      const base = { match: data.status?.clock?.match_ms||0, B: data.status?.clock?.black_ms||0, W: data.status?.clock?.white_ms||0 };
-      const partial = { B: 0, W: 0 };
-      let last = Date.now();
-      let lastTurn = null;
-      // helper safe renderer
-      const paintClock = (el, totalMs, partialMs)=>{
-        if(!el) return;
-        el.classList.add('pclock');
-        el.innerHTML = `<strong>${msToClock(totalMs)}</strong><span class="sep">·</span><span class="partial">+${msToClock(partialMs)}</span>`;
-      };
-      setInterval(()=>{
-        const now = Date.now(); const dt = now - last; last = now;
-        const turn = (data.status?.turn_by_ply && data.status.turn_by_ply[ply]) || (ply%2===0 ? 'B':'W');
-        if(lastTurn===null) lastTurn = turn;
-        if (turn !== lastTurn) { // reset partial on side change
-          partial[turn] = 0; lastTurn = turn;
-        }
-        base.match += dt;
-        if (turn==='B'){ base.B += dt; partial.B += dt; }
-        else { base.W += dt; partial.W += dt; }
-        if (clkMatch) clkMatch.textContent = msToClock(base.match);
-        paintClock(clkB, base.B, partial.B);
-        paintClock(clkW, base.W, partial.W);
-      }, 500);
+
 
       // Keyboard
       window.addEventListener('keydown', (e)=>{
@@ -438,9 +401,15 @@
         if(e.key==='ArrowRight'){ if(ply<maxPly){ ply++; render(); } }
       });
 
-      // First render + AI
+      // Deepening Summary title (parametrizable)
+      const deepeningTitle = qs('deepeningSummaryTitle');
+      if(deepeningTitle) deepeningTitle.textContent = data.deepening_summary_title || 'Deepening Summary';
+      
+      // First render + Deepening Summary
       render();
-      renderAI(data.ai);
+      if(data.deepening_summary){
+        renderDeepeningSummary(data.deepening_summary);
+      }
 
       function render(){
         // keep rows numbers aligned after any layout change
@@ -473,20 +442,7 @@
           elBoard.children[i].firstElementChild.appendChild(dot);
         });
 
-        // Openings
-        openingsUl.innerHTML='';
-        const openings = (data.opening_by_ply?.[ply]) || [];
-        openings.forEach(sug=>{
-          const i = coordToIdx(sug.move);
-          const badge = document.createElement('div'); badge.className='hint'; badge.textContent = sug.score || '★';
-          elBoard.children[i].firstElementChild.appendChild(badge);
-          const li=document.createElement('li'); li.className='py-1';
-          const tagSpan = (sug.tags||[]).map(t=>`<span class="chip" style="margin-left:.4rem">${escapeHtml(t)}</span>`).join('');
-          li.innerHTML = `<strong>${escapeHtml(sug.move)}</strong> <span style="color:var(--gold);font-weight:800">${escapeHtml(sug.score||'')}</span>
-                          <div class="text-xs mt-1" style="color:var(--muted)">${escapeHtml(sug.line||'')}</div>
-                          <div class="mt-1">${tagSpan}</div>`;
-          openingsUl.appendChild(li);
-        });
+
 
         // Counts + delta + catturate
         const counts = countBW(s); qs('p1Count').textContent = `● ${counts.b}`; qs('p2Count').textContent = `○ ${counts.w}`;
@@ -518,9 +474,7 @@
           ok('normalize64 start shape', def[27]==='W' && def[28]==='B' && def[35]==='B' && def[36]==='W');
           const counts = countBW(('B'.repeat(2)+'W'.repeat(3)).padEnd(64,'.').split('')); ok('countBW 2/3', counts.b===2 && counts.w===3);
           ok('DOM 64 celle', document.querySelectorAll('#board .cell').length===64);
-          ok('Header clocks', !!qs('blackClock') && !!qs('whiteClock') && !!qs('matchClock'));
-          ok('Openings UL esiste', !!qs('openingsUl'));
-          ok('AI box render', !!qs('aiBox'));
+          ok('Deepening Summary', !!qs('deepeningSummary'));
           ok('Toolbar btns', !!qs('undoBtn') && !!qs('redoBtn') && !!qs('copyBtn') && !!qs('saveBtn') && !!qs('loadBtn') && !!qs('fsBtn'));
         }catch(e){ console.error(e); }
         console.table(tests);
@@ -539,54 +493,31 @@
     function setDelta(id, n){ const el = qs(id); if(!el) return; if(n===0){ el.textContent = '±0'; return; } el.textContent = `${n>0?'+':'−'}${Math.abs(n)}`; }
 
     // === AI RENDERING ===
-    function renderAI(ai){
-      const box = qs('aiBox'); if(!box){ return; }
-      if(!ai || !ai.id_summary){ box.innerHTML = '<div class="text-sm" style="color:var(--muted)">Nessun dato AI disponibile.</div>'; return; }
-      const s = ai.id_summary; const rows = [];
-      const p = (label, value, sub='')=>{
+    function renderDeepeningSummary(summary){
+      const box = qs('deepeningSummary'); 
+      if(!box){ return; }
+      
+      if(!summary || Object.keys(summary).length === 0){ 
+        box.innerHTML = '<div class="text-sm" style="color:var(--muted)">Nessun dato disponibile.</div>'; 
+        return; 
+      }
+      
+      const rows = [];
+      for(const [key, valueObj] of Object.entries(summary)){
+        const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const value = typeof valueObj === 'object' && valueObj !== null ? valueObj.value : valueObj;
+        const value2 = typeof valueObj === 'object' && valueObj !== null ? valueObj.value2 : null;
+        
         rows.push(`<div class="flex items-center justify-between gap-4">
           <span class="text-[13px]">${escapeHtml(label)}</span>
-          <span class="text-[13px] font-semibold" style="color:var(--txt)">${value}${sub?` <span style=\"color:var(--muted)\">${sub}</span>`:''}</span>
+          <div class="flex items-center gap-2">
+            <span class="text-[13px] font-semibold" style="color:var(--txt)">${escapeHtml(String(value))}</span>
+            ${value2 ? `<span class="text-[13px]" style="color:var(--muted)">${escapeHtml(String(value2))}</span>` : ''}
+          </div>
         </div>`);
-      };
-      p('Final depth', `<strong>${s.final_depth}</strong>`);
-      p('Total nodes', `<strong>${fmtInt(s.total_nodes)}</strong>`);
-      p('Alpha-beta pruning', `<strong>${fmtInt(s.alpha_beta_pruned||0)}</strong>`, `(${fmtPct(s.alpha_beta_pct||0)})`);
-      p('Late move reduction', `<strong>${fmtInt(s.lmr_reductions||0)}</strong>`, `${fmtInt(s.lmr_researches||0)} re-searches (${fmtPct(s.lmr_research_pct||0)})`);
-      p('Futility pruning', `<strong>${fmtInt(s.futility_cut||0)}</strong> hopeless positions cut`);
-      p('Null move pruning', `<strong>${fmtInt(s.null_move_cutoffs||0)}</strong>/<strong>${fmtInt(s.null_move_trials||0)}</strong>`, `(${fmtPct(s.null_move_success_pct||0)} success)`);
-      p('History table entries', `<strong>${fmtInt(s.history_entries||0)}</strong>`);
-      p('Total time', `<strong>${fmtTimeS(s.total_time_s||0)}</strong>`);
-      p('Average rate', `<strong>${fmtRate(s.avg_nps||0)}</strong>`);
-      p('Selected move', `<strong>${escapeHtml(s.selected_move||'-')}</strong>`, `(value: <strong>${s.selected_value??'-'}</strong>)`);
-      box.innerHTML = rows.join('');
-
-      const copyBtn = qs('aiCopyBtn');
-      if(copyBtn){
-        copyBtn.onclick = () => {
-          const plain = [
-            'DEEPENING SUMMARY:',
-            `Final depth: ${s.final_depth}`,
-            `Total nodes: ${s.total_nodes}`,
-            `Alpha-beta pruning: ${s.alpha_beta_pruned||0} (${(s.alpha_beta_pct||0).toFixed(1)}%)`,
-            `Late move reduction: ${s.lmr_reductions||0} reductions, ${s.lmr_researches||0} re-searches (${(s.lmr_research_pct||0).toFixed(1)}%)`,
-            `Futility pruning: ${s.futility_cut||0} hopeless positions cut`,
-            `Null move pruning: ${s.null_move_cutoffs||0}/${s.null_move_trials||0} cutoffs (${(s.null_move_success_pct||0).toFixed(1)}% success)`,
-            `History table entries: ${s.history_entries||0}`,
-            `Total time: ${fmtTimeS(s.total_time_s||0)}`,
-            `Average rate: ${fmtRate(s.avg_nps||0)}`,
-            `Selected move: ${s.selected_move||'-'} (value: ${s.selected_value??'-'})`
-          ].join('\n');
-          navigator.clipboard?.writeText(plain);
-        };
       }
+      box.innerHTML = rows.join('');
     }
-
-    // Helpers per AI box
-    function fmtInt(n){ const x = Math.floor(Number(n)||0); try{ return new Intl.NumberFormat('en-US').format(x); }catch{ return String(x); } }
-    function fmtPct(x){ return `${(Number(x)||0).toFixed(1)}%`; }
-    function fmtTimeS(s){ const x = Number(s)||0; if(x<1) return `${x.toFixed(3)}s`; return `${x.toFixed(3).replace(/\.000$/, '')}s`; }
-    function fmtRate(nps){ return `${fmtInt(nps)} nodes/sec`; }
   </script>
 
   <noscript>
