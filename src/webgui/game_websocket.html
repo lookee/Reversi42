@@ -399,7 +399,7 @@
         const initMsg = {
           type: 'init',
           session_id: SESSION_ID,
-          ai_player: 'DIVZERO.EXE'
+                          ai_player: 'BLITZ DEMON'
         };
         console.log('Sending init message:', initMsg);
         wsConnection.send(JSON.stringify(initMsg));
@@ -783,20 +783,22 @@
     function updateAIAnalysis(aiData){
       if(!data) return;
       
-      // Create dynamic AI analysis notes
+      // Create dynamic AI analysis notes with all available data
       const aiAnalysis = {
         // Always update title to show AI name
         title: data.players?.white?.name || 'DIVZERO.EXE',
         
-        // Analysis data (shown while thinking)
-        status: aiData.move ? 'Move selected' : 'Thinking...',
+        // Basic analysis data
         selected_move: aiData.move || 'Calculating...',
-        evaluation: aiData.evaluation !== undefined ? String(aiData.evaluation) : '...',
-        depth: aiData.depth !== undefined ? aiData.depth : '...',
+        evaluation: aiData.evaluation !== undefined ? String(aiData.evaluation) : 'Analyzing...',
+        depth: aiData.depth !== undefined ? `${aiData.depth} plies` : 'Calculating...',
         
-        // Static info from initial state (if available)
-        total_nodes: data.notes?.total_nodes || 'N/A',
-        alpha_beta_pruned: data.notes?.alpha_beta_pruned || 'N/A'
+        // Search statistics from engine
+        nodes_searched: aiData.nodes_searched !== undefined ? aiData.nodes_searched.toLocaleString() : 'Calculating...',
+        nodes_pruned: aiData.nodes_pruned !== undefined ? aiData.nodes_pruned.toLocaleString() : 'Calculating...',
+        pruning_ratio: aiData.pruning_ratio !== undefined ? `${(aiData.pruning_ratio * 100).toFixed(1)}%` : 'Calculating...',
+        avg_search_time: aiData.avg_search_time || 'Calculating...',
+        total_searches: aiData.total_searches !== undefined ? aiData.total_searches : 'Calculating...'
       };
       
       // Update title

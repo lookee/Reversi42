@@ -331,12 +331,34 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
                     ai_eval = getattr(ai_move, 'evaluation', None)
                     ai_depth = getattr(session.ai_player, 'last_depth', None)
                     
+                    # Get detailed statistics from engine (with error handling)
+                    engine_stats = {}
+                    try:
+                        if hasattr(session.ai_player, 'bitboard_engine'):
+                            stats = session.ai_player.bitboard_engine.get_statistics()
+                            if stats:
+                                engine_stats['total_searches'] = stats.get('searches_performed', 0)
+                                engine_stats['avg_search_time'] = f"{stats.get('avg_time', 0)*1000:.1f}ms"
+                                
+                                # Extract search stats if available
+                                search_stats = stats.get('search_stats', {})
+                                if isinstance(search_stats, dict):
+                                    engine_stats['nodes_searched'] = search_stats.get('nodes_searched', 0)
+                                    engine_stats['nodes_pruned'] = search_stats.get('nodes_pruned', 0)
+                                    engine_stats['pruning_ratio'] = search_stats.get('pruning_ratio', 0)
+                    except Exception as e:
+                        print(f"Error getting engine stats: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        # Continue without stats if there's an error
+                    
                     await send_to_connection(websocket, {
                         "type": "ai_move",
                         "data": {
                             "move": coord,
                             "evaluation": ai_eval,
-                            "depth": ai_depth
+                            "depth": ai_depth,
+                            **engine_stats  # Add engine statistics
                         }
                     })
                 else:
