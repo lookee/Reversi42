@@ -920,7 +920,21 @@
         nodes_pruned: aiData.nodes_pruned !== undefined ? aiData.nodes_pruned.toLocaleString() : 'Calculating...',
         pruning_ratio: aiData.pruning_ratio !== undefined ? `${(aiData.pruning_ratio * 100).toFixed(1)}%` : 'Calculating...',
         avg_search_time: aiData.avg_search_time || 'Calculating...',
-        total_searches: aiData.total_searches !== undefined ? aiData.total_searches : 'Calculating...'
+        total_searches: aiData.total_searches !== undefined ? aiData.total_searches : 'Calculating...',
+        
+        // Advanced statistics
+        transposition_hits: aiData.transposition_hits !== undefined ? aiData.transposition_hits.toLocaleString() : 'N/A',
+        transposition_size: aiData.transposition_size !== undefined ? aiData.transposition_size.toLocaleString() : 'N/A',
+        killer_moves: aiData.killer_moves !== undefined ? aiData.killer_moves.toLocaleString() : 'N/A',
+        history_entries: aiData.history_entries !== undefined ? aiData.history_entries.toLocaleString() : 'N/A',
+        
+        // Pruning statistics
+        null_move_cutoffs: aiData.null_move_cutoffs !== undefined ? aiData.null_move_cutoffs.toLocaleString() : 'N/A',
+        null_move_searches: aiData.null_move_searches !== undefined ? aiData.null_move_searches.toLocaleString() : 'N/A',
+        futility_pruned: aiData.futility_pruned !== undefined ? aiData.futility_pruned.toLocaleString() : 'N/A',
+        lmr_reductions: aiData.lmr_reductions !== undefined ? aiData.lmr_reductions.toLocaleString() : 'N/A',
+        lmr_researches: aiData.lmr_researches !== undefined ? aiData.lmr_researches.toLocaleString() : 'N/A',
+        multi_cut_pruned: aiData.multi_cut_pruned !== undefined ? aiData.multi_cut_pruned.toLocaleString() : 'N/A'
       };
       
       // Update title
