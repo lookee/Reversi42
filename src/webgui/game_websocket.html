@@ -129,6 +129,28 @@
     .rows-nums .coords{display:flex; align-items:center; justify-content:flex-end}
     .col-letters{position:absolute; left:0; right:0; top:-22px; display:grid; grid-template-columns:repeat(8,1fr); gap:4px; padding:0 12px; place-items:center; pointer-events:none}
     
+    /* Last move indicator - elegant red dot */
+    .last-move-indicator::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      width: 16px;
+      height: 16px;
+      background: radial-gradient(circle, #ef4444 0%, #dc2626 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.9), inset 0 2px 3px rgba(255, 255, 255, 0.4);
+      animation: dotPulse 2s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 100;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    @keyframes dotPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+    }
+    
     /* AI move highlight animation */
     .ai-move-highlight{
       animation: aiMovePulse 0.6s ease-out;
@@ -461,6 +483,9 @@
           if(message.data.evaluation !== undefined || message.data.depth || message.data.move){
             updateAIAnalysis(message.data);
           }
+          // IMPORTANT: Set isHumanTurn to true after AI move, assuming next turn is human
+          isHumanTurn = true;
+          console.log('After AI move, setting isHumanTurn to true');
           break;
           
         case 'ai_thinking':
@@ -472,6 +497,10 @@
           
         case 'error':
           console.error('Server error:', message.message);
+          // On error (invalid move), reset isHumanTurn to true to allow retry
+          isHumanTurn = true;
+          console.log('Error occurred, resetting isHumanTurn to true');
+          alert(`Error: ${message.message || 'Invalid move. Please try again.'}`);
           break;
       }
     }
@@ -486,12 +515,14 @@
         return;
       }
       console.log('Submitting move:', move);
+      isHumanTurn = false; // Prevent double moves temporarily
       wsConnection.send(JSON.stringify({
         type: 'human_move',
         move: move
       }));
-      console.log('Move submitted, setting isHumanTurn to false');
-      isHumanTurn = false; // Prevent double moves
+      console.log('Move submitted, setting isHumanTurn to false temporarily');
+      // isHumanTurn will be reset to true if server returns an error,
+      // or will remain false if move is successful (then AI will move)
     }
     
     // Initialize on page load
@@ -722,12 +753,35 @@
         }
       }
 
+      // Remove all last-move indicators from all cell-contents
+      elBoard.querySelectorAll('.last-move-indicator').forEach(el => {
+        el.classList.remove('last-move-indicator');
+      });
+      
+      // Also remove from all cells (in case it was added to cell instead of cell-content)
+      [...elBoard.children].forEach(cell => {
+        cell.classList.remove('last-move-indicator');
+      });
+      
       // Valid moves
       const vm = (data.valid_by_ply?.[ply]) || [];
       vm.map(coordToIdx).forEach(i=>{
         const dot=document.createElement('div'); dot.className='valid';
         elBoard.children[i].firstElementChild.appendChild(dot);
       });
+      
+      // Highlight last move with elegant red dot
+      if(data.moves && data.moves.length > 0) {
+        const lastMove = data.moves[data.moves.length - 1];
+        const lastMoveIdx = coordToIdx(lastMove);
+        const cell = elBoard.children[lastMoveIdx];
+        if(cell) {
+          const cellContent = cell.firstElementChild; // Get cell-content
+          if(cellContent) {
+            cellContent.classList.add('last-move-indicator');
+          }
+        }
+      }
 
       // Counts + delta
       const counts = countBW(s); 

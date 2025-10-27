@@ -51,6 +51,7 @@ class GameSession:
         self.session_id = session_id
         self.ai_player_name = ai_player_name
         self.game = Game(8)
+        self.last_ai_stats = {}  # Store last AI analysis
         
         # Create AI player
         if ai_player_name == "DIVZERO.EXE":
@@ -106,16 +107,8 @@ class GameSession:
             "moves": moves,
             "valid_by_ply": [valid_moves],
             "opening_by_ply": [[]],
-            "notes": {
-                "title": "Notes",
-                "final_depth": 8,
-                "total_nodes": "9,234",
-                "alpha_beta_pruned": {
-                    "value": "1,729",
-                    "value2": "(25.3%)"
-                },
-                "selected_move": "E3",
-                "selected_value": "-10"
+            "notes": self.last_ai_stats if self.last_ai_stats else {
+                "title": "Notes"
             }
         }
         print(f"get_state returning: {state}")
@@ -351,6 +344,15 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
                         import traceback
                         traceback.print_exc()
                         # Continue without stats if there's an error
+                    
+                    # Store AI stats in session for get_state
+                    session.last_ai_stats = {
+                        "title": session.ai_player_name,
+                        "selected_move": coord,
+                        "selected_value": ai_eval if ai_eval is not None else "N/A",
+                        "final_depth": ai_depth if ai_depth is not None else "N/A",
+                        **engine_stats
+                    }
                     
                     await send_to_connection(websocket, {
                         "type": "ai_move",
