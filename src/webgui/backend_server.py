@@ -355,11 +355,72 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
         
         print(f"Human move successful. Current turn: {session.game.turn}")
         
+        # Check for game over
+        if session.game.white_cnt + session.game.black_cnt == 64:
+            # Game over - calculate winner
+            winner = None
+            if session.game.white_cnt > session.game.black_cnt:
+                winner = "White (AI)"
+            elif session.game.black_cnt > session.game.white_cnt:
+                winner = "Black (Human)"
+            else:
+                winner = "Draw"
+            
+            await broadcast(session_id, {
+                "type": "board_update",
+                "data": session.get_state()
+            })
+            
+            await send_to_connection(websocket, {
+                "type": "game_over",
+                "data": {
+                    "winner": winner,
+                    "black_count": session.game.black_cnt,
+                    "white_count": session.game.white_cnt
+                }
+            })
+            return
+        
         # Broadcast update
         await broadcast(session_id, {
             "type": "board_update",
             "data": session.get_state()
         })
+        
+        # Check if current player has moves
+        move_list = session.game.get_move_list()
+        
+        # If no moves available for current player, pass
+        if not move_list:
+            print(f"No moves available for {session.game.turn}, passing...")
+            session.game.pass_turn()
+            
+            await broadcast(session_id, {
+                "type": "board_update",
+                "data": session.get_state()
+            })
+            
+            # Check again after pass - if still no moves, game over
+            move_list = session.game.get_move_list()
+            if not move_list:
+                # Both players passed - game over
+                winner = None
+                if session.game.white_cnt > session.game.black_cnt:
+                    winner = "White (AI)"
+                elif session.game.black_cnt > session.game.white_cnt:
+                    winner = "Black (Human)"
+                else:
+                    winner = "Draw"
+                
+                await send_to_connection(websocket, {
+                    "type": "game_over",
+                    "data": {
+                        "winner": winner,
+                        "black_count": session.game.black_cnt,
+                        "white_count": session.game.white_cnt
+                    }
+                })
+                return
         
         # Check if AI should move
         print(f"Checking if AI should move. Turn: {session.game.turn}")
@@ -485,11 +546,71 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
                     else:
                         session.game.turn = 'B'
                 
+                # Check for game over after AI move
+                if session.game.white_cnt + session.game.black_cnt == 64:
+                    # Game over
+                    winner = None
+                    if session.game.white_cnt > session.game.black_cnt:
+                        winner = "White (AI)"
+                    elif session.game.black_cnt > session.game.white_cnt:
+                        winner = "Black (Human)"
+                    else:
+                        winner = "Draw"
+                    
+                    await broadcast(session_id, {
+                        "type": "board_update",
+                        "data": session.get_state()
+                    })
+                    
+                    await send_to_connection(websocket, {
+                        "type": "game_over",
+                        "data": {
+                            "winner": winner,
+                            "black_count": session.game.black_cnt,
+                            "white_count": session.game.white_cnt
+                        }
+                    })
+                    return
+                
                 # Broadcast updated state
                 await broadcast(session_id, {
                     "type": "board_update",
                     "data": session.get_state()
                 })
+                
+                # Check if human player has moves
+                move_list = session.game.get_move_list()
+                if not move_list:
+                    # Human player must pass
+                    print("Human player has no moves, must pass")
+                    session.game.pass_turn()
+                    
+                    await broadcast(session_id, {
+                        "type": "board_update",
+                        "data": session.get_state()
+                    })
+                    
+                    # If still no moves after pass, game over
+                    move_list = session.game.get_move_list()
+                    if not move_list:
+                        # Both players passed - game over
+                        winner = None
+                        if session.game.white_cnt > session.game.black_cnt:
+                            winner = "White (AI)"
+                        elif session.game.black_cnt > session.game.white_cnt:
+                            winner = "Black (Human)"
+                        else:
+                            winner = "Draw"
+                        
+                        await send_to_connection(websocket, {
+                            "type": "game_over",
+                            "data": {
+                                "winner": winner,
+                                "black_count": session.game.black_cnt,
+                                "white_count": session.game.white_cnt
+                            }
+                        })
+                        return
             except Exception as e:
                 print(f"Error during AI move: {e}")
                 import traceback
