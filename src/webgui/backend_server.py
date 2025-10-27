@@ -9,6 +9,11 @@ Usage:
 
 import sys
 import os
+import logging
+import traceback
+import signal
+import atexit
+from datetime import datetime
 
 # Add src to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,6 +36,42 @@ from Reversi.Game import Game, Move
 from Players.PlayerFactory import PlayerFactory
 from Players.Gladiators.PlayerDivZero import PlayerDivZero
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/tmp/backend_detailed.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Global variables for graceful shutdown
+app_instance = None
+active_connections = set()
+shutdown_event = asyncio.Event()
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals gracefully"""
+    logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+    shutdown_event.set()
+
+def cleanup_on_exit():
+    """Cleanup function called on exit"""
+    logger.info("Backend server shutting down...")
+    # Close all active WebSocket connections
+    for websocket in active_connections.copy():
+        try:
+            asyncio.create_task(websocket.close())
+        except Exception as e:
+            logger.error(f"Error closing WebSocket: {e}")
+
+# Register signal handlers and cleanup
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+atexit.register(cleanup_on_exit)
+
 
 @dataclass
 class GameState:
@@ -48,20 +89,64 @@ class GameSession:
     """Manages a single game session"""
     
     def __init__(self, session_id: str, ai_player_name: str = "DIVZERO.EXE"):
-        self.session_id = session_id
-        self.ai_player_name = ai_player_name
-        self.game = Game(8)
-        self.last_ai_stats = {}  # Store last AI analysis
-        
-        # Create AI player with lower depth for faster moves
-        if ai_player_name == "DIVZERO.EXE":
-            # Use depth=6 for faster gameplay (default is 12)
-            self.ai_player = PlayerDivZero(depth=6)
-        else:
-            self.ai_player = PlayerFactory.create_player(ai_player_name)
+        try:
+            self.session_id = session_id
+            self.ai_player_name = ai_player_name
+            self.game = Game(8)
+            self.last_ai_stats = {}  # Store last AI analysis
+            self.error_count = 0  # Track consecutive errors
+            self.max_errors = 5  # Max errors before session reset
+            self.last_error_time = None
+            
+            # Create AI player with lower depth for faster moves
+            if ai_player_name == "DIVZERO.EXE":
+                # Use depth=6 for faster gameplay (default is 12)
+                self.ai_player = PlayerDivZero(depth=6)
+            else:
+                self.ai_player = PlayerFactory.create_player(ai_player_name)
+            
+            logger.info(f"Created game session {session_id} with AI {ai_player_name}")
+            
+        except Exception as e:
+            logger.error(f"Failed to create game session {session_id}: {e}")
+            logger.error(traceback.format_exc())
+            raise
         
         # PlayerDivZero doesn't have set_color method, it uses the game's turn
         # AI will play white automatically based on game.turn
+    
+    def handle_error(self, error: Exception, context: str = ""):
+        """Handle errors and potentially reset session if too many occur"""
+        self.error_count += 1
+        self.last_error_time = datetime.now()
+        
+        logger.error(f"Error in session {self.session_id} ({context}): {error}")
+        logger.error(traceback.format_exc())
+        
+        # If too many errors, reset the session
+        if self.error_count >= self.max_errors:
+            logger.warning(f"Too many errors ({self.error_count}) in session {self.session_id}, resetting...")
+            try:
+                self.reset_session()
+                self.error_count = 0
+                logger.info(f"Session {self.session_id} reset successfully")
+            except Exception as reset_error:
+                logger.error(f"Failed to reset session {self.session_id}: {reset_error}")
+                raise
+    
+    def reset_session(self):
+        """Reset the game session to initial state"""
+        try:
+            self.game = Game(8)
+            if self.ai_player_name == "DIVZERO.EXE":
+                self.ai_player = PlayerDivZero(depth=6)
+            else:
+                self.ai_player = PlayerFactory.create_player(self.ai_player_name)
+            self.last_ai_stats = {}
+            logger.info(f"Session {self.session_id} reset to initial state")
+        except Exception as e:
+            logger.error(f"Failed to reset session {self.session_id}: {e}")
+            raise
     
     def _count_opening_sequences(self, opening_book, sequence):
         """Count how many opening sequences contain the given sequence"""
@@ -149,17 +234,25 @@ class GameSession:
                             "variants": variant_count
                         })
             except Exception as e:
-                print(f"Error getting opening book moves: {e}")
-                import traceback
-                traceback.print_exc()
-                opening_moves = []
+                logger.warning(f"Could not get opening book moves: {e}")
         
-        # Return full state matching frontend JSON structure
-        state = {
-            "meta": {"variant": "Reversi/Othello", "size": 8},
+        # Use last AI stats for notes if available
+        notes = self.last_ai_stats if self.last_ai_stats else {"title": "Notes"}
+        
+        return {
+            "meta": {
+                "variant": "Reversi/Othello",
+                "size": 8
+            },
             "players": {
-                "black": {"name": "Human", "avatar": "HM"},
-                "white": {"name": self.ai_player_name, "avatar": self.ai_player_name[:2].upper()}
+                "black": {
+                    "name": "Human",
+                    "avatar": "HM"
+                },
+                "white": {
+                    "name": self.ai_player_name,
+                    "avatar": "DI"
+                }
             },
             "status": {
                 "turn_by_ply": [game.turn]
@@ -168,170 +261,233 @@ class GameSession:
             "moves": moves,
             "valid_by_ply": [valid_moves],
             "opening_by_ply": opening_moves,
-            "notes": self.last_ai_stats if self.last_ai_stats else {
-                "title": "Notes"
-            }
+            "notes": notes
         }
-        print(f"get_state returning: {state}")
-        return state
     
     def make_move(self, move_coord: str) -> tuple[bool, str]:
-        """Make a move from coordinate notation (e.g., 'C4')
-        Returns (success, error_message)
-        """
-        if len(move_coord) != 2:
-            return False, "Invalid move format"
-        
-        col = ord(move_coord[0].upper()) - 64  # A=1, B=2, etc. (Game uses 1-indexed)
-        row = int(move_coord[1])  # Game uses 1-8 indexing
-        
-        if col < 1 or col > 8 or row < 1 or row > 8:
-            return False, "Move out of bounds"
-        
-        move = Move(col, row)
-        
-        if not self.game.valid_move(move):
-            return False, "Invalid move"
-        
-        self.game.move(move)
-        return True, None
+        """Make a move and return (success, error_message)"""
+        try:
+            # Convert algebraic notation (A1-H8) to Move object
+            if len(move_coord) != 2:
+                return False, "Invalid move format"
+            
+            col = ord(move_coord[0]) - ord('A') + 1  # A=1, B=2, etc.
+            row = int(move_coord[1])  # 1-8
+            
+            logger.info(f"Converting move {move_coord} to col={col}, row={row}")
+            
+            if not (1 <= col <= 8 and 1 <= row <= 8):
+                return False, "Move out of bounds"
+            
+            # Move constructor is Move(y, x) where y is row and x is col
+            # But in algebraic notation, A1 means col=A, row=1
+            # So for C4: col=C(3), row=4 -> Move(row=4, col=3) which is D3!
+            # We need to swap them: Move(col=3, row=4) = Move(3, 4)
+            move = Move(col, row)
+            
+            # Check if move is valid
+            valid_moves = self.game.get_move_list()
+            logger.info(f"Valid moves (y,x): {[(m.y, m.x) for m in valid_moves]}")
+            logger.info(f"Attempted move {move_coord}: Move(col={col}, row={row}) = Move(y={col}, x={row})")
+            
+            if move not in valid_moves:
+                return False, "Invalid move"
+            
+            # Make the move
+            self.game.move(move)
+            logger.info(f"Move {move_coord} executed successfully")
+            return True, None
+            
+        except Exception as e:
+            logger.error(f"Error making move {move_coord}: {e}")
+            logger.error(traceback.format_exc())
+            return False, str(e)
     
-    def get_ai_move(self):
+    def get_ai_move(self) -> Move:
         """Get AI move"""
-        move_list = self.game.get_move_list()
-        return self.ai_player.get_move(self.game, move_list, None)
+        try:
+            move_list = self.game.get_move_list()
+            if not move_list:
+                return None
+            
+            # Get AI move using the correct method
+            ai_move = self.ai_player.get_move(self.game, move_list, None)
+            return ai_move
+            
+        except Exception as e:
+            logger.error(f"Error getting AI move: {e}")
+            logger.error(traceback.format_exc())
+            raise
 
+
+# Global session storage
+sessions: Dict[str, GameSession] = {}
+active_connections: Dict[str, WebSocket] = {}
 
 # FastAPI app
-app = FastAPI(title="Reversi42 WebSocket Server")
+app = FastAPI(title="Reversi42 WebSocket Backend")
 
-# Enable CORS
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Global state
-sessions: Dict[str, GameSession] = {}
-active_connections: Dict[str, Set[WebSocket]] = {}  # session_id -> set of websockets
-
-
 @app.get("/")
 async def get_index():
-    """Serve the game HTML file"""
-    import os
-    html_path = os.path.join(os.path.dirname(__file__), 'game_websocket.html')
-    if os.path.exists(html_path):
-        return FileResponse(html_path)
-    return HTMLResponse("""
-    <html>
-        <head><title>Reversi42 WebSocket Server</title></head>
-        <body>
-            <h1>Reversi42 WebSocket Bridge</h1>
-            <p>WebSocket server is running</p>
-            <p>Connect to: <code>ws://localhost:8000/ws</code></p>
-            <p>Active sessions: <span id="sessions">0</span></p>
-            <script>
-                fetch('/api/stats').then(r => r.json()).then(data => {
-                    document.getElementById('sessions').textContent = data.active_sessions;
-                });
-            </script>
-        </body>
-    </html>
-    """)
+    """Serve the main game page"""
+    try:
+        html_file = os.path.join(current_dir, "game_websocket.html")
+        if os.path.exists(html_file):
+            return FileResponse(html_file)
+        else:
+            return HTMLResponse("<h1>Game file not found</h1>", status_code=404)
+    except Exception as e:
+        logger.error(f"Error serving index: {e}")
+        return HTMLResponse("<h1>Server Error</h1>", status_code=500)
 
-
-@app.get("/api/stats")
+@app.get("/stats")
 async def get_stats():
     """Get server statistics"""
     return {
         "active_sessions": len(sessions),
-        "total_connections": sum(len(conns) for conns in active_connections.values())
+        "active_connections": len(active_connections),
+        "uptime": "N/A"  # Could implement uptime tracking
     }
-
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for game communication"""
-    print("WebSocket connection attempt received")
-    try:
-        await websocket.accept()
-        print("WebSocket accepted")
-    except Exception as e:
-        print(f"Error accepting WebSocket: {e}")
-        return
+    """WebSocket endpoint for real-time communication"""
+    await websocket.accept()
+    session_id = "default"  # For now, use single session
     
-    session_id = None
+    logger.info(f"WebSocket connection accepted for session {session_id}")
+    active_connections[session_id] = websocket
+    
     try:
-        # Wait for initial message to identify session
-        print("Waiting for initial message...")
-        initial_msg = await websocket.receive_json()
-        print(f"Received initial message: {initial_msg}")
-        
-        if initial_msg.get("type") != "init":
-            await websocket.send_json({
-                "type": "error",
-                "message": "First message must be init"
-            })
-            return
-        
-        session_id = initial_msg.get("session_id", "default")
-        
-        # Always create a new session (reset game)
-        ai_player = initial_msg.get("ai_player", "DIVZERO.EXE")
-        sessions[session_id] = GameSession(session_id, ai_player)
-        active_connections[session_id] = set()
-        print(f"Created new session: {session_id} vs {ai_player}")
-        
-        # Add this connection
-        active_connections[session_id].add(websocket)
-        
-        # Send initial state
-        state = sessions[session_id].get_state()
-        print(f"Sending initial state to client: {state}")
-        await send_to_connection(websocket, {
-            "type": "board_update",
-            "data": state
-        })
-        
-        # Handle messages
         while True:
-            data = await websocket.receive_json()
-            await handle_message(websocket, session_id, data)
+            # Receive message
+            data = await websocket.receive_text()
+            logger.info(f"Received WebSocket message: {data}")
+            message = json.loads(data)
+            logger.info(f"Parsed message: {message}")
+            
+            # Handle message
+            await handle_message(websocket, session_id, message)
             
     except WebSocketDisconnect:
-        print(f"WebSocket disconnected from session {session_id}")
+        logger.info(f"WebSocket disconnected from session {session_id}")
     except Exception as e:
-        print(f"Error in websocket handler: {e}")
+        logger.error(f"WebSocket error: {e}")
+        logger.error(traceback.format_exc())
     finally:
-        # Clean up
-        if session_id and websocket in active_connections.get(session_id, set()):
-            active_connections[session_id].remove(websocket)
-        
-        # Remove session if no connections
-        if session_id and session_id in active_connections and not active_connections[session_id]:
+        # Cleanup
+        if session_id in active_connections:
             del active_connections[session_id]
-            if session_id in sessions:
-                del sessions[session_id]
-                print(f"Removed session: {session_id}")
+        if session_id in sessions and not active_connections:
+            del sessions[session_id]
+            logger.info(f"Removed session: {session_id}")
 
 
 async def handle_message(websocket: WebSocket, session_id: str, data: dict):
-    """Handle incoming WebSocket message"""
-    msg_type = data.get("type")
-    session = sessions.get(session_id)
-    
-    if not session:
-        await send_to_connection(websocket, {
-            "type": "error",
-            "message": "Session not found"
+    """Handle incoming WebSocket message with robust error handling"""
+    try:
+        msg_type = data.get("type")
+        session = sessions.get(session_id)
+        
+        if not session and msg_type != "init":
+            await send_to_connection(websocket, {
+                "type": "error",
+                "message": "Session not found"
+            })
+            return
+        
+        logger.info(f"Handling message type '{msg_type}' for session {session_id}")
+        
+        # Process message based on type
+        await process_message_by_type(websocket, session, msg_type, data)
+        logger.info(f"Message type '{msg_type}' processed successfully")
+        
+    except Exception as e:
+        logger.error(f"Error handling message for session {session_id}: {e}")
+        logger.error(traceback.format_exc())
+        
+        # Try to handle the error gracefully
+        try:
+            session = sessions.get(session_id)
+            if session:
+                session.handle_error(e, f"handle_message({msg_type})")
+            
+            await send_to_connection(websocket, {
+                "type": "error",
+                "message": f"Internal server error: {str(e)}"
+            })
+        except Exception as cleanup_error:
+            logger.error(f"Error during error handling: {cleanup_error}")
+
+async def process_message_by_type(websocket: WebSocket, session: GameSession, msg_type: str, data: dict):
+    """Process message based on type with individual error handling"""
+    try:
+        logger.info(f"Processing message type: {msg_type}")
+        if msg_type == "human_move":
+            await handle_human_move(websocket, session, data)
+        elif msg_type == "ai_move_request":
+            await handle_ai_move_request(websocket, session)
+        elif msg_type == "init":
+            logger.info("Calling handle_init_message")
+            await handle_init_message(websocket, session, data)
+            logger.info("handle_init_message completed")
+        elif msg_type == "reset_game":
+            await handle_reset_game(websocket, session)
+        elif msg_type == "get_state":
+            await handle_get_state(websocket, session)
+        else:
+            await send_to_connection(websocket, {
+                "type": "error",
+                "message": f"Unknown message type: {msg_type}"
+            })
+    except Exception as e:
+        session.handle_error(e, f"process_message_by_type({msg_type})")
+        raise
+
+async def handle_game_over(websocket: WebSocket, session: GameSession, reason: str):
+    """Handle game over condition"""
+    try:
+        # Calculate winner
+        winner = None
+        if session.game.white_cnt > session.game.black_cnt:
+            winner = "White (AI)"
+        elif session.game.black_cnt > session.game.white_cnt:
+            winner = "Black (Human)"
+        else:
+            winner = "Draw"
+        
+        logger.info(f"Game over: {reason}. Winner: {winner}")
+        
+        await broadcast(session.session_id, {
+            "type": "board_update",
+            "data": session.get_state()
         })
-        return
-    
-    if msg_type == "human_move":
+        
+        await send_to_connection(websocket, {
+            "type": "game_over",
+            "data": {
+                "winner": winner,
+                "black_count": session.game.black_cnt,
+                "white_count": session.game.white_cnt,
+                "reason": reason
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error handling game over: {e}")
+        session.handle_error(e, "handle_game_over")
+
+async def handle_human_move(websocket: WebSocket, session: GameSession, data: dict):
+    """Handle human move with robust error handling"""
+    try:
         # Handle human move
         move_coord = data.get("move")
         if not move_coord:
@@ -342,47 +498,26 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
             return
         
         # Make move
-        print(f"Making human move: {move_coord}")
+        logger.info(f"Making human move: {move_coord}")
         success, error = session.make_move(move_coord)
         
         if not success:
-            print(f"Move failed: {error}")
+            logger.warning(f"Move failed: {error}")
             await send_to_connection(websocket, {
                 "type": "error",
                 "message": error or "Invalid move"
             })
             return
         
-        print(f"Human move successful. Current turn: {session.game.turn}")
+        logger.info(f"Human move successful. Current turn: {session.game.turn}")
         
         # Check for game over
         if session.game.white_cnt + session.game.black_cnt == 64:
-            # Game over - calculate winner
-            winner = None
-            if session.game.white_cnt > session.game.black_cnt:
-                winner = "White (AI)"
-            elif session.game.black_cnt > session.game.white_cnt:
-                winner = "Black (Human)"
-            else:
-                winner = "Draw"
-            
-            await broadcast(session_id, {
-                "type": "board_update",
-                "data": session.get_state()
-            })
-            
-            await send_to_connection(websocket, {
-                "type": "game_over",
-                "data": {
-                    "winner": winner,
-                    "black_count": session.game.black_cnt,
-                    "white_count": session.game.white_cnt
-                }
-            })
+            await handle_game_over(websocket, session, "Board full")
             return
         
         # Broadcast update
-        await broadcast(session_id, {
+        await broadcast(session.session_id, {
             "type": "board_update",
             "data": session.get_state()
         })
@@ -392,10 +527,10 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
         
         # If no moves available for current player, pass
         if not move_list:
-            print(f"No moves available for {session.game.turn}, passing...")
+            logger.info(f"No moves available for {session.game.turn}, passing...")
             session.game.pass_turn()
             
-            await broadcast(session_id, {
+            await broadcast(session.session_id, {
                 "type": "board_update",
                 "data": session.get_state()
             })
@@ -403,319 +538,263 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
             # Check again after pass - if still no moves, game over
             move_list = session.game.get_move_list()
             if not move_list:
-                # Both players passed - game over
-                winner = None
-                if session.game.white_cnt > session.game.black_cnt:
-                    winner = "White (AI)"
-                elif session.game.black_cnt > session.game.white_cnt:
-                    winner = "Black (Human)"
-                else:
-                    winner = "Draw"
-                
-                await send_to_connection(websocket, {
-                    "type": "game_over",
-                    "data": {
-                        "winner": winner,
-                        "black_count": session.game.black_cnt,
-                        "white_count": session.game.white_cnt
-                    }
-                })
+                await handle_game_over(websocket, session, "Both players passed")
                 return
         
         # Check if AI should move
-        print(f"Checking if AI should move. Turn: {session.game.turn}")
+        logger.info(f"Checking if AI should move. Turn: {session.game.turn}")
         if session.game.turn == 'W':
-            print("AI turn - requesting move...")
-            
-            # Send ai_thinking with initial stats
-            initial_stats = {
-                "title": session.ai_player_name,
-                "selected_move": "Analyzing...",
-                "evaluation": "Calculating...",
-                "depth": "Searching...",
-                "nodes_searched": 0,
-                "nodes_pruned": 0,
-                "pruning_ratio": 0,
-                "avg_search_time": "0ms",
-                "total_searches": 0
-            }
-            
-            await send_to_connection(websocket, {
-                "type": "ai_thinking",
-                "message": f"{session.ai_player_name} is thinking...",
-                "data": initial_stats
-            })
-            
-            try:
-                # Get AI move
-                ai_move = session.get_ai_move()
-                print(f"AI move received: {ai_move}")
-                
-                if ai_move:
-                    # Convert Move coordinates to algebraic notation (A1-H8)
-                    coord = f"{chr(64+ai_move.x)}{ai_move.y}"
-                    print(f"Playing AI move: {coord} (x={ai_move.x}, y={ai_move.y})")
-                    
-                    try:
-                        session.game.move(ai_move)
-                        print(f"AI move {coord} executed successfully")
-                    except Exception as e:
-                        print(f"Error executing AI move: {e}")
-                        import traceback
-                        traceback.print_exc()
-                        raise
-                    
-                    # Get AI analysis data
-                    ai_eval = getattr(ai_move, 'evaluation', None)
-                    ai_depth = getattr(session.ai_player, 'last_depth', None)
-                    
-                    # Get detailed statistics from engine (with error handling)
-                    engine_stats = {}
-                    try:
-                        if hasattr(session.ai_player, 'bitboard_engine'):
-                            stats = session.ai_player.bitboard_engine.get_statistics()
-                            if stats:
-                                # Engine level stats
-                                engine_stats['total_searches'] = stats.get('searches_performed', 0)
-                                avg_time = stats.get('avg_time', 0)
-                                engine_stats['avg_search_time'] = f"{avg_time*1000:.1f}ms" if avg_time > 0 else "0ms"
-                                
-                                # Extract detailed search stats
-                                search_stats = stats.get('search_stats', {})
-                                if isinstance(search_stats, dict):
-                                    nodes = search_stats.get('nodes', 0)
-                                    pruning = search_stats.get('pruning', 0)
-                                    pruned = search_stats.get('pruned', 0)
-                                    tt_hits = search_stats.get('tt_hits', 0)
-                                    
-                                    engine_stats['nodes_searched'] = nodes
-                                    engine_stats['nodes_pruned'] = pruning
-                                    if nodes > 0:
-                                        engine_stats['pruning_ratio'] = round(pruning / nodes, 3)
-                                    else:
-                                        engine_stats['pruning_ratio'] = 0
-                                    
-                                    # Additional stats
-                                    engine_stats['transposition_hits'] = tt_hits
-                                    engine_stats['transposition_size'] = search_stats.get('tt_size', 0)
-                                    
-                                    # Killer moves and history
-                                    engine_stats['killer_moves'] = search_stats.get('killer_moves', 0)
-                                    engine_stats['history_entries'] = search_stats.get('history_entries', 0)
-                                    
-                                    # Advanced pruning stats
-                                    if 'null_move' in search_stats:
-                                        nm_stats = search_stats['null_move']
-                                        engine_stats['null_move_cutoffs'] = nm_stats.get('cutoffs', 0)
-                                        engine_stats['null_move_searches'] = nm_stats.get('searches', 0)
-                                    
-                                    if 'futility' in search_stats:
-                                        fut_stats = search_stats['futility']
-                                        engine_stats['futility_pruned'] = fut_stats.get('pruned', 0)
-                                    
-                                    if 'lmr' in search_stats:
-                                        lmr_stats = search_stats['lmr']
-                                        engine_stats['lmr_reductions'] = lmr_stats.get('reductions', 0)
-                                        engine_stats['lmr_researches'] = lmr_stats.get('researches', 0)
-                                    
-                                    if 'multi_cut' in search_stats:
-                                        mc_stats = search_stats['multi_cut']
-                                        engine_stats['multi_cut_pruned'] = mc_stats.get('pruned', 0)
-                                    
-                    except Exception as e:
-                        print(f"Error getting engine stats: {e}")
-                        import traceback
-                        traceback.print_exc()
-                        # Continue without stats if there's an error
-                    
-                    # Store AI stats in session for get_state
-                    session.last_ai_stats = {
-                        "title": session.ai_player_name,
-                        "selected_move": coord,
-                        "selected_value": ai_eval if ai_eval is not None else "N/A",
-                        "final_depth": ai_depth if ai_depth is not None else "N/A",
-                        **engine_stats
-                    }
-                    
-                    await send_to_connection(websocket, {
-                        "type": "ai_move",
-                        "data": {
-                            "move": coord,
-                            "evaluation": ai_eval,
-                            "depth": ai_depth,
-                            **engine_stats  # Add engine statistics
-                        }
-                    })
-                else:
-                    print("AI passed - no moves available")
-                    # AI passed - call pass_turn
-                    session.game.pass_turn()
-                    
-                    # Broadcast the pass move
-                    await broadcast(session_id, {
-                        "type": "board_update",
-                        "data": session.get_state()
-                    })
-                    
-                    # Check if game is over after pass
-                    move_list = session.game.get_move_list()
-                    if not move_list:
-                        # Both players passed - game over
-                        winner = None
-                        if session.game.white_cnt > session.game.black_cnt:
-                            winner = "White (AI)"
-                        elif session.game.black_cnt > session.game.white_cnt:
-                            winner = "Black (Human)"
-                        else:
-                            winner = "Draw"
-                        
-                        await send_to_connection(websocket, {
-                            "type": "game_over",
-                            "data": {
-                                "winner": winner,
-                                "black_count": session.game.black_cnt,
-                                "white_count": session.game.white_cnt
-                            }
-                        })
-                        return
-                
-                # Check for game over after AI move
-                if session.game.white_cnt + session.game.black_cnt == 64:
-                    # Game over
-                    winner = None
-                    if session.game.white_cnt > session.game.black_cnt:
-                        winner = "White (AI)"
-                    elif session.game.black_cnt > session.game.white_cnt:
-                        winner = "Black (Human)"
-                    else:
-                        winner = "Draw"
-                    
-                    await broadcast(session_id, {
-                        "type": "board_update",
-                        "data": session.get_state()
-                    })
-                    
-                    await send_to_connection(websocket, {
-                        "type": "game_over",
-                        "data": {
-                            "winner": winner,
-                            "black_count": session.game.black_cnt,
-                            "white_count": session.game.white_cnt
-                        }
-                    })
-                    return
-                
-                # Broadcast updated state
-                await broadcast(session_id, {
+            # Check if AI has moves
+            ai_move_list = session.game.get_move_list()
+            if not ai_move_list:
+                logger.info(f"No moves available for AI (W), passing...")
+                session.game.pass_turn()
+                await broadcast(session.session_id, {
                     "type": "board_update",
                     "data": session.get_state()
                 })
                 
-                # Check if human player has moves
+                # Check if game is over (no moves for either player)
+                final_move_list = session.game.get_move_list()
+                if not final_move_list:
+                    await handle_game_over(websocket, session, "Both players passed")
+                    return
+            else:
+                # AI has moves, request AI move
+                await handle_ai_move_request(websocket, session)
+            
+    except Exception as e:
+        logger.error(f"Error in handle_human_move: {e}")
+        session.handle_error(e, "handle_human_move")
+        await send_to_connection(websocket, {
+            "type": "error",
+            "message": f"Error processing human move: {str(e)}"
+        })
+
+async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
+    """Handle AI move request with robust error handling"""
+    try:
+        logger.info("AI turn - requesting move...")
+        
+        # Send ai_thinking with initial stats
+        initial_stats = {
+            "title": session.ai_player_name,
+            "selected_move": "Analyzing...",
+            "evaluation": "Calculating...",
+            "depth": "Searching...",
+            "nodes_searched": 0,
+            "nodes_pruned": 0,
+            "pruning_ratio": 0,
+            "avg_search_time": "0ms",
+            "total_searches": 0
+        }
+        
+        await send_to_connection(websocket, {
+            "type": "ai_thinking",
+            "message": f"{session.ai_player_name} is thinking...",
+            "data": initial_stats
+        })
+        
+        try:
+            # Get AI move
+            ai_move = session.get_ai_move()
+            logger.info(f"AI move received: {ai_move}")
+            
+            if ai_move:
+                # Convert Move coordinates to algebraic notation (A1-H8)
+                coord = f"{chr(64+ai_move.x)}{ai_move.y}"
+                logger.info(f"Playing AI move: {coord} (x={ai_move.x}, y={ai_move.y})")
+                
+                try:
+                    session.game.move(ai_move)
+                    logger.info(f"AI move {coord} executed successfully")
+                except Exception as e:
+                    logger.error(f"Error executing AI move: {e}")
+                    logger.error(traceback.format_exc())
+                    raise
+                
+                # Get AI analysis data
+                ai_eval = getattr(ai_move, 'evaluation', None)
+                ai_depth = getattr(session.ai_player, 'last_depth', None)
+                
+                # Get detailed statistics from engine
+                engine_stats = {}
+                try:
+                    if hasattr(session.ai_player, 'bitboard_engine'):
+                        stats = session.ai_player.bitboard_engine.get_statistics()
+                        if stats:
+                            engine_stats['total_searches'] = stats.get('searches_performed', 0)
+                            avg_time = stats.get('avg_time', 0)
+                            engine_stats['avg_search_time'] = f"{avg_time*1000:.1f}ms" if avg_time > 0 else "0ms"
+                            
+                            search_stats = stats.get('search_stats', {})
+                            if isinstance(search_stats, dict):
+                                nodes = search_stats.get('nodes', 0)
+                                pruning = search_stats.get('pruning', 0)
+                                engine_stats['nodes_searched'] = nodes
+                                engine_stats['nodes_pruned'] = pruning
+                                engine_stats['pruning_ratio'] = round(pruning / nodes, 3) if nodes > 0 else 0
+                except Exception as e:
+                    logger.warning(f"Could not get engine stats: {e}")
+                
+                # Store AI stats for notes
+                session.last_ai_stats = {
+                    "title": session.ai_player_name,
+                    "selected_move": coord,
+                    "selected_value": str(ai_eval) if ai_eval is not None else "N/A",
+                    "final_depth": str(ai_depth) if ai_depth is not None else "N/A",
+                    **engine_stats
+                }
+                
+                # Send ai_move message
+                await send_to_connection(websocket, {
+                    "type": "ai_move",
+                    "data": {
+                        "move": coord,
+                        "evaluation": ai_eval,
+                        "depth": ai_depth,
+                        **engine_stats
+                    }
+                })
+                
+                # Check for game over after AI move
+                if session.game.white_cnt + session.game.black_cnt == 64:
+                    await handle_game_over(websocket, session, "Board full")
+                    return
+                
+                # Broadcast board update
+                await broadcast(session.session_id, {
+                    "type": "board_update",
+                    "data": session.get_state()
+                })
+                
+                # Check if current player has moves
                 move_list = session.game.get_move_list()
                 if not move_list:
-                    # Human player must pass
-                    print("Human player has no moves, must pass")
+                    logger.info(f"No moves available for {session.game.turn}, passing...")
                     session.game.pass_turn()
-                    print(f"After pass, turn is now: {session.game.turn}")
                     
-                    state_after_pass = session.get_state()
-                    print(f"Broadcasting board update after human pass")
-                    await broadcast(session_id, {
+                    await broadcast(session.session_id, {
                         "type": "board_update",
-                        "data": state_after_pass
+                        "data": session.get_state()
                     })
                     
-                    # If still no moves after pass, game over
+                    # Check again after pass
                     move_list = session.game.get_move_list()
-                    print(f"After pass, move_list: {move_list}")
                     if not move_list:
-                        # Both players passed - game over
-                        winner = None
-                        if session.game.white_cnt > session.game.black_cnt:
-                            winner = "White (AI)"
-                        elif session.game.black_cnt > session.game.white_cnt:
-                            winner = "Black (Human)"
-                        else:
-                            winner = "Draw"
-                        
-                        await send_to_connection(websocket, {
-                            "type": "game_over",
-                            "data": {
-                                "winner": winner,
-                                "black_count": session.game.black_cnt,
-                                "white_count": session.game.white_cnt
-                            }
-                        })
+                        await handle_game_over(websocket, session, "Both players passed")
                         return
-            except Exception as e:
-                print(f"Error during AI move: {e}")
-                import traceback
-                traceback.print_exc()
-    
-    elif msg_type == "reset_game":
-        # Reset game
-        session.game = Game(8, 8)
-        await broadcast(session_id, {
-            "type": "board_update",
-            "data": session.get_state()
+            else:
+                # AI has no moves, pass
+                logger.info("AI has no valid moves, passing...")
+                session.game.pass_turn()
+                
+                await broadcast(session.session_id, {
+                    "type": "board_update",
+                    "data": session.get_state()
+                })
+                
+                # Check if game is over after pass
+                move_list = session.game.get_move_list()
+                if not move_list:
+                    await handle_game_over(websocket, session, "Both players passed")
+                    return
+                    
+        except Exception as e:
+            logger.error(f"Error in AI move request: {e}")
+            session.handle_error(e, "handle_ai_move_request")
+            await send_to_connection(websocket, {
+                "type": "error",
+                "message": f"Error processing AI move: {str(e)}"
+            })
+            
+    except Exception as e:
+        logger.error(f"Critical error in handle_ai_move_request: {e}")
+        session.handle_error(e, "handle_ai_move_request_critical")
+        await send_to_connection(websocket, {
+            "type": "error",
+            "message": f"Critical error: {str(e)}"
         })
-    
-    elif msg_type == "get_state":
-        # Send current state
+
+async def handle_init_message(websocket: WebSocket, session: GameSession, data: dict):
+    """Handle init message - create new session"""
+    try:
+        ai_player_name = data.get("ai_player", "DIVZERO.EXE")
+        
+        # Always create a new session on init
+        new_session = GameSession("default", ai_player_name)
+        sessions["default"] = new_session
+        
+        logger.info(f"Created new session with AI: {ai_player_name}")
+        
+        # Send initial state
+        await send_to_connection(websocket, {
+            "type": "board_update",
+            "data": new_session.get_state()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in handle_init_message: {e}")
+        await send_to_connection(websocket, {
+            "type": "error",
+            "message": f"Error initializing game: {str(e)}"
+        })
+
+async def handle_reset_game(websocket: WebSocket, session: GameSession):
+    """Handle reset game message"""
+    try:
+        session.reset_session()
         await send_to_connection(websocket, {
             "type": "board_update",
             "data": session.get_state()
         })
+    except Exception as e:
+        logger.error(f"Error in handle_reset_game: {e}")
+        session.handle_error(e, "handle_reset_game")
 
+async def handle_get_state(websocket: WebSocket, session: GameSession):
+    """Handle get state message"""
+    try:
+        await send_to_connection(websocket, {
+            "type": "board_update",
+            "data": session.get_state()
+        })
+    except Exception as e:
+        logger.error(f"Error in handle_get_state: {e}")
+        session.handle_error(e, "handle_get_state")
 
 async def send_to_connection(websocket: WebSocket, message: dict):
-    """Send message to a single connection"""
+    """Send message to WebSocket connection"""
     try:
-        await websocket.send_json(message)
+        message_str = json.dumps(message)
+        logger.info(f"Sending message: {message_str[:100]}...")
+        await websocket.send_text(message_str)
+        logger.info("Message sent successfully")
     except Exception as e:
-        print(f"Error sending message: {e}")
-
+        logger.error(f"Error sending message: {e}")
 
 async def broadcast(session_id: str, message: dict):
-    """Broadcast message to all connections in a session"""
-    if session_id not in active_connections:
-        return
-    
-    # Get a copy of the set to avoid modification during iteration
-    connections = active_connections[session_id].copy()
-    
-    for connection in connections:
-        try:
-            await connection.send_json(message)
-        except Exception as e:
-            print(f"Error broadcasting to connection: {e}")
-            # Remove dead connection
-            active_connections[session_id].discard(connection)
-
+    """Broadcast message to all connections in session"""
+    try:
+        if session_id in active_connections:
+            await send_to_connection(active_connections[session_id], message)
+    except Exception as e:
+        logger.error(f"Error broadcasting message: {e}")
 
 def main():
-    """Main entry point"""
-    parser = argparse.ArgumentParser(description="Reversi42 WebSocket Server")
-    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
-    parser.add_argument("--port", type=int, default=8000, help="Port to bind to")
-    parser.add_argument("--player", default="DIVZERO.EXE", help="AI player to use")
-    parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
+    """Main function"""
+    parser = argparse.ArgumentParser(description='Reversi42 WebSocket Backend')
+    parser.add_argument('--port', type=int, default=8000, help='Port to run on')
+    parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
+    parser.add_argument('--player', default='DIVZERO.EXE', help='AI player to use')
     
     args = parser.parse_args()
     
-    print(f"""
-╔════════════════════════════════════════════╗
-║   Reversi42 WebSocket Server              ║
-╠════════════════════════════════════════════╣
-║  Server:  ws://localhost:{args.port}/ws     ║
-║  AI Player: {args.player:<25} ║
-╚════════════════════════════════════════════╝
-    """)
+    logger.info(f"Starting Reversi42 WebSocket Backend on {args.host}:{args.port}")
+    logger.info(f"AI Player: {args.player}")
     
     import uvicorn
-    uvicorn.run(app, host=args.host, port=args.port, reload=args.reload)
-
+    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
 if __name__ == "__main__":
     main()

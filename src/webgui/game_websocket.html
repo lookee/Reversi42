@@ -560,8 +560,12 @@
           
           // Update turn indicator - Human plays Black (B), AI plays White (W)
           const turn = data.status?.turn_by_ply?.[0] || 'B';
-          isHumanTurn = (turn === 'B');
-          console.log('Turn updated from board_update:', turn, 'isHumanTurn:', isHumanTurn, 'moves:', data.moves?.length || 0);
+          const newIsHumanTurn = (turn === 'B');
+          console.log('board_update received. Turn:', turn, 'Current isHumanTurn:', isHumanTurn, 'New isHumanTurn:', newIsHumanTurn);
+          if(isHumanTurn !== newIsHumanTurn){
+            isHumanTurn = newIsHumanTurn;
+            console.log('Turn updated from board_update:', turn, 'isHumanTurn:', isHumanTurn, 'moves:', data.moves?.length || 0);
+          }
           break;
           
         case 'ai_move':
@@ -582,7 +586,7 @@
             updateAIAnalysis(message.data);
           }
           // Note: isHumanTurn will be set by the following board_update message
-          console.log('AI move completed, waiting for board_update to set turn');
+          console.log('AI move completed, waiting for board_update');
           break;
           
         case 'ai_thinking':
