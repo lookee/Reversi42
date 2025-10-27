@@ -403,8 +403,18 @@
         cell.className = 'cell';
         cell.dataset.coord = coords[i]; // Store coordinate
         cell.onclick = () => {
-          console.log('Cell clicked:', cell.dataset.coord, 'isHumanTurn:', isHumanTurn, 'wsReady:', wsConnection?.readyState === WebSocket.OPEN);
-          if(isHumanTurn && wsConnection && wsConnection.readyState === WebSocket.OPEN){
+          console.log('Cell clicked:', cell.dataset.coord, 'isHumanTurn:', isHumanTurn, 'wsReady:', wsConnection?.readyState === WebSocket.OPEN, 'data:', !!data);
+          
+          // Always check turn from data if available
+          let currentTurn = 'B';
+          if(data && data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0){
+            currentTurn = data.status.turn_by_ply[0];
+          }
+          
+          const canMove = (currentTurn === 'B' && wsConnection && wsConnection.readyState === WebSocket.OPEN);
+          console.log('Current turn from data:', currentTurn, 'canMove:', canMove);
+          
+          if(canMove){
             submitMove(cell.dataset.coord);
           } else {
             console.log('Move rejected - not your turn or WebSocket closed');
@@ -791,7 +801,6 @@
 
       // Board position
       const s = normalize64(data.positions?.[ply]);
-      console.log('Rendering board. s:', s.slice(0, 10), 'positions[ply]:', data.positions?.[ply]);
       for(let i=0;i<64;i++){
         const inner = elBoard.children[i].firstElementChild;
         inner.innerHTML='';
