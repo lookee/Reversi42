@@ -617,14 +617,18 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
                     # Human player must pass
                     print("Human player has no moves, must pass")
                     session.game.pass_turn()
+                    print(f"After pass, turn is now: {session.game.turn}")
                     
+                    state_after_pass = session.get_state()
+                    print(f"Broadcasting board update after human pass")
                     await broadcast(session_id, {
                         "type": "board_update",
-                        "data": session.get_state()
+                        "data": state_after_pass
                     })
                     
                     # If still no moves after pass, game over
                     move_list = session.game.get_move_list()
+                    print(f"After pass, move_list: {move_list}")
                     if not move_list:
                         # Both players passed - game over
                         winner = None
