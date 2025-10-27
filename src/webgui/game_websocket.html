@@ -750,6 +750,7 @@
 
       // Board position
       const s = normalize64(data.positions?.[ply]);
+      console.log('Rendering board. s:', s.slice(0, 10), 'positions[ply]:', data.positions?.[ply]);
       for(let i=0;i<64;i++){
         const inner = elBoard.children[i].firstElementChild;
         inner.innerHTML='';
@@ -777,33 +778,21 @@
       
       // Opening book moves with variant count
       const openingMoves = (data.opening_by_ply || []);
-      console.log('🔍 Opening moves from data:', JSON.stringify(openingMoves));
-      console.log('📊 Opening moves count:', openingMoves.length);
       if(Array.isArray(openingMoves) && openingMoves.length > 0) {
         openingMoves.forEach(obj => {
-          console.log('🔄 Processing opening move:', obj, 'obj.move:', obj.move, 'obj.variants:', obj.variants);
           if(obj && obj.move) {
             const idx = coordToIdx(obj.move);
-            console.log('📍 Move', obj.move, 'maps to index', idx);
             const cell = elBoard.children[idx];
-            if(cell) {
-              console.log('✅ Cell found for', obj.move, '- adding badge');
+            if(cell && cell.firstElementChild) {
               // Add variant count badge
               const badge = document.createElement('div');
               badge.className = 'book-move-badge';
               badge.textContent = String(obj.variants || 0);
               badge.title = `${obj.variants || 0} variant(s) in opening book`;
               cell.firstElementChild.appendChild(badge);
-              console.log('✅ Added badge for move', obj.move, 'with', obj.variants, 'variants');
-            } else {
-              console.log('❌ Cell not found for index', idx);
             }
-          } else {
-            console.log('❌ Invalid object:', obj);
           }
         });
-      } else {
-        console.log('⚠️ No opening moves to display');
       }
       
       // Highlight last move with elegant red dot
