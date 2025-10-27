@@ -183,6 +183,44 @@
       to { transform: rotate(360deg); }
     }
 
+    /* WebSocket Status Indicator */
+    .ws-status-indicator{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      border-radius: 10px;
+      padding: .5rem .8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--txt);
+      transition: all 0.2s ease;
+      cursor: default;
+    }
+    .ws-status-icon{
+      position: relative;
+      width: 8px;
+      height: 8px;
+    }
+    .ws-status-dot{
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: wsPulse 2s ease-in-out infinite;
+    }
+    .ws-status-indicator.connected .ws-status-dot{
+      background: #10b981;
+    }
+    .ws-status-indicator.connecting .ws-status-dot{
+      background: #f59e0b;
+    }
+    @keyframes wsPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
     /* JSON Editor */
     .json-editor-toggle{
       background:rgba(16,185,129,.1);
@@ -317,6 +355,13 @@
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Black Disc</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>White Disc</span>
           <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Valid Move</span>
+          <!-- WebSocket Status Indicator -->
+          <div id="wsStatusIndicator" class="ws-status-indicator">
+            <div class="ws-status-icon">
+              <div class="ws-status-dot"></div>
+            </div>
+            <div class="ws-status-text">Connecting...</div>
+          </div>
           <!-- JSON Editor Button -->
           <button class="json-editor-toggle" id="toggleJsonEditor" style="position:relative;bottom:0;right:0;margin-left:auto">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -427,12 +472,38 @@
       }
     }
 
+    // WebSocket Status Indicator Functions
+    function updateWSStatus(status, text) {
+      const indicator = document.getElementById('wsStatusIndicator');
+      if (!indicator) {
+        console.error('WebSocket status indicator not found!');
+        return;
+      }
+      
+      const textEl = indicator.querySelector('.ws-status-text');
+      if (!textEl) {
+        console.error('WebSocket status text element not found!');
+        return;
+      }
+      
+      // Remove all status classes
+      indicator.classList.remove('connected', 'connecting', 'disconnected');
+      
+      // Add appropriate class and update text
+      indicator.classList.add(status);
+      textEl.textContent = text;
+      
+      console.log('WebSocket status updated:', status, text);
+    }
+
     // WebSocket functions
     function initWebSocket(){
+      updateWSStatus('connecting', 'Connecting...');
       wsConnection = new WebSocket(WS_URL);
       
       wsConnection.onopen = () => {
         console.log('WebSocket connected successfully');
+        updateWSStatus('connected', 'Connected');
         // Send init message
         const initMsg = {
           type: 'init',
@@ -452,12 +523,14 @@
       
       wsConnection.onclose = () => {
         console.log('WebSocket disconnected, attempting reconnect...');
+        updateWSStatus('disconnected', 'Reconnecting...');
         setTimeout(initWebSocket, 3000);
       };
       
       wsConnection.onerror = (error) => {
         console.error('WebSocket error:', error);
         console.error('WebSocket readyState:', wsConnection.readyState);
+        updateWSStatus('disconnected', 'Connection Error');
       };
       
       // Log connection attempt
@@ -588,6 +661,15 @@
     
     // Initialize on page load
     function init(){
+      // Test WebSocket indicator visibility
+      const indicator = document.getElementById('wsStatusIndicator');
+      if (indicator) {
+        console.log('WebSocket indicator found:', indicator);
+        console.log('Indicator styles:', window.getComputedStyle(indicator));
+      } else {
+        console.error('WebSocket indicator NOT found!');
+      }
+      
       // Build board once
       buildBoard();
       
