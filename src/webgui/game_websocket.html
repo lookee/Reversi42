@@ -566,10 +566,16 @@
         console.log('Cannot submit move: WebSocket not open');
         return;
       }
-      if(!isHumanTurn){
-        console.log('Cannot submit move: not human turn. Current isHumanTurn:', isHumanTurn);
+      
+      // Double-check turn from data
+      const currentTurn = (data && data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0) 
+        ? data.status.turn_by_ply[0] : 'B';
+      
+      if(currentTurn !== 'B'){
+        console.log('Cannot submit move: not human turn. Current turn:', currentTurn);
         return;
       }
+      
       console.log('Submitting move:', move);
       isHumanTurn = false; // Prevent double moves temporarily
       wsConnection.send(JSON.stringify({
@@ -577,8 +583,7 @@
         move: move
       }));
       console.log('Move submitted, setting isHumanTurn to false temporarily');
-      // isHumanTurn will be reset to true if server returns an error,
-      // or will remain false if move is successful (then AI will move)
+      // isHumanTurn will be reset by board_update from server
     }
     
     // Initialize on page load

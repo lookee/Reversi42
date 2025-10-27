@@ -455,7 +455,15 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
                     # Convert Move coordinates to algebraic notation (A1-H8)
                     coord = f"{chr(64+ai_move.x)}{ai_move.y}"
                     print(f"Playing AI move: {coord} (x={ai_move.x}, y={ai_move.y})")
-                    session.game.move(ai_move)
+                    
+                    try:
+                        session.game.move(ai_move)
+                        print(f"AI move {coord} executed successfully")
+                    except Exception as e:
+                        print(f"Error executing AI move: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        raise
                     
                     # Get AI analysis data
                     ai_eval = getattr(ai_move, 'evaluation', None)
@@ -539,12 +547,37 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
                         }
                     })
                 else:
-                    print("AI passed")
-                    # AI passed
-                    if hasattr(session.game, 'pass_turn'):
-                        session.game.pass_turn()
-                    else:
-                        session.game.turn = 'B'
+                    print("AI passed - no moves available")
+                    # AI passed - call pass_turn
+                    session.game.pass_turn()
+                    
+                    # Broadcast the pass move
+                    await broadcast(session_id, {
+                        "type": "board_update",
+                        "data": session.get_state()
+                    })
+                    
+                    # Check if game is over after pass
+                    move_list = session.game.get_move_list()
+                    if not move_list:
+                        # Both players passed - game over
+                        winner = None
+                        if session.game.white_cnt > session.game.black_cnt:
+                            winner = "White (AI)"
+                        elif session.game.black_cnt > session.game.white_cnt:
+                            winner = "Black (Human)"
+                        else:
+                            winner = "Draw"
+                        
+                        await send_to_connection(websocket, {
+                            "type": "game_over",
+                            "data": {
+                                "winner": winner,
+                                "black_count": session.game.black_cnt,
+                                "white_count": session.game.white_cnt
+                            }
+                        })
+                        return
                 
                 # Check for game over after AI move
                 if session.game.white_cnt + session.game.black_cnt == 64:
