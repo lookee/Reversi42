@@ -475,10 +475,10 @@
           
           loadGameData(data);
           
-          // Update turn indicator
+          // Update turn indicator - Human plays Black (B), AI plays White (W)
           const turn = data.status?.turn_by_ply?.[0] || 'B';
           isHumanTurn = (turn === 'B');
-          console.log('Turn updated:', turn, 'isHumanTurn:', isHumanTurn);
+          console.log('Turn updated from board_update:', turn, 'isHumanTurn:', isHumanTurn, 'moves:', data.moves?.length || 0);
           break;
           
         case 'ai_move':
@@ -498,9 +498,8 @@
           if(message.data.evaluation !== undefined || message.data.depth || message.data.move){
             updateAIAnalysis(message.data);
           }
-          // IMPORTANT: Set isHumanTurn to true after AI move, assuming next turn is human
-          isHumanTurn = true;
-          console.log('After AI move, setting isHumanTurn to true');
+          // Note: isHumanTurn will be set by the following board_update message
+          console.log('AI move completed, waiting for board_update to set turn');
           break;
           
         case 'ai_thinking':
@@ -997,6 +996,11 @@
         const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         const value = typeof valueObj === 'object' && valueObj !== null ? valueObj.value : valueObj;
         const value2 = typeof valueObj === 'object' && valueObj !== null ? valueObj.value2 : null;
+        
+        // Skip if value is N/A or undefined
+        if(value === 'N/A' || value === undefined || value === null || String(value).trim() === ''){
+          continue;
+        }
         
         rows.push(`<div class="flex items-center justify-between gap-4">
           <span class="text-[13px]">${escapeHtml(label)}</span>
