@@ -529,6 +529,19 @@
           }
           break;
           
+        case 'game_over':
+          console.log('Game over!', message.data);
+          // Disable human moves
+          isHumanTurn = false;
+          
+          // Show game over message
+          const winnerText = message.data.winner || 'Game Over';
+          const blackScore = message.data.black_count || 0;
+          const whiteScore = message.data.white_count || 0;
+          
+          alert(`🎮 GAME OVER\n\nWinner: ${winnerText}\n\nBlack: ${blackScore} pieces\nWhite: ${whiteScore} pieces`);
+          break;
+          
         case 'error':
           console.error('Server error:', message.message);
           // On error (invalid move), reset isHumanTurn to true to allow retry
