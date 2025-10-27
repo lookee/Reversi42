@@ -374,12 +374,13 @@
       render();
       
       // Update notes if available
+      // Always set the AI player name as the title
+      const notesTitle = qs('deepeningSummaryTitle');
+      if(notesTitle) {
+        notesTitle.textContent = data.players?.white?.name || 'Notes';
+      }
+      
       if(data.notes){
-        // Update title
-        const notesTitle = qs('deepeningSummaryTitle');
-        if(notesTitle) {
-          notesTitle.textContent = data.players?.white?.name || 'Notes';
-        }
         renderNotes(data.notes);
       }
       
@@ -463,6 +464,15 @@
           console.log('Board data:', data);
           console.log('Positions:', data.positions);
           console.log('Ply:', ply, 'Positions[0]:', data.positions?.[0]);
+          
+          // Update player names everywhere
+          if(data.players?.white?.name){
+            const p2Name = qs('p2Name');
+            if(p2Name) p2Name.textContent = data.players.white.name;
+            const p2Avatar = qs('p2Avatar');
+            if(p2Avatar) p2Avatar.textContent = data.players.white.avatar || 'AI';
+          }
+          
           loadGameData(data);
           
           // Update turn indicator
@@ -497,7 +507,26 @@
           console.log(message.message);
           // Add thinking icon to AI player name
           addThinkingIconToPlayerName();
-          // Don't show the floating message or update notes with thinking status
+          // Update notes with "thinking" state if we have AI data
+          if(message.data){
+            updateAIAnalysis(message.data);
+          } else {
+            // If no data yet, show thinking status
+            const aiAnalysis = {
+              title: data.players?.white?.name || 'DIVZERO.EXE',
+              status: 'Thinking...',
+              selected_move: 'Analyzing...',
+              evaluation: 'Calculating...',
+              depth: 'Searching...',
+              nodes_searched: 'Calculating...',
+              nodes_pruned: 'Calculating...',
+              pruning_ratio: 'Calculating...',
+              avg_search_time: 'Calculating...',
+              total_searches: 'Calculating...'
+            };
+            data.notes = aiAnalysis;
+            updateAIAnalysis(aiAnalysis);
+          }
           break;
           
         case 'error':
@@ -873,13 +902,16 @@
     function updateAIAnalysis(aiData){
       if(!data) return;
       
+      // Get current AI name
+      const aiName = data.players?.white?.name || 'DIVZERO.EXE';
+      
       // Create dynamic AI analysis notes with all available data
       const aiAnalysis = {
         // Always update title to show AI name
-        title: data.players?.white?.name || 'DIVZERO.EXE',
+        title: aiName,
         
         // Basic analysis data
-        selected_move: aiData.move || 'Calculating...',
+        selected_move: aiData.move || aiData.selected_move || 'Calculating...',
         evaluation: aiData.evaluation !== undefined ? String(aiData.evaluation) : 'Analyzing...',
         depth: aiData.depth !== undefined ? `${aiData.depth} plies` : 'Calculating...',
         
@@ -894,7 +926,7 @@
       // Update title
       const notesTitle = qs('deepeningSummaryTitle');
       if(notesTitle) {
-        notesTitle.textContent = aiAnalysis.title;
+        notesTitle.textContent = aiName;
       }
       
       // Re-render notes with AI analysis

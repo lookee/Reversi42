@@ -53,9 +53,10 @@ class GameSession:
         self.game = Game(8)
         self.last_ai_stats = {}  # Store last AI analysis
         
-        # Create AI player
+        # Create AI player with lower depth for faster moves
         if ai_player_name == "DIVZERO.EXE":
-            self.ai_player = PlayerDivZero()
+            # Use depth=6 for faster gameplay (default is 12)
+            self.ai_player = PlayerDivZero(depth=6)
         else:
             self.ai_player = PlayerFactory.create_player(ai_player_name)
         
@@ -364,9 +365,24 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
         print(f"Checking if AI should move. Turn: {session.game.turn}")
         if session.game.turn == 'W':
             print("AI turn - requesting move...")
+            
+            # Send ai_thinking with initial stats
+            initial_stats = {
+                "title": session.ai_player_name,
+                "selected_move": "Analyzing...",
+                "evaluation": "Calculating...",
+                "depth": "Searching...",
+                "nodes_searched": 0,
+                "nodes_pruned": 0,
+                "pruning_ratio": 0,
+                "avg_search_time": "0ms",
+                "total_searches": 0
+            }
+            
             await send_to_connection(websocket, {
                 "type": "ai_thinking",
-                "message": f"{session.ai_player_name} is thinking..."
+                "message": f"{session.ai_player_name} is thinking...",
+                "data": initial_stats
             })
             
             try:
