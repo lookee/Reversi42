@@ -61,6 +61,20 @@ class GameSession:
         
         # PlayerDivZero doesn't have set_color method, it uses the game's turn
         # AI will play white automatically based on game.turn
+    
+    def _count_opening_sequences(self, opening_book, sequence):
+        """Count how many opening sequences contain the given sequence"""
+        count = 0
+        sequence_upper = sequence.upper()
+        
+        # Check all opening names
+        for full_sequence, name in opening_book.opening_names.items():
+            full_sequence_upper = full_sequence.upper()
+            # If this opening's sequence starts with our sequence
+            if full_sequence_upper.startswith(sequence_upper):
+                count += 1
+        
+        return count
         
     def get_state(self) -> dict:
         """Get current game state as dictionary in the format expected by the frontend"""
@@ -93,6 +107,52 @@ class GameSession:
             coord = f"{chr(64+move.x)}{move.y}"
             valid_moves.append(coord)
         
+        # Get opening book moves with variant count
+        opening_moves = []
+        if hasattr(self.ai_player, 'opening_book') and self.ai_player.opening_book:
+            try:
+                book_moves = self.ai_player.opening_book.get_book_moves(history)
+                if book_moves:
+                    # Navigate to current position in the book
+                    history_moves = self.ai_player.opening_book._parse_move_sequence(history)
+                    node = self.ai_player.opening_book.root
+                    for move_str in history_moves:
+                        normalized = move_str.upper()
+                        if normalized not in node.children:
+                            break
+                        node = node.children[normalized]
+                    
+                    # For each book move, count how many opening sequences continue from that move
+                    for move_obj in book_moves:
+                        coord = f"{chr(64+move_obj.x)}{move_obj.y}"
+                        move_str = f"{chr(64+move_obj.x)}{move_obj.y}"
+                        
+                        # Check if this move exists in the book
+                        if move_str in node.children:
+                            next_node = node.children[move_str]
+                            # Build the sequence after this move: history + move
+                            # Turns alternate: B plays uppercase, W plays lowercase
+                            move_with_turn = move_str if game.turn == 'B' else move_str.lower()
+                            extended_sequence = history + move_with_turn
+                            
+                            # Count how many opening names contain this extended sequence
+                            variant_count = self._count_opening_sequences(
+                                self.ai_player.opening_book, 
+                                extended_sequence
+                            )
+                        else:
+                            variant_count = 0
+                        
+                        opening_moves.append({
+                            "move": coord,
+                            "variants": variant_count
+                        })
+            except Exception as e:
+                print(f"Error getting opening book moves: {e}")
+                import traceback
+                traceback.print_exc()
+                opening_moves = []
+        
         # Return full state matching frontend JSON structure
         state = {
             "meta": {"variant": "Reversi/Othello", "size": 8},
@@ -106,7 +166,7 @@ class GameSession:
             "positions": [positions],
             "moves": moves,
             "valid_by_ply": [valid_moves],
-            "opening_by_ply": [[]],
+            "opening_by_ply": opening_moves,
             "notes": self.last_ai_stats if self.last_ai_stats else {
                 "title": "Notes"
             }

@@ -74,6 +74,11 @@
     .valid{position:absolute; inset:32%; border-radius:999px;
       box-shadow:0 0 0 2px rgba(16,185,129,.85) inset;
       background:radial-gradient(circle, rgba(16,185,129,.28), transparent 60%)}
+    .book-move-badge{position:absolute; top:8%; right:8%; background:linear-gradient(135deg, #f59e0b, #d97706);
+      color:#fff; font-size:11px; font-weight:700; padding:3px 6px; border-radius:8px;
+      box-shadow:0 2px 8px rgba(245,158,11,.5), 0 0 12px rgba(245,158,11,.3);
+      border:1px solid rgba(255,255,255,.2); min-width:22px; text-align:center;
+      z-index:50; pointer-events:none; line-height:1}
     .hint{position:absolute; inset:16%; border-radius:999px; border:3px solid var(--gold);
       box-shadow:0 0 20px rgba(244,193,93,.75), 0 0 40px rgba(244,193,93,.25) inset;
       display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--gold);
@@ -421,7 +426,7 @@
         const initMsg = {
           type: 'init',
           session_id: SESSION_ID,
-                          ai_player: 'BLITZ DEMON'
+          ai_player: 'DIVZERO.EXE'
         };
         console.log('Sending init message:', initMsg);
         wsConnection.send(JSON.stringify(initMsg));
@@ -769,6 +774,37 @@
         const dot=document.createElement('div'); dot.className='valid';
         elBoard.children[i].firstElementChild.appendChild(dot);
       });
+      
+      // Opening book moves with variant count
+      const openingMoves = (data.opening_by_ply || []);
+      console.log('🔍 Opening moves from data:', JSON.stringify(openingMoves));
+      console.log('📊 Opening moves count:', openingMoves.length);
+      if(Array.isArray(openingMoves) && openingMoves.length > 0) {
+        openingMoves.forEach(obj => {
+          console.log('🔄 Processing opening move:', obj, 'obj.move:', obj.move, 'obj.variants:', obj.variants);
+          if(obj && obj.move) {
+            const idx = coordToIdx(obj.move);
+            console.log('📍 Move', obj.move, 'maps to index', idx);
+            const cell = elBoard.children[idx];
+            if(cell) {
+              console.log('✅ Cell found for', obj.move, '- adding badge');
+              // Add variant count badge
+              const badge = document.createElement('div');
+              badge.className = 'book-move-badge';
+              badge.textContent = String(obj.variants || 0);
+              badge.title = `${obj.variants || 0} variant(s) in opening book`;
+              cell.firstElementChild.appendChild(badge);
+              console.log('✅ Added badge for move', obj.move, 'with', obj.variants, 'variants');
+            } else {
+              console.log('❌ Cell not found for index', idx);
+            }
+          } else {
+            console.log('❌ Invalid object:', obj);
+          }
+        });
+      } else {
+        console.log('⚠️ No opening moves to display');
+      }
       
       // Highlight last move with elegant red dot
       if(data.moves && data.moves.length > 0) {
