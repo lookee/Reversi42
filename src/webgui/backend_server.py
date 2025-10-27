@@ -53,9 +53,10 @@ class GameSession:
         self.game = Game(8)
         self.last_ai_stats = {}  # Store last AI analysis
         
-        # Create AI player
+        # Create AI player with lower depth for faster moves
         if ai_player_name == "DIVZERO.EXE":
-            self.ai_player = PlayerDivZero()
+            # Use depth=6 for faster gameplay (default is 12)
+            self.ai_player = PlayerDivZero(depth=6)
         else:
             self.ai_player = PlayerFactory.create_player(ai_player_name)
         
@@ -364,9 +365,24 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
         print(f"Checking if AI should move. Turn: {session.game.turn}")
         if session.game.turn == 'W':
             print("AI turn - requesting move...")
+            
+            # Send ai_thinking with initial stats
+            initial_stats = {
+                "title": session.ai_player_name,
+                "selected_move": "Analyzing...",
+                "evaluation": "Calculating...",
+                "depth": "Searching...",
+                "nodes_searched": 0,
+                "nodes_pruned": 0,
+                "pruning_ratio": 0,
+                "avg_search_time": "0ms",
+                "total_searches": 0
+            }
+            
             await send_to_connection(websocket, {
                 "type": "ai_thinking",
-                "message": f"{session.ai_player_name} is thinking..."
+                "message": f"{session.ai_player_name} is thinking...",
+                "data": initial_stats
             })
             
             try:
@@ -390,15 +406,53 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
                         if hasattr(session.ai_player, 'bitboard_engine'):
                             stats = session.ai_player.bitboard_engine.get_statistics()
                             if stats:
+                                # Engine level stats
                                 engine_stats['total_searches'] = stats.get('searches_performed', 0)
-                                engine_stats['avg_search_time'] = f"{stats.get('avg_time', 0)*1000:.1f}ms"
+                                avg_time = stats.get('avg_time', 0)
+                                engine_stats['avg_search_time'] = f"{avg_time*1000:.1f}ms" if avg_time > 0 else "0ms"
                                 
-                                # Extract search stats if available
+                                # Extract detailed search stats
                                 search_stats = stats.get('search_stats', {})
                                 if isinstance(search_stats, dict):
-                                    engine_stats['nodes_searched'] = search_stats.get('nodes_searched', 0)
-                                    engine_stats['nodes_pruned'] = search_stats.get('nodes_pruned', 0)
-                                    engine_stats['pruning_ratio'] = search_stats.get('pruning_ratio', 0)
+                                    nodes = search_stats.get('nodes', 0)
+                                    pruning = search_stats.get('pruning', 0)
+                                    pruned = search_stats.get('pruned', 0)
+                                    tt_hits = search_stats.get('tt_hits', 0)
+                                    
+                                    engine_stats['nodes_searched'] = nodes
+                                    engine_stats['nodes_pruned'] = pruning
+                                    if nodes > 0:
+                                        engine_stats['pruning_ratio'] = round(pruning / nodes, 3)
+                                    else:
+                                        engine_stats['pruning_ratio'] = 0
+                                    
+                                    # Additional stats
+                                    engine_stats['transposition_hits'] = tt_hits
+                                    engine_stats['transposition_size'] = search_stats.get('tt_size', 0)
+                                    
+                                    # Killer moves and history
+                                    engine_stats['killer_moves'] = search_stats.get('killer_moves', 0)
+                                    engine_stats['history_entries'] = search_stats.get('history_entries', 0)
+                                    
+                                    # Advanced pruning stats
+                                    if 'null_move' in search_stats:
+                                        nm_stats = search_stats['null_move']
+                                        engine_stats['null_move_cutoffs'] = nm_stats.get('cutoffs', 0)
+                                        engine_stats['null_move_searches'] = nm_stats.get('searches', 0)
+                                    
+                                    if 'futility' in search_stats:
+                                        fut_stats = search_stats['futility']
+                                        engine_stats['futility_pruned'] = fut_stats.get('pruned', 0)
+                                    
+                                    if 'lmr' in search_stats:
+                                        lmr_stats = search_stats['lmr']
+                                        engine_stats['lmr_reductions'] = lmr_stats.get('reductions', 0)
+                                        engine_stats['lmr_researches'] = lmr_stats.get('researches', 0)
+                                    
+                                    if 'multi_cut' in search_stats:
+                                        mc_stats = search_stats['multi_cut']
+                                        engine_stats['multi_cut_pruned'] = mc_stats.get('pruned', 0)
+                                    
                     except Exception as e:
                         print(f"Error getting engine stats: {e}")
                         import traceback
