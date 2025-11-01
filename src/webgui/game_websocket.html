@@ -1465,210 +1465,41 @@
 
 
 
-  <!-- JSON Editor & Logs Panel -->
+  <!-- Developer-Insight: Live Server Logs (tail -f) -->
   <div id="jsonEditorWrapper" style="display:none">
-    <!-- Tabs -->
-    <div class="json-editor-tabs">
-      <button class="tab-btn" id="tabJson" data-tab="json">📝 JSON Editor</button>
-      <button class="tab-btn active" id="tabLogs" data-tab="logs">📋 Server Logs</button>
+    <div class="json-editor-header">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold">Server Logs</span>
+        <button class="btn text-xs" id="refreshLogs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></span> Refresh</button>
+        <button class="btn text-xs" id="clearLogs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M9 6l1-2h4l1 2"/></svg></span> Clear</button>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn text-xs" id="closeJsonEditor2"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></span> Close</button>
+      </div>
     </div>
-    
-    <!-- JSON Editor Tab -->
-    <div id="tabContentJson" class="tab-content">
-      <div class="json-editor-header">
-        <div class="flex items-center gap-2">
-          <span class="font-semibold">JSON Editor</span>
-          <span class="chip text-xs" id="jsonStatus">Ready</span>
-        </div>
-        <div class="flex gap-2">
-          <button class="btn text-xs" id="formatJson"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l2.2 4.5L19 7l-3.5 3.4.8 4.9L12 13.8 7.7 15.3l.8-4.9L5 7l4.8-.5z"/></svg></span> Format</button>
-          <button class="btn text-xs" id="validateJson"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span> Validate</button>
-          <button class="btn text-xs active" id="applyJson"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></span> Apply Changes</button>
-          <button class="btn text-xs" id="closeJsonEditor"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></span> Close</button>
-        </div>
-      </div>
-      <div id="jsonEditorContainer" style="width:100%;min-height:400px;"></div>
-    </div>
-    
-    <!-- Logs Tab -->
-    <div id="tabContentLogs" class="tab-content active">
-      <div class="json-editor-header">
-        <div class="flex items-center gap-2">
-          <span class="font-semibold">Server Logs</span>
-          <button class="btn text-xs" id="refreshLogs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></span> Refresh</button>
-          <button class="btn text-xs" id="clearLogs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M9 6l1-2h4l1 2"/></svg></span> Clear</button>
-        </div>
-        <div class="flex gap-2">
-          <button class="btn text-xs" id="closeJsonEditor2">✕ Close</button>
-        </div>
-      </div>
-      <div id="logsContainer">
-        <div id="logsContent"></div>
-      </div>
+    <div id="logsContainer">
+      <div id="logsContent"></div>
     </div>
   </div>
 
   <script>
-    // JSON Editor functionality with CodeMirror
+    // Developer-Insight: Logs only
     function q(id){ return document.getElementById(id); }
     const toggleBtn = q('toggleJsonEditor');
     const editorWrapper = q('jsonEditorWrapper');
-    const jsonEditorContainer = q('jsonEditorContainer');
-    const formatBtn = q('formatJson');
-    const validateBtn = q('validateJson');
-    const applyBtn = q('applyJson');
-    const closeBtn = q('closeJsonEditor');
-    const jsonStatus = q('jsonStatus');
-
-    let currentData = null;
-    let cmEditor = null;
-
-    // Initialize CodeMirror
-    function initCodeMirror(initialValue = ''){
-      if(!cmEditor && jsonEditorContainer){
-        cmEditor = CodeMirror(jsonEditorContainer, {
-          value: initialValue,
-          mode: {name: 'javascript', json: true},
-          theme: 'monokai',
-          lineNumbers: true,
-          lineWrapping: true,
-          matchBrackets: true,
-          autoCloseBrackets: true,
-          indentUnit: 2,
-          tabSize: 2
-        });
-        
-        // Update status on change
-        cmEditor.on('change', () => {
-          try{
-            JSON.parse(cmEditor.getValue());
-            updateStatus('Ready', true);
-          }catch(e){
-            updateStatus('Invalid JSON', false);
-          }
-        });
-      }
-    }
-
+    const closeBtn2 = q('closeJsonEditor2');
     if(toggleBtn) toggleBtn.addEventListener('click', () => {
       const isVisible = editorWrapper.style.display !== 'none';
       editorWrapper.style.display = isVisible ? 'none' : 'flex';
       if(!isVisible){
-        // Load logs by default since logs tab is active by default
         loadLogs();
-        // Start auto-refresh for logs
         if(logsAutoRefreshInterval) clearInterval(logsAutoRefreshInterval);
         logsAutoRefreshInterval = setInterval(loadLogs, 2000);
-        
-        // For WebSocket version, use the current game data
-        // Since we don't have a static reversi-data script, create a demo JSON
-        if(!currentData && typeof data !== 'undefined' && data){
-          currentData = data;
-        } else if(!currentData) {
-          // Fallback demo data if no data is available
-          currentData = {
-            meta: { title: "Reversi Game" },
-            status: { turn_by_ply: ["B"] },
-            positions: [{}],
-            moves: [],
-            players: { black: { name: "Player 1" }, white: { name: "Player 2" } },
-            notes: { title: "Notes" }
-          };
-        }
-        const jsonStr = JSON.stringify(currentData, null, 2);
-        
-        // Initialize CodeMirror if not already
-        if(!cmEditor){
-          initCodeMirror(jsonStr);
-        } else {
-          cmEditor.setValue(jsonStr);
-        }
       } else {
-        // Stop auto-refresh when closing
-        if(logsAutoRefreshInterval) {
-          clearInterval(logsAutoRefreshInterval);
-          logsAutoRefreshInterval = null;
-        }
+        if(logsAutoRefreshInterval) { clearInterval(logsAutoRefreshInterval); logsAutoRefreshInterval = null; }
       }
     });
-
-    if(closeBtn) closeBtn.addEventListener('click', () => {
-      editorWrapper.style.display = 'none';
-    });
-
-
-
-    if(formatBtn) formatBtn.addEventListener('click', () => {
-      if(!cmEditor) return;
-      try{
-        const parsed = JSON.parse(cmEditor.getValue());
-        const formatted = JSON.stringify(parsed, null, 2);
-        cmEditor.setValue(formatted);
-        updateStatus('Formatted', true);
-      }catch(e){
-        updateStatus('Invalid JSON', false);
-      }
-    });
-
-    if(validateBtn) validateBtn.addEventListener('click', () => {
-      if(!cmEditor) return;
-      try{
-        JSON.parse(cmEditor.getValue());
-        updateStatus('Valid ✓', true);
-      }catch(e){
-        updateStatus(`Invalid: ${e.message}`, false);
-      }
-    });
-
-    if(applyBtn) applyBtn.addEventListener('click', () => {
-      if(!cmEditor) return;
-      try{
-        const newData = JSON.parse(cmEditor.getValue());
-        
-        // Update the current data variable
-        currentData = newData;
-        
-        // Re-parse data in the main script using WebSocket version logic
-        if(window.reloadGameData){
-          window.reloadGameData(newData);
-        }
-        
-        // Close editor
-        editorWrapper.style.display = 'none';
-        updateStatus('Applied ✓', true);
-      }catch(e){
-        updateStatus(`Error: ${e.message}`, false);
-      }
-    });
-
-    function updateStatus(text, isValid){
-      jsonStatus.textContent = text;
-      jsonStatus.className = 'chip text-xs ' + (isValid ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300');
-    }
-
-    // Tab switching
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetTab = btn.getAttribute('data-tab');
-        
-        // Remove active class from all tabs and contents
-        tabButtons.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
-        
-        // Add active class to clicked tab and its content
-        btn.classList.add('active');
-        document.getElementById(`tabContent${targetTab.charAt(0).toUpperCase() + targetTab.slice(1)}`).classList.add('active');
-      });
-    });
-
-    // Close button handler for both tabs
-    const closeBtn2 = q('closeJsonEditor2');
-    if(closeBtn2) closeBtn2.addEventListener('click', () => {
-      editorWrapper.style.display = 'none';
-    });
+    if(closeBtn2) closeBtn2.addEventListener('click', () => { editorWrapper.style.display = 'none'; if(logsAutoRefreshInterval){ clearInterval(logsAutoRefreshInterval); logsAutoRefreshInterval = null; } });
 
     // Logs functionality
     const refreshLogsBtn = q('refreshLogs');
@@ -1710,33 +1541,13 @@
     
     // Auto-refresh logs every 2 seconds (tail -f behavior)
     let logsAutoRefreshInterval = null;
-    const tabLogs = q('tabLogs');
-    if(tabLogs) {
-      tabLogs.addEventListener('click', () => {
-        setTimeout(() => {
-          loadLogs();
-          // Start auto-refresh
-          if(logsAutoRefreshInterval) clearInterval(logsAutoRefreshInterval);
-          logsAutoRefreshInterval = setInterval(loadLogs, 2000);
-        }, 100);
-      });
-    }
 
     if(refreshLogsBtn) refreshLogsBtn.addEventListener('click', loadLogs);
     if(clearLogsBtn) clearLogsBtn.addEventListener('click', () => {
       logsContent.innerHTML = '';
     });
 
-    // Stop auto-refresh when switching away from logs tab
-    const tabJson = q('tabJson');
-    if(tabJson) {
-      tabJson.addEventListener('click', () => {
-        if(logsAutoRefreshInterval) {
-          clearInterval(logsAutoRefreshInterval);
-          logsAutoRefreshInterval = null;
-        }
-      });
-    }
+    // No tabs: logs are the only content now
 
   </script>
 </body>
