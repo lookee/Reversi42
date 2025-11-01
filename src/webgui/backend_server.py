@@ -91,6 +91,10 @@ class GameSession:
     def __init__(self, session_id: str, ai_player_name: str = "DIVZERO.EXE"):
         try:
             self.session_id = session_id
+            # Default: AI plays White; Black is Human
+            self.ai_white_name = ai_player_name
+            self.ai_black_name = None
+            # Backwards-compat shadow (used in some logs)
             self.ai_player_name = ai_player_name
             self.game = Game(8)
             self.last_ai_stats = {}  # Store last AI analysis
@@ -98,12 +102,19 @@ class GameSession:
             self.max_errors = 5  # Max errors before session reset
             self.last_error_time = None
             
-            # Create AI player with lower depth for faster moves
-            if ai_player_name == "DIVZERO.EXE":
-                # Use depth=6 for faster gameplay (default is 12)
-                self.ai_player = PlayerDivZero(depth=6)
-            else:
-                self.ai_player = PlayerFactory.create_player(ai_player_name)
+            # Create AI players (only for configured sides)
+            self.ai_white = None
+            self.ai_black = None
+            if self.ai_white_name:
+                if self.ai_white_name == "DIVZERO.EXE":
+                    self.ai_white = PlayerDivZero(depth=6)
+                else:
+                    self.ai_white = PlayerFactory.create_player(self.ai_white_name)
+            if self.ai_black_name:
+                if self.ai_black_name == "DIVZERO.EXE":
+                    self.ai_black = PlayerDivZero(depth=6)
+                else:
+                    self.ai_black = PlayerFactory.create_player(self.ai_black_name)
             
             logger.info(f"Created game session {session_id} with AI {ai_player_name}")
             
@@ -112,8 +123,7 @@ class GameSession:
             logger.error(traceback.format_exc())
             raise
         
-        # PlayerDivZero doesn't have set_color method, it uses the game's turn
-        # AI will play white automatically based on game.turn
+        # Player instances do not need explicit color; we check side before moving
     
     def handle_error(self, error: Exception, context: str = ""):
         """Handle errors and potentially reset session if too many occur"""
@@ -138,10 +148,19 @@ class GameSession:
         """Reset the game session to initial state"""
         try:
             self.game = Game(8)
-            if self.ai_player_name == "DIVZERO.EXE":
-                self.ai_player = PlayerDivZero(depth=6)
-            else:
-                self.ai_player = PlayerFactory.create_player(self.ai_player_name)
+            # Recreate AI instances based on current config
+            self.ai_white = None
+            self.ai_black = None
+            if self.ai_white_name:
+                if self.ai_white_name == "DIVZERO.EXE":
+                    self.ai_white = PlayerDivZero(depth=6)
+                else:
+                    self.ai_white = PlayerFactory.create_player(self.ai_white_name)
+            if self.ai_black_name:
+                if self.ai_black_name == "DIVZERO.EXE":
+                    self.ai_black = PlayerDivZero(depth=6)
+                else:
+                    self.ai_black = PlayerFactory.create_player(self.ai_black_name)
             self.last_ai_stats = {}
             logger.info(f"Session {self.session_id} reset to initial state")
         except Exception as e:
@@ -387,12 +406,12 @@ class GameSession:
             },
             "players": {
                 "black": {
-                    "name": "Human",
-                    "avatar": "HM"
+                    "name": (self.ai_black_name or "Human"),
+                    "avatar": (self.ai_black_name[:2].upper() if self.ai_black_name else "HM")
                 },
                 "white": {
-                    "name": self.ai_player_name,
-                    "avatar": "DI"
+                    "name": (self.ai_white_name or "Human"),
+                    "avatar": (self.ai_white_name[:2].upper() if self.ai_white_name else "HM")
                 }
             },
             "status": {
@@ -448,15 +467,18 @@ class GameSession:
             logger.error(traceback.format_exc())
             return False, str(e)
     
-    def get_ai_move(self) -> Move:
-        """Get AI move"""
+    def get_ai_move(self, side: str) -> Move:
+        """Get AI move for side 'B' or 'W'"""
         try:
             move_list = self.game.get_move_list()
             if not move_list:
                 return None
             
-            # Get AI move using the correct method
-            ai_move = self.ai_player.get_move(self.game, move_list, None)
+            # Select AI by side
+            ai = self.ai_white if side == 'W' else self.ai_black
+            if ai is None:
+                return None
+            ai_move = ai.get_move(self.game, move_list, None)
             return ai_move
             
         except Exception as e:
@@ -597,11 +619,14 @@ async def process_message_by_type(websocket: WebSocket, session: GameSession, ms
         if msg_type == "human_move":
             await handle_human_move(websocket, session, data)
         elif msg_type == "ai_move_request":
-            await handle_ai_move_request(websocket, session)
+            # Optional: side parameter for explicit requests
+            await handle_ai_move_request(websocket, session, data.get('side'))
         elif msg_type == "init":
             logger.info("Calling handle_init_message")
             await handle_init_message(websocket, session, data)
             logger.info("handle_init_message completed")
+        elif msg_type == "set_players":
+            await handle_set_players(websocket, session, data)
         elif msg_type == "reset_game":
             await handle_reset_game(websocket, session)
         elif msg_type == "get_state":
@@ -709,27 +734,22 @@ async def handle_human_move(websocket: WebSocket, session: GameSession, data: di
                 await handle_game_over(websocket, session, "Both players passed")
                 return
         
-        # Check if AI should move
+        # Check if AI should move (either side)
         logger.info(f"Checking if AI should move. Turn: {session.game.turn}")
-        if session.game.turn == 'W':
-            # Check if AI has moves
+        side = session.game.turn
+        ai_present = (session.ai_white is not None and side == 'W') or (session.ai_black is not None and side == 'B')
+        if ai_present:
             ai_move_list = session.game.get_move_list()
             if not ai_move_list:
-                logger.info(f"No moves available for AI (W), passing...")
+                logger.info(f"No moves available for AI ({side}), passing...")
                 session.game.pass_turn()
-                await broadcast(session.session_id, {
-                    "type": "board_update",
-                    "data": session.get_state()
-                })
-                
-                # Check if game is over (no moves for either player)
+                await broadcast(session.session_id, {"type": "board_update", "data": session.get_state()})
                 final_move_list = session.game.get_move_list()
                 if not final_move_list:
                     await handle_game_over(websocket, session, "Both players passed")
                     return
             else:
-                # AI has moves, request AI move
-                await handle_ai_move_request(websocket, session)
+                await handle_ai_move_request(websocket, session, side)
             
     except Exception as e:
         logger.error(f"Error in handle_human_move: {e}")

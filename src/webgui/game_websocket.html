@@ -600,6 +600,7 @@
     let wsConnection = null;
     let isHumanTurn = false;
     let gameOverInfo = null; // { winner, black_count, white_count }
+    let pendingSelectedAI = null; // confirm selected AI after init
     
     // WebSocket configuration
     const WS_URL = 'ws://localhost:8000/ws';
@@ -873,6 +874,10 @@
             if(p2Name) p2Name.textContent = data.players.white.name;
             const p2Avatar = qs('p2Avatar');
             if(p2Avatar) p2Avatar.textContent = data.players.white.avatar || 'AI';
+            if(pendingSelectedAI && data.players.white.name === pendingSelectedAI){
+              showToast(`AI set to ${pendingSelectedAI}`);
+              pendingSelectedAI = null;
+            }
           }
           
           loadGameData(data);
@@ -921,6 +926,10 @@
           console.log(message.message);
           // Add thinking icon to AI player name
           addThinkingIconToPlayerName();
+          if(pendingSelectedAI && data && data.players && data.players.white && data.players.white.name === pendingSelectedAI){
+            showToast(`AI set to ${pendingSelectedAI}`);
+            pendingSelectedAI = null;
+          }
           // Update notes with "thinking" state if we have AI data
           if(message.data){
             updateAIAnalysis(message.data);
@@ -1351,6 +1360,7 @@
           // For White AI: re-init backend session with selected AI
           if(side==='W' && player.tag==='AI'){
             showToast(`Loading ${player.name}...`);
+            pendingSelectedAI = player.name;
             wsSend({ type:'init', session_id: 'default', ai_player: player.name });
           }
         }catch(e){ console.error('applySelection error', e); }
@@ -1564,7 +1574,7 @@
       if(abs >= 1e9) return (n/1e9).toFixed(1).replace(/\.0$/,'') + 'B';
       if(abs >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'') + 'M';
       if(abs >= 1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'') + 'K';
-      return String(n);
+      return String(Math.round(n));
     }
     function fmtPct(val){
       if(val === null || val === undefined) return '—';
