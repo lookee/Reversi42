@@ -49,6 +49,12 @@
     .btn:disabled:hover{
       background: rgba(255,255,255,.02);
     }
+    /* Tiny player action button */
+    .miniIconBtn{border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05);
+         border-radius:999px; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+         color:var(--muted); transition:all .2s ease}
+    .miniIconBtn:hover{background:rgba(255,255,255,.08); color:var(--txt)}
+    .miniIconBtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
     .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent)}
 
     /* Avatars */
@@ -151,7 +157,20 @@
     .ws-item{border-bottom:1px solid rgba(255,255,255,.08);padding:6px 8px}
     .ws-head{display:flex;align-items:center;gap:8px;color:#e5e5e5;font-size:12px;cursor:pointer}
     .ws-head .ws-time{opacity:.6}
-    .ws-head .ws-dir{opacity:.8}
+    .ws-head .ws-sum{opacity:.9}
+    /* Badges */
+    .ws-badge{display:inline-flex;align-items:center;gap:6px;padding:2px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-weight:600;letter-spacing:.02em}
+    .ws-dir{font-variant-numeric:tabular-nums}
+    .ws-dir.send{color:#10b981;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.35)}
+    .ws-dir.recv{color:#60a5fa;background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35)}
+    .ws-type{color:#d1fae5;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}
+    .ws-type.type-board_update{color:#93c5fd;background:rgba(59,130,246,.16);border-color:rgba(59,130,246,.35)}
+    .ws-type.type-ai_move{color:#86efac;background:rgba(16,185,129,.18);border-color:rgba(16,185,129,.35)}
+    .ws-type.type-ai_thinking{color:#fde68a;background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.35)}
+    .ws-type.type-human_move{color:#c4b5fd;background:rgba(139,92,246,.18);border-color:rgba(139,92,246,.35)}
+    .ws-type.type-init{color:#99f6e4;background:rgba(20,184,166,.18);border-color:rgba(20,184,166,.35)}
+    .ws-type.type-reset_game{color:#fdba74;background:rgba(249,115,22,.18);border-color:rgba(249,115,22,.35)}
+    .ws-type.type-error{color:#fca5a5;background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.35)}
     .ws-body{display:none;color:#e5e5e5;background:#141414;border:1px solid #333;border-radius:8px;padding:8px;margin-top:6px;white-space:pre;overflow:auto}
     /* JSON syntax highlighting */
     .ws-json .json-key{color:#9cdcfe}
@@ -168,6 +187,17 @@
     #toast{position:fixed;right:16px;bottom:16px;z-index:99998;display:none;
       background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.4);color:#a7f3d0;
       padding:8px 12px;border-radius:8px;font-size:12px;backdrop-filter:blur(4px)}
+
+    /* Elegant modal for Players */
+    .modalOverlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:99998;
+      background:rgba(0,0,0,.55); backdrop-filter: blur(6px)}
+    .modalCard{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.12); border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.45);
+      min-width:280px; max-width:92vw}
+    .modalHead{display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
+    .modalTitle{font-weight:800; letter-spacing:.02em}
+    .modalBody{padding:18px; color:var(--muted); font-size:14px}
 
     /* Board coordinates alignment */
     .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
@@ -550,23 +580,23 @@
           const turn = p?.data?.status?.turn_by_ply?.[0] || '-';
           const valid = (p?.data?.valid_by_ply?.[0] || []).length;
           const book = (p?.data?.opening_by_ply || []).length;
-          return `board_update · turn ${turn} · last ${last} · valid ${valid} · book ${book}`;
+          return `turn ${turn} · last ${last} · valid ${valid} · book ${book}`;
         }
         if(t === 'ai_move'){
           const mv = p?.data?.move || '-';
-          return `ai_move · ${mv}`;
+          return `move ${mv}`;
         }
         if(t === 'ai_thinking'){
-          return 'ai_thinking';
+          return 'thinking…';
         }
         if(t === 'human_move'){
-          return `human_move · ${p.move}`;
+          return `move ${p.move}`;
         }
         if(t === 'init'){
-          return `init · ai=${p.ai_player || ''}`;
+          return `ai=${p.ai_player || ''}`;
         }
         if(t === 'reset_game'){
-          return 'reset_game';
+          return 'reset';
         }
       }
       return `${direction}`;
@@ -593,11 +623,31 @@
       const item = document.createElement('div'); item.className = 'ws-item';
       const head = document.createElement('div'); head.className = 'ws-head';
       const timeSpan = document.createElement('span'); timeSpan.className = 'ws-time'; timeSpan.textContent = time;
-      const dirSpan = document.createElement('span'); dirSpan.className = 'ws-dir'; dirSpan.textContent = direction;
+
+      // Direction badge
+      const dirSpan = document.createElement('span');
+      dirSpan.className = 'ws-badge ws-dir';
+      dirSpan.textContent = direction;
+      if(/^\s*→/.test(direction)) dirSpan.classList.add('send');
+      if(/^\s*←/.test(direction)) dirSpan.classList.add('recv');
+
+      // Determine command/type and create colored badge
+      let payloadObj = payload;
+      if(typeof payloadObj === 'string'){
+        try{ payloadObj = JSON.parse(payloadObj); }catch(_){ /* noop */ }
+      }
+      const typeVal = payloadObj && typeof payloadObj === 'object' ? (payloadObj.type || payloadObj?.data?.type || '—') : '—';
+      const typeSpan = document.createElement('span');
+      typeSpan.className = 'ws-badge ws-type';
+      typeSpan.textContent = String(typeVal);
+      if(typeVal && typeof typeVal === 'string'){
+        typeSpan.classList.add(`type-${typeVal}`);
+      }
+
       const sumSpan = document.createElement('span'); sumSpan.className = 'ws-sum'; sumSpan.textContent = summarizeMessage(direction, payload);
       const copyBtn = document.createElement('button'); copyBtn.className = 'btn text-xs'; copyBtn.textContent = 'Copy JSON'; copyBtn.setAttribute('data-tip','Copy JSON'); copyBtn.title = 'Copy JSON';
       copyBtn.addEventListener('click', async (e)=>{ e.stopPropagation(); const ok = await copyTextStrict(pretty(payload)); showToast(ok? 'Copied JSON' : 'Copy failed'); });
-      head.appendChild(timeSpan); head.appendChild(dirSpan); head.appendChild(sumSpan); head.appendChild(copyBtn);
+      head.appendChild(timeSpan); head.appendChild(dirSpan); head.appendChild(typeSpan); head.appendChild(sumSpan); head.appendChild(copyBtn);
       const body = document.createElement('pre'); body.className = 'ws-body ws-json'; body.innerHTML = highlightJson(pretty(payload));
       head.addEventListener('click', ()=>{ body.style.display = (body.style.display==='none'||!body.style.display) ? 'block' : 'none'; });
       item.appendChild(head); item.appendChild(body); box.appendChild(item);
