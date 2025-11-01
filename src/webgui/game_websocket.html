@@ -1360,30 +1360,70 @@
       delete nd.title;
       
       // Extract key fields with fallbacks
-      const bestMove = nd.selected_move || nd.selected || '—';
       const evalVal  = nd.selected_value ?? nd.evaluation;
       const depthVal = nd.final_depth ?? nd.depth;
       const nodes    = nd.nodes_searched;
       const pruned   = nd.nodes_pruned;
       const pruneR   = nd.pruning_ratio;
       const avgMs    = nd.avg_search_time;
+      function parseMsInt(v){
+        if(v === null || v === undefined) return null;
+        if(typeof v === 'number' && isFinite(v)) return Math.round(v);
+        const s = String(v).trim();
+        // Accept "123.4ms" or "0.123s" or plain number string
+        if(/ms$/i.test(s)){
+          const n = parseFloat(s.replace(/ms/i,''));
+          return isFinite(n) ? Math.round(n) : null;
+        }
+        if(/s$/i.test(s)){
+          const n = parseFloat(s.replace(/s/i,''));
+          return isFinite(n) ? Math.round(n*1000) : null;
+        }
+        const n = parseFloat(s);
+        return isFinite(n) ? Math.round(n) : null;
+      }
+      const lastMsNum = parseMsInt(nd.last_search_time_ms);
       const searches = nd.total_searches;
-      
-      const html = `
-        <div class="bestMove">
-          <span class="label">Best</span>
-          <span class="pill">${escapeHtml(String(bestMove))}</span>
-        </div>
-        <div class="statGrid">
-          <div class="statBadge"><span class="statLabel">Eval</span><span class="statValue">${fmtEval(evalVal)}</span></div>
-          <div class="statBadge"><span class="statLabel">Depth</span><span class="statValue">${fmtDepth(depthVal)}</span></div>
-          <div class="statBadge"><span class="statLabel">Nodes</span><span class="statValue">${fmtK(nodes)}</span></div>
-          <div class="statBadge"><span class="statLabel">Prune</span><span class="statValue">${fmtPct(pruneR)}</span></div>
-          <div class="statBadge"><span class="statLabel">Avg</span><span class="statValue">${fmtMs(avgMs)}</span></div>
-          <div class="statBadge"><span class="statLabel">Searches</span><span class="statValue">${fmtK(searches)}</span></div>
-        </div>
-      `;
-      box.innerHTML = html;
+
+      // Compute Nodes/s (approximate) from nodes and avg_search_time
+      function parseSeconds(s){
+        if(!s) return null;
+        if(typeof s === 'number') return s; // already seconds
+        const str = String(s).trim();
+        if(/ms$/i.test(str)){
+          const n = parseFloat(str.replace(/ms/i,''));
+          return isFinite(n) ? n/1000 : null;
+        }
+        if(/s$/i.test(str)){
+          const n = parseFloat(str.replace(/s/i,''));
+          return isFinite(n) ? n : null;
+        }
+        const n = parseFloat(str);
+        return isFinite(n) ? n : null;
+      }
+      let nps = '—';
+      const secs = (lastMsNum !== null && lastMsNum > 0)
+        ? (lastMsNum / 1000)
+        : parseSeconds(avgMs);
+      if(typeof nodes === 'number' && nodes > 0 && secs && secs > 0){
+        nps = nodes / secs;
+      }
+
+      // Decide which tiles to show (compact): hide Eval/Depth if not available
+      const showEval = Number.isFinite(Number(evalVal));
+      const depthNum = parseInt(String(depthVal).replace(/[^0-9]/g,''),10);
+      const showDepth = Number.isFinite(depthNum) && depthNum > 0;
+
+      let tiles = '';
+      if(showEval){ tiles += `<div class="statBadge"><span class="statLabel">Eval</span><span class="statValue">${fmtEval(evalVal)}</span></div>`; }
+      if(showDepth){ tiles += `<div class="statBadge"><span class="statLabel">Depth</span><span class="statValue">${fmtDepth(depthVal)}</span></div>`; }
+      tiles += `<div class="statBadge"><span class="statLabel">Nodes</span><span class="statValue">${fmtK(nodes)}</span></div>`;
+      tiles += `<div class="statBadge"><span class="statLabel">N/s</span><span class="statValue">${typeof nps==='number' ? fmtK(nps) : '—'}</span></div>`;
+      tiles += `<div class=\"statBadge\"><span class=\"statLabel\">Prune</span><span class=\"statValue\">${fmtPct(pruneR)}</span></div>`;
+      tiles += `<div class=\"statBadge\"><span class=\"statLabel\">Last</span><span class=\"statValue\">${lastMsNum !== null ? (lastMsNum + 'ms') : fmtMs(avgMs)}</span></div>`;
+      tiles += `<div class="statBadge"><span class="statLabel">Searches</span><span class="statValue">${fmtK(searches)}</span></div>`;
+
+      box.innerHTML = `<div class="statGrid">${tiles}</div>`;
     }
 
     // === OPENING TREE RENDERING ===

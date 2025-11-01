@@ -755,8 +755,12 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
         })
         
         try:
+            import time
+            start_ts = time.perf_counter()
             # Get AI move
             ai_move = session.get_ai_move()
+            end_ts = time.perf_counter()
+            last_search_time_ms = max(0.0, (end_ts - start_ts) * 1000.0)
             logger.info(f"AI move received: {ai_move}")
             
             if ai_move:
@@ -795,6 +799,8 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
                                 engine_stats['pruning_ratio'] = round(pruning / nodes, 3) if nodes > 0 else 0
                 except Exception as e:
                     logger.warning(f"Could not get engine stats: {e}")
+                # Always include last search time measured for this move (integer ms)
+                engine_stats['last_search_time_ms'] = int(round(last_search_time_ms))
                 
                 # Store AI stats for notes
                 session.last_ai_stats = {
