@@ -285,7 +285,7 @@ class GameSession:
             coord = f"{chr(64+move.x)}{move.y}"
             valid_moves.append(coord)
         
-        # Get opening book moves with variant count
+        # Get opening book moves with variant count (filtered to VALID moves)
         opening_moves = []
         if hasattr(self.ai_player, 'opening_book') and self.ai_player.opening_book:
             try:
@@ -300,10 +300,16 @@ class GameSession:
                             break
                         node = node.children[normalized]
                     
-                    # For each book move, count how many opening sequences continue from that move
+                    # Precompute valid move coordinates for robust comparison
+                    valid_coords = set(f"{chr(64+m.x)}{m.y}" for m in move_list)
+
+                    # For each book move that is currently VALID, count how many opening sequences continue
                     for move_obj in book_moves:
+                        # Only include if move is valid now (coordinate-based to avoid equality issues)
                         coord = f"{chr(64+move_obj.x)}{move_obj.y}"
-                        move_str = f"{chr(64+move_obj.x)}{move_obj.y}"
+                        if coord not in valid_coords:
+                            continue
+                        move_str = coord
                         
                         # Check if this move exists in the book
                         if move_str in node.children:
