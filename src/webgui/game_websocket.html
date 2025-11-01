@@ -404,7 +404,15 @@
       <div class="flex items-center md:items-start justify-start gap-3">
         <div class="avatar b" id="p1Avatar">LA</div>
         <div class="min-w-0">
-          <div id="p1Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
+          <div class="flex items-center justify-between gap-2">
+            <div id="p1Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
+            <button id="changeBlackBtn" class="miniIconBtn" title="Change player" data-tip="Change Black Player" aria-label="Change Black Player">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
+                <path d="M3 21a9 9 0 0 1 18 0"/>
+              </svg>
+            </button>
+          </div>
           <div class="flex items-center gap-2 flex-wrap text-[13px]" style="color:var(--muted)">
             <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span> Black</span>
             <span id="p1Count" class="chip">● 0</span>
@@ -424,7 +432,15 @@
       <!-- RIGHT: White -->
       <div class="flex items-center md:items-start justify-end gap-3">
         <div class="min-w-0 text-right">
-          <div id="p2Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
+          <div class="flex items-center justify-between gap-2">
+            <div id="p2Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
+            <button id="changeWhiteBtn" class="miniIconBtn" title="Change player" data-tip="Change White Player" aria-label="Change White Player">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
+                <path d="M3 21a9 9 0 0 1 18 0"/>
+              </svg>
+            </button>
+          </div>
           <div class="flex items-center gap-2 flex-wrap justify-end text-[13px]" style="color:var(--muted)">
             <span id="p2Count" class="chip">○ 0</span>
             <span id="p2Delta" class="chip">±0</span>
@@ -545,6 +561,23 @@
   <!-- WebSocket connection (no static JSON) -->
 
   <!-- ======= WebSocket Game Logic ======= -->
+  
+  <!-- Elegant Players Modal -->
+  <div id="playersModal" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="playersTitle" style="display:none">
+    <div class="modalCard" role="document">
+      <div class="modalHead">
+        <div id="playersTitle" class="modalTitle">Players</div>
+        <button id="playersCloseBtn" class="btn text-xs" title="Close" data-tip="Close" aria-label="Close">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </span>
+        </button>
+      </div>
+      <div class="modalBody">
+        Players
+      </div>
+    </div>
+  </div>
   <script>
     'use strict';
     
@@ -965,6 +998,7 @@
       // Toolbar setup
       setupToolbar();
       setupTooltips();
+      setupPlayersUI();
       
       // History grid setup
       setupHistoryDemo();
@@ -1203,7 +1237,7 @@
         tip.style.left = left + 'px';
         tip.style.top = top + 'px';
       }
-      const targets = document.querySelectorAll('.btn[data-tip]');
+      const targets = document.querySelectorAll('.btn[data-tip], .miniIconBtn[data-tip]');
       targets.forEach(el=>{
         el.addEventListener('mouseenter', ()=>show(el));
         el.addEventListener('mouseleave', hide);
@@ -1211,6 +1245,22 @@
         window.addEventListener('scroll', ()=>{ if(tip.style.display==='block') position(el); }, true);
         window.addEventListener('resize', ()=>{ if(tip.style.display==='block') position(el); });
       });
+    }
+
+    function setupPlayersUI(){
+      const overlay = document.getElementById('playersModal');
+      const closeBtn = document.getElementById('playersCloseBtn');
+      const btnB = document.getElementById('changeBlackBtn');
+      const btnW = document.getElementById('changeWhiteBtn');
+
+      function open(){ if(overlay){ overlay.style.display = 'flex'; } }
+      function close(){ if(overlay){ overlay.style.display = 'none'; } }
+
+      btnB?.addEventListener('click', open);
+      btnW?.addEventListener('click', open);
+      closeBtn?.addEventListener('click', close);
+      overlay?.addEventListener('click', (e)=>{ if(e.target === overlay) close(); });
+      window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') close(); });
     }
 
     function showToast(msg){
