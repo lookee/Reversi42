@@ -603,6 +603,8 @@ async def process_message_by_type(websocket: WebSocket, session: GameSession, ms
             await handle_reset_game(websocket, session)
         elif msg_type == "get_state":
             await handle_get_state(websocket, session)
+        elif msg_type == "undo":
+            await handle_undo(websocket, session)
         else:
             await send_to_connection(websocket, {
                 "type": "error",
@@ -730,6 +732,37 @@ async def handle_human_move(websocket: WebSocket, session: GameSession, data: di
             "message": f"Error processing human move: {str(e)}"
         })
 
+async def handle_undo(websocket: WebSocket, session: GameSession):
+    """Undo back to previous move of the current player (same side)."""
+    try:
+        desired_turn = session.game.turn
+        steps = 0
+        # If no history, nothing to undo
+        while session.game.board_position_stack:
+            try:
+                session.game.undo_move()
+                steps += 1
+            except Exception as e:
+                logger.warning(f"Undo failed on step {steps}: {e}")
+                break
+            # Stop when it's again the same side to move as before
+            if session.game.turn == desired_turn:
+                break
+
+        logger.info(f"Undo performed: {steps} step(s). Current turn: {session.game.turn}")
+
+        # Broadcast updated state
+        await broadcast(session.session_id, {
+            "type": "board_update",
+            "data": session.get_state()
+        })
+    except Exception as e:
+        logger.error(f"Error in handle_undo: {e}")
+        session.handle_error(e, "handle_undo")
+        await send_to_connection(websocket, {
+            "type": "error",
+            "message": f"Error processing undo: {str(e)}"
+        })
 async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
     """Handle AI move request with robust error handling"""
     try:

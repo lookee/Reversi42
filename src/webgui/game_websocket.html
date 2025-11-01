@@ -741,6 +741,8 @@
         case 'board_update':
           // Update board from server
           data = message.data;
+          // Clear any previous game-over banner on fresh state
+          gameOverInfo = null;
           console.log('Board data:', data);
           console.log('Positions:', data.positions);
           console.log('Ply:', ply, 'Positions[0]:', data.positions?.[0]);
@@ -1064,7 +1066,7 @@
       const fsBtn   = qs('fsBtn');
       // Don't access data here - it might not be loaded yet
 
-      if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(ply>0 && data){ ply--; render(); } });
+      if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'undo' }); } });
       if (redoBtn) redoBtn.addEventListener('click', ()=>{ if(data){ const maxPly = (data.positions?.length || 1) - 1; if(ply<maxPly){ ply++; render(); } } });
       if (copyBtn) copyBtn.addEventListener('click', ()=>{ navigator.clipboard?.writeText((data.moves||[]).join(' ')); });
       if (saveBtn) saveBtn.addEventListener('click', ()=>{
@@ -1208,6 +1210,14 @@
       const adv = counts.b - counts.w; 
       setDelta('p1Delta', adv); 
       setDelta('p2Delta', -adv);
+
+      // Toggle Undo availability: enabled when connected and there is at least one move
+      const undoBtnEl = qs('undoBtn');
+      if(undoBtnEl){
+        const open = !!(wsConnection && wsConnection.readyState === WebSocket.OPEN);
+        const hasMoves = Array.isArray(data.moves) && data.moves.length > 0;
+        undoBtnEl.disabled = !(open && hasMoves);
+      }
 
       // highlight (removed ply display) 
       if(movesOl){
