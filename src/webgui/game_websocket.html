@@ -777,9 +777,17 @@
         histGrid.innerHTML='';
         
         if(moves.length === 0){
-          // Hide history if no moves
-          histHead.classList.add('hidden');
-          histGrid.classList.add('hidden');
+          // Show header and an empty-state row when there are no moves
+          histHead.classList.remove('hidden');
+          histGrid.classList.remove('hidden');
+          const emptyRow = document.createElement('div');
+          emptyRow.className = 'historyCell';
+          emptyRow.style.gridColumn = '1 / -1';
+          emptyRow.style.padding = '0.6rem 0.5rem';
+          emptyRow.style.textAlign = 'center';
+          emptyRow.style.color = 'var(--muted)';
+          emptyRow.textContent = 'Nessuna mossa ancora';
+          histGrid.appendChild(emptyRow);
           return;
         }
         
