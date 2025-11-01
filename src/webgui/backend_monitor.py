@@ -10,6 +10,7 @@ import sys
 import os
 import logging
 from datetime import datetime
+import urllib.request
 
 # Configure logging
 logging.basicConfig(
@@ -89,11 +90,11 @@ class BackendMonitor:
             logger.warning(f"Backend process ended with code {poll}")
             return False
         
-        # Try to connect to the server
+        # Try to connect to the server using stdlib (avoid external deps)
         try:
-            import requests
-            response = requests.get(f"http://localhost:{self.port}", timeout=5)
-            return response.status_code == 200
+            with urllib.request.urlopen(f"http://localhost:{self.port}", timeout=5) as response:
+                # Consider any 2xx as healthy
+                return 200 <= response.status < 300
         except Exception:
             return False
     

@@ -246,10 +246,70 @@
       font-size:13px;
       letter-spacing:0.2px
     }
-    #jsonEditorWrapper{position:fixed;bottom:0;left:0;right:0;max-height:60vh;overflow:auto;background:var(--panel);border-top:2px solid rgba(255,255,255,.1);padding:0;z-index:999}
-    .json-editor-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(0,0,0,.2);border-bottom:1px solid rgba(255,255,255,.1)}
+    #jsonEditorWrapper{
+      position:fixed;
+      bottom:0;
+      left:0;
+      right:0;
+      height:50vh;
+      background:var(--panel);
+      border-top:2px solid rgba(255,255,255,.1);
+      padding:0;
+      z-index:999;
+      display:flex;
+      flex-direction:column;
+      box-shadow:0 -4px 12px rgba(0,0,0,0.4);
+    }
+    .json-editor-tabs{display:flex;gap:2px;padding:0;background:rgba(0,0,0,.3);border-bottom:1px solid rgba(255,255,255,.1)}
+    .tab-btn{flex:1;padding:10px 16px;background:rgba(0,0,0,.3);border:none;color:var(--muted);cursor:pointer;transition:all 0.2s;font-size:13px;font-weight:500}
+    .tab-btn:hover{background:rgba(0,0,0,.4);color:var(--txt)}
+    .tab-btn.active{background:rgba(255,255,255,.05);color:var(--accent);border-bottom:2px solid var(--accent)}
+    .tab-content{
+      display:none;
+      flex:1;
+      overflow:hidden;
+      flex-direction:column;
+    }
+    .tab-content.active{
+      display:flex;
+    }
+    .json-editor-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 16px;
+      background:rgba(0,0,0,.2);
+      border-bottom:1px solid rgba(255,255,255,.1);
+      flex-shrink:0;
+    }
+    #jsonEditorContainer, #logsContainer{
+      flex:1;
+      overflow:auto;
+      position:relative;
+      min-height:0;
+    }
+    #logsContainer{
+      background:#1a1a1a;
+      color:#e5e5e5;
+      font-family:'Courier New',monospace;
+    }
     #jsonEditor{background:#1e1e1e;font-family:'Courier New',monospace;font-size:13px;line-height:1.6}
     code.language-json{font-size:13px}
+    #logsContent{
+      padding:16px;
+      font-family:'Courier New',monospace;
+      font-size:12px;
+      line-height:1.8;
+      white-space:pre;
+      word-wrap:normal;
+      overflow-wrap:normal;
+      color:#e5e5e5;
+    }
+    #logsContent .log-line{padding:2px 0;border-left:3px solid transparent;padding-left:6px;margin:2px 0;line-height:1.6}
+    #logsContent .log-error{color:#ff6b6b;border-left-color:#ff6b6b;font-weight:500}
+    #logsContent .log-warning{color:#ffd93d;border-left-color:#ffd93d;font-weight:500}
+    #logsContent .log-info{color:#74c0fc;border-left-color:#74c0fc}
+    #logsContent .log-debug{color:#c5a3ff}
   </style>
 </head>
 <body>
@@ -362,12 +422,12 @@
             </div>
             <div class="ws-status-text">Connecting...</div>
           </div>
-          <!-- JSON Editor Button -->
+          <!-- Developer-Insight Button -->
           <button class="json-editor-toggle" id="toggleJsonEditor" style="position:relative;bottom:0;right:0;margin-left:auto">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
             </svg>
-            <span>JSON Editor</span>
+            <span>Developer-Insight</span>
           </button>
         </div>
       </div>
@@ -847,7 +907,6 @@
       const saveBtn = qs('saveBtn');
       const loadBtn = qs('loadBtn');
       const fsBtn   = qs('fsBtn');
-      const dataScript = document.getElementById('reversi-data');
       // Don't access data here - it might not be loaded yet
 
       if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(ply>0 && data){ ply--; render(); } });
@@ -862,7 +921,12 @@
         const inp = document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
         inp.onchange = async ()=>{
           const file = inp.files?.[0]; if(!file) return;
-          try{ const next = JSON.parse(await file.text()); dataScript.textContent = JSON.stringify(next); location.reload(); }
+          try{ 
+            const next = JSON.parse(await file.text());
+            if(window.reloadGameData){
+              window.reloadGameData(next);
+            }
+          }
           catch(e){ console.error('JSON non valido', e); }
         }; inp.click();
       });
@@ -1122,21 +1186,47 @@
 
 
 
-  <!-- JSON Editor Panel -->
+  <!-- JSON Editor & Logs Panel -->
   <div id="jsonEditorWrapper" style="display:none">
-    <div class="json-editor-header">
-      <div class="flex items-center gap-2">
-        <span class="font-semibold">JSON Editor</span>
-        <span class="chip text-xs" id="jsonStatus">Ready</span>
+    <!-- Tabs -->
+    <div class="json-editor-tabs">
+      <button class="tab-btn" id="tabJson" data-tab="json">📝 JSON Editor</button>
+      <button class="tab-btn active" id="tabLogs" data-tab="logs">📋 Server Logs</button>
+    </div>
+    
+    <!-- JSON Editor Tab -->
+    <div id="tabContentJson" class="tab-content">
+      <div class="json-editor-header">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold">JSON Editor</span>
+          <span class="chip text-xs" id="jsonStatus">Ready</span>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn text-xs" id="formatJson">✨ Format</button>
+          <button class="btn text-xs" id="validateJson">✓ Validate</button>
+          <button class="btn text-xs active" id="applyJson">🔄 Apply Changes</button>
+          <button class="btn text-xs" id="closeJsonEditor">✕ Close</button>
+        </div>
       </div>
-      <div class="flex gap-2">
-        <button class="btn text-xs" id="formatJson">✨ Format</button>
-        <button class="btn text-xs" id="validateJson">✓ Validate</button>
-        <button class="btn text-xs active" id="applyJson">🔄 Apply Changes</button>
-        <button class="btn text-xs" id="closeJsonEditor">✕ Close</button>
+      <div id="jsonEditorContainer" style="width:100%;min-height:400px;"></div>
+    </div>
+    
+    <!-- Logs Tab -->
+    <div id="tabContentLogs" class="tab-content active">
+      <div class="json-editor-header">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold">Server Logs</span>
+          <button class="btn text-xs" id="refreshLogs">🔄 Refresh</button>
+          <button class="btn text-xs" id="clearLogs">🗑️ Clear</button>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn text-xs" id="closeJsonEditor2">✕ Close</button>
+        </div>
+      </div>
+      <div id="logsContainer">
+        <div id="logsContent"></div>
       </div>
     </div>
-    <div id="jsonEditorContainer" style="width:100%;min-height:400px;"></div>
   </div>
 
   <script>
@@ -1183,9 +1273,29 @@
 
     if(toggleBtn) toggleBtn.addEventListener('click', () => {
       const isVisible = editorWrapper.style.display !== 'none';
-      editorWrapper.style.display = isVisible ? 'none' : 'block';
+      editorWrapper.style.display = isVisible ? 'none' : 'flex';
       if(!isVisible){
-        currentData = JSON.parse(document.getElementById('reversi-data').textContent);
+        // Load logs by default since logs tab is active by default
+        loadLogs();
+        // Start auto-refresh for logs
+        if(logsAutoRefreshInterval) clearInterval(logsAutoRefreshInterval);
+        logsAutoRefreshInterval = setInterval(loadLogs, 2000);
+        
+        // For WebSocket version, use the current game data
+        // Since we don't have a static reversi-data script, create a demo JSON
+        if(!currentData && typeof data !== 'undefined' && data){
+          currentData = data;
+        } else if(!currentData) {
+          // Fallback demo data if no data is available
+          currentData = {
+            meta: { title: "Reversi Game" },
+            status: { turn_by_ply: ["B"] },
+            positions: [{}],
+            moves: [],
+            players: { black: { name: "Player 1" }, white: { name: "Player 2" } },
+            notes: { title: "Notes" }
+          };
+        }
         const jsonStr = JSON.stringify(currentData, null, 2);
         
         // Initialize CodeMirror if not already
@@ -1193,6 +1303,12 @@
           initCodeMirror(jsonStr);
         } else {
           cmEditor.setValue(jsonStr);
+        }
+      } else {
+        // Stop auto-refresh when closing
+        if(logsAutoRefreshInterval) {
+          clearInterval(logsAutoRefreshInterval);
+          logsAutoRefreshInterval = null;
         }
       }
     });
@@ -1230,13 +1346,10 @@
       try{
         const newData = JSON.parse(cmEditor.getValue());
         
-        // Update the embedded JSON
-        const dataScript = document.getElementById('reversi-data');
-        if(dataScript){
-          dataScript.textContent = cmEditor.getValue();
-        }
+        // Update the current data variable
+        currentData = newData;
         
-        // Re-parse data in the main script
+        // Re-parse data in the main script using WebSocket version logic
         if(window.reloadGameData){
           window.reloadGameData(newData);
         }
@@ -1254,6 +1367,97 @@
       jsonStatus.className = 'chip text-xs ' + (isValid ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300');
     }
 
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+        
+        // Remove active class from all tabs and contents
+        tabButtons.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        
+        // Add active class to clicked tab and its content
+        btn.classList.add('active');
+        document.getElementById(`tabContent${targetTab.charAt(0).toUpperCase() + targetTab.slice(1)}`).classList.add('active');
+      });
+    });
+
+    // Close button handler for both tabs
+    const closeBtn2 = q('closeJsonEditor2');
+    if(closeBtn2) closeBtn2.addEventListener('click', () => {
+      editorWrapper.style.display = 'none';
+    });
+
+    // Logs functionality
+    const refreshLogsBtn = q('refreshLogs');
+    const clearLogsBtn = q('clearLogs');
+    const logsContent = q('logsContent');
+
+    function colorizeLog(line) {
+      let colorClass = 'log-info';
+      if(line.includes('ERROR')) colorClass = 'log-error';
+      else if(line.includes('WARNING')) colorClass = 'log-warning';
+      else if(line.includes('INFO')) colorClass = 'log-info';
+      else if(line.includes('DEBUG')) colorClass = 'log-debug';
+      
+      // Escape HTML and preserve the full line
+      const escapedLine = line
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      
+      return `<div class="log-line ${colorClass}">${escapedLine}</div>`;
+    }
+
+    function loadLogs() {
+      // Fetch logs from backend API endpoint
+      fetch('http://localhost:8000/logs')
+        .then(response => response.text())
+        .then(text => {
+          const lines = text.split('\n').filter(l => l.trim());
+          logsContent.innerHTML = lines.map(line => colorizeLog(line)).join('');
+          
+          // Auto-scroll to bottom (tail -f behavior)
+          const logsContainer = logsContent.parentElement;
+          logsContainer.scrollTop = logsContainer.scrollHeight;
+        })
+        .catch(err => {
+          logsContent.innerHTML = `<div class="log-error">Error loading logs: ${err.message}</div>`;
+        });
+    }
+    
+    // Auto-refresh logs every 2 seconds (tail -f behavior)
+    let logsAutoRefreshInterval = null;
+    const tabLogs = q('tabLogs');
+    if(tabLogs) {
+      tabLogs.addEventListener('click', () => {
+        setTimeout(() => {
+          loadLogs();
+          // Start auto-refresh
+          if(logsAutoRefreshInterval) clearInterval(logsAutoRefreshInterval);
+          logsAutoRefreshInterval = setInterval(loadLogs, 2000);
+        }, 100);
+      });
+    }
+
+    if(refreshLogsBtn) refreshLogsBtn.addEventListener('click', loadLogs);
+    if(clearLogsBtn) clearLogsBtn.addEventListener('click', () => {
+      logsContent.innerHTML = '';
+    });
+
+    // Stop auto-refresh when switching away from logs tab
+    const tabJson = q('tabJson');
+    if(tabJson) {
+      tabJson.addEventListener('click', () => {
+        if(logsAutoRefreshInterval) {
+          clearInterval(logsAutoRefreshInterval);
+          logsAutoRefreshInterval = null;
+        }
+      });
+    }
 
   </script>
 </body>

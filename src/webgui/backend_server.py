@@ -24,7 +24,7 @@ sys.path.insert(0, project_root)
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, Response
 import asyncio
 import json
 import argparse
@@ -357,6 +357,23 @@ async def get_stats():
         "active_connections": len(active_connections),
         "uptime": "N/A"  # Could implement uptime tracking
     }
+
+@app.get("/logs")
+async def get_logs():
+    """Get server logs"""
+    try:
+        log_file = '/tmp/backend_detailed.log'
+        if os.path.exists(log_file):
+            # Return last 500 lines
+            with open(log_file, 'r') as f:
+                lines = f.readlines()
+                content = '\n'.join(lines[-500:]) if len(lines) > 500 else '\n'.join(lines)
+                return Response(content=content, media_type="text/plain")
+        else:
+            return Response(content="No logs available yet", media_type="text/plain")
+    except Exception as e:
+        logger.error(f"Error reading logs: {e}")
+        return Response(content=f"Error reading logs: {str(e)}", media_type="text/plain")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
