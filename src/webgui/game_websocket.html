@@ -193,11 +193,23 @@
       background:rgba(0,0,0,.55); backdrop-filter: blur(6px)}
     .modalCard{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
       border:1px solid rgba(255,255,255,.12); border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.45);
-      min-width:280px; max-width:92vw}
+      min-width:280px; width:min(960px,92vw)}
     .modalHead{display:flex; align-items:center; justify-content:space-between; gap:12px;
       padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
     .modalTitle{font-weight:800; letter-spacing:.02em}
-    .modalBody{padding:18px; color:var(--muted); font-size:14px}
+    .modalBody{padding:18px; color:var(--muted); font-size:14px; max-height:70vh; overflow:auto}
+    /* Players grid */
+    .playersGrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px}
+    .playerCard{border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); border-radius:12px; padding:12px; cursor:pointer; transition:all .2s ease}
+    .playerCard:hover{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18)}
+    .playerCard.human{background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.45); box-shadow:0 0 0 1px rgba(16,185,129,.25) inset}
+    .playerCard.human .playerName{color:#e8f2eb}
+    .playerHead{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .playerName{font-weight:800; color:var(--txt); letter-spacing:.02em}
+    .playerTag{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--muted); font-size:11px; padding:2px 6px; border-radius:999px}
+    .playerTag.human{color:#34d399; background:rgba(16,185,129,.16); border-color:rgba(16,185,129,.45)}
+    .playerDesc{margin-top:8px; font-size:12px; color:var(--muted)}
+    .playerMeta{margin-top:6px; font-size:11px; color:#a7f3d0}
 
     /* Board coordinates alignment */
     .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
@@ -574,7 +586,8 @@
         </button>
       </div>
       <div class="modalBody">
-        Players
+        <div id="playersIntro" class="text-[13px]" style="margin-bottom:10px;color:var(--muted)">Select a player for this side.</div>
+        <div id="playersList" class="playersGrid"></div>
       </div>
     </div>
   </div>
@@ -1252,12 +1265,100 @@
       const closeBtn = document.getElementById('playersCloseBtn');
       const btnB = document.getElementById('changeBlackBtn');
       const btnW = document.getElementById('changeWhiteBtn');
+      const list = document.getElementById('playersList');
+      const title = document.getElementById('playersTitle');
+      let currentSide = 'W';
 
-      function open(){ if(overlay){ overlay.style.display = 'flex'; } }
+      const AVAILABLE_PLAYERS = [
+        { name:'Human', desc:'Giocatore umano locale', tag:'HUMAN' },
+        { name:'Apocalyptron', desc:'Ultimate AI - All optimizations', tag:'AI', meta:'Depth 9 (default)' },
+        { name:'DIVZERO.EXE', desc:'Ultimate Singularity - The Perfect Player', tag:'AI', meta:'Adaptive depth · 8 cores' },
+        { name:'LIGHTNING STRIKE', desc:'Blitz Master - Speed Above All', tag:'AI', meta:'<100ms · Depth 4' },
+        { name:'THE STRANGLER', desc:'Mobility Assassin', tag:'AI', meta:'Aggressive mobility control' },
+        { name:'FORTRESS ETERNAL', desc:'Defensive Master', tag:'AI', meta:'Stability and structure' },
+        { name:'CORNER REAPER', desc:'Corner Specialist', tag:'AI', meta:'Corner-first strategy' },
+        { name:'THE ORACLE', desc:'Endgame Prophet', tag:'AI', meta:'Endgame precision' },
+        { name:'BLITZ DEMON', desc:'Speed Incarnate', tag:'AI', meta:'Ultra-fast responses' },
+        { name:'THE EXECUTIONER', desc:'Ruthless Destroyer', tag:'AI', meta:'Decisive tactics' },
+        { name:'GLITCH LORD', desc:'Chaotic Anomaly', tag:'AI', meta:'Unorthodox play' },
+        { name:'ZEN MASTER', desc:'Enlightened One', tag:'AI', meta:'Balanced harmony' },
+      ];
+
+      function renderPlayers(side){
+        if(!list) return;
+        list.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        AVAILABLE_PLAYERS.forEach(p=>{
+          // Restrict: Black stays Human for now (UI-only)
+          if(side==='B' && p.tag==='AI'){
+            // Still show, but disabled look
+            const card = document.createElement('div');
+            card.className = 'playerCard';
+            card.style.opacity = '.5';
+            card.style.cursor = 'not-allowed';
+            card.innerHTML = `
+              <div class="playerHead">
+                <div class="playerName">${p.name}</div>
+                <div class="playerTag">${p.tag}</div>
+              </div>
+              <div class="playerDesc">${p.desc}</div>
+              ${p.meta ? `<div class="playerMeta">${p.meta}</div>` : ''}
+            `;
+            card.title = 'Solo Human disponibile per il Nero in questa versione';
+            frag.appendChild(card);
+            return;
+          }
+
+          const card = document.createElement('div');
+          card.className = 'playerCard';
+          if(p.tag === 'HUMAN') card.classList.add('human');
+          card.innerHTML = `
+            <div class="playerHead">
+              <div class="playerName">${p.name}</div>
+              <div class="playerTag${p.tag==='HUMAN' ? ' human' : ''}">${p.tag}</div>
+            </div>
+            <div class="playerDesc">${p.desc}</div>
+            ${p.meta ? `<div class="playerMeta">${p.meta}</div>` : ''}
+          `;
+          card.addEventListener('click', ()=> applySelection(side, p));
+          frag.appendChild(card);
+        });
+        list.appendChild(frag);
+      }
+
+      function open(side){
+        currentSide = side || 'W';
+        if(title){ title.textContent = `Players · ${currentSide==='B'?'Black':'White'}`; }
+        renderPlayers(currentSide);
+        if(overlay){ overlay.style.display = 'flex'; }
+      }
       function close(){ if(overlay){ overlay.style.display = 'none'; } }
 
-      btnB?.addEventListener('click', open);
-      btnW?.addEventListener('click', open);
+      async function applySelection(side, player){
+        try{
+          // Update UI immediately
+          if(!data) data = {};
+          if(!data.players) data.players = { black:{}, white:{} };
+          if(side==='B'){
+            data.players.black.name = player.name;
+            data.players.black.avatar = initials(player.name);
+          } else {
+            data.players.white.name = player.name;
+            data.players.white.avatar = initials(player.name);
+          }
+          render();
+
+          // For White AI: re-init backend session with selected AI
+          if(side==='W' && player.tag==='AI'){
+            showToast(`Loading ${player.name}...`);
+            wsSend({ type:'init', session_id: 'default', ai_player: player.name });
+          }
+        }catch(e){ console.error('applySelection error', e); }
+        finally{ close(); }
+      }
+
+      btnB?.addEventListener('click', ()=> open('B'));
+      btnW?.addEventListener('click', ()=> open('W'));
       closeBtn?.addEventListener('click', close);
       overlay?.addEventListener('click', (e)=>{ if(e.target === overlay) close(); });
       window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') close(); });
