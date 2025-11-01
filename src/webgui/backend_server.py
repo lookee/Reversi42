@@ -402,6 +402,7 @@ class GameSession:
             },
             "positions": [positions],
             "moves": moves,
+            "history_compact": history,
             "valid_by_ply": [valid_moves],
             "opening_by_ply": opening_moves,
             "opening_tree": opening_tree,

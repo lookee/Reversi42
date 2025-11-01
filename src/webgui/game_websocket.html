@@ -160,6 +160,15 @@
     .ws-json .json-boolean{color:#569cd6}
     .ws-json .json-null{color:#569cd6;font-style:italic}
 
+    /* Global tooltip appended to body to avoid clipping */
+    #globalTooltip{position:fixed;display:none;pointer-events:none;z-index:99999;
+      background:rgba(0,0,0,.88); color:#e5e5e5; padding:4px 8px; border-radius:6px;
+      font-size:12px; white-space:nowrap; border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 4px 12px rgba(0,0,0,.35)}
+    #toast{position:fixed;right:16px;bottom:16px;z-index:99998;display:none;
+      background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.4);color:#a7f3d0;
+      padding:8px 12px;border-radius:8px;font-size:12px;backdrop-filter:blur(4px)}
+
     /* Board coordinates alignment */
     .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
 
@@ -423,25 +432,25 @@
           <aside class="flex flex-col gap-4">
             <div>
               <div class="flex items-center gap-2 mb-2">
-                <button id="newGameBtn" class="btn" title="New Game">
+                <button id="newGameBtn" class="btn" title="New Game" data-tip="New game">
                   <span class="icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                   </span>
                 </button>
-                <button id="undoBtn" class="btn" title="Undo" disabled>⟲</button>
-                <button id="redoBtn" class="btn" title="Redo" disabled>⟳</button>
-                <button id="copyBtn" class="btn" title="Copy moves">⧉</button>
-                <button id="saveBtn" class="btn" title="Save JSON" disabled>
+                <button id="undoBtn" class="btn" title="Undo" data-tip="Undo" disabled>⟲</button>
+                <button id="redoBtn" class="btn" title="Redo" data-tip="Redo" disabled>⟳</button>
+                <button id="copyBtn" class="btn" title="Copy compact history" data-tip="Copy compact history" aria-label="Copy compact history">⧉</button>
+                <button id="saveBtn" class="btn" title="Save JSON" data-tip="Save JSON" disabled>
                   <span class="icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M4 21h16a1 1 0 0 0 1-1V7.5L16.5 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1z"/><path d="M16 21V12H8v9"/><path d="M8 7h6v5H8z"/></svg>
                   </span>
                 </button>
-                <button id="loadBtn" class="btn" title="Load JSON">
+                <button id="loadBtn" class="btn" title="Load JSON" data-tip="Load JSON">
                   <span class="icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 21h16"/></svg>
                   </span>
                 </button>
-                <button id="fsBtn" class="btn" title="Fullscreen">
+                <button id="fsBtn" class="btn" title="Fullscreen" data-tip="Fullscreen">
                   <span class="icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M7 3H3v4"/><path d="M17 3h4v4"/><path d="M21 17v4h-4"/><path d="M3 17v4h4"/></svg>
                   </span>
@@ -562,6 +571,21 @@
       }
       return `${direction}`;
     }
+    async function copyTextStrict(text){
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      }catch(_){/* fallthrough */}
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.top='-9999px';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        return true;
+      }catch(_){ return false; }
+    }
+
     function appendWsMessage(direction, payload){
       const box = document.getElementById('wsTrafficContent');
       if(!box) return;
@@ -571,8 +595,8 @@
       const timeSpan = document.createElement('span'); timeSpan.className = 'ws-time'; timeSpan.textContent = time;
       const dirSpan = document.createElement('span'); dirSpan.className = 'ws-dir'; dirSpan.textContent = direction;
       const sumSpan = document.createElement('span'); sumSpan.className = 'ws-sum'; sumSpan.textContent = summarizeMessage(direction, payload);
-      const copyBtn = document.createElement('button'); copyBtn.className = 'btn text-xs'; copyBtn.textContent = 'Copy';
-      copyBtn.addEventListener('click', (e)=>{ e.stopPropagation(); navigator.clipboard?.writeText(pretty(payload)); });
+      const copyBtn = document.createElement('button'); copyBtn.className = 'btn text-xs'; copyBtn.textContent = 'Copy JSON'; copyBtn.setAttribute('data-tip','Copy JSON'); copyBtn.title = 'Copy JSON';
+      copyBtn.addEventListener('click', async (e)=>{ e.stopPropagation(); const ok = await copyTextStrict(pretty(payload)); showToast(ok? 'Copied JSON' : 'Copy failed'); });
       head.appendChild(timeSpan); head.appendChild(dirSpan); head.appendChild(sumSpan); head.appendChild(copyBtn);
       const body = document.createElement('pre'); body.className = 'ws-body ws-json'; body.innerHTML = highlightJson(pretty(payload));
       head.addEventListener('click', ()=>{ body.style.display = (body.style.display==='none'||!body.style.display) ? 'block' : 'none'; });
@@ -890,6 +914,7 @@
       
       // Toolbar setup
       setupToolbar();
+      setupTooltips();
       
       // History grid setup
       setupHistoryDemo();
@@ -1068,7 +1093,11 @@
 
       if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'undo' }); } });
       if (redoBtn) redoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'redo' }); } });
-      if (copyBtn) copyBtn.addEventListener('click', ()=>{ navigator.clipboard?.writeText((data.moves||[]).join(' ')); });
+      if (copyBtn) copyBtn.addEventListener('click', async ()=>{ 
+        const text = getCompactHistory();
+        const ok = await copyTextStrict(text);
+        showToast(ok ? `Copied: ${text || '—'}` : 'Copy failed');
+      });
       if (saveBtn) saveBtn.addEventListener('click', ()=>{
         const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'reversi42-match.json'; a.click();
@@ -1093,6 +1122,51 @@
         }
       });
       if (fsBtn) fsBtn.addEventListener('click', ()=>{ if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); } else { document.exitFullscreen?.(); } });
+    }
+
+    function setupTooltips(){
+      const tip = document.createElement('div');
+      tip.id = 'globalTooltip';
+      document.body.appendChild(tip);
+      function show(el){
+        const text = el.getAttribute('data-tip');
+        if(!text) return;
+        tip.textContent = text;
+        tip.style.display = 'block';
+        position(el);
+      }
+      function hide(){ tip.style.display = 'none'; }
+      function position(el){
+        const r = el.getBoundingClientRect();
+        const pad = 8;
+        const x = r.left + r.width/2;
+        const y = r.top - pad;
+        const tw = tip.offsetWidth; const th = tip.offsetHeight;
+        let left = Math.round(x - tw/2);
+        let top  = Math.round(y - th);
+        // clamp within viewport
+        left = Math.min(Math.max(8, left), window.innerWidth - tw - 8);
+        top  = Math.max(8, top);
+        tip.style.left = left + 'px';
+        tip.style.top = top + 'px';
+      }
+      const targets = document.querySelectorAll('.btn[data-tip]');
+      targets.forEach(el=>{
+        el.addEventListener('mouseenter', ()=>show(el));
+        el.addEventListener('mouseleave', hide);
+        el.addEventListener('mousemove', ()=>position(el));
+        window.addEventListener('scroll', ()=>{ if(tip.style.display==='block') position(el); }, true);
+        window.addEventListener('resize', ()=>{ if(tip.style.display==='block') position(el); });
+      });
+    }
+
+    function showToast(msg){
+      let t = document.getElementById('toast');
+      if(!t){ t = document.createElement('div'); t.id='toast'; document.body.appendChild(t); }
+      t.textContent = msg;
+      t.style.display = 'block';
+      clearTimeout(showToast._tid);
+      showToast._tid = setTimeout(()=>{ t.style.display='none'; }, 1500);
     }
 
     function render(){
@@ -1240,6 +1314,14 @@
     function idx(r,c){ return r*8 + c; }
     function coordToIdx(coord){ const L='ABCDEFGH'; const c=L.indexOf(String(coord).toUpperCase()[0]); const r=parseInt(String(coord).slice(1),10)-1; return r*8 + c; }
     function initials(name){ return (name||'').trim().split(/\s+/).map(s=>s[0]).join('').slice(0,2).toUpperCase() || '?'; }
+    function buildCompactHistoryFromMoves(moves){
+      if(!Array.isArray(moves)) return '';
+      return moves.map((m,i)=> i%2===0 ? String(m).toUpperCase() : String(m).toLowerCase()).join('');
+    }
+    function getCompactHistory(){
+      if(data && typeof data.history_compact === 'string' && data.history_compact.length>0) return data.history_compact;
+      return buildCompactHistoryFromMoves(data?.moves);
+    }
     function normalize64(pos){ 
       // Support both formats: string (legacy) and coordinate object (new)
       if(typeof pos === 'string'){
