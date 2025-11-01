@@ -396,7 +396,9 @@ class GameSession:
                 }
             },
             "status": {
-                "turn_by_ply": [game.turn]
+                "turn_by_ply": [game.turn],
+                "can_undo": len(game.board_position_stack) > 0,
+                "can_redo": len(getattr(game, 'redo_stack', [])) > 0
             },
             "positions": [positions],
             "moves": moves,
@@ -605,6 +607,8 @@ async def process_message_by_type(websocket: WebSocket, session: GameSession, ms
             await handle_get_state(websocket, session)
         elif msg_type == "undo":
             await handle_undo(websocket, session)
+        elif msg_type == "redo":
+            await handle_redo(websocket, session)
         else:
             await send_to_connection(websocket, {
                 "type": "error",
@@ -762,6 +766,35 @@ async def handle_undo(websocket: WebSocket, session: GameSession):
         await send_to_connection(websocket, {
             "type": "error",
             "message": f"Error processing undo: {str(e)}"
+        })
+
+async def handle_redo(websocket: WebSocket, session: GameSession):
+    """Redo forward to the next move of the same player (if available)."""
+    try:
+        desired_turn = session.game.turn
+        steps = 0
+        while getattr(session.game, 'redo_stack', None):
+            try:
+                session.game.redo_move()
+                steps += 1
+            except Exception as e:
+                logger.warning(f"Redo failed on step {steps}: {e}")
+                break
+            if session.game.turn == desired_turn:
+                break
+
+        logger.info(f"Redo performed: {steps} step(s). Current turn: {session.game.turn}")
+
+        await broadcast(session.session_id, {
+            "type": "board_update",
+            "data": session.get_state()
+        })
+    except Exception as e:
+        logger.error(f"Error in handle_redo: {e}")
+        session.handle_error(e, "handle_redo")
+        await send_to_connection(websocket, {
+            "type": "error",
+            "message": f"Error processing redo: {str(e)}"
         })
 async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
     """Handle AI move request with robust error handling"""

@@ -1067,7 +1067,7 @@
       // Don't access data here - it might not be loaded yet
 
       if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'undo' }); } });
-      if (redoBtn) redoBtn.addEventListener('click', ()=>{ if(data){ const maxPly = (data.positions?.length || 1) - 1; if(ply<maxPly){ ply++; render(); } } });
+      if (redoBtn) redoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'redo' }); } });
       if (copyBtn) copyBtn.addEventListener('click', ()=>{ navigator.clipboard?.writeText((data.moves||[]).join(' ')); });
       if (saveBtn) saveBtn.addEventListener('click', ()=>{
         const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
@@ -1211,12 +1211,18 @@
       setDelta('p1Delta', adv); 
       setDelta('p2Delta', -adv);
 
-      // Toggle Undo availability: enabled when connected and there is at least one move
+      // Toggle Undo/Redo availability using server-provided flags when available
+      const st = data.status || {};
+      const open = !!(wsConnection && wsConnection.readyState === WebSocket.OPEN);
       const undoBtnEl = qs('undoBtn');
       if(undoBtnEl){
-        const open = !!(wsConnection && wsConnection.readyState === WebSocket.OPEN);
-        const hasMoves = Array.isArray(data.moves) && data.moves.length > 0;
-        undoBtnEl.disabled = !(open && hasMoves);
+        const canUndo = (st.can_undo !== undefined) ? !!st.can_undo : (Array.isArray(data.moves) && data.moves.length > 0);
+        undoBtnEl.disabled = !(open && canUndo);
+      }
+      const redoBtnEl = qs('redoBtn');
+      if(redoBtnEl){
+        const canRedo = (st.can_redo !== undefined) ? !!st.can_redo : false;
+        redoBtnEl.disabled = !(open && canRedo);
       }
 
       // highlight (removed ply display) 
