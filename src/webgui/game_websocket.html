@@ -440,14 +440,14 @@
                 <button id="undoBtn" class="btn" title="Undo" data-tip="Undo" disabled>⟲</button>
                 <button id="redoBtn" class="btn" title="Redo" data-tip="Redo" disabled>⟳</button>
                 <button id="copyBtn" class="btn" title="Copy compact history" data-tip="Copy compact history" aria-label="Copy compact history">⧉</button>
-                <button id="saveBtn" class="btn" title="Save JSON" data-tip="Save JSON" disabled>
+                <button id="saveBtn" class="btn" title="Save game" data-tip="Save game" disabled>
                   <span class="icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M4 21h16a1 1 0 0 0 1-1V7.5L16.5 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1z"/><path d="M16 21V12H8v9"/><path d="M8 7h6v5H8z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M12 16V6"/><path d="M8.5 10.5 12 7l3.5 3.5"/></svg>
                   </span>
                 </button>
-                <button id="loadBtn" class="btn" title="Load JSON" data-tip="Load JSON">
+                <button id="loadBtn" class="btn" title="Load game" data-tip="Load game">
                   <span class="icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 21h16"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M4 4h16"/><path d="M12 8v10"/><path d="M15.5 13.5 12 17l-3.5-3.5"/></svg>
                   </span>
                 </button>
                 <button id="fsBtn" class="btn" title="Fullscreen" data-tip="Fullscreen">
@@ -1099,21 +1099,24 @@
         showToast(ok ? `Copied: ${text || '—'}` : 'Copy failed');
       });
       if (saveBtn) saveBtn.addEventListener('click', ()=>{
-        const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'reversi42-match.json'; a.click();
+        const txt = getCompactHistory();
+        if(!txt){ showToast('Nothing to save'); return; }
+        const blob = new Blob([txt + '\n'], {type:'text/plain'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'reversi-game.rev'; a.click();
         setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
       });
       if (loadBtn) loadBtn.addEventListener('click', ()=>{
-        const inp = document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+        const inp = document.createElement('input'); inp.type='file'; inp.accept='.r42,.rev,.txt,text/plain';
         inp.onchange = async ()=>{
           const file = inp.files?.[0]; if(!file) return;
-          try{ 
-            const next = JSON.parse(await file.text());
-            if(window.reloadGameData){
-              window.reloadGameData(next);
+          try{
+            const txt = (await file.text()).trim();
+            if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+              wsSend({ type:'load_history', history: txt });
+              wsSend({ type:'get_state' });
+              showToast('Loading game...');
             }
-          }
-          catch(e){ console.error('JSON non valido', e); }
+          }catch(e){ console.error('Invalid file', e); showToast('Load failed'); }
         }; inp.click();
       });
       if (newBtn) newBtn.addEventListener('click', ()=>{
@@ -1298,6 +1301,9 @@
         const canRedo = (st.can_redo !== undefined) ? !!st.can_redo : false;
         redoBtnEl.disabled = !(open && canRedo);
       }
+      // Always allow saving (even empty game saves as empty history)
+      const saveBtnEl = qs('saveBtn');
+      if(saveBtnEl){ saveBtnEl.disabled = false; }
 
       // highlight (removed ply display) 
       if(movesOl){

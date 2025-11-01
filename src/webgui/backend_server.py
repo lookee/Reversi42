@@ -610,6 +610,8 @@ async def process_message_by_type(websocket: WebSocket, session: GameSession, ms
             await handle_undo(websocket, session)
         elif msg_type == "redo":
             await handle_redo(websocket, session)
+        elif msg_type == "load_history":
+            await handle_load_history(websocket, session, data)
         else:
             await send_to_connection(websocket, {
                 "type": "error",
@@ -756,11 +758,10 @@ async def handle_undo(websocket: WebSocket, session: GameSession):
 
         logger.info(f"Undo performed: {steps} step(s). Current turn: {session.game.turn}")
 
-        # Broadcast updated state
-        await broadcast(session.session_id, {
-            "type": "board_update",
-            "data": session.get_state()
-        })
+        # Send updated state back on this socket and broadcast
+        state_payload = {"type": "board_update", "data": session.get_state()}
+        await send_to_connection(websocket, state_payload)
+        await broadcast(session.session_id, state_payload)
     except Exception as e:
         logger.error(f"Error in handle_undo: {e}")
         session.handle_error(e, "handle_undo")
@@ -797,6 +798,56 @@ async def handle_redo(websocket: WebSocket, session: GameSession):
             "type": "error",
             "message": f"Error processing redo: {str(e)}"
         })
+
+async def handle_load_history(websocket: WebSocket, session: GameSession, data: dict):
+    """Reset game and load compact history string like 'F5f6E6f4'."""
+    try:
+        hist = (data.get("history") or "").strip()
+        if not isinstance(hist, str):
+            await send_to_connection(websocket, {"type": "error", "message": "Invalid history format"})
+            return
+        # Reset session/game
+        session.reset_session()
+        import re
+        tokens = re.findall(r"[A-Ha-h][1-8]", hist)
+        if len("".join(tokens)) != len(hist):
+            logger.warning("History contains non-move characters; ignoring extraneous chars")
+        # Apply moves sequentially
+        for tok in tokens:
+            coord = tok.upper()
+            ok, err = session.make_move(coord)
+            if not ok:
+                await send_to_connection(websocket, {"type": "error", "message": f"Invalid move in history: {tok}"})
+                return
+        # Broadcast updated state
+        await broadcast(session.session_id, {
+            "type": "board_update",
+            "data": session.get_state()
+        })
+        # After load: if current player has no moves, pass once; if AI to move, proceed
+        move_list = session.game.get_move_list()
+        if not move_list:
+            session.game.pass_turn()
+            state_payload = {"type": "board_update", "data": session.get_state()}
+            await send_to_connection(websocket, state_payload)
+            await broadcast(session.session_id, state_payload)
+            # If still none, game over
+            if not session.game.get_move_list():
+                await handle_game_over(websocket, session, "Both players passed")
+                return
+        if session.game.turn == 'W':
+            ai_ml = session.game.get_move_list()
+            if not ai_ml:
+                session.game.pass_turn()
+                state_payload = {"type": "board_update", "data": session.get_state()}
+                await send_to_connection(websocket, state_payload)
+                await broadcast(session.session_id, state_payload)
+            else:
+                await handle_ai_move_request(websocket, session)
+    except Exception as e:
+        logger.error(f"Error in handle_load_history: {e}")
+        session.handle_error(e, "handle_load_history")
+        await send_to_connection(websocket, {"type": "error", "message": f"Error loading history: {str(e)}"})
 async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
     """Handle AI move request with robust error handling"""
     try:
