@@ -677,16 +677,6 @@
           try{
             if(data && data.opening_tree){
               renderOpeningTree(data.opening_tree);
-            } else if (data && Array.isArray(data.opening_by_ply) && data.opening_by_ply.length>0) {
-              // Fallback: build shallow tree from opening_by_ply badges
-              const shallow = { path: [], children: (data.opening_by_ply||[]).map(m=>({
-                move: m.move,
-                variants: m.variants || 0,
-                advantage: '=',
-                names: [],
-                children: []
-              })) };
-              renderOpeningTree(shallow);
             } else {
               renderOpeningTree(null);
             }
@@ -1342,6 +1332,9 @@
         box.appendChild(crumb);
       }
 
+      // Strict filter: only show last played move as single node
+      const lastPlayed = (Array.isArray(data?.moves) && data.moves.length>0) ? String(data.moves[data.moves.length-1]).toUpperCase() : null;
+
       const ul = document.createElement('ul');
       ul.style.listStyle = 'none';
       ul.style.paddingLeft = '0';
@@ -1385,14 +1378,9 @@
         move.textContent = n.move;
         const meta = document.createElement('span');
         meta.className = 'meta';
-        const names = (n.names||[]).slice(0,2).join(', ');
-        const adv = document.createElement('span');
-        adv.className = advClass(n.advantage);
-        adv.textContent = (n.advantage === undefined || n.advantage === null) ? '—' : (n.advantage || '=');
+        const names = (n.names||[]).slice(0,3).join(', ');
         const variants = document.createElement('span');
         variants.textContent = `${n.variants||0} var` + (names? ` · ${names}`:'');
-        variants.style.marginLeft = '6px';
-        meta.appendChild(adv);
         meta.appendChild(variants);
         wrap.appendChild(move);
         wrap.appendChild(meta);
@@ -1420,26 +1408,15 @@
             const details = document.createElement('details');
             details.open = depth < 1;
             const summary = document.createElement('summary');
-            summary.textContent = 'Varianti';
+            const opensCount = Array.isArray(n.openings) ? n.openings.length : 0;
+            summary.textContent = `Aperture (${opensCount})`;
             details.appendChild(summary);
-            // Openings list for this node (names + advantage)
+            // Openings list compact: names only, comma-separated
             if(Array.isArray(n.openings) && n.openings.length){
               const opens = document.createElement('div');
-              opens.style.cssText = 'padding:4px 8px; color:var(--muted); font-size:12px';
-              n.openings.forEach(o=>{
-                const row = document.createElement('div');
-                row.style.display = 'flex';
-                row.style.alignItems = 'center';
-                row.style.gap = '8px';
-                const badge = document.createElement('span');
-                badge.className = advClass(o.advantage);
-                badge.textContent = (o.advantage === undefined || o.advantage === null) ? '—' : (o.advantage || '=');
-                const label = document.createElement('span');
-                label.textContent = o.name;
-                row.appendChild(badge);
-                row.appendChild(label);
-                opens.appendChild(row);
-              });
+              opens.style.cssText = 'padding:4px 8px; color:var(--muted); font-size:12px; line-height:1.6';
+              const namesOnly = n.openings.map(o=>o && o.name ? String(o.name) : '').filter(Boolean);
+              opens.textContent = namesOnly.join(', ');
               details.appendChild(opens);
             }
             const sub = document.createElement('ul');
@@ -1453,7 +1430,10 @@
         });
       }
 
-      build(ul, tree.children, 0);
+      const nodes = lastPlayed
+        ? (tree.children || []).filter(n => String(n?.move).toUpperCase() === lastPlayed).map(n => ({...n, children: []}))
+        : (tree.children || []);
+      build(ul, nodes, 0);
     }
   </script>
 

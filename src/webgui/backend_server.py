@@ -174,80 +174,39 @@ class GameSession:
             book = self.ai_player.opening_book
             history = self.game.history or ""
 
-            # Navigate to node matching current history
+            # Build PATH-ONLY opening tree: show only the moves actually played, no alternative variants
             history_moves = book._parse_move_sequence(history)
-            node = book.root
-            for move_str in history_moves:
-                normalized = move_str.upper()
-                if normalized not in node.children:
-                    # Outside book: return empty tree with current path
-                    return {
-                        "path": [m.upper() for m in history_moves],
-                        "children": []
-                    }
-                node = node.children[normalized]
 
-            # Helper to append next move with correct turn case
-            def extend_sequence(seq: str, next_mv: str) -> str:
-                if self.game.turn == 'B':
-                    return seq + next_mv.upper()
-                return seq + next_mv.lower()
+            # Helper: collect compact info (variants count + top names) for a given sequence
+            def collect_info_for_sequence(seq_upper: str):
+                variants = self._count_opening_sequences(book, seq_upper)
+                names = []
+                openings_info = []
+                for full_seq, nm in book.opening_names.items():
+                    if full_seq.upper().startswith(seq_upper):
+                        names.append(nm)
+                        openings_info.append({"name": nm})
+                        if len(names) >= 3 and len(openings_info) >= 8:
+                            break
+                return variants, names, openings_info
 
-            # Precompute child variant counts to sort before recursion
-            def list_children_with_stats(cur_node, seq: str):
-                items = []
-                for mv_key, child in cur_node.children.items():
-                    ext_seq = extend_sequence(seq, mv_key)
-                    variants = self._count_opening_sequences(book, ext_seq)
-                    # Gather names (limit few for payload)
-                    names = []
-                    seq_upper = ext_seq.upper()
-                    openings_info = []
-                    for full_seq, nm in book.opening_names.items():
-                        if full_seq.upper().startswith(seq_upper):
-                            names.append(nm)
-                            # attach advantage for this full opening sequence if available
-                            adv = book.opening_advantages.get(full_seq)
-                            openings_info.append({
-                                "name": nm,
-                                "advantage": adv if adv else None
-                            })
-                            if len(names) >= 3 and len(openings_info) >= 8:
-                                break
-                    # Advantage if exact match
-                    advantage = book.get_opening_advantage(ext_seq)
-                    items.append({
-                        "key": mv_key,
-                        "node": child,
-                        "variants": variants,
-                        "names": names,
-                        "advantage": advantage or None,
-                        "sequence": ext_seq,
-                        "openings": openings_info[:8]
-                    })
-                # Sort by variants desc, then alphabetically for stability
-                items.sort(key=lambda x: (-x["variants"], x["key"]))
-                return items[:max_children]
-
-            def build(cur_node, seq: str, depth: int):
-                if depth >= max_depth:
-                    return []
-                children = []
-                for info in list_children_with_stats(cur_node, seq):
-                    child_entry = {
-                        "move": info["key"],
-                        "variants": info["variants"],
-                        "advantage": info["advantage"],
-                        "names": info["names"],
-                        "openings": info.get("openings", []),
-                        "children": build(info["node"], info["sequence"], depth + 1)
-                    }
-                    children.append(child_entry)
-                return children
+            # Show ONLY the last played move as a single node (no alternative variants, no prior nodes)
+            children: list = []
+            if history_moves:
+                full_seq_upper = "".join([m.upper() for m in history_moves])
+                last_mv = history_moves[-1].upper()
+                variants, names, opens = collect_info_for_sequence(full_seq_upper)
+                children = [{
+                    "move": last_mv,
+                    "variants": variants,
+                    "names": names,
+                    "openings": opens,
+                    "children": []
+                }]
 
             tree = {
                 "path": [m.upper() for m in history_moves],
-                "children": build(node, history, 0)
+                "children": children
             }
             return tree
         except Exception as e:
