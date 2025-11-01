@@ -115,6 +115,33 @@
     .pclock .sep{opacity:.4; padding:0 .25rem}
     .pclock .partial{opacity:.8; font-size:.9em}
 
+    /* Compact AI Stats */
+    .statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .statBadge{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);border-radius:10px;padding:.5rem .6rem}
+    .statLabel{color:var(--muted);font-size:11px}
+    .statValue{font-weight:700;color:var(--txt);font-size:13px}
+    .bestMove{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+    .bestMove .label{color:var(--muted);font-size:12px}
+    .bestMove .pill{border:1px solid rgba(255,255,255,.14);background:rgba(16,185,129,.12);color:#34d399;border-radius:999px;padding:.25rem .6rem;font-weight:800;letter-spacing:.03em}
+
+    /* Opening Tree */
+    .opening-tree{--pad:8px}
+    .opening-tree .node-row{display:flex;align-items:center;gap:10px;padding:6px var(--pad);border-radius:10px;transition:background .15s ease}
+    .opening-tree .node-row:hover{background:rgba(255,255,255,.04)}
+    .opening-tree .move-pill{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);border-radius:999px;padding:.15rem .55rem;font-weight:800;letter-spacing:.02em}
+    .opening-tree .meta{color:var(--muted);font-size:12px}
+    .opening-tree details{padding-left:12px}
+    .opening-tree summary{cursor:pointer;color:var(--muted);font-size:12px;padding:2px var(--pad);list-style:none}
+    .opening-tree summary::-webkit-details-marker{display:none}
+    .opening-tree .adv{border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:.05rem .4rem;font-weight:800;font-size:11px;margin-right:6px}
+    .opening-tree .adv-eq{background:rgba(255,255,255,.05);color:var(--muted)}
+    .opening-tree .adv-w{background:rgba(16,185,129,.14);color:#34d399}
+    .opening-tree .adv-wp{background:rgba(16,185,129,.22);color:#34d399}
+    .opening-tree .adv-wpp{background:rgba(16,185,129,.30);color:#34d399}
+    .opening-tree .adv-b{background:rgba(239,68,68,.18);color:#ff8a8a}
+    .opening-tree .adv-bp{background:rgba(239,68,68,.26);color:#ff9e9e}
+    .opening-tree .adv-bpp{background:rgba(239,68,68,.34);color:#ffb3b3}
+
     /* Board coordinates alignment */
     .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
 
@@ -398,6 +425,14 @@
               </div>
             </div>
             <div>
+              <div class="flex items-center gap-2 mb-2">
+                <div class="text-sm font-semibold">Opening Tree</div>
+              </div>
+              <div class="card" style="max-height:300px;overflow:auto">
+                <div id="openingTree" class="opening-tree p-3 text-[14px]"></div>
+              </div>
+            </div>
+            <div>
               <div class="text-sm font-semibold mb-2"><span id="deepeningSummaryTitle">Notes</span></div>
               <div class="card">
                 <div class="p-4 text-[14px] leading-6">
@@ -617,6 +652,24 @@
           }
           
           loadGameData(data);
+          // Render opening tree if provided
+          try{
+            if(data && data.opening_tree){
+              renderOpeningTree(data.opening_tree);
+            } else if (data && Array.isArray(data.opening_by_ply) && data.opening_by_ply.length>0) {
+              // Fallback: build shallow tree from opening_by_ply badges
+              const shallow = { path: [], children: (data.opening_by_ply||[]).map(m=>({
+                move: m.move,
+                variants: m.variants || 0,
+                advantage: '=',
+                names: [],
+                children: []
+              })) };
+              renderOpeningTree(shallow);
+            } else {
+              renderOpeningTree(null);
+            }
+          }catch(e){ console.warn('Opening tree render error', e); }
           
           // Update turn indicator - Human plays Black (B), AI plays White (W)
           const turn = data.status?.turn_by_ply?.[0] || 'B';
@@ -997,11 +1050,20 @@
             const idx = coordToIdx(obj.move);
             const cell = elBoard.children[idx];
             if(cell && cell.firstElementChild) {
+              // Add opening highlight ring
+              const ring = document.createElement('div');
+              ring.className = 'hint';
+              ring.dataset.__om = '1';
+              ring.textContent = '';
+              cell.firstElementChild.appendChild(ring);
               // Add variant count badge
               const badge = document.createElement('div');
               badge.className = 'book-move-badge';
-              badge.textContent = String(obj.variants || 0);
-              badge.title = `${obj.variants || 0} variant(s) in opening book`;
+              const v = Number(obj.variants || 0);
+              const small = window.matchMedia && window.matchMedia('(max-width: 480px)').matches;
+              const displayV = (small && v > 99) ? '99+' : String(v);
+              badge.textContent = displayV; // only number on board
+              badge.title = `${obj.move} · ${v} variant(s) in opening book`;
               cell.firstElementChild.appendChild(badge);
             }
           }
@@ -1070,6 +1132,46 @@
     function msToClock(ms){ const s = Math.max(0, Math.floor(ms/1000)); const m = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return `${m}:${ss}`; }
     function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
     function setDelta(id, n){ const el = qs(id); if(!el) return; if(n===0){ el.textContent = '±0'; return; } el.textContent = `${n>0?'+':'−'}${Math.abs(n)}`; }
+
+    // Formatting helpers for compact AI stats
+    function fmtK(num){
+      const n = Number(num);
+      if(!isFinite(n)) return '—';
+      const abs = Math.abs(n);
+      if(abs >= 1e9) return (n/1e9).toFixed(1).replace(/\.0$/,'') + 'B';
+      if(abs >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'') + 'M';
+      if(abs >= 1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'') + 'K';
+      return String(n);
+    }
+    function fmtPct(val){
+      if(val === null || val === undefined) return '—';
+      if(typeof val === 'string'){
+        if(/%/.test(val)) return val; // already formatted
+        const parsed = Number(val);
+        if(isFinite(parsed)) val = parsed; else return '—';
+      }
+      // Treat 0-1 as ratio
+      const p = (val <= 1 ? val*100 : val);
+      return `${Math.round(p)}%`;
+    }
+    function fmtEval(val){
+      const n = Number(val);
+      if(!isFinite(n)) return '—';
+      const s = n>0?'+':'';
+      return s + n.toFixed(Math.abs(n) < 10 ? 1 : 0);
+    }
+    function fmtDepth(val){
+      const n = parseInt(String(val).replace(/[^0-9]/g,''),10);
+      if(!isFinite(n)) return '—';
+      return 'D' + n;
+    }
+    function fmtMs(val){
+      if(val === null || val === undefined) return '—';
+      if(typeof val === 'string' && /(ms|s)$/.test(val)) return val;
+      const n = Number(val);
+      if(!isFinite(n)) return '—';
+      return `${n.toFixed(1)}ms`;
+    }
 
     // === AI VISUAL FEEDBACK ===
     function updateAIAnalysis(aiData){
@@ -1153,36 +1255,164 @@
       const box = qs('deepeningSummary'); 
       if(!box){ return; }
       
-      // Filter out the title field and handle the rest
-      const notesData = { ...notes };
-      const title = notesData.title;
-      delete notesData.title;
+      const nd = { ...notes };
+      delete nd.title;
       
-      if(!notesData || Object.keys(notesData).length === 0){ 
-        box.innerHTML = '<div class="text-sm" style="color:var(--muted)">No data available.</div>'; 
-        return; 
-      }
+      // Extract key fields with fallbacks
+      const bestMove = nd.selected_move || nd.selected || '—';
+      const evalVal  = nd.selected_value ?? nd.evaluation;
+      const depthVal = nd.final_depth ?? nd.depth;
+      const nodes    = nd.nodes_searched;
+      const pruned   = nd.nodes_pruned;
+      const pruneR   = nd.pruning_ratio;
+      const avgMs    = nd.avg_search_time;
+      const searches = nd.total_searches;
       
-      const rows = [];
-      for(const [key, valueObj] of Object.entries(notesData)){
-        const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        const value = typeof valueObj === 'object' && valueObj !== null ? valueObj.value : valueObj;
-        const value2 = typeof valueObj === 'object' && valueObj !== null ? valueObj.value2 : null;
-        
-        // Skip if value is N/A or undefined
-        if(value === 'N/A' || value === undefined || value === null || String(value).trim() === ''){
-          continue;
-        }
-        
-        rows.push(`<div class="flex items-center justify-between gap-4">
-          <span class="text-[13px]">${escapeHtml(label)}</span>
-          <div class="flex items-center gap-2">
-            <span class="text-[13px] font-semibold" style="color:var(--txt)">${escapeHtml(String(value))}</span>
-            ${value2 ? `<span class="text-[13px]" style="color:var(--muted)">${escapeHtml(String(value2))}</span>` : ''}
-          </div>
-        </div>`);
+      const html = `
+        <div class="bestMove">
+          <span class="label">Best</span>
+          <span class="pill">${escapeHtml(String(bestMove))}</span>
+        </div>
+        <div class="statGrid">
+          <div class="statBadge"><span class="statLabel">Eval</span><span class="statValue">${fmtEval(evalVal)}</span></div>
+          <div class="statBadge"><span class="statLabel">Depth</span><span class="statValue">${fmtDepth(depthVal)}</span></div>
+          <div class="statBadge"><span class="statLabel">Nodes</span><span class="statValue">${fmtK(nodes)}</span></div>
+          <div class="statBadge"><span class="statLabel">Prune</span><span class="statValue">${fmtPct(pruneR)}</span></div>
+          <div class="statBadge"><span class="statLabel">Avg</span><span class="statValue">${fmtMs(avgMs)}</span></div>
+          <div class="statBadge"><span class="statLabel">Searches</span><span class="statValue">${fmtK(searches)}</span></div>
+        </div>
+      `;
+      box.innerHTML = html;
+    }
+
+    // === OPENING TREE RENDERING ===
+    function renderOpeningTree(tree){
+      const box = document.getElementById('openingTree');
+      if(!box) return;
+      if(!tree || !Array.isArray(tree.children) || tree.children.length===0){
+        box.innerHTML = '<div style="color:var(--muted);padding:6px 4px">Nessuna linea di libro dalla posizione corrente</div>';
+        return;
       }
-      box.innerHTML = rows.join('');
+
+      // Clear
+      box.innerHTML = '';
+
+      // Path (breadcrumb)
+      if(Array.isArray(tree.path) && tree.path.length){
+        const crumb = document.createElement('div');
+        crumb.style.cssText = 'color:var(--muted);font-size:12px;padding:0 8px 8px 8px';
+        crumb.textContent = 'Path: ' + tree.path.map(m=>String(m).toUpperCase()).join(' – ');
+        box.appendChild(crumb);
+      }
+
+      const ul = document.createElement('ul');
+      ul.style.listStyle = 'none';
+      ul.style.paddingLeft = '0';
+      box.appendChild(ul);
+
+      function advClass(adv){
+        if(!adv || adv==='=') return 'adv adv-eq';
+        const a = String(adv).toLowerCase();
+        if(a==='w') return 'adv adv-w';
+        if(a==='w+') return 'adv adv-wp';
+        if(a==='w++') return 'adv adv-wpp';
+        if(a==='b') return 'adv adv-b';
+        if(a==='b+') return 'adv adv-bp';
+        if(a==='b++') return 'adv adv-bpp';
+        return 'adv adv-eq';
+      }
+
+      function highlightCell(move){
+        try{
+          const i = coordToIdx(move);
+          const cell = document.getElementById('board')?.children[i]?.firstElementChild;
+          if(!cell) return;
+          const hint = document.createElement('div');
+          hint.className = 'hint';
+          hint.textContent = '•';
+          hint.dataset.__ot = '1';
+          cell.appendChild(hint);
+        }catch(_){/* noop */}
+      }
+
+      function clearHighlights(){
+        document.querySelectorAll('.hint[data-__ot="1"]').forEach(e=>e.remove());
+      }
+
+      function nodeRow(n){
+        const wrap = document.createElement('div');
+        wrap.className = 'node-row';
+        const move = document.createElement('span');
+        move.className = 'move-pill';
+        move.textContent = n.move;
+        const meta = document.createElement('span');
+        meta.className = 'meta';
+        const names = (n.names||[]).slice(0,2).join(', ');
+        const adv = document.createElement('span');
+        adv.className = advClass(n.advantage);
+        adv.textContent = n.advantage || '=';
+        const variants = document.createElement('span');
+        variants.textContent = `${n.variants||0} var` + (names? ` · ${names}`:'');
+        variants.style.marginLeft = '6px';
+        meta.appendChild(adv);
+        meta.appendChild(variants);
+        wrap.appendChild(move);
+        wrap.appendChild(meta);
+
+        wrap.onmouseenter = ()=>{ clearHighlights(); highlightCell(n.move); };
+        wrap.onmouseleave = ()=>{ clearHighlights(); };
+        wrap.onclick = ()=>{
+          try{
+            const i = coordToIdx(n.move); const cell = document.getElementById('board')?.children[i];
+            cell?.scrollIntoView({block:'nearest', inline:'nearest'});
+          }catch(_){/* noop */}
+        };
+        return wrap;
+      }
+
+      function build(list, nodes, depth=0){
+        nodes.forEach(n=>{
+          const li = document.createElement('li');
+          li.style.marginLeft = (depth*8)+'px';
+          li.appendChild(nodeRow(n));
+          if(n.children && n.children.length){
+            const details = document.createElement('details');
+            details.open = depth < 1;
+            const summary = document.createElement('summary');
+            summary.textContent = 'Varianti';
+            details.appendChild(summary);
+            // Openings list for this node (names + advantage)
+            if(Array.isArray(n.openings) && n.openings.length){
+              const opens = document.createElement('div');
+              opens.style.cssText = 'padding:4px 8px; color:var(--muted); font-size:12px';
+              n.openings.forEach(o=>{
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '8px';
+                const badge = document.createElement('span');
+                badge.className = advClass(o.advantage);
+                badge.textContent = o.advantage || '=';
+                const label = document.createElement('span');
+                label.textContent = o.name;
+                row.appendChild(badge);
+                row.appendChild(label);
+                opens.appendChild(row);
+              });
+              details.appendChild(opens);
+            }
+            const sub = document.createElement('ul');
+            sub.style.listStyle = 'none';
+            sub.style.paddingLeft = '0';
+            details.appendChild(sub);
+            li.appendChild(details);
+            build(sub, n.children, depth+1);
+          }
+          list.appendChild(li);
+        });
+      }
+
+      build(ul, tree.children, 0);
     }
   </script>
 

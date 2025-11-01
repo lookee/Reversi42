@@ -28,7 +28,7 @@ from fastapi.responses import HTMLResponse, FileResponse, Response
 import asyncio
 import json
 import argparse
-from typing import Dict, Set
+from typing import Dict, Set, Optional
 from dataclasses import dataclass, asdict
 
 # Import game engine
@@ -161,6 +161,98 @@ class GameSession:
                 count += 1
         
         return count
+    
+    def _build_opening_tree(self, max_depth: int = 3, max_children: int = 6) -> Optional[dict]:
+        """Build a compact opening tree from current position using the AI opening book.
+
+        The structure returned is tailored for UI rendering and limited in depth/width.
+        """
+        try:
+            if not hasattr(self.ai_player, 'opening_book') or not self.ai_player.opening_book:
+                return None
+
+            book = self.ai_player.opening_book
+            history = self.game.history or ""
+
+            # Navigate to node matching current history
+            history_moves = book._parse_move_sequence(history)
+            node = book.root
+            for move_str in history_moves:
+                normalized = move_str.upper()
+                if normalized not in node.children:
+                    # Outside book: return empty tree with current path
+                    return {
+                        "path": [m.upper() for m in history_moves],
+                        "children": []
+                    }
+                node = node.children[normalized]
+
+            # Helper to append next move with correct turn case
+            def extend_sequence(seq: str, next_mv: str) -> str:
+                if self.game.turn == 'B':
+                    return seq + next_mv.upper()
+                return seq + next_mv.lower()
+
+            # Precompute child variant counts to sort before recursion
+            def list_children_with_stats(cur_node, seq: str):
+                items = []
+                for mv_key, child in cur_node.children.items():
+                    ext_seq = extend_sequence(seq, mv_key)
+                    variants = self._count_opening_sequences(book, ext_seq)
+                    # Gather names (limit few for payload)
+                    names = []
+                    seq_upper = ext_seq.upper()
+                    openings_info = []
+                    for full_seq, nm in book.opening_names.items():
+                        if full_seq.upper().startswith(seq_upper):
+                            names.append(nm)
+                            # attach advantage for this full opening sequence if available
+                            adv = book.opening_advantages.get(full_seq)
+                            openings_info.append({
+                                "name": nm,
+                                "advantage": adv if adv else "="
+                            })
+                            if len(names) >= 3 and len(openings_info) >= 8:
+                                break
+                    # Advantage if exact match
+                    advantage = book.get_opening_advantage(ext_seq)
+                    items.append({
+                        "key": mv_key,
+                        "node": child,
+                        "variants": variants,
+                        "names": names,
+                        "advantage": advantage or None,
+                        "sequence": ext_seq,
+                        "openings": openings_info[:8]
+                    })
+                # Sort by variants desc, then alphabetically for stability
+                items.sort(key=lambda x: (-x["variants"], x["key"]))
+                return items[:max_children]
+
+            def build(cur_node, seq: str, depth: int):
+                if depth >= max_depth:
+                    return []
+                children = []
+                for info in list_children_with_stats(cur_node, seq):
+                    child_entry = {
+                        "move": info["key"],
+                        "variants": info["variants"],
+                        "advantage": info["advantage"],
+                        "names": info["names"],
+                        "openings": info.get("openings", []),
+                        "children": build(info["node"], info["sequence"], depth + 1)
+                    }
+                    children.append(child_entry)
+                return children
+
+            tree = {
+                "path": [m.upper() for m in history_moves],
+                "children": build(node, history, 0)
+            }
+            return tree
+        except Exception as e:
+            logger.warning(f"Could not build opening tree: {e}")
+            return None
         
     def get_state(self) -> dict:
         """Get current game state as dictionary in the format expected by the frontend"""
@@ -239,6 +331,13 @@ class GameSession:
         # Use last AI stats for notes if available
         notes = self.last_ai_stats if self.last_ai_stats else {"title": "Notes"}
         
+        # Opening tree (limited, UI-friendly)
+        opening_tree = None
+        try:
+            opening_tree = self._build_opening_tree(max_depth=3, max_children=6)
+        except Exception as e:
+            logger.warning(f"Opening tree error: {e}")
+        
         return {
             "meta": {
                 "variant": "Reversi/Othello",
@@ -261,6 +360,7 @@ class GameSession:
             "moves": moves,
             "valid_by_ply": [valid_moves],
             "opening_by_ply": opening_moves,
+            "opening_tree": opening_tree,
             "notes": notes
         }
     
