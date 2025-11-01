@@ -514,6 +514,7 @@
     let ply = 0;
     let wsConnection = null;
     let isHumanTurn = false;
+    let gameOverInfo = null; // { winner, black_count, white_count }
     
     // WebSocket configuration
     const WS_URL = 'ws://localhost:8000/ws';
@@ -609,8 +610,9 @@
         });
       }
 
-      // Re-render with new data
-      ply = 0; // Reset to start
+      // Re-render with new data (keep current ply; clamp within new bounds)
+      const newMaxPly = (data.positions?.length || 1) - 1;
+      if(ply > newMaxPly) ply = newMaxPly;
       render();
       
       // Update notes if available
@@ -645,11 +647,10 @@
         cell.onclick = () => {
           console.log('Cell clicked:', cell.dataset.coord, 'isHumanTurn:', isHumanTurn, 'wsReady:', wsConnection?.readyState === WebSocket.OPEN, 'data:', !!data);
           
-          // Always check turn from data if available
-          let currentTurn = 'B';
-          if(data && data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0){
-            currentTurn = data.status.turn_by_ply[0];
-          }
+          // Always check turn from data for the current ply
+          let currentTurn = (data && data.status && Array.isArray(data.status.turn_by_ply))
+            ? (data.status.turn_by_ply[ply] || (ply%2===0 ? 'B' : 'W'))
+            : (ply%2===0 ? 'B' : 'W');
           
           const canMove = (currentTurn === 'B' && wsConnection && wsConnection.readyState === WebSocket.OPEN);
           console.log('Current turn from data:', currentTurn, 'canMove:', canMove);
@@ -763,7 +764,8 @@
           }catch(e){ console.warn('Opening tree render error', e); }
           
           // Update turn indicator - Human plays Black (B), AI plays White (W)
-          const turn = data.status?.turn_by_ply?.[0] || 'B';
+          const idx = Math.min(ply, (data.positions?.length || 1) - 1);
+          const turn = (data.status?.turn_by_ply && data.status.turn_by_ply[idx]) || (idx%2===0 ? 'B' : 'W');
           const newIsHumanTurn = (turn === 'B');
           console.log('board_update received. Turn:', turn, 'Current isHumanTurn:', isHumanTurn, 'New isHumanTurn:', newIsHumanTurn);
           if(isHumanTurn !== newIsHumanTurn){
@@ -823,13 +825,16 @@
           console.log('Game over!', message.data);
           // Disable human moves
           isHumanTurn = false;
-          
-          // Show game over message
-          const winnerText = message.data.winner || 'Game Over';
-          const blackScore = message.data.black_count || 0;
-          const whiteScore = message.data.white_count || 0;
-          
-          alert(`🎮 GAME OVER\n\nWinner: ${winnerText}\n\nBlack: ${blackScore} pieces\nWhite: ${whiteScore} pieces`);
+          // Persist winner info for header rendering
+          gameOverInfo = {
+            winner: message.data.winner || 'Game Over',
+            black_count: message.data.black_count || 0,
+            white_count: message.data.white_count || 0
+          };
+          // Update header immediately
+          render();
+          // Optional alert (kept for visibility)
+          alert(`🎮 GAME OVER\n\nWinner: ${gameOverInfo.winner}\n\nBlack: ${gameOverInfo.black_count} pieces\nWhite: ${gameOverInfo.white_count} pieces`);
           break;
           
         case 'error':
@@ -1105,8 +1110,20 @@
         if(typeof lastTurn==='undefined' || lastTurn===null) lastTurn = turn;
         if(turn !== lastTurn){ partial[turn]=0; lastTurn = turn; }
       }
-      qs('turnText').textContent = `To move: ${turn==='B'?'Black':'White'}`;
-      qs('turnDot').style.background = (turn==='B') ? 'var(--accent)' : 'var(--accent2)';
+      if(gameOverInfo){
+        // Show winner in header
+        const winner = String(gameOverInfo.winner || '').toUpperCase();
+        // Winner label: use player name if possible
+        let winnerLabel = gameOverInfo.winner || 'Game Over';
+        if(gameOverInfo.winner === 'Black') winnerLabel = data.players?.black?.name || 'Black';
+        if(gameOverInfo.winner === 'White') winnerLabel = data.players?.white?.name || 'White';
+        const score = `${gameOverInfo.black_count} - ${gameOverInfo.white_count}`;
+        qs('turnText').textContent = `Winner: ${winnerLabel} · ${score}`;
+        qs('turnDot').style.background = 'var(--muted)';
+      } else {
+        qs('turnText').textContent = `To move: ${turn==='B'?'Black':'White'}`;
+        qs('turnDot').style.background = (turn==='B') ? 'var(--accent)' : 'var(--accent2)';
+      }
       // removed move number display from header
 
       // Board position
