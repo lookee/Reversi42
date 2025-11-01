@@ -190,23 +190,92 @@ class GameSession:
                             break
                 return variants, names, openings_info
 
-            # Show ONLY the last played move as a single node (no alternative variants, no prior nodes)
+            # Next VALID book moves from current position (compact list with names)
+            # Compute valid moves for current player as coordinates
+            valid_coords = set(f"{chr(64+m.x)}{m.y}" for m in self.game.get_move_list())
+
+            # Navigate the trie to current history
+            node = book.root
+            for mv in history_moves:
+                up = mv.upper()
+                if up not in node.children:
+                    node = None
+                    break
+                node = node.children[up]
+
             children: list = []
-            if history_moves:
-                full_seq_upper = "".join([m.upper() for m in history_moves])
-                last_mv = history_moves[-1].upper()
-                variants, names, opens = collect_info_for_sequence(full_seq_upper)
-                children = [{
-                    "move": last_mv,
-                    "variants": variants,
-                    "names": names,
-                    "openings": opens,
-                    "children": []
-                }]
+            if node is not None:
+                book_next = book.get_book_moves(history)
+                for mv in book_next or []:
+                    coord = f"{chr(64+mv.x)}{mv.y}"
+                    if coord not in valid_coords:
+                        continue
+                    # Extend sequence respecting turn
+                    move_with_turn = coord if self.game.turn == 'B' else coord.lower()
+                    ext_seq = (history or "") + move_with_turn
+                    variants, names, opens = collect_info_for_sequence(ext_seq.upper())
+                    children.append({
+                        "move": coord,
+                        "variants": variants,
+                        "names": names,
+                        "openings": opens,
+                        "children": []
+                    })
+
+            # Compute current opening (flexible): prefer the longest line whose sequence is a prefix of history (token-aware)
+            current_opening = None
+            try:
+                # Exact match first
+                current_opening = book.get_current_opening_name(history)
+                if not current_opening and history:
+                    # Compare by token (two-char moves), not raw string length
+                    hist_tokens = book._parse_move_sequence(history)
+                    best_len = -1
+                    for seq, name in book.opening_names.items():
+                        seq_tokens = book._parse_move_sequence(seq)
+                        # seq_tokens must be a prefix of hist_tokens
+                        if len(seq_tokens) == 0 or len(seq_tokens) > len(hist_tokens):
+                            continue
+                        is_prefix = True
+                        for i in range(len(seq_tokens)):
+                            if seq_tokens[i].upper() != hist_tokens[i].upper():
+                                is_prefix = False
+                                break
+                        if is_prefix and len(seq_tokens) > best_len:
+                            current_opening = name
+                            best_len = len(seq_tokens)
+                # Fallback: if we left the book, show the closest earlier opening (max common prefix)
+                if not current_opening and history:
+                    hist_tokens = book._parse_move_sequence(history)
+                    best_score = -1
+                    best_name = None
+                    for seq, name in book.opening_names.items():
+                        seq_tokens = book._parse_move_sequence(seq)
+                        k = 0  # common prefix length in tokens
+                        for a, b in zip(hist_tokens, seq_tokens):
+                            if a.upper() == b.upper():
+                                k += 1
+                            else:
+                                break
+                        if k > best_score:
+                            best_score = k
+                            best_name = name
+                    current_opening = best_name if best_score > 0 else None
+            except Exception:
+                current_opening = None
+
+            # Names reachable from here
+            names_at_position = []
+            try:
+                names_at_position = book.get_remaining_openings(history) or []
+            except Exception:
+                names_at_position = []
 
             tree = {
                 "path": [m.upper() for m in history_moves],
-                "children": children
+                "children": children,
+                "current_opening": current_opening,
+                "names_at_position": names_at_position
             }
             return tree
         except Exception as e:
@@ -259,14 +328,22 @@ class GameSession:
                             break
                         node = node.children[normalized]
                     
-                    # Precompute valid move coordinates for robust comparison
-                    valid_coords = set(f"{chr(64+m.x)}{m.y}" for m in move_list)
+                    # Precompute valid move coordinates based on the list we already exposed to frontend
+                    # This guarantees perfect alignment with 'valid_by_ply'
+                    valid_coords = set(valid_moves)
 
                     # For each book move that is currently VALID, count how many opening sequences continue
                     for move_obj in book_moves:
                         # Only include if move is valid now (coordinate-based to avoid equality issues)
                         coord = f"{chr(64+move_obj.x)}{move_obj.y}"
                         if coord not in valid_coords:
+                            logger.info(f"Skipping book move not valid now: {coord}; valid={sorted(valid_coords)}")
+                            continue
+                        # Extra safety: confirm with engine validator
+                        try:
+                            if not self.game.valid_move(Move(move_obj.x, move_obj.y)):
+                                continue
+                        except Exception:
                             continue
                         move_str = coord
                         

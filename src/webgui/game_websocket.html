@@ -133,6 +133,7 @@
     .opening-tree .node-row:hover{background:rgba(255,255,255,.04)}
     .opening-tree .move-pill{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);border-radius:999px;padding:.15rem .55rem;font-weight:800;letter-spacing:.02em}
     .opening-tree .meta{color:var(--muted);font-size:12px}
+    .opening-tree .names{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .opening-tree details{padding-left:12px}
     .opening-tree summary{cursor:pointer;color:var(--muted);font-size:12px;padding:2px var(--pad);list-style:none}
     .opening-tree summary::-webkit-details-marker{display:none}
@@ -145,6 +146,19 @@
     .opening-tree .adv-b{background:rgba(239,68,68,.18);color:#ff8a8a}
     .opening-tree .adv-bp{background:rgba(239,68,68,.26);color:#ff9e9e}
     .opening-tree .adv-bpp{background:rgba(239,68,68,.34);color:#ffb3b3}
+
+    /* WebSocket traffic viewer */
+    .ws-item{border-bottom:1px solid rgba(255,255,255,.08);padding:6px 8px}
+    .ws-head{display:flex;align-items:center;gap:8px;color:#e5e5e5;font-size:12px;cursor:pointer}
+    .ws-head .ws-time{opacity:.6}
+    .ws-head .ws-dir{opacity:.8}
+    .ws-body{display:none;color:#e5e5e5;background:#141414;border:1px solid #333;border-radius:8px;padding:8px;margin-top:6px;white-space:pre;overflow:auto}
+    /* JSON syntax highlighting */
+    .ws-json .json-key{color:#9cdcfe}
+    .ws-json .json-string{color:#ce9178}
+    .ws-json .json-number{color:#b5cea8}
+    .ws-json .json-boolean{color:#569cd6}
+    .ws-json .json-null{color:#569cd6;font-style:italic}
 
     /* Board coordinates alignment */
     .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
@@ -366,7 +380,6 @@
           <span id="turnDot" style="display:inline-block;width:10px;height:10px;border-radius:999px;background:var(--accent)"></span>
           <span id="turnText">To move: —</span>
         </div>
-        <div class="text-xs" style="color:var(--muted)">Move <span id="moveNo">0</span></div>
       </div>
 
       <!-- RIGHT: White -->
@@ -505,6 +518,72 @@
     // WebSocket configuration
     const WS_URL = 'ws://localhost:8000/ws';
     const SESSION_ID = 'default';
+    function pretty(obj){ try{ return JSON.stringify(obj, null, 2); }catch(_){ return String(obj); } }
+    function highlightJson(json){
+      const esc = (s)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return esc(json)
+        .replace(/(&quot;.*?&quot;)(:\s*)/g, '<span class="json-key">$1</span>$2')
+        .replace(/&quot;([^\"]|\\\")*&quot;/g, '<span class="json-string">$&</span>')
+        .replace(/\b(true|false)\b/g, '<span class="json-boolean">$1</span>')
+        .replace(/\b(null)\b/g, '<span class="json-null">$1</span>')
+        .replace(/(-?\b\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?\b)/g, '<span class="json-number">$1</span>');
+    }
+    function summarizeMessage(direction, payload){
+      let p = payload;
+      if(typeof p === 'string'){
+        try{ p = JSON.parse(p); }catch(_){ /* ignore */ }
+      }
+      if(p && typeof p === 'object'){
+        const t = p.type || p?.data?.type;
+        if(t === 'board_update'){
+          const last = p?.data?.moves && p.data.moves.length ? p.data.moves[p.data.moves.length-1] : '-';
+          const turn = p?.data?.status?.turn_by_ply?.[0] || '-';
+          const valid = (p?.data?.valid_by_ply?.[0] || []).length;
+          const book = (p?.data?.opening_by_ply || []).length;
+          return `board_update · turn ${turn} · last ${last} · valid ${valid} · book ${book}`;
+        }
+        if(t === 'ai_move'){
+          const mv = p?.data?.move || '-';
+          return `ai_move · ${mv}`;
+        }
+        if(t === 'ai_thinking'){
+          return 'ai_thinking';
+        }
+        if(t === 'human_move'){
+          return `human_move · ${p.move}`;
+        }
+        if(t === 'init'){
+          return `init · ai=${p.ai_player || ''}`;
+        }
+        if(t === 'reset_game'){
+          return 'reset_game';
+        }
+      }
+      return `${direction}`;
+    }
+    function appendWsMessage(direction, payload){
+      const box = document.getElementById('wsTrafficContent');
+      if(!box) return;
+      const time = new Date().toISOString();
+      const item = document.createElement('div'); item.className = 'ws-item';
+      const head = document.createElement('div'); head.className = 'ws-head';
+      const timeSpan = document.createElement('span'); timeSpan.className = 'ws-time'; timeSpan.textContent = time;
+      const dirSpan = document.createElement('span'); dirSpan.className = 'ws-dir'; dirSpan.textContent = direction;
+      const sumSpan = document.createElement('span'); sumSpan.className = 'ws-sum'; sumSpan.textContent = summarizeMessage(direction, payload);
+      const copyBtn = document.createElement('button'); copyBtn.className = 'btn text-xs'; copyBtn.textContent = 'Copy';
+      copyBtn.addEventListener('click', (e)=>{ e.stopPropagation(); navigator.clipboard?.writeText(pretty(payload)); });
+      head.appendChild(timeSpan); head.appendChild(dirSpan); head.appendChild(sumSpan); head.appendChild(copyBtn);
+      const body = document.createElement('pre'); body.className = 'ws-body ws-json'; body.innerHTML = highlightJson(pretty(payload));
+      head.addEventListener('click', ()=>{ body.style.display = (body.style.display==='none'||!body.style.display) ? 'block' : 'none'; });
+      item.appendChild(head); item.appendChild(body); box.appendChild(item);
+      const container = document.getElementById('wsTrafficContainer'); if(container){ container.scrollTop = container.scrollHeight; }
+    }
+    function wsSend(obj){
+      try{
+        wsConnection && wsConnection.send(JSON.stringify(obj));
+        appendWsMessage('→ send', obj);
+      }catch(e){ console.error('wsSend error', e); }
+    }
     
     function loadGameData(gameData){
       data = gameData;
@@ -627,11 +706,12 @@
           ai_player: 'DIVZERO.EXE'
         };
         console.log('Sending init message:', initMsg);
-        wsConnection.send(JSON.stringify(initMsg));
+        wsSend(initMsg);
       };
       
       wsConnection.onmessage = (event) => {
         console.log('Raw message received:', event.data);
+        try{ appendWsMessage('← recv', JSON.parse(event.data)); }catch(_){ appendWsMessage('← recv', event.data); }
         const message = JSON.parse(event.data);
         console.log('Parsed message:', message);
         handleServerMessage(message);
@@ -779,10 +859,7 @@
       
       console.log('Submitting move:', move);
       isHumanTurn = false; // Prevent double moves temporarily
-      wsConnection.send(JSON.stringify({
-        type: 'human_move',
-        move: move
-      }));
+      wsSend({ type: 'human_move', move: move });
       console.log('Move submitted, setting isHumanTurn to false temporarily');
       // isHumanTurn will be reset by board_update from server
     }
@@ -1030,7 +1107,7 @@
       }
       qs('turnText').textContent = `To move: ${turn==='B'?'Black':'White'}`;
       qs('turnDot').style.background = (turn==='B') ? 'var(--accent)' : 'var(--accent2)';
-      qs('moveNo').textContent = String(Math.ceil(ply/2));
+      // removed move number display from header
 
       // Board position
       const s = normalize64(data.positions?.[ply]);
@@ -1313,7 +1390,10 @@
       function renderOpeningTree(tree){
       const box = document.getElementById('openingTree');
       if(!box) return;
-      if(!tree || !Array.isArray(tree.children) || tree.children.length===0){
+      const hasChildren = !!(tree && Array.isArray(tree.children) && tree.children.length>0);
+      const hasNames = !!(tree && Array.isArray(tree.names_at_position) && tree.names_at_position.length>0);
+      const hasCurrent = !!(tree && tree.current_opening);
+      if(!hasChildren && !hasNames && !hasCurrent){
         box.innerHTML = '<div style="color:var(--muted);padding:6px 4px">Nessuna linea di libro dalla posizione corrente</div>';
         return;
       }
@@ -1324,21 +1404,22 @@
         // Build set of valid moves for current position to avoid highlighting invalid variants
         const validSet = new Set(((data && data.valid_by_ply && data.valid_by_ply[0]) || []).map(String));
 
-      // Path (breadcrumb)
-      if(Array.isArray(tree.path) && tree.path.length){
-        const crumb = document.createElement('div');
-        crumb.style.cssText = 'color:var(--muted);font-size:12px;padding:0 8px 8px 8px';
-        crumb.textContent = 'Path: ' + tree.path.map(m=>String(m).toUpperCase()).join(' – ');
-        box.appendChild(crumb);
+      // Path removed per request (compact view)
+
+      // Current opening (if any) - always show a compact header
+      if(tree.current_opening){
+        const playing = document.createElement('div');
+        playing.style.cssText = 'color:var(--muted);font-size:12px;padding:0 8px 6px 8px';
+        playing.textContent = `Playing: ${tree.current_opening}`;
+        box.appendChild(playing);
       }
 
-      // Strict filter: only show last played move as single node
-      const lastPlayed = (Array.isArray(data?.moves) && data.moves.length>0) ? String(data.moves[data.moves.length-1]).toUpperCase() : null;
-
-      const ul = document.createElement('ul');
-      ul.style.listStyle = 'none';
-      ul.style.paddingLeft = '0';
-      box.appendChild(ul);
+      // If we have children, render them as a compact list; otherwise show variant names
+      if(hasChildren){
+        const ul = document.createElement('ul');
+        ul.style.listStyle = 'none';
+        ul.style.paddingLeft = '0';
+        box.appendChild(ul);
 
       function advClass(adv){
         if(adv === undefined || adv === null) return 'adv adv-unk';
@@ -1376,14 +1457,16 @@
         const move = document.createElement('span');
         move.className = 'move-pill';
         move.textContent = n.move;
-        const meta = document.createElement('span');
-        meta.className = 'meta';
-        const names = (n.names||[]).slice(0,3).join(', ');
-        const variants = document.createElement('span');
-        variants.textContent = `${n.variants||0} var` + (names? ` · ${names}`:'');
-        meta.appendChild(variants);
+        const namesFull = Array.isArray(n.names) && n.names.length
+          ? n.names
+          : (Array.isArray(n.openings) ? n.openings.map(o=>o && o.name ? String(o.name) : '').filter(Boolean) : []);
+        const namesShort = namesFull.slice(0, 5).join(', ');
+        const namesSpan = document.createElement('span');
+        namesSpan.className = 'names';
+        namesSpan.textContent = namesShort || '';
+        if(namesFull.length){ namesSpan.title = namesFull.join(', '); }
         wrap.appendChild(move);
-        wrap.appendChild(meta);
+        wrap.appendChild(namesSpan);
 
         wrap.onmouseenter = ()=>{ 
           clearHighlights(); 
@@ -1404,36 +1487,22 @@
           const li = document.createElement('li');
           li.style.marginLeft = (depth*8)+'px';
           li.appendChild(nodeRow(n));
-          if(n.children && n.children.length){
-            const details = document.createElement('details');
-            details.open = depth < 1;
-            const summary = document.createElement('summary');
-            const opensCount = Array.isArray(n.openings) ? n.openings.length : 0;
-            summary.textContent = `Aperture (${opensCount})`;
-            details.appendChild(summary);
-            // Openings list compact: names only, comma-separated
-            if(Array.isArray(n.openings) && n.openings.length){
-              const opens = document.createElement('div');
-              opens.style.cssText = 'padding:4px 8px; color:var(--muted); font-size:12px; line-height:1.6';
-              const namesOnly = n.openings.map(o=>o && o.name ? String(o.name) : '').filter(Boolean);
-              opens.textContent = namesOnly.join(', ');
-              details.appendChild(opens);
-            }
-            const sub = document.createElement('ul');
-            sub.style.listStyle = 'none';
-            sub.style.paddingLeft = '0';
-            details.appendChild(sub);
-            li.appendChild(details);
-            build(sub, n.children, depth+1);
-          }
+          // Compact mode: no nested details; names are shown inline
           list.appendChild(li);
         });
       }
-
-      const nodes = lastPlayed
-        ? (tree.children || []).filter(n => String(n?.move).toUpperCase() === lastPlayed).map(n => ({...n, children: []}))
-        : (tree.children || []);
-      build(ul, nodes, 0);
+      const filteredChildren = (tree.children || []).filter(n => validSet.has(String(n.move).toUpperCase()));
+      build(ul, filteredChildren, 0);
+      } else {
+        // No children: compact names-only list (header shown above already)
+        if(hasNames){
+          const names = Array.from(new Set(tree.names_at_position)).slice(0,24);
+          const p = document.createElement('div');
+          p.className = 'names';
+          p.textContent = names.join(', ');
+          box.appendChild(p);
+        }
+      }
     }
   </script>
 
@@ -1457,8 +1526,25 @@
         <button class="btn text-xs" id="closeJsonEditor2"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></span> Close</button>
       </div>
     </div>
-    <div id="logsContainer">
-      <div id="logsContent"></div>
+    <div class="json-editor-tabs">
+      <button class="tab-btn active" id="tabBtnLogs" data-tab="logs">Server Logs</button>
+      <button class="tab-btn" id="tabBtnWs" data-tab="ws">WebSocket</button>
+    </div>
+    <div id="tabLogsPane" class="tab-content active">
+      <div id="logsContainer">
+        <div id="logsContent"></div>
+      </div>
+    </div>
+    <div id="tabWsPane" class="tab-content">
+      <div class="json-editor-header">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold">WebSocket Messages</span>
+          <button class="btn text-xs" id="clearWs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M9 6l1-2h4l1 2"/></svg></span> Clear</button>
+        </div>
+      </div>
+      <div id="wsTrafficContainer" style="background:#1a1a1a;color:#e5e5e5;font-family:'Courier New',monospace;overflow:auto;max-height:100%">
+        <div id="wsTrafficContent" style="padding:16px;white-space:pre;line-height:1.6"></div>
+      </div>
     </div>
   </div>
 
@@ -1484,6 +1570,11 @@
     // Logs functionality
     const refreshLogsBtn = q('refreshLogs');
     const clearLogsBtn = q('clearLogs');
+    const clearWsBtn = q('clearWs');
+    const tabBtnLogs = q('tabBtnLogs');
+    const tabBtnWs = q('tabBtnWs');
+    const tabLogsPane = q('tabLogsPane');
+    const tabWsPane = q('tabWsPane');
     const logsContent = q('logsContent');
 
     function colorizeLog(line) {
@@ -1526,6 +1617,25 @@
     if(clearLogsBtn) clearLogsBtn.addEventListener('click', () => {
       logsContent.innerHTML = '';
     });
+    if(clearWsBtn) clearWsBtn.addEventListener('click', () => {
+      const w = q('wsTrafficContent'); if(w) w.innerHTML = '';
+    });
+
+    // Tab switching between Logs and WebSocket
+    function activateTab(which){
+      if(which==='logs'){
+        tabBtnLogs?.classList.add('active'); tabBtnWs?.classList.remove('active');
+        tabLogsPane?.classList.add('active'); tabWsPane?.classList.remove('active');
+        if(logsAutoRefreshInterval) clearInterval(logsAutoRefreshInterval);
+        logsAutoRefreshInterval = setInterval(loadLogs, 2000);
+      } else {
+        tabBtnWs?.classList.add('active'); tabBtnLogs?.classList.remove('active');
+        tabWsPane?.classList.add('active'); tabLogsPane?.classList.remove('active');
+        if(logsAutoRefreshInterval){ clearInterval(logsAutoRefreshInterval); logsAutoRefreshInterval = null; }
+      }
+    }
+    tabBtnLogs?.addEventListener('click', ()=>activateTab('logs'));
+    tabBtnWs?.addEventListener('click', ()=>activateTab('ws'));
 
     // No tabs: logs are the only content now
 
