@@ -210,7 +210,7 @@ class GameSession:
                             adv = book.opening_advantages.get(full_seq)
                             openings_info.append({
                                 "name": nm,
-                                "advantage": adv if adv else "="
+                                "advantage": adv if adv else None
                             })
                             if len(names) >= 3 and len(openings_info) >= 8:
                                 break

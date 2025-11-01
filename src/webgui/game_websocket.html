@@ -1350,7 +1350,7 @@
         const names = (n.names||[]).slice(0,2).join(', ');
         const adv = document.createElement('span');
         adv.className = advClass(n.advantage);
-        adv.textContent = n.advantage || '=';
+        adv.textContent = (n.advantage === undefined || n.advantage === null) ? '—' : (n.advantage || '=');
         const variants = document.createElement('span');
         variants.textContent = `${n.variants||0} var` + (names? ` · ${names}`:'');
         variants.style.marginLeft = '6px';
@@ -1392,7 +1392,7 @@
                 row.style.gap = '8px';
                 const badge = document.createElement('span');
                 badge.className = advClass(o.advantage);
-                badge.textContent = o.advantage || '=';
+                badge.textContent = (o.advantage === undefined || o.advantage === null) ? '—' : (o.advantage || '=');
                 const label = document.createElement('span');
                 label.textContent = o.name;
                 row.appendChild(badge);
