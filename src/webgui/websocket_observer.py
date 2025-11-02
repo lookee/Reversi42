@@ -176,28 +176,32 @@ class WebSocketSearchObserver(SearchObserver):
         self.current_stats["nodes_searched"] = nodes
         self.current_stats["nodes_pruned"] = pruning
         
-        # Send AI log for every evaluated move (real-time feedback)
+        # Send AI log for evaluated moves (filter trivial moves)
         coord = None
         if move and hasattr(move, 'x') and hasattr(move, 'y'):
             coord = f"{chr(64+move.x)}{move.y}"
         
         pruning_ratio = (pruning / nodes * 100) if nodes > 0 else 0
         
-        # Always send log for real-time feedback (tail -f style)
-        best_marker = " ⭐ NEW BEST" if is_best else ""
-        self._send_ai_log(
-            "move_evaluated",
-            f"📍 {coord or 'N/A'} → {value:+d} ({nodes:,} nodes, {pruning_ratio:.1f}% pruned, {elapsed_time:.0f}ms){best_marker}",
-            {
-                "move": coord,
-                "value": value,
-                "nodes": nodes,
-                "pruning": pruning,
-                "pruning_ratio": pruning_ratio,
-                "elapsed_time": elapsed_time,
-                "is_best": is_best
-            }
-        )
+        # Only log significant moves (> 50 nodes OR best move)
+        # This filters out trivial book moves or shallow evaluations
+        is_significant = is_best or nodes > 50
+        
+        if is_significant:
+            best_marker = " ⭐ NEW BEST" if is_best else ""
+            self._send_ai_log(
+                "move_evaluated",
+                f"📍 {coord or 'N/A'} → {value:+d} ({nodes:,} nodes, {pruning_ratio:.1f}% pruned, {elapsed_time:.0f}ms){best_marker}",
+                {
+                    "move": coord,
+                    "value": value,
+                    "nodes": nodes,
+                    "pruning": pruning,
+                    "pruning_ratio": pruning_ratio,
+                    "elapsed_time": elapsed_time,
+                    "is_best": is_best
+                }
+            )
         
         # Send update more frequently for real-time feedback (every 50 nodes)
         if nodes % 50 == 0:
