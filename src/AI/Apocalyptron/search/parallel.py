@@ -259,25 +259,24 @@ class ParallelSearch:
         # Prepare work items
         work_items = [(game, move, depth) for move in ordered_moves]
 
-        # Evaluate in parallel
+        # Evaluate in parallel - use imap_unordered for streaming results
         pool = self._get_pool()
-        results = pool.map(_evaluate_move_worker, work_items)
-
-        # Process results
+        
+        # Process results as they arrive (streaming like tail -f)
         best_move = None
         best_value = -999999
         total_nodes = 0
         total_pruning = 0
 
-        for move, value, nodes, pruning in results:
+        for move, value, nodes, pruning in pool.imap_unordered(_evaluate_move_worker, work_items):
             total_nodes += nodes
             total_pruning += pruning
 
             is_best = value > best_value or best_move is None
 
-            # Notify: Parallel result
+            # Notify: Parallel result IMMEDIATELY as it arrives
             for observer in self.observers:
-                observer.on_parallel_result(move, value, is_best, nodes, pruning)
+                observer.on_parallel_result(move, value, is_best, total_nodes, total_pruning)
 
             if value > best_value or best_move is None:
                 best_value = value
@@ -292,9 +291,10 @@ class ParallelSearch:
             if hasattr(self.base_search, "alphabeta")
             else {}
         )
-        stats["depth"] = depth
-        stats["nodes"] = total_nodes
-        stats["pruning"] = total_pruning
+        # Use standard keys for compatibility with observers
+        stats["depth_reached"] = depth
+        stats["nodes_searched"] = total_nodes
+        stats["nodes_pruned"] = total_pruning
         stats["parallel_time"] = parallel_time
         stats["total_time"] = time_total
         stats["num_workers"] = self.num_workers

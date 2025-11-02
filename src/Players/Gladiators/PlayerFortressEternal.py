@@ -110,13 +110,34 @@ class PlayerFortressEternal(Player):
             return None
         try:
             bitboard_game = self._convert_to_bitboard(game)
+            game_history = self._get_game_history(game)
             move = self._call_engine_with_observer(
-                self.bitboard_engine, bitboard_game, self.deep, observer=control
+                self.bitboard_engine,
+                bitboard_game,
+                self.deep,
+                player_name=self.name,
+                opening_book=self.opening_book,
+                game_history=game_history,
+                observer=control
             )
             if move and game.valid_move(move):
                 return move
         except:
             return moves[0]
+    
+    def _get_game_history(self, game):
+        """Generate game history string from move history"""
+        if not hasattr(game, 'history') or not game.history:
+            return ""
+        
+        # Convert move history to notation
+        history_moves = []
+        for move in game.history:
+            if hasattr(move, 'x') and hasattr(move, 'y'):
+                coord = f"{chr(64+move.x)}{move.y}"
+                history_moves.append(coord)
+        
+        return " ".join(history_moves)
     
     def _convert_to_bitboard(self, game):
         from Reversi.BitboardGame import BitboardGame

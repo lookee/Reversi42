@@ -46,6 +46,9 @@ class WebSocketSearchObserver(SearchObserver):
         self.player_name = None
         self.aspiration_hits = 0
         self.aspiration_fails = 0
+        # Track history for sparklines and charts
+        self.depth_history = []  # [(depth, time, nodes, value), ...]
+        self.move_evaluations = []  # [(move, value, nodes), ...]
 
     def _send_async(self, message: dict):
         """Send message via WebSocket in an async-safe way"""
@@ -97,6 +100,8 @@ class WebSocketSearchObserver(SearchObserver):
         self.player_name = player_name  # Store for statistics summary
         self.aspiration_hits = 0  # Reset counters
         self.aspiration_fails = 0
+        self.depth_history = []  # Reset for new search
+        self.move_evaluations = []
         self.current_stats = {
             "depth": 0,
             "nodes_searched": 0,
@@ -171,29 +176,31 @@ class WebSocketSearchObserver(SearchObserver):
         self.current_stats["nodes_searched"] = nodes
         self.current_stats["nodes_pruned"] = pruning
         
-        # Send detailed AI log for best moves
-        if is_best:
-            coord = None
-            if move and hasattr(move, 'x') and hasattr(move, 'y'):
-                coord = f"{chr(64+move.x)}{move.y}"
-            
-            pruning_ratio = (pruning / nodes * 100) if nodes > 0 else 0
-            self._send_ai_log(
-                "move_evaluated",
-                f"📍 Move {coord or 'N/A'} → {value:+d} (nodes: {nodes:,}, pruned: {pruning:,}, {pruning_ratio:.1f}%, {elapsed_time:.1f}ms)",
-                {
-                    "move": coord,
-                    "value": value,
-                    "nodes": nodes,
-                    "pruning": pruning,
-                    "pruning_ratio": pruning_ratio,
-                    "elapsed_time": elapsed_time,
-                    "is_best": True
-                }
-            )
+        # Send AI log for every evaluated move (real-time feedback)
+        coord = None
+        if move and hasattr(move, 'x') and hasattr(move, 'y'):
+            coord = f"{chr(64+move.x)}{move.y}"
         
-        # Send update every 100 nodes to avoid flooding
-        if nodes % 100 == 0:
+        pruning_ratio = (pruning / nodes * 100) if nodes > 0 else 0
+        
+        # Always send log for real-time feedback (tail -f style)
+        best_marker = " ⭐ NEW BEST" if is_best else ""
+        self._send_ai_log(
+            "move_evaluated",
+            f"📍 {coord or 'N/A'} → {value:+d} ({nodes:,} nodes, {pruning_ratio:.1f}% pruned, {elapsed_time:.0f}ms){best_marker}",
+            {
+                "move": coord,
+                "value": value,
+                "nodes": nodes,
+                "pruning": pruning,
+                "pruning_ratio": pruning_ratio,
+                "elapsed_time": elapsed_time,
+                "is_best": is_best
+            }
+        )
+        
+        # Send update more frequently for real-time feedback (every 50 nodes)
+        if nodes % 50 == 0:
             message = {
                 "type": "ai_thinking",
                 "data": {
@@ -222,6 +229,24 @@ class WebSocketSearchObserver(SearchObserver):
             self.aspiration_hits += 1
         else:
             self.aspiration_fails += 1
+        
+        # Track iteration data for charts
+        # IMPORTANT: These are CUMULATIVE values across all iterations so far
+        nodes = self.current_stats.get("nodes_searched", 0)
+        pruned = self.current_stats.get("nodes_pruned", 0)
+        nps = (nodes / (iteration_time / 1000.0)) if iteration_time > 0 else 0
+        
+        print(f"[DEPTH_HISTORY] Depth {depth}: nodes={nodes}, pruned={pruned}, time={iteration_time:.1f}ms, nps={nps:.0f}")  # DEBUG
+        
+        self.depth_history.append({
+            "depth": depth,
+            "time": iteration_time,
+            "nodes": nodes,  # CUMULATIVE
+            "pruned": pruned,  # CUMULATIVE
+            "nps": nps,
+            "value": value,
+            "aspiration_success": aspiration_success
+        })
         
         coord = None
         if best_move:
@@ -315,16 +340,25 @@ class WebSocketSearchObserver(SearchObserver):
         nps = (nodes / (total_time / 1000.0)) if total_time > 0 else 0
         
         # Extract optimization statistics from nested objects
+        print(f"[DEBUG_STATS] Full statistics keys: {list(statistics.keys())}")  # DEBUG: See all available keys
+        
         null_move_stats = statistics.get("null_move", {})
         futility_stats = statistics.get("futility", {})
         lmr_stats = statistics.get("lmr", {})
         multi_cut_stats = statistics.get("multi_cut", {})
         
-        # Extract counts from nested stats
+        print(f"[DEBUG_STATS] null_move_stats: {null_move_stats}")  # DEBUG
+        print(f"[DEBUG_STATS] futility_stats: {futility_stats}")  # DEBUG
+        print(f"[DEBUG_STATS] lmr_stats: {lmr_stats}")  # DEBUG
+        print(f"[DEBUG_STATS] multi_cut_stats: {multi_cut_stats}")  # DEBUG
+        
+        # Extract counts from nested stats (CORRECT KEYS!)
         null_move_cuts = null_move_stats.get("cutoffs", 0) if isinstance(null_move_stats, dict) else 0
-        futility_cuts = futility_stats.get("cuts", 0) if isinstance(futility_stats, dict) else 0
+        futility_cuts = futility_stats.get("pruning_count", 0) if isinstance(futility_stats, dict) else 0  # FIXED: pruning_count not cuts
         lmr_reductions = lmr_stats.get("reductions", 0) if isinstance(lmr_stats, dict) else 0
-        multi_cut_prunes = multi_cut_stats.get("prunes", 0) if isinstance(multi_cut_stats, dict) else 0
+        multi_cut_prunes = multi_cut_stats.get("pruning_count", 0) if isinstance(multi_cut_stats, dict) else 0  # FIXED: pruning_count not prunes
+        
+        print(f"[OPT_STATS] null_move={null_move_cuts}, futility={futility_cuts}, lmr={lmr_reductions}, multi_cut={multi_cut_prunes}")  # DEBUG
         
         # Get depth info
         depth_reached = statistics.get("depth", statistics.get("depth_reached", 0))
@@ -334,6 +368,7 @@ class WebSocketSearchObserver(SearchObserver):
             "data": {
                 "timestamp": datetime.now().strftime("%H:%M:%S"),
                 "player_name": self.player_name or 'AI',
+                "player_description": f"{self.player_name} - High-performance AI engine with alpha-beta search and advanced pruning" if self.player_name else None,
                 
                 # Move info
                 "best_move": best_move,
@@ -360,6 +395,25 @@ class WebSocketSearchObserver(SearchObserver):
                 "lmr_reductions": lmr_reductions,
                 "multi_cut_prunes": multi_cut_prunes,
                 
+                # Optimization enabled flags (detect from stats presence)
+                "null_move_enabled": null_move_cuts > 0 or isinstance(null_move_stats, dict),
+                "futility_enabled": futility_cuts > 0 or isinstance(futility_stats, dict),
+                "lmr_enabled": lmr_reductions > 0 or isinstance(lmr_stats, dict),
+                "multi_cut_enabled": multi_cut_prunes > 0 or isinstance(multi_cut_stats, dict),
+                "aspiration_enabled": True,  # Always enabled in Apocalyptron
+                "tt_enabled": statistics.get("tt_hits", 0) > 0 or statistics.get("tt_size", 0) > 0,
+                "killer_enabled": statistics.get("killer_moves", 0) > 0,
+                "history_enabled": statistics.get("history_entries", 0) > 0,
+                "parallel_enabled": statistics.get("parallel_workers", 0) > 0 or statistics.get("parallel_mode") == "active",
+                "book_enabled": opening_book is not None,
+                
+                # Parallel search info
+                "parallel_threads": statistics.get("parallel_workers", 0),
+                "parallel_tasks": statistics.get("parallel_tasks", 0),
+                
+                # Opening book info
+                "book_hits": 1 if opening_book else 0,
+                
                 # Aspiration windows (from observer tracking)
                 "aspiration_hits": statistics.get("aspiration_hits", self.aspiration_hits),
                 "aspiration_fails": statistics.get("aspiration_fails", self.aspiration_fails),
@@ -379,6 +433,10 @@ class WebSocketSearchObserver(SearchObserver):
                 "tt_size": statistics.get("tt_size", 0),
                 "tt_hit_rate": self._calculate_tt_rate(statistics),
                 
+                # Chart data for visualizations
+                "depth_history": self.depth_history,  # For iteration timeline
+                "move_evaluations": self.move_evaluations,  # For move distribution
+                
                 # Full statistics object
                 "raw_statistics": statistics
             }
@@ -387,6 +445,14 @@ class WebSocketSearchObserver(SearchObserver):
         # Store for aspiration tracking
         if hasattr(self, 'search_stats'):
             self.search_stats = summary['data']
+        
+        print(f"[AI_STATS] Sending statistics with {len(self.depth_history)} depth_history entries")  # DEBUG
+        print(f"[AI_STATS] depth_history sample: {self.depth_history[:3] if self.depth_history else 'EMPTY'}")  # DEBUG
+        
+        # Debug flags
+        print(f"[FLAGS_DEBUG] opening_book={opening_book is not None}, book_enabled={summary['data']['book_enabled']}")
+        print(f"[FLAGS_DEBUG] parallel_workers={statistics.get('parallel_workers', 0)}, parallel_enabled={summary['data']['parallel_enabled']}")
+        print(f"[FLAGS_DEBUG] All enabled flags: null={summary['data']['null_move_enabled']}, fut={summary['data']['futility_enabled']}, lmr={summary['data']['lmr_enabled']}, mc={summary['data']['multi_cut_enabled']}")
         
         self._send_async(summary)
     
@@ -423,8 +489,35 @@ class WebSocketSearchObserver(SearchObserver):
 
     def on_parallel_result(self, move: Any, value: int, is_best: bool, nodes: int, pruning: int):
         """Parallel result received"""
-        # Update stats but don't send every result
-        pass
+        # Update stats
+        self.current_stats["nodes_searched"] = nodes
+        self.current_stats["nodes_pruned"] = pruning
+        
+        if is_best:
+            self.current_stats["best_move"] = move
+            self.current_stats["best_value"] = value
+        
+        # Send AI log for parallel results
+        coord = None
+        if move and hasattr(move, 'x') and hasattr(move, 'y'):
+            coord = f"{chr(64+move.x)}{move.y}"
+        
+        pruning_ratio = (pruning / nodes * 100) if nodes > 0 else 0
+        best_marker = " ⭐ BEST" if is_best else ""
+        
+        self._send_ai_log(
+            "move_evaluated",
+            f"🔀 Parallel: {coord or 'N/A'} → {value:+d} ({nodes:,} nodes, {pruning_ratio:.1f}% pruned){best_marker}",
+            {
+                "move": coord,
+                "value": value,
+                "nodes": nodes,
+                "pruning": pruning,
+                "pruning_ratio": pruning_ratio,
+                "is_best": is_best,
+                "parallel": True
+            }
+        )
 
     def on_phase1_complete(
         self,

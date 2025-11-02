@@ -687,22 +687,48 @@
       padding:0 16px;
       overflow:hidden
     }
-    .stat-card-compact{
-      background:rgba(255,255,255,0.05);
+    /* Advanced Stat Cards with Charts */
+    .stat-card-graph{
+      background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,rgba(255,255,255,0.02) 100%);
       border:1px solid rgba(255,255,255,0.15);
-      border-radius:4px;
-      padding:8px 10px;
-      transition:all 0.15s ease;
-      text-align:center
+      border-radius:8px;
+      padding:10px 12px;
+      transition:all 0.2s ease;
+      text-align:center;
+      position:relative;
+      overflow:hidden
     }
-    .stat-card-compact:hover{
-      background:rgba(99,179,237,0.1);
-      border-color:rgba(99,179,237,0.35);
-      transform:scale(1.02)
+    .stat-card-graph::before{
+      content:'';
+      position:absolute;
+      top:0;
+      left:-100%;
+      width:100%;
+      height:100%;
+      background:linear-gradient(90deg,transparent,rgba(99,179,237,0.1),transparent);
+      transition:left 0.5s ease
     }
-    .stat-card-compact.stat-highlight{
-      background:rgba(251,191,36,0.12);
-      border-color:rgba(251,191,36,0.35)
+    .stat-card-graph:hover::before{
+      left:100%
+    }
+    .stat-card-graph:hover{
+      background:linear-gradient(135deg,rgba(99,179,237,0.12) 0%,rgba(99,179,237,0.06) 100%);
+      border-color:rgba(99,179,237,0.4);
+      transform:translateY(-2px);
+      box-shadow:0 8px 16px rgba(99,179,237,0.2), 0 0 20px rgba(99,179,237,0.15)
+    }
+    .stat-card-mini{
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:6px;
+      padding:6px 8px;
+      text-align:center;
+      transition:all 0.15s ease
+    }
+    .stat-card-mini:hover{
+      background:rgba(99,179,237,0.08);
+      border-color:rgba(99,179,237,0.3);
+      transform:scale(1.03)
     }
     .stat-label-compact{
       font-size:9px;
@@ -719,33 +745,157 @@
       font-family:'Courier New',monospace;
       letter-spacing:-0.3px
     }
-    .stat-value-compact-sm{
-      font-size:14px;
-      font-weight:600;
+    .stat-value-lg{
+      font-size:24px;
+      font-weight:700;
+      color:#63b3ed;
+      font-family:'Courier New',monospace;
+      text-shadow:0 0 12px rgba(99,179,237,0.5);
+      letter-spacing:-0.5px;
+      line-height:1.2
+    }
+    .stat-value-md{
+      font-size:18px;
+      font-weight:700;
+      color:#e5e5e5;
+      font-family:'Courier New',monospace;
+      letter-spacing:-0.3px;
+      line-height:1.2
+    }
+    .stat-eval-value{
+      transition:color 0.3s ease
+    }
+    .stat-badge{
+      font-size:11px;
+      color:rgba(255,255,255,0.4);
+      font-family:'Courier New',monospace;
+      margin-top:2px
+    }
+    .stat-metric-badge{
+      font-size:10px;
+      color:rgba(255,255,255,0.5);
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+      margin-top:2px
+    }
+    .stat-value-mini{
+      font-size:15px;
+      font-weight:700;
       color:#e5e5e5;
       font-family:'Courier New',monospace
     }
-    .stat-progress-bar{
+    .stat-label-mini{
+      font-size:8px;
+      color:rgba(255,255,255,0.45);
+      margin-bottom:3px;
+      text-transform:uppercase;
+      letter-spacing:0.8px;
+      font-weight:600
+    }
+    .stats-section-mini{
+      margin-bottom:12px
+    }
+    .stats-section-title-mini{
+      font-size:11px;
+      font-weight:700;
+      color:#63b3ed;
+      margin-bottom:8px;
+      padding-bottom:4px;
+      border-bottom:1px solid rgba(99,179,237,0.2);
+      letter-spacing:0.4px
+    }
+    /* Chart Elements */
+    .stat-sparkline{
+      margin-top:4px;
+      opacity:0.8
+    }
+    .stat-micro-chart{
+      margin-top:2px
+    }
+    .circular-progress{
+      margin:6px auto 0;
+      display:block;
+      filter:drop-shadow(0 0 6px rgba(16,185,129,0.4))
+    }
+    .circular-progress-sm{
+      margin:4px auto 0;
+      display:block
+    }
+    .stat-bar-thin{
       width:100%;
-      height:8px;
+      height:4px;
       background:rgba(255,255,255,0.1);
-      border-radius:4px;
+      border-radius:2px;
       overflow:hidden;
-      margin-top:12px
+      margin-top:6px
     }
-    .stat-progress-bar-slim{
-      width:100%;
-      height:5px;
-      background:rgba(255,255,255,0.12);
-      border-radius:3px;
-      overflow:hidden
-    }
-    .stat-progress-fill{
+    .stat-bar-fill-pruned{
       height:100%;
       background:linear-gradient(90deg,#10b981 0%,#34d399 100%);
-      transition:width 0.5s ease;
+      transition:width 0.6s cubic-bezier(0.4,0,0.2,1);
+      box-shadow:0 0 8px rgba(16,185,129,0.5)
+    }
+    .stat-bar-mini{
+      width:100%;
+      height:3px;
+      background:rgba(255,255,255,0.08);
+      border-radius:2px;
+      overflow:hidden;
+      margin-top:4px
+    }
+    .stat-bar-fill-opt{
+      height:100%;
+      background:linear-gradient(90deg,#6366f1 0%,#8b5cf6 100%);
+      transition:width 0.6s cubic-bezier(0.4,0,0.2,1);
+      box-shadow:0 0 6px rgba(99,102,241,0.4)
+    }
+    .iteration-timeline{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:8px
+    }
+    .iteration-item{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      background:rgba(255,255,255,0.03);
+      border-left:3px solid #63b3ed;
       border-radius:4px;
-      box-shadow:0 0 8px rgba(16,185,129,0.4)
+      transition:all 0.2s ease;
+      font-size:11px;
+      font-family:'Courier New',monospace
+    }
+    .iteration-item:hover{
+      background:rgba(99,179,237,0.1);
+      border-left-color:#34d399;
+      padding-left:14px
+    }
+    .iteration-depth{
+      font-weight:700;
+      color:#63b3ed;
+      min-width:40px
+    }
+    .iteration-time{
+      color:rgba(255,255,255,0.6);
+      flex:1
+    }
+    .iteration-nodes{
+      color:rgba(255,255,255,0.5);
+      font-size:10px
+    }
+    .iteration-badge{
+      padding:2px 6px;
+      background:rgba(16,185,129,0.2);
+      border-radius:3px;
+      font-size:9px;
+      color:#34d399;
+      font-weight:600
+    }
+    .iteration-badge-fail{
+      background:rgba(239,68,68,0.2);
+      color:#f87171
     }
     @keyframes fadeIn{
       from{opacity:0}
@@ -785,6 +935,74 @@
     @keyframes aiIconSpin{
       0%{transform:rotate(0deg)}
       100%{transform:rotate(360deg)}
+    }
+    
+    /* Developer-Insight Button - WebSocket Activity Animation */
+    #toggleJsonEditor.ws-active{
+      background:rgba(16,185,129,0.15);
+      border-color:rgba(16,185,129,0.5);
+      box-shadow:0 0 15px rgba(16,185,129,0.4);
+      animation:wsPulse 0.8s ease-in-out
+    }
+    @keyframes wsPulse{
+      0%{
+        box-shadow:0 0 5px rgba(16,185,129,0.2);
+        border-color:rgba(16,185,129,0.3);
+        background:rgba(16,185,129,0.05)
+      }
+      50%{
+        box-shadow:0 0 20px rgba(16,185,129,0.6);
+        border-color:rgba(16,185,129,0.8);
+        background:rgba(16,185,129,0.2)
+      }
+      100%{
+        box-shadow:0 0 5px rgba(16,185,129,0.2);
+        border-color:rgba(16,185,129,0.3);
+        background:rgba(16,185,129,0.05)
+      }
+    }
+    
+    /* AI Configuration - Optimization Checklist */
+    .opt-check-item-compact{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 8px;
+      background:rgba(255,255,255,0.02);
+      border:1px solid rgba(139,92,246,0.12);
+      border-radius:4px;
+      font-size:10px;
+      transition:all 0.2s ease;
+      cursor:help
+    }
+    .opt-check-item-compact:hover{
+      background:rgba(139,92,246,0.15);
+      border-color:rgba(139,92,246,0.45);
+      transform:translateY(-1px);
+      box-shadow:0 2px 8px rgba(139,92,246,0.25)
+    }
+    .opt-checkbox{
+      font-size:14px;
+      color:#10b981;
+      font-weight:700;
+      min-width:16px;
+      text-align:center;
+      flex-shrink:0;
+      transition:all 0.2s ease
+    }
+    .opt-label-compact{
+      color:rgba(255,255,255,0.7);
+      font-size:10px;
+      font-weight:500;
+      flex:1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis
+    }
+    .ai-config-description{
+      font-size:11px;
+      color:rgba(255,255,255,0.65);
+      line-height:1.5
     }
   </style>
 </head>
@@ -1094,6 +1312,26 @@
       }catch(_){ return false; }
     }
 
+    // Highlight Developer-Insight button on WebSocket activity
+    let wsHighlightTimeout = null;
+    function highlightWSActivity(){
+      const devBtn = document.getElementById('toggleJsonEditor');
+      if(!devBtn) return;
+      
+      // Add the ws-active class
+      devBtn.classList.add('ws-active');
+      
+      // Clear any existing timeout
+      if(wsHighlightTimeout){
+        clearTimeout(wsHighlightTimeout);
+      }
+      
+      // Remove the class after animation completes (800ms)
+      wsHighlightTimeout = setTimeout(() => {
+        devBtn.classList.remove('ws-active');
+      }, 800);
+    }
+    
     function appendWsMessage(direction, payload){
       const box = document.getElementById('wsTrafficContent');
       if(!box) return;
@@ -1130,6 +1368,9 @@
       head.addEventListener('click', ()=>{ body.style.display = (body.style.display==='none'||!body.style.display) ? 'block' : 'none'; });
       item.appendChild(head); item.appendChild(body); box.appendChild(item);
       const container = document.getElementById('wsTrafficContainer'); if(container){ container.scrollTop = container.scrollHeight; }
+      
+      // Highlight the Developer-Insight button
+      highlightWSActivity();
     }
     function wsSend(obj){
       try{
@@ -1307,6 +1548,11 @@
           data = message.data;
           // Clear any previous game-over banner on fresh state
           gameOverInfo = null;
+          // Reset AI pause if it's a fresh game (ply < 3)
+          if(data.status && data.status.ply !== undefined && data.status.ply < 3){
+            aiAutoPaused = false;
+            console.log('Fresh game detected - AI auto-play enabled');
+          }
           console.log('Board data:', data);
           console.log('Positions:', data.positions);
           console.log('Ply:', ply, 'Positions[0]:', data.positions?.[0]);
@@ -1582,6 +1828,18 @@
     
     function checkAndRequestAIMove(){
       if(!data || !wsConnection || wsConnection.readyState !== WebSocket.OPEN){
+        return;
+      }
+      
+      // Don't request if game is over
+      if(gameOverInfo){
+        console.log('Game is over - not requesting AI move');
+        return;
+      }
+      
+      // Don't request if board is full (64 pieces)
+      if(data.status && (data.status.black_count + data.status.white_count) >= 64){
+        console.log('Board is full - game over, not requesting AI move');
         return;
       }
       
@@ -2899,85 +3157,189 @@
         <button class="btn text-xs" id="toggleStatsCollapse" title="Hide statistics">▲</button>
       </div>
       <div id="statsCollapsibleBody" class="stats-compact-body">
-        <!-- Compact: Performance & Evaluation (1 row) -->
-        <div class="stats-grid-4" style="margin-bottom:10px">
-          <div class="stat-card stat-card-primary" title="Selected move by AI">
+        <!-- Row 1: Primary KPIs with Circular Charts -->
+        <div class="stats-grid-4" style="margin-bottom:12px">
+          <div class="stat-card-graph" title="Selected move by AI">
             <div class="stat-label">Move</div>
-            <div class="stat-value" id="statMove">--</div>
+            <div class="stat-value-lg" id="statMove">--</div>
           </div>
-          <div class="stat-card stat-card-success" title="Position evaluation: positive=advantage, negative=disadvantage">
-            <div class="stat-label">Eval</div>
-            <div class="stat-value" id="statEval">--</div>
+          <div class="stat-card-graph" title="Position evaluation: positive=advantage, negative=disadvantage">
+            <div class="stat-label">Evaluation</div>
+            <div class="stat-value-lg stat-eval-value" id="statEval">--</div>
           </div>
-          <div class="stat-card" title="Total search time in milliseconds">
-            <div class="stat-label">Time</div>
-            <div class="stat-value" style="font-size:16px" id="statTime">--</div>
+          <div class="stat-card-graph" title="Total search time in milliseconds">
+            <div class="stat-label">Search Time</div>
+            <div class="stat-value-md" id="statTime">--</div>
+            <svg class="stat-sparkline" id="sparklineTime" width="100%" height="20"></svg>
           </div>
-          <div class="stat-card" title="Maximum depth reached in search tree">
+          <div class="stat-card-graph" title="Maximum depth reached in search tree">
             <div class="stat-label">Depth</div>
-            <div class="stat-value" style="font-size:16px" id="statDepth">--</div>
+            <div class="stat-value-md" id="statDepth">--</div>
+            <div class="stat-badge" id="statDepthTarget">/ --</div>
           </div>
         </div>
 
-        <!-- Compact: Node Statistics with Progress Bar -->
-        <div style="margin-bottom:10px">
-          <div class="stats-grid-3" style="margin-bottom:6px">
-            <div class="stat-card-compact" title="Total nodes explored in search tree">
-              <div class="stat-label-compact">Nodes</div>
-              <div class="stat-value-compact" id="statNodesSearched">--</div>
-            </div>
-            <div class="stat-card-compact" title="Nodes pruned (skipped) thanks to optimizations">
-              <div class="stat-label-compact">Pruned</div>
-              <div class="stat-value-compact" id="statNodesPruned">--</div>
-            </div>
-            <div class="stat-card-compact stat-highlight" title="Pruning efficiency: % of nodes pruned - Higher is better">
-              <div class="stat-label-compact">Efficiency</div>
-              <div class="stat-value-compact" id="statPruningEff">--%</div>
-            </div>
+        <!-- Row 2: Node Statistics with Circular Progress -->
+        <div class="stats-grid-3" style="margin-bottom:12px">
+          <div class="stat-card-graph" title="Total nodes explored in search tree">
+            <div class="stat-label">Nodes Searched</div>
+            <div class="stat-value-md" id="statNodesSearched">--</div>
+            <svg class="stat-sparkline" id="sparklineNodes" width="100%" height="18"></svg>
           </div>
-          <div class="stat-progress-bar-slim">
-            <div class="stat-progress-fill" id="pruningBar" style="width:0%"></div>
+          <div class="stat-card-graph" title="Nodes pruned (skipped) thanks to optimizations">
+            <div class="stat-label">Nodes Pruned</div>
+            <div class="stat-value-md" id="statNodesPruned">--</div>
+            <svg class="stat-sparkline" id="sparklinePruned" width="100%" height="18"></svg>
           </div>
-        </div>
-
-        <!-- Compact: Optimizations (1 row) -->
-        <div class="stats-grid-4" style="margin-bottom:10px">
-          <div class="stat-card-compact" title="Null Move Pruning: cutoffs from null moves (skip turn to verify threats)">
-            <div class="stat-label-compact">Null</div>
-            <div class="stat-value-compact-sm" id="statNullMove">--</div>
-          </div>
-          <div class="stat-card-compact" title="Futility Pruning: cuts of futile moves in losing positions">
-            <div class="stat-label-compact">Fut.</div>
-            <div class="stat-value-compact-sm" id="statFutility">--</div>
-          </div>
-          <div class="stat-card-compact" title="Late Move Reduction: reduced search for likely weak moves">
-            <div class="stat-label-compact">LMR</div>
-            <div class="stat-value-compact-sm" id="statLMR">--</div>
-          </div>
-          <div class="stat-card-compact" title="Multi-Cut Pruning: multiple moves exceeding beta threshold">
-            <div class="stat-label-compact">M-Cut</div>
-            <div class="stat-value-compact-sm" id="statMultiCut">--</div>
+          <div class="stat-card-graph stat-card-accent" title="Pruning efficiency: % of nodes pruned - Higher is better">
+            <div class="stat-label">Pruning Efficiency</div>
+            <div class="stat-value-md" id="statPruningEff">--%</div>
+            <svg class="circular-progress" width="60" height="60" id="circularPruning">
+              <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/>
+              <circle cx="30" cy="30" r="25" fill="none" stroke="url(#gradientPruning)" stroke-width="4" 
+                      stroke-dasharray="157" stroke-dashoffset="157" id="circularPruningFill"
+                      transform="rotate(-90 30 30)" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="gradientPruning" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#10b981"/>
+                  <stop offset="100%" style="stop-color:#34d399"/>
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
         </div>
 
-        <!-- Compact: Advanced Metrics (1 row) -->
-        <div class="stats-grid-4">
-          <div class="stat-card-compact" title="Nodes Per Second: search speed (thousands/sec)">
-            <div class="stat-label-compact">NPS</div>
-            <div class="stat-value-compact-sm" id="statNPS">--</div>
+        <!-- Row 3: Advanced Metrics with Mini Charts -->
+        <div class="stats-grid-4" style="margin-bottom:12px">
+          <div class="stat-card-graph" title="Nodes Per Second: search speed (thousands/sec)">
+            <div class="stat-label">NPS</div>
+            <div class="stat-value-md" id="statNPS">--</div>
+            <svg class="stat-sparkline" id="sparklineNPS" width="100%" height="18"></svg>
           </div>
-          <div class="stat-card-compact" title="Iterative Deepening: completed depth iterations (1→N)">
-            <div class="stat-label-compact">Iters</div>
-            <div class="stat-value-compact-sm" id="statIterations">--</div>
+          <div class="stat-card-graph" title="Iterative Deepening: completed depth iterations (1→N)">
+            <div class="stat-label">Iterations</div>
+            <div class="stat-value-md" id="statIterations">--</div>
+            <svg class="stat-micro-chart" id="chartIterations" width="100%" height="24"></svg>
           </div>
-          <div class="stat-card-compact" title="Aspiration Windows: success rate avoiding re-search">
-            <div class="stat-label-compact">Aspir.</div>
-            <div class="stat-value-compact-sm" id="statAspirationRate">--%</div>
+          <div class="stat-card-graph" title="Aspiration Windows: success rate avoiding re-search">
+            <div class="stat-label">Aspiration</div>
+            <div class="stat-value-md" id="statAspirationRate">--%</div>
+            <svg class="circular-progress-sm" width="40" height="40" id="circularAspiration">
+              <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
+              <circle cx="20" cy="20" r="16" fill="none" stroke="#8b5cf6" stroke-width="3" 
+                      stroke-dasharray="100" stroke-dashoffset="100" id="circularAspirationFill"
+                      transform="rotate(-90 20 20)" stroke-linecap="round"/>
+            </svg>
           </div>
-          <div class="stat-card-compact" title="Transposition Table: hit rate for position reuse">
-            <div class="stat-label-compact">TT Hit</div>
-            <div class="stat-value-compact-sm" id="statTTRate">--%</div>
+          <div class="stat-card-graph" title="Transposition Table: total cache hits (positions reused from memory)">
+            <div class="stat-label">TT Hits</div>
+            <div class="stat-value-md" id="statTTRate">--</div>
+            <svg class="stat-sparkline" id="sparklineTT" width="100%" height="18"></svg>
+            <div class="stat-sublabel" id="statTTPercent" style="font-size:9px;margin-top:-2px;color:rgba(167,139,250,0.7)">-- hit rate</div>
           </div>
+        </div>
+
+        <!-- 🔧 Optimizations Heat Map -->
+        <div class="stats-section-mini">
+          <div class="stats-section-title-mini">🔧 Optimization Techniques</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:8px">
+            <div class="stat-card-mini" title="Null Move Pruning: cutoffs from null moves (skip turn to verify threats)">
+              <div class="stat-label-mini">NULL</div>
+              <div class="stat-value-mini" id="statNullMove">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barNull" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Futility Pruning: cuts of futile moves in losing positions">
+              <div class="stat-label-mini">FUT</div>
+              <div class="stat-value-mini" id="statFutility">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barFut" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Late Move Reduction: reduced search for likely weak moves">
+              <div class="stat-label-mini">LMR</div>
+              <div class="stat-value-mini" id="statLMR">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barLMR" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Multi-Cut Pruning: multiple moves exceeding beta threshold">
+              <div class="stat-label-mini">M-CUT</div>
+              <div class="stat-value-mini" id="statMultiCut">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barMC" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Opening Book: pre-computed opening moves from database">
+              <div class="stat-label-mini">BOOK</div>
+              <div class="stat-value-mini" id="statBooking">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barBook" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Parallel Search: threads actively searching different branches">
+              <div class="stat-label-mini">PARALLEL</div>
+              <div class="stat-value-mini" id="statParallel">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barParallel" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⚙️ AI Configuration (checkbox) -->
+        <div class="stats-section-mini">
+          <div class="stats-section-title-mini">
+            <span>⚙️ AI Configuration</span>
+            <button class="section-toggle-btn" id="toggleAiConfig" onclick="toggleSection('aiConfigContent', 'toggleAiConfig')">Hide</button>
+          </div>
+          <div id="aiConfigContent">
+            <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:6px;padding:8px 10px;margin-bottom:10px">
+              <div class="ai-config-description" id="aiConfigDescription" style="font-size:11px;color:rgba(255,255,255,0.65);line-height:1.5;font-style:italic">
+                Advanced AI engine with multi-threaded alpha-beta search, iterative deepening, and extensive pruning optimizations.
+              </div>
+            </div>
+            <div class="optimization-checklist" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+              <div class="opt-check-item-compact" title="Null Move Pruning: Skip a turn to verify threats. If position still winning after giving opponent free move, it's strong → prune this branch.">
+                <span class="opt-checkbox" id="optNull">☐</span>
+                <span class="opt-label-compact">Null Move</span>
+              </div>
+              <div class="opt-check-item-compact" title="Futility Pruning: In losing positions near leaf nodes (low depth), skip moves that are very unlikely to improve score significantly.">
+                <span class="opt-checkbox" id="optFutility">☐</span>
+                <span class="opt-label-compact">Futility</span>
+              </div>
+              <div class="opt-check-item-compact" title="Late Move Reduction (LMR): Reduce search depth for moves ordered late in move list (statistically likely to be weak moves).">
+                <span class="opt-checkbox" id="optLMR">☐</span>
+                <span class="opt-label-compact">LMR</span>
+              </div>
+              <div class="opt-check-item-compact" title="Multi-Cut Pruning: If multiple sibling moves exceed beta threshold, prune remaining siblings without evaluation.">
+                <span class="opt-checkbox" id="optMultiCut">☐</span>
+                <span class="opt-label-compact">Multi-Cut</span>
+              </div>
+              <div class="opt-check-item-compact" title="Aspiration Windows: Narrow alpha-beta window around expected score for faster search. Re-search with wider window if score falls outside.">
+                <span class="opt-checkbox" id="optAspiration">☐</span>
+                <span class="opt-label-compact">Aspiration</span>
+              </div>
+              <div class="opt-check-item-compact" title="Transposition Table: Cache previously evaluated positions to avoid redundant computation when same position reached via different move orders.">
+                <span class="opt-checkbox" id="optTT">☐</span>
+                <span class="opt-label-compact">Trans. Table</span>
+              </div>
+              <div class="opt-check-item-compact" title="Killer Move Heuristic: Prioritize moves that caused cutoffs in sibling nodes at same depth. These 'killer' moves likely strong across similar positions.">
+                <span class="opt-checkbox" id="optKiller">☐</span>
+                <span class="opt-label-compact">Killer Moves</span>
+              </div>
+              <div class="opt-check-item-compact" title="History Heuristic: Boost priority of moves that have historically performed well (caused cutoffs) throughout the game tree.">
+                <span class="opt-checkbox" id="optHistory">☐</span>
+                <span class="opt-label-compact">History</span>
+              </div>
+              <div class="opt-check-item-compact" title="Parallel Search: Multi-threaded search using multiple CPU cores to explore different branches simultaneously for faster computation.">
+                <span class="opt-checkbox" id="optParallel">☐</span>
+                <span class="opt-label-compact">Parallel</span>
+              </div>
+              <div class="opt-check-item-compact" title="Opening Book: Pre-computed database of optimal opening moves from master games and deep analysis, avoiding search in known positions.">
+                <span class="opt-checkbox" id="optBook">☐</span>
+                <span class="opt-label-compact">Opening Book</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline: Iterative Deepening Progress -->
+        <div class="stats-section-mini" style="margin-top:12px" id="iterationTimelineSection">
+          <div class="stats-section-title-mini" title="Shows progressive depth iterations. Green ✓ = Aspiration window success (fast). Red ✗ = Re-search needed (wider window).">
+            📊 Iterative Deepening Timeline
+            <span style="font-size:9px;color:rgba(255,255,255,0.4);font-weight:400;margin-left:6px">(✓ = Aspiration success, ✗ = Re-search)</span>
+          </div>
+          <div id="iterationTimeline" class="iteration-timeline"></div>
         </div>
       </div>
     </div>
@@ -3303,6 +3665,11 @@
       const depthElem = document.getElementById('statDepth');
       if(depthElem) depthElem.textContent = stats.depth_reached ? stats.depth_reached + '' : '--';
       
+      const depthTargetElem = document.getElementById('statDepthTarget');
+      if(depthTargetElem && stats.target_depth){
+        depthTargetElem.textContent = `/ ${stats.target_depth}`;
+      }
+      
       // Node statistics
       const nodesElem = document.getElementById('statNodesSearched');
       if(nodesElem) nodesElem.textContent = stats.nodes_searched ? 
@@ -3337,6 +3704,51 @@
       const mcElem = document.getElementById('statMultiCut');
       if(mcElem) mcElem.textContent = formatCompactNumber(stats.multi_cut_prunes);
       
+      const parallelElem = document.getElementById('statParallel');
+      if(parallelElem){
+        if(stats.parallel_threads !== undefined && stats.parallel_threads > 0){
+          parallelElem.textContent = stats.parallel_threads + ' threads';
+        } else if(stats.parallel_tasks !== undefined){
+          parallelElem.textContent = formatCompactNumber(stats.parallel_tasks);
+        } else {
+          parallelElem.textContent = '--';
+        }
+      }
+      
+      const bookingElem = document.getElementById('statBooking');
+      if(bookingElem){
+        if(stats.book_hits !== undefined){
+          bookingElem.textContent = formatCompactNumber(stats.book_hits);
+        } else if(stats.book_enabled){
+          bookingElem.textContent = 'Active';
+        } else {
+          bookingElem.textContent = '--';
+        }
+      }
+      
+      // AI Configuration Description
+      const aiDescElem = document.getElementById('aiConfigDescription');
+      if(aiDescElem){
+        if(stats.player_description){
+          aiDescElem.textContent = stats.player_description;
+        } else if(stats.player_name){
+          aiDescElem.textContent = `${stats.player_name} - Advanced AI engine with multi-threaded alpha-beta search, iterative deepening, and extensive pruning optimizations.`;
+        }
+        // Se non c'è nessuna descrizione, mantiene il testo di default dall'HTML
+      }
+      
+      // Update optimization checkboxes based on active features
+      updateOptCheckbox('optNull', stats.null_move_enabled || stats.null_move_cuts > 0);
+      updateOptCheckbox('optFutility', stats.futility_enabled || stats.futility_cuts > 0);
+      updateOptCheckbox('optLMR', stats.lmr_enabled || stats.lmr_reductions > 0);
+      updateOptCheckbox('optMultiCut', stats.multi_cut_enabled || stats.multi_cut_prunes > 0);
+      updateOptCheckbox('optAspiration', stats.aspiration_enabled || stats.aspiration_success_rate > 0);
+      updateOptCheckbox('optTT', stats.tt_enabled || stats.tt_hits > 0);
+      updateOptCheckbox('optKiller', stats.killer_enabled || false);
+      updateOptCheckbox('optHistory', stats.history_enabled || false);
+      updateOptCheckbox('optParallel', stats.parallel_enabled || stats.parallel_threads > 0 || stats.parallel_tasks > 0);
+      updateOptCheckbox('optBook', stats.book_enabled || stats.book_hits > 0);
+      
       // NPS (nodes per second)
       const npsElem = document.getElementById('statNPS');
       if(npsElem) npsElem.textContent = stats.nodes_per_second ? 
@@ -3351,10 +3763,68 @@
       if(aspElem) aspElem.textContent = stats.aspiration_success_rate !== undefined ? 
         stats.aspiration_success_rate.toFixed(0) + '%' : '--%';
       
-      // Transposition table
+      // Transposition table - show absolute hits count
       const ttElem = document.getElementById('statTTRate');
-      if(ttElem) ttElem.textContent = stats.tt_hit_rate !== undefined ? 
-        stats.tt_hit_rate.toFixed(1) + '%' : '--%';
+      const ttPercentElem = document.getElementById('statTTPercent');
+      if(ttElem){
+        if(stats.tt_hits !== undefined){
+          ttElem.textContent = formatCompactNumber(stats.tt_hits);
+        } else {
+          ttElem.textContent = '--';
+        }
+      }
+      // Show hit rate as sublabel
+      if(ttPercentElem){
+        if(stats.tt_hit_rate !== undefined){
+          ttPercentElem.textContent = stats.tt_hit_rate.toFixed(0) + '% hit rate';
+        } else {
+          ttPercentElem.textContent = '-- hit rate';
+        }
+      }
+      
+      // ==================== ADVANCED CHARTS ====================
+      
+      // Circular progress: Pruning Efficiency
+      updateCircularProgress('circularPruningFill', stats.pruning_efficiency || 0, 157);
+      
+      // Circular progress: Aspiration Rate
+      updateCircularProgress('circularAspirationFill', stats.aspiration_success_rate || 0, 100);
+      
+      // Sparklines for depth history
+      if(stats.depth_history && stats.depth_history.length > 0){
+        drawSparkline('sparklineTime', stats.depth_history.map(d => d.time), '#8b5cf6');
+        drawSparkline('sparklineNodes', stats.depth_history.map(d => d.nodes), '#06b6d4');
+        drawSparkline('sparklinePruned', stats.depth_history.map(d => d.pruned || 0), '#a78bfa');
+        drawSparkline('sparklineNPS', stats.depth_history.map(d => d.nps || 0), '#f59e0b');
+        drawSparkline('sparklineTT', stats.depth_history.map(d => d.tt_hits || 0), '#a78bfa');
+      }
+      
+      // Optimization bars (normalized to max value)
+      const parallelValue = stats.parallel_threads || stats.parallel_tasks || 0;
+      const bookValue = stats.book_hits || 0;
+      const optValues = [
+        stats.null_move_cuts || 0,
+        stats.futility_cuts || 0,
+        stats.lmr_reductions || 0,
+        stats.multi_cut_prunes || 0,
+        bookValue,
+        parallelValue
+      ];
+      const maxOpt = Math.max(...optValues, 1);
+      updateOptimizationBar('barNull', (stats.null_move_cuts || 0) / maxOpt * 100);
+      updateOptimizationBar('barFut', (stats.futility_cuts || 0) / maxOpt * 100);
+      updateOptimizationBar('barLMR', (stats.lmr_reductions || 0) / maxOpt * 100);
+      updateOptimizationBar('barMC', (stats.multi_cut_prunes || 0) / maxOpt * 100);
+      updateOptimizationBar('barBook', bookValue / maxOpt * 100);
+      updateOptimizationBar('barParallel', parallelValue / maxOpt * 100);
+      
+      // Iteration timeline
+      buildIterationTimeline(stats.depth_history || []);
+      
+      // Iteration micro chart
+      if(stats.depth_history && stats.depth_history.length > 1){
+        drawMicroBarChart('chartIterations', stats.depth_history.map(d => d.time));
+      }
       
       // Show stats section
       statsDashboard.style.display = 'block';
@@ -3370,15 +3840,160 @@
       }
     }
     
-    // Helper: Format number compactly
+    // ==================== CHART RENDERING FUNCTIONS ====================
+    
+    // Update circular progress chart
+    function updateCircularProgress(elementId, percentage, circumference){
+      const circle = document.getElementById(elementId);
+      if(!circle) return;
+      const offset = circumference - (percentage / 100 * circumference);
+      circle.style.strokeDashoffset = offset;
+      circle.style.transition = 'stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+    }
+    
+    // Draw sparkline chart
+    function drawSparkline(svgId, dataPoints, color){
+      const svg = document.getElementById(svgId);
+      if(!svg || !dataPoints || dataPoints.length === 0) return;
+      
+      svg.innerHTML = '';
+      const width = svg.clientWidth || 100;
+      const height = 20;
+      const max = Math.max(...dataPoints, 1);
+      const min = Math.min(...dataPoints, 0);
+      const range = max - min || 1;
+      
+      // Create path
+      const points = dataPoints.map((val, idx) => {
+        const x = (idx / (dataPoints.length - 1)) * width;
+        const y = height - ((val - min) / range * height);
+        return `${x},${y}`;
+      }).join(' ');
+      
+      const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      polyline.setAttribute('points', points);
+      polyline.setAttribute('fill', 'none');
+      polyline.setAttribute('stroke', color);
+      polyline.setAttribute('stroke-width', '2');
+      polyline.setAttribute('opacity', '0.8');
+      
+      svg.appendChild(polyline);
+    }
+    
+    // Update optimization bar
+    function updateOptimizationBar(barId, percentage){
+      const bar = document.getElementById(barId);
+      if(!bar) return;
+      setTimeout(() => {
+        bar.style.width = Math.min(100, percentage) + '%';
+      }, 100);
+    }
+    
+    // Draw micro bar chart
+    function drawMicroBarChart(svgId, dataPoints){
+      const svg = document.getElementById(svgId);
+      if(!svg || !dataPoints || dataPoints.length === 0) return;
+      
+      svg.innerHTML = '';
+      const width = svg.clientWidth || 100;
+      const height = 24;
+      const barWidth = (width / dataPoints.length) - 1;
+      const max = Math.max(...dataPoints, 1);
+      
+      dataPoints.forEach((val, idx) => {
+        const barHeight = (val / max) * height;
+        const x = idx * (barWidth + 1);
+        const y = height - barHeight;
+        
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', x);
+        rect.setAttribute('y', y);
+        rect.setAttribute('width', barWidth);
+        rect.setAttribute('height', barHeight);
+        rect.setAttribute('fill', '#63b3ed');
+        rect.setAttribute('opacity', '0.7');
+        rect.setAttribute('rx', '1');
+        
+        svg.appendChild(rect);
+      });
+    }
+    
+    // Build iteration timeline
+    function buildIterationTimeline(depthHistory){
+      const timeline = document.getElementById('iterationTimeline');
+      if(!timeline) return;
+      
+      if(!depthHistory || depthHistory.length === 0){
+        timeline.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);font-size:11px;padding:8px">No iteration data</div>';
+        return;
+      }
+      
+      timeline.innerHTML = '';
+      depthHistory.forEach((iter, idx) => {
+        const item = document.createElement('div');
+        item.className = 'iteration-item';
+        
+        const depthSpan = document.createElement('span');
+        depthSpan.className = 'iteration-depth';
+        depthSpan.textContent = `D${iter.depth}`;
+        
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'iteration-time';
+        timeSpan.textContent = `${iter.time.toFixed(1)}ms`;
+        
+        const nodesSpan = document.createElement('span');
+        nodesSpan.className = 'iteration-nodes';
+        nodesSpan.textContent = formatCompactNumber(iter.nodes) + ' nodes';
+        
+        const badge = document.createElement('span');
+        badge.className = iter.aspiration_success ? 'iteration-badge' : 'iteration-badge iteration-badge-fail';
+        badge.textContent = iter.aspiration_success ? '✓' : '✗';
+        badge.title = iter.aspiration_success 
+          ? 'Aspiration Window Success: Search completed within expected score range, no re-search needed' 
+          : 'Aspiration Window Failed: Score fell outside expected range, had to re-search with wider window';
+        badge.style.cursor = 'help';
+        
+        item.appendChild(depthSpan);
+        item.appendChild(timeSpan);
+        item.appendChild(nodesSpan);
+        item.appendChild(badge);
+        
+        timeline.appendChild(item);
+      });
+    }
+    
+    // Helper: Format number compactly (global utility)
     function formatCompactNumber(num){
       if(num === undefined || num === null) return '0';
+      if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';
       if(num >= 1000) return (num/1000).toFixed(1) + 'K';
       return num.toString();
     }
     
-    // Make function globally available
+    // Update optimization checkbox (checked/unchecked)
+    function updateOptCheckbox(checkboxId, isActive){
+      const checkbox = document.getElementById(checkboxId);
+      if(!checkbox) return;
+      checkbox.textContent = isActive ? '☑' : '☐';
+      checkbox.style.color = isActive ? '#10b981' : 'rgba(255,255,255,0.3)';
+    }
+    
+    // Toggle section visibility (for collapsible sections)
+    function toggleSection(contentId, buttonId){
+      const content = document.getElementById(contentId);
+      const button = document.getElementById(buttonId);
+      if(!content || !button) return;
+      
+      const isVisible = content.style.display !== 'none';
+      content.style.display = isVisible ? 'none' : 'block';
+      button.textContent = isVisible ? 'Show' : 'Hide';
+      button.classList.toggle('collapsed', isVisible);
+    }
+    
+    // Make functions globally available
     window.showAIStatisticsDashboard = showAIStatisticsDashboard;
+    window.formatCompactNumber = formatCompactNumber;
+    window.toggleSection = toggleSection;
   </script>
 </body>
 </html>

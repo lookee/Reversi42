@@ -929,6 +929,12 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
     try:
         logger.info("AI turn - requesting move...")
         
+        # Check if game is already over (board full)
+        if session.game.white_cnt + session.game.black_cnt == 64:
+            logger.info("Game already over (board full), ignoring AI move request")
+            await handle_game_over(websocket, session, "Board full")
+            return
+        
         side = side or session.game.turn
         ai_name = session.ai_white_name if side == 'W' else session.ai_black_name
         ai_instance = session.ai_white if side == 'W' else session.ai_black
@@ -936,6 +942,27 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
         # Verify AI exists for this side
         if ai_instance is None:
             logger.warning(f"No AI configured for side {side} (name: {ai_name})")
+            return
+        
+        # Check if there are any moves available
+        move_list = session.game.get_move_list()
+        if not move_list:
+            logger.info(f"No moves available for AI ({side}), passing...")
+            session.game.pass_turn()
+            
+            await broadcast(session.session_id, {
+                "type": "board_update",
+                "data": session.get_state()
+            })
+            
+            # Check if opponent has moves
+            next_moves = session.game.get_move_list()
+            if not next_moves:
+                logger.info("Both players have no moves - game over")
+                await handle_game_over(websocket, session, "Both players passed")
+                return
+            
+            # Opponent has moves, frontend will continue
             return
         
         # Send ai_thinking with initial stats
