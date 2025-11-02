@@ -301,10 +301,17 @@ class WebSocketSearchObserver(SearchObserver):
             coord = f"{chr(64+best_move.x)}{best_move.y}"
         
         # Send final AI log with complete statistics
-        nodes = statistics.get("nodes_searched", 0)
-        pruned = statistics.get("nodes_pruned", 0)
+        # Debug: print available keys
+        print(f"[SEARCH_COMPLETE] Statistics keys: {list(statistics.keys())}")
+        print(f"[SEARCH_COMPLETE] Current stats: nodes={self.current_stats.get('nodes_searched')}, depth={self.current_stats.get('depth')}")
+        
+        # Try multiple keys for compatibility with different search engines
+        nodes = statistics.get("nodes_searched", statistics.get("nodes", self.current_stats.get("nodes_searched", 0)))
+        pruned = statistics.get("nodes_pruned", statistics.get("pruning", self.current_stats.get("nodes_pruned", 0)))
         pruning_ratio = (pruned / nodes * 100) if nodes > 0 else 0
-        final_depth = statistics.get("depth_reached", 0)
+        final_depth = statistics.get("depth_reached", statistics.get("depth", self.current_stats.get("depth", 0)))
+        
+        print(f"[SEARCH_COMPLETE] Final values: depth={final_depth}, nodes={nodes}, pruned={pruned}")
         
         # total_time is already in milliseconds from the search engine
         self._send_ai_log(
