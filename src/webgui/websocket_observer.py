@@ -303,20 +303,42 @@ class WebSocketSearchObserver(SearchObserver):
         # Send final AI log with complete statistics
         # Debug: print available keys
         print(f"[SEARCH_COMPLETE] Statistics keys: {list(statistics.keys())}")
-        print(f"[SEARCH_COMPLETE] Current stats: nodes={self.current_stats.get('nodes_searched')}, depth={self.current_stats.get('depth')}")
+        print(f"[SEARCH_COMPLETE] Statistics values: {statistics}")
+        print(f"[SEARCH_COMPLETE] Current stats: {self.current_stats}")
+        print(f"[SEARCH_COMPLETE] Depth history length: {len(self.depth_history)}")
         
         # Try multiple keys for compatibility with different search engines
-        nodes = statistics.get("nodes_searched", statistics.get("nodes", self.current_stats.get("nodes_searched", 0)))
-        pruned = statistics.get("nodes_pruned", statistics.get("pruning", self.current_stats.get("nodes_pruned", 0)))
+        # If depth_history exists, use the last iteration data
+        nodes = statistics.get("nodes_searched", statistics.get("nodes", 0))
+        pruned = statistics.get("nodes_pruned", statistics.get("pruning", 0))
+        final_depth = statistics.get("depth_reached", statistics.get("depth", 0))
+        
+        # Fallback to depth_history if main stats are empty
+        if nodes == 0 and len(self.depth_history) > 0:
+            last_iter = self.depth_history[-1]
+            nodes = last_iter.get("nodes", 0)
+            pruned = last_iter.get("pruned", 0)
+            final_depth = last_iter.get("depth", 0)
+            print(f"[SEARCH_COMPLETE] Using depth_history: depth={final_depth}, nodes={nodes}, pruned={pruned}")
+        
+        # Final fallback to current_stats
+        if nodes == 0:
+            nodes = self.current_stats.get("nodes_searched", 0)
+            pruned = self.current_stats.get("nodes_pruned", 0)
+            final_depth = self.current_stats.get("depth", 0)
+            print(f"[SEARCH_COMPLETE] Using current_stats: depth={final_depth}, nodes={nodes}, pruned={pruned}")
+        
         pruning_ratio = (pruned / nodes * 100) if nodes > 0 else 0
-        final_depth = statistics.get("depth_reached", statistics.get("depth", self.current_stats.get("depth", 0)))
         
         print(f"[SEARCH_COMPLETE] Final values: depth={final_depth}, nodes={nodes}, pruned={pruned}")
         
         # total_time is already in milliseconds from the search engine
+        # Format time intelligently (ms, s, m, h, d)
+        time_str = self._format_time_smart(total_time)
+        
         self._send_ai_log(
             "search_complete",
-            f"🏁 Search complete! Move: {coord or 'N/A'} ({value:+d}) | Depth: {final_depth} | Nodes: {nodes:,} | Pruned: {pruned:,} ({pruning_ratio:.1f}%) | Time: {total_time:.0f}ms",
+            f"🏁 Search complete! Move: {coord or 'N/A'} ({value:+d}) | Depth: {final_depth} | Nodes: {nodes:,} | Pruned: {pruned:,} ({pruning_ratio:.1f}%) | Time: {time_str}",
             {
                 "best_move": coord,
                 "value": value,
