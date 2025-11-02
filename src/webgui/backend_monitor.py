@@ -91,8 +91,9 @@ class BackendMonitor:
             return False
         
         # Try to connect to the server using stdlib (avoid external deps)
+        # No timeout - allow AI to think as long as needed (even hours for deep analysis)
         try:
-            with urllib.request.urlopen(f"http://localhost:{self.port}", timeout=5) as response:
+            with urllib.request.urlopen(f"http://localhost:{self.port}", timeout=None) as response:
                 # Consider any 2xx as healthy
                 return 200 <= response.status < 300
         except Exception:
