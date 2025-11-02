@@ -308,10 +308,26 @@ class WebSocketSearchObserver(SearchObserver):
     
     def _send_ai_statistics_summary(self, best_move, value, statistics, total_time, opening_book, game_history):
         """Send comprehensive statistics summary for data science dashboard"""
-        nodes = statistics.get("nodes_searched", 0)
-        pruned = statistics.get("nodes_pruned", 0)
+        # Extract basic stats
+        nodes = statistics.get("nodes", statistics.get("nodes_searched", 0))
+        pruned = statistics.get("pruning", statistics.get("nodes_pruned", 0))
         pruning_ratio = (pruned / nodes * 100) if nodes > 0 else 0
         nps = (nodes / (total_time / 1000.0)) if total_time > 0 else 0
+        
+        # Extract optimization statistics from nested objects
+        null_move_stats = statistics.get("null_move", {})
+        futility_stats = statistics.get("futility", {})
+        lmr_stats = statistics.get("lmr", {})
+        multi_cut_stats = statistics.get("multi_cut", {})
+        
+        # Extract counts from nested stats
+        null_move_cuts = null_move_stats.get("cutoffs", 0) if isinstance(null_move_stats, dict) else 0
+        futility_cuts = futility_stats.get("cuts", 0) if isinstance(futility_stats, dict) else 0
+        lmr_reductions = lmr_stats.get("reductions", 0) if isinstance(lmr_stats, dict) else 0
+        multi_cut_prunes = multi_cut_stats.get("prunes", 0) if isinstance(multi_cut_stats, dict) else 0
+        
+        # Get depth info
+        depth_reached = statistics.get("depth", statistics.get("depth_reached", 0))
         
         summary = {
             "type": "ai_statistics_summary",
@@ -329,8 +345,8 @@ class WebSocketSearchObserver(SearchObserver):
                 "nodes_per_second": int(nps),
                 
                 # Search depth
-                "depth_reached": statistics.get("depth_reached", 0),
-                "target_depth": statistics.get("target_depth", 0),
+                "depth_reached": depth_reached,
+                "target_depth": statistics.get("target_depth", depth_reached),
                 
                 # Node statistics
                 "nodes_searched": nodes,
@@ -338,25 +354,25 @@ class WebSocketSearchObserver(SearchObserver):
                 "nodes_evaluated": nodes - pruned,
                 "pruning_efficiency": round(pruning_ratio, 2),
                 
-                # Optimizations breakdown
-                "null_move_cuts": statistics.get("null_move_cuts", 0),
-                "futility_cuts": statistics.get("futility_cuts", 0),
-                "lmr_reductions": statistics.get("lmr_reductions", 0),
-                "multi_cut_prunes": statistics.get("multi_cut_prunes", 0),
+                # Optimizations breakdown (extracted from nested objects)
+                "null_move_cuts": null_move_cuts,
+                "futility_cuts": futility_cuts,
+                "lmr_reductions": lmr_reductions,
+                "multi_cut_prunes": multi_cut_prunes,
                 
-                # Aspiration windows
-                "aspiration_hits": getattr(self, 'aspiration_hits', 0),
-                "aspiration_fails": getattr(self, 'aspiration_fails', 0),
+                # Aspiration windows (from observer tracking)
+                "aspiration_hits": statistics.get("aspiration_hits", self.aspiration_hits),
+                "aspiration_fails": statistics.get("aspiration_fails", self.aspiration_fails),
                 "aspiration_success_rate": self._calculate_aspiration_rate(),
                 
                 # Iterative deepening info
-                "iterations_completed": statistics.get("depth_reached", 0),
-                "avg_iteration_time": round(total_time / max(1, statistics.get("depth_reached", 1)), 2),
+                "iterations_completed": depth_reached,
+                "avg_iteration_time": round(total_time / max(1, depth_reached), 2),
                 
                 # Move ordering effectiveness
                 "pv_move_hits": statistics.get("pv_hits", 0),
-                "killer_move_hits": statistics.get("killer_hits", 0),
-                "history_heuristic_score": statistics.get("history_score", 0),
+                "killer_move_hits": statistics.get("killer_moves", 0),
+                "history_entries": statistics.get("history_entries", 0),
                 
                 # Transposition table
                 "tt_hits": statistics.get("tt_hits", 0),

@@ -492,7 +492,7 @@
       animation:slideDown 0.3s ease
     }
     .stats-dashboard-header{
-      padding:16px 20px;
+      padding:10px 16px;
       border-bottom:1px solid rgba(99,179,237,0.15);
       display:flex;
       justify-content:space-between;
@@ -500,31 +500,31 @@
       background:linear-gradient(135deg,rgba(99,179,237,0.12) 0%,rgba(99,179,237,0.06) 100%);
       backdrop-filter:blur(10px)
     }
-    .stats-player-avatar-sm{
-      width:36px;
-      height:36px;
+    .stats-player-avatar-xs{
+      width:24px;
+      height:24px;
       border-radius:50%;
       background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
       display:flex;
       align-items:center;
       justify-content:center;
       font-weight:700;
-      font-size:14px;
+      font-size:11px;
       color:#fff;
-      border:2px solid rgba(99,179,237,0.4);
-      box-shadow:0 0 12px rgba(99,179,237,0.3)
+      border:1.5px solid rgba(99,179,237,0.4);
+      flex-shrink:0
     }
-    .stats-player-name-sm{
-      font-size:16px;
+    .stats-player-name-xs{
+      font-size:13px;
       font-weight:700;
       color:#63b3ed;
-      letter-spacing:0.3px
+      letter-spacing:0.2px;
+      white-space:nowrap
     }
-    .stats-timestamp-sm{
-      font-size:11px;
-      color:rgba(99,179,237,0.6);
-      font-family:'Courier New',monospace;
-      margin-top:2px
+    .stats-timestamp-xs{
+      font-size:10px;
+      color:rgba(99,179,237,0.5);
+      font-family:'Courier New',monospace
     }
     .stats-move-badge{
       text-align:center;
@@ -2885,37 +2885,35 @@
     <!-- Statistics Dashboard Section (inside AI Insight) - IN ALTO -->
     <div id="aiStatsDashboard" class="stats-dashboard-section" style="display:none">
       <div class="stats-compact-header">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="stats-player-avatar-sm" id="statsPlayerAvatar">AI</div>
-          <div>
-            <div class="stats-player-name-sm" id="statsPlayerName">AI Player</div>
-            <div class="stats-timestamp-sm" id="statsTimestamp">--:--:--</div>
+        <div style="display:flex;align-items:center;gap:8px;flex:1">
+          <div class="stats-player-avatar-xs" id="statsPlayerAvatar">AI</div>
+          <div class="stats-player-name-xs" id="statsPlayerName">AI Player</div>
+          <div style="color:rgba(99,179,237,0.4);margin:0 4px">•</div>
+          <div class="stats-timestamp-xs" id="statsTimestamp">--:--:--</div>
+          <div style="color:rgba(99,179,237,0.4);margin:0 4px">•</div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <span style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px">Move:</span>
+            <span style="font-size:18px;font-weight:700;font-family:'Courier New',monospace;color:#63b3ed" id="statMoveBadge">--</span>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="stats-move-badge">
-            <div style="font-size:9px;opacity:0.6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Move</div>
-            <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#63b3ed" id="statMoveBadge">--</div>
-          </div>
-          <button class="btn text-xs" id="toggleStatsCollapse" title="Hide statistics">▲</button>
-        </div>
+        <button class="btn text-xs" id="toggleStatsCollapse" title="Hide statistics">▲</button>
       </div>
       <div id="statsCollapsibleBody" class="stats-compact-body">
         <!-- Compact: Performance & Evaluation (1 row) -->
         <div class="stats-grid-4" style="margin-bottom:10px">
-          <div class="stat-card stat-card-primary">
+          <div class="stat-card stat-card-primary" title="Selected move by AI">
             <div class="stat-label">Move</div>
             <div class="stat-value" id="statMove">--</div>
           </div>
-          <div class="stat-card stat-card-success">
+          <div class="stat-card stat-card-success" title="Position evaluation: positive=advantage, negative=disadvantage">
             <div class="stat-label">Eval</div>
             <div class="stat-value" id="statEval">--</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" title="Total search time in milliseconds">
             <div class="stat-label">Time</div>
             <div class="stat-value" style="font-size:16px" id="statTime">--</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" title="Maximum depth reached in search tree">
             <div class="stat-label">Depth</div>
             <div class="stat-value" style="font-size:16px" id="statDepth">--</div>
           </div>
@@ -2924,15 +2922,15 @@
         <!-- Compact: Node Statistics with Progress Bar -->
         <div style="margin-bottom:10px">
           <div class="stats-grid-3" style="margin-bottom:6px">
-            <div class="stat-card-compact">
+            <div class="stat-card-compact" title="Total nodes explored in search tree">
               <div class="stat-label-compact">Nodes</div>
               <div class="stat-value-compact" id="statNodesSearched">--</div>
             </div>
-            <div class="stat-card-compact">
+            <div class="stat-card-compact" title="Nodes pruned (skipped) thanks to optimizations">
               <div class="stat-label-compact">Pruned</div>
               <div class="stat-value-compact" id="statNodesPruned">--</div>
             </div>
-            <div class="stat-card-compact stat-highlight">
+            <div class="stat-card-compact stat-highlight" title="Pruning efficiency: % of nodes pruned - Higher is better">
               <div class="stat-label-compact">Efficiency</div>
               <div class="stat-value-compact" id="statPruningEff">--%</div>
             </div>
@@ -2944,19 +2942,19 @@
 
         <!-- Compact: Optimizations (1 row) -->
         <div class="stats-grid-4" style="margin-bottom:10px">
-          <div class="stat-card-compact">
+          <div class="stat-card-compact" title="Null Move Pruning: cutoffs from null moves (skip turn to verify threats)">
             <div class="stat-label-compact">Null</div>
             <div class="stat-value-compact-sm" id="statNullMove">--</div>
           </div>
-          <div class="stat-card-compact">
+          <div class="stat-card-compact" title="Futility Pruning: cuts of futile moves in losing positions">
             <div class="stat-label-compact">Fut.</div>
             <div class="stat-value-compact-sm" id="statFutility">--</div>
           </div>
-          <div class="stat-card-compact">
+          <div class="stat-card-compact" title="Late Move Reduction: reduced search for likely weak moves">
             <div class="stat-label-compact">LMR</div>
             <div class="stat-value-compact-sm" id="statLMR">--</div>
           </div>
-          <div class="stat-card-compact">
+          <div class="stat-card-compact" title="Multi-Cut Pruning: multiple moves exceeding beta threshold">
             <div class="stat-label-compact">M-Cut</div>
             <div class="stat-value-compact-sm" id="statMultiCut">--</div>
           </div>
@@ -2964,19 +2962,19 @@
 
         <!-- Compact: Advanced Metrics (1 row) -->
         <div class="stats-grid-4">
-          <div class="stat-card-compact">
+          <div class="stat-card-compact" title="Nodes Per Second: search speed (thousands/sec)">
             <div class="stat-label-compact">NPS</div>
             <div class="stat-value-compact-sm" id="statNPS">--</div>
           </div>
-          <div class="stat-card-compact">
+          <div class="stat-card-compact" title="Iterative Deepening: completed depth iterations (1→N)">
             <div class="stat-label-compact">Iters</div>
             <div class="stat-value-compact-sm" id="statIterations">--</div>
           </div>
-          <div class="stat-card-compact">
+          <div class="stat-card-compact" title="Aspiration Windows: success rate avoiding re-search">
             <div class="stat-label-compact">Aspir.</div>
             <div class="stat-value-compact-sm" id="statAspirationRate">--%</div>
           </div>
-          <div class="stat-card-compact">
+          <div class="stat-card-compact" title="Transposition Table: hit rate for position reuse">
             <div class="stat-label-compact">TT Hit</div>
             <div class="stat-value-compact-sm" id="statTTRate">--%</div>
           </div>
