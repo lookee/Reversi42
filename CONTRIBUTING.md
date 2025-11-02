@@ -38,8 +38,8 @@ Before creating bug reports, please check the [existing issues](https://github.c
 - **Include your environment details:**
   - OS and version
   - Python version
-  - Pygame version
   - Reversi42 version
+  - Backend framework versions (FastAPI, Uvicorn)
 
 **Use the bug report template when creating a new issue.**
 
@@ -337,10 +337,9 @@ Reversi42/
 │   │   └── ViewFactory.py     # View creation
 │   ├── ui/                    # UI implementations
 │   │   ├── implementations/
-│   │   │   ├── pygame/        # GUI implementation
-│   │   │   ├── terminal/      # Terminal implementation
+│   │   │   ├── guiweb/        # Web UI integration
 │   │   │   └── headless/      # No-UI implementation
-│   │   └── widgets/           # Reusable UI components
+│   │   └── common/            # Shared UI utilities
 │   └── domain/                # Domain logic
 │       └── knowledge/         # Opening book
 ├── tests/                     # Test suite

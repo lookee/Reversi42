@@ -13,10 +13,11 @@ Reversi42 is a sophisticated Reversi/Othello implementation built on a layered a
 ```
 ┌────────────────────────────────────────────────────────┐
 │                   User Interface Layer                 │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │   Pygame    │  │  Terminal   │  │  Headless   │     │
-│  │     View    │  │    View     │  │    View     │     │
-│  └─────────────┘  └─────────────┘  └─────────────┘     │
+│  ┌─────────────────┐              ┌─────────────┐      │
+│  │     WebGUI      │              │  Headless   │      │
+│  │  (FastAPI +     │              │    View     │      │
+│  │   WebSocket)    │              │             │      │
+│  └─────────────────┘              └─────────────┘      │
 └────────────────────────────────────────────────────────┘
                           ↕
 ┌────────────────────────────────────────────────────────┐
@@ -127,17 +128,11 @@ Reversi42 is a sophisticated Reversi/Othello implementation built on a layered a
 
 **View Types**:
 
-#### Pygame View (Graphical)
-- **Technology**: Pygame 2.0+
-- **Features**: Resizable window, animations, mouse controls
-- **Target**: Desktop users, learning, interactive play
-- **Performance**: 60 FPS rendering
-
-#### Terminal View (ASCII)
-- **Technology**: Pure Python with ANSI codes
-- **Features**: Keyboard controls, SSH-friendly, minimal resources
-- **Target**: Remote servers, minimal systems
-- **Performance**: Instant rendering
+#### WebGUI (Web-Based)
+- **Technology**: FastAPI + WebSocket + HTML5
+- **Features**: Real-time updates, cross-platform, modern UI
+- **Target**: Interactive play, learning, demonstrations
+- **Performance**: Sub-10ms WebSocket latency
 
 #### Headless View (No UI)
 - **Technology**: None (pure logic)
@@ -349,7 +344,7 @@ Controller → View (show confirmation)
 | Game State | 200 bytes | Two 64-bit ints + metadata |
 | Transposition Table | 128 MB | Configurable, default size |
 | Opening Book | 2 MB | Loaded into memory |
-| View Resources | 10-50 MB | Pygame assets |
+| Web Backend | ~50 MB | FastAPI + dependencies |
 
 ### Throughput
 
@@ -357,8 +352,8 @@ Controller → View (show confirmation)
 |--------|-------|----------|
 | Moves/second (AI) | 100K-1M | Depends on depth, M1 Pro |
 | Games/hour (depth 9) | 60-120 | AI vs AI, M1 Pro |
-| UI Framerate | 60 FPS | Pygame mode |
-| Terminal Response | <1ms | Instant |
+| WebSocket Latency | <10ms | Real-time updates |
+| Backend Response | <50ms | FastAPI |
 
 ## Scalability
 
@@ -431,7 +426,7 @@ Controller → View (show confirmation)
 ### Core Technologies
 
 - **Language**: Python 3.9+
-- **UI Framework**: Pygame 2.0+
+- **Backend**: FastAPI, Uvicorn, WebSockets
 - **Build System**: setuptools, pyproject.toml
 - **Testing**: pytest
 - **Type Checking**: mypy
@@ -495,9 +490,9 @@ All changes will:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2025-10-20  
-**Status**: Current
+**Document Version**: 2.0  
+**Last Updated**: 2025-11-02  
+**Status**: Current (v5.0.0 - WebGUI architecture)
 
 *For questions about system architecture, see [Architecture Guide](README.md) or open a [Discussion](https://github.com/lucaamore/reversi42/discussions).*
 

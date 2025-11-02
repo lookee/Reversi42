@@ -128,6 +128,16 @@ class FixedDepthStrategy(SearchStrategy):
         """Reset search state"""
         self.alphabeta.reset()
     
+    def add_observer(self, observer: SearchObserver):
+        """Add an observer dynamically"""
+        if observer and observer not in self.observers:
+            self.observers.append(observer)
+    
+    def remove_observer(self, observer: SearchObserver):
+        """Remove an observer"""
+        if observer and observer in self.observers:
+            self.observers.remove(observer)
+    
     # Observer notification methods
     
     def _notify_search_start(self, depth, player_name, game):

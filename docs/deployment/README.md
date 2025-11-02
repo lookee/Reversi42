@@ -237,10 +237,10 @@ reversi42 --view headless
 
 ### Common Issues
 
-#### "pygame not found"
+#### "FastAPI not found" or "uvicorn not found"
 
 ```bash
-pip install pygame
+pip install -r requirements.txt
 ```
 
 #### "Permission denied" (Linux/macOS)

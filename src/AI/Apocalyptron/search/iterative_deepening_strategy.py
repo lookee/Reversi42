@@ -102,4 +102,14 @@ class IterativeDeepeningStrategy(SearchStrategy):
     def observers(self, value):
         """Set observers list (for ParallelSearch compatibility)"""
         self.search.observers = value
+    
+    def add_observer(self, observer: SearchObserver):
+        """Add an observer dynamically"""
+        if observer and observer not in self.search.observers:
+            self.search.observers.append(observer)
+    
+    def remove_observer(self, observer: SearchObserver):
+        """Remove an observer"""
+        if observer and observer in self.search.observers:
+            self.search.observers.remove(observer)
 

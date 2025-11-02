@@ -19,7 +19,7 @@ Complete flow when a human player makes a move:
          │
          ▼
 ┌─────────────────┐
-│   Pygame View   │  Detects click, converts to board position
+│   WebGUI View   │  Detects click, converts to board position
 └────────┬────────┘
          │ get_position_from_click(x, y) → position
          ▼
@@ -64,10 +64,10 @@ Complete flow when a human player makes a move:
 └────────┬────────┘
          │ Broadcasts event to subscribers
          │
-         ├───────────────┬──────────────────┐
-         ▼               ▼                  ▼
+        ├───────────────┬──────────────────┐
+        ▼               ▼                  ▼
 ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│ Pygame View  │  │ Statistics   │  │ Move History │
+│ WebGUI View  │  │ Statistics   │  │ Move History │
 └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
        │                 │                 │
        ▼                 ▼                 ▼
@@ -250,7 +250,7 @@ How a new game is created and initialized:
          │ create_view(type)
          ▼
 ┌─────────────────┐
-│  Pygame View    │  Initialize UI
+│  WebGUI View    │  Initialize UI
 └────────┬────────┘
          │
          ▼
@@ -282,7 +282,7 @@ How game state is persisted:
          │
          ▼
 ┌─────────────────┐
-│  Pygame View    │  Show save dialog
+│  WebGUI View    │  Show save dialog
 └────────┬────────┘
          │ User enters filename
          ▼
@@ -636,8 +636,9 @@ Graceful Recovery or Termination
 
 **Document Version**: 2.0  
 **Last Updated**: 2025-11-02  
+**Status**: Current (v5.0.0 - WebGUI architecture)
 
-> 💡 **Note**: Updated for v5.0.0 - Pygame and Terminal views removed, WebGUI introduced.
+> 💡 **Note**: Updated for v5.0.0 - Web-first architecture with FastAPI/WebSocket backend.
 
 *For questions about data flow, see [Architecture Guide](README.md).*
 

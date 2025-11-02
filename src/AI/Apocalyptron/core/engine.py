@@ -212,7 +212,7 @@ class ApocalyptronEngine:
             )
 
     def get_best_move(
-        self, game, depth: int, player_name: str = None, opening_book=None, game_history: str = None
+        self, game, depth: int, player_name: str = None, opening_book=None, game_history: str = None, observer=None
     ):
         """
         Get best move for position.
@@ -223,16 +223,25 @@ class ApocalyptronEngine:
             player_name: Player name for display
             opening_book: Opening book instance
             game_history: Game history string
+            observer: Optional SearchObserver for real-time updates
 
         Returns:
             Best move found
         """
         start_time = time.perf_counter()
 
+        # Add dynamic observer if provided
+        if observer:
+            self.search_strategy.add_observer(observer)
+
         # Use parallel search (which internally decides parallel vs sequential)
         move = self.parallel_search.get_best_move(
             game, depth, player_name, opening_book, game_history
         )
+
+        # Remove dynamic observer
+        if observer:
+            self.search_strategy.remove_observer(observer)
 
         elapsed = time.perf_counter() - start_time
 

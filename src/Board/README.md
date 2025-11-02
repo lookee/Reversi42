@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Board module implements a clean Model-View-Controller architecture with **pluggable views**. As of v5.0.0, the primary interface is web-based, with headless mode for tournaments.
+The Board module implements a clean Model-View-Controller architecture with **pluggable views**. As of v5.0.0, the primary interface is web-based (WebGUI), with headless mode for tournaments and automated testing.
 
 ## Components
 
@@ -10,55 +10,16 @@ The Board module implements a clean Model-View-Controller architecture with **pl
 - **BoardModel.py** - Board state (matrix representation)
 
 ### View (Modular!)
-- **AbstractBoardView.py** - Abstract interface (NEW in 3.1.0)
-- **PygameBoardView.py** - Graphical Pygame view (NEW in 3.1.0)
-- **TerminalBoardView.py** - ASCII art terminal view (NEW in 3.1.0)
-- **HeadlessBoardView.py** - No-rendering view (NEW in 3.1.0)
-- **BoardView.py** - Backward compatibility wrapper
-- **ViewFactory.py** - Factory for creating views (NEW in 3.1.0)
+- **AbstractBoardView.py** - Abstract interface for all views
+- **HeadlessBoardView.py** - No-rendering view for tournaments and testing
+- **ViewFactory.py** - Factory for creating views
 
 ### Controller
-- **BoardControl.py** - Manages Model-View interaction (ENHANCED in 3.1.0)
+- **BoardControl.py** - Manages Model-View interaction
 
 ## Available Views
 
-### 1. PygameBoardView (Default)
-
-**Full-featured graphical UI**
-- Professional tournament interface
-- Opening book visual integration
-- Mouse + keyboard support
-- Resizable window
-- 60 FPS smooth rendering
-
-**Use for**: Interactive play, learning, demonstrations
-
-```python
-from Board.BoardControl import BoardControl
-
-# Default - creates Pygame view
-control = BoardControl(8, 8)
-```
-
-### 2. TerminalBoardView
-
-**Beautiful ASCII art rendering**
-- Unicode box drawing
-- ANSI color codes
-- Keyboard-only input
-- Works over SSH
-- Lightweight
-
-**Use for**: Terminal purists, SSH sessions, accessibility
-
-```python
-from Board.BoardControl import BoardControl
-from Board.TerminalBoardView import TerminalBoardView
-
-control = BoardControl(8, 8, view_class=TerminalBoardView)
-```
-
-### 3. HeadlessBoardView
+### HeadlessBoardView (Default)
 
 **Zero rendering overhead**
 - All rendering methods are no-ops
@@ -66,14 +27,18 @@ control = BoardControl(8, 8, view_class=TerminalBoardView)
 - Minimal memory footprint
 - Perfect for automation
 
-**Use for**: Tournaments, batch processing, CI/CD, benchmarking
+**Use for**: Tournaments, batch processing, CI/CD, benchmarking, testing
 
 ```python
 from Board.BoardControl import BoardControl
-from Board.HeadlessBoardView import HeadlessBoardView
+from ui.implementations.headless import HeadlessBoardView
 
 control = BoardControl(8, 8, view_class=HeadlessBoardView)
 ```
+
+### WebGUI (Recommended for Interactive Play)
+
+For interactive play, use the web-based interface. See [WebGUI Documentation](../../docs/WEBGUI.md).
 
 ## Using ViewFactory
 
@@ -82,38 +47,20 @@ Simplest way to create views:
 ```python
 from Board.ViewFactory import ViewFactory
 
-# Create different views
-pygame_view = ViewFactory.create_view('pygame', 8, 8)
-terminal_view = ViewFactory.create_view('terminal', 8, 8)
+# Create headless view (default)
 headless_view = ViewFactory.create_view('headless', 8, 8)
 ```
 
 ## Dependency Injection
 
-BoardControl now supports view injection:
+BoardControl supports view injection:
 
 ```python
 from Board.BoardControl import BoardControl
-from Board.TerminalBoardView import TerminalBoardView
+from ui.implementations.headless import HeadlessBoardView
 
 # Inject custom view
-control = BoardControl(8, 8, view_class=TerminalBoardView)
-
-# View is now TerminalBoardView instead of PygameBoardView!
-```
-
-## Backward Compatibility
-
-**100% backward compatible!**
-
-All existing code works without changes:
-
-```python
-# Old code still works!
-from Board.BoardView import BoardView
-
-view = BoardView(8, 8, 800, 600)
-# Automatically uses PygameBoardView internally
+control = BoardControl(8, 8, view_class=HeadlessBoardView)
 ```
 
 ## Creating Custom Views
@@ -128,7 +75,7 @@ class MyCustomView(AbstractBoardView):
         # Your init code
         pass
     
-    def render_board(self, model):
+    def update(self, cursor_mode=False):
         # Your rendering
         pass
     
@@ -144,19 +91,12 @@ from my_module import MyCustomView
 control = BoardControl(8, 8, view_class=MyCustomView)
 ```
 
-## Performance Comparison
+## Performance
 
-| View | Rendering | Memory | Best For |
-|------|-----------|--------|----------|
-| **Pygame** | 10-50ms | ~50MB | Interactive play |
-| **Terminal** | 5-15ms | ~1MB | SSH, terminal |
-| **Headless** | 0ms | ~100KB | Tournaments, testing |
-
-## Examples
-
-See `src/examples/`:
-- `terminal_mode_demo.py` - Terminal view demonstration
-- `headless_tournament_demo.py` - Performance comparison
+The headless view has:
+- **Rendering**: 0ms (no-op)
+- **Memory**: ~100KB
+- **Best for**: Tournaments, testing, automation
 
 ## Architecture Diagram
 
@@ -166,8 +106,6 @@ Game Logic (Reversi.Game)
 BoardControl (MVC Controller)
     ├── BoardModel (State)
     └── AbstractBoardView (Interface)
-            ├── PygameBoardView (Pygame)
-            ├── TerminalBoardView (ASCII)
             ├── HeadlessBoardView (None)
             └── [Your Custom View]
 ```
@@ -176,18 +114,16 @@ BoardControl (MVC Controller)
 
 1. **Multiple UIs** - Swap views without changing code
 2. **Testing** - Headless view for automated tests
-3. **Performance** - Choose optimal view for use case
-4. **Accessibility** - Terminal view for screen readers
-5. **Extensibility** - Easy to add new view types
-6. **Clean Design** - Perfect separation of concerns
+3. **Performance** - Optimal performance with headless view
+4. **Extensibility** - Easy to add new view types
+5. **Clean Design** - Perfect separation of concerns
 
 ## See Also
 
-- [VIEW_ARCHITECTURE.md](../../docs/VIEW_ARCHITECTURE.md) - Detailed architecture documentation
+- [WebGUI Documentation](../../docs/WEBGUI.md) - Web-based interface
 - [Main README](../../README.md) - Project overview
-- [Features](../../docs/FEATURES.md) - Complete feature list
+- [Architecture Documentation](../../docs/architecture/README.md) - System architecture
 
 ---
 
 **Reversi42 v5.0.0 - Modular View Architecture** 🎨
-

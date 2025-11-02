@@ -35,7 +35,7 @@ class BoardControl:  # Application - coordination only
     def handle_move(self, position: int):
         # Coordinate between model and view
         
-class PygameView:  # Presentation - UI only
+class WebGUIView:  # Presentation - UI only
     def render_board(self, game: BitboardGame):
         # Only rendering logic
 ```
@@ -325,7 +325,7 @@ class Apocalyptron:
 ### Structural Patterns
 
 #### Adapter Pattern
-**Where**: View implementations (Pygame, Terminal, Headless)  
+**Where**: View implementations (WebGUI, Headless)  
 **Why**: Adapt different UI frameworks to common interface  
 **Benefit**: Pluggable views, easy to add new ones
 

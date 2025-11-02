@@ -2,7 +2,7 @@
 InputProvider - Abstract interface for user input
 
 This abstraction allows Players to be completely UI-agnostic.
-Concrete implementations (Pygame, Terminal, Headless) are provided in the UI layer.
+Concrete implementations (Web, Headless, Mock) are provided in the UI layer.
 
 Design Pattern: Strategy + Dependency Inversion Principle
 """
@@ -17,10 +17,10 @@ class InputProvider(ABC):
     """
     Abstract interface for getting user input.
 
-    Players depend on this abstraction, NOT on concrete UI frameworks (pygame, etc.)
+    Players depend on this abstraction, NOT on concrete UI frameworks.
     This is Dependency Inversion Principle in action!
 
-    Different UI implementations (pygame, terminal, web) provide concrete implementations.
+    Different UI implementations (web, headless, mock) provide concrete implementations.
     """
 
     @abstractmethod
@@ -29,10 +29,10 @@ class InputProvider(ABC):
         Get a move from user input.
 
         This method should handle all UI-specific input logic:
-        - Mouse clicks (pygame)
-        - Keyboard input (terminal)
-        - Network requests (web)
-        - etc.
+        - Mouse/touch clicks (web)
+        - Keyboard input (web)
+        - Network requests (web API)
+        - Simulated input (mock/replay)
 
         Args:
             game: Current game state

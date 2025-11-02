@@ -47,14 +47,22 @@ class WebSocketSearchObserver(SearchObserver):
     def _send_async(self, message: dict):
         """Send message via WebSocket in an async-safe way"""
         try:
+            print(f"[AI_LOG_DEBUG] _send_async called, loop={self.loop}, message_type={message.get('type')}")  # DEBUG
             if self.loop and self.loop.is_running():
+                print(f"[AI_LOG_DEBUG] Using existing loop to create task")  # DEBUG
                 asyncio.create_task(self._send(message))
             else:
-                # Fallback for non-async contexts
-                self.loop = asyncio.new_event_loop()
-                self.loop.run_until_complete(self._send(message))
+                print(f"[AI_LOG_DEBUG] No running loop, using run_coroutine_threadsafe fallback")  # DEBUG
+                # Fallback: try to get the running loop in the main thread
+                try:
+                    loop = asyncio.get_running_loop()
+                    asyncio.run_coroutine_threadsafe(self._send(message), loop)
+                except RuntimeError:
+                    print(f"[AI_LOG_DEBUG] No event loop, message dropped")  # DEBUG
         except Exception as e:
-            print(f"Error sending WebSocket update: {e}")
+            print(f"[AI_LOG_ERROR] Error sending WebSocket update: {e}")
+            import traceback
+            traceback.print_exc()
 
     async def _send(self, message: dict):
         """Send message via WebSocket"""
@@ -75,6 +83,7 @@ class WebSocketSearchObserver(SearchObserver):
                 "details": data or {}
             }
         }
+        print(f"[AI_LOG] Sending: {log_type} - {message}")  # DEBUG
         self._send_async(log_message)
 
     def on_search_start(

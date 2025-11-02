@@ -9,9 +9,6 @@ Shows book moves with scores, priorities, and engine evaluation process.
 import sys
 import os
 
-# Silence pygame welcome message
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from Players.PlayerApocalyptron import PlayerApocalyptron

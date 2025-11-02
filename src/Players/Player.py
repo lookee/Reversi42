@@ -2,7 +2,7 @@
 Player - Base class for all players
 
 Clean Architecture: Players are in the domain layer and should NOT
-depend on UI frameworks (pygame, etc.)
+depend on any specific UI frameworks.
 
 Design Pattern: Template Method
 """
@@ -45,12 +45,41 @@ class Player(object):
             game: Current game state
             move_list: List of legal moves
             control: (DEPRECATED) BoardControl instance - use InputProvider instead
+                     In WebGUI context, this is the SearchObserver for AI insights
 
         Returns:
             Selected move, or None if exit/pause
         """
         # Default implementation: return first move
         return move_list[0] if move_list else None
+    
+    def _call_engine_with_observer(self, engine, bitboard_game, depth, player_name=None, 
+                                     opening_book=None, game_history=None, observer=None):
+        """
+        Helper method to call engine.get_best_move with observer support.
+        
+        This centralizes observer handling so all AI players get it automatically.
+        
+        Args:
+            engine: ApocalyptronEngine instance
+            bitboard_game: BitboardGame instance
+            depth: Search depth
+            player_name: Player name (optional)
+            opening_book: Opening book instance (optional)
+            game_history: Game history string (optional)
+            observer: SearchObserver instance (optional, from control parameter)
+        
+        Returns:
+            Best move from engine
+        """
+        return engine.get_best_move(
+            bitboard_game,
+            depth,
+            player_name=player_name,
+            opening_book=opening_book,
+            game_history=game_history,
+            observer=observer
+        )
 
     @classmethod
     def get_metadata(cls):

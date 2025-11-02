@@ -139,8 +139,7 @@ reversi42/
 │   │   └── ViewFactory.py  # View creation
 │   ├── ui/                # UI implementations
 │   │   ├── implementations/
-│   │   │   ├── pygame/    # Graphical UI
-│   │   │   ├── terminal/  # Terminal UI
+│   │   │   ├── guiweb/    # Web UI integration
 │   │   │   └── headless/  # No UI
 │   │   └── widgets/       # UI components
 │   ├── domain/            # Domain logic
@@ -164,13 +163,10 @@ reversi42/
 ### Running the Game
 
 ```bash
-# Default (Pygame GUI)
-./reversi42
+# Default (Web GUI)
+cd src/webgui && ./start_server.sh
 
-# Terminal mode
-./reversi42 --view terminal
-
-# Headless (for testing)
+# Headless (for testing/tournaments)
 ./reversi42 --view headless
 ```
 
@@ -495,7 +491,7 @@ See [Commit Message Guide](commit-messages.md).
 ### External Resources
 
 - [Python Official Docs](https://docs.python.org/)
-- [Pygame Documentation](https://www.pygame.org/docs/)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [pytest Documentation](https://docs.pytest.org/)
 - [Type Hints (mypy)](https://mypy.readthedocs.io/)
 

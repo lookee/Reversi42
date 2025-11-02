@@ -17,7 +17,7 @@ Complete user guide for playing and enjoying Reversi42.
 
 Reversi42 is a feature-rich implementation of the classic board game Reversi (also known as Othello). It features:
 
-- 🎮 **Multiple interfaces**: Graphical (Pygame), Terminal (ASCII), or Headless
+- 🌐 **Web interface**: Modern browser-based UI with real-time updates
 - 🤖 **Powerful AI**: From beginner to grandmaster level
 - 📚 **Opening book**: Learn from 644 professional opening sequences
 - 🏆 **Tournament system**: Pit AIs against each other
@@ -41,12 +41,11 @@ pip install -r requirements.txt
 ### 2. Start Playing
 
 ```bash
-# Graphical interface (default)
-./reversi42
+# Start web server
+cd src/webgui
+./start_server.sh
 
-# Terminal interface (SSH-friendly)
-./reversi42 --view terminal
-
+# Open browser to http://localhost:8080
 # Choose your opponent and start!
 ```
 
@@ -91,34 +90,26 @@ See [Tournament Guide](tournaments.md).
 
 ## Interface Guide
 
-### Pygame (Graphical) Interface
+### WebGUI (Browser) Interface
 
 **Mouse Controls**:
 - Click on highlighted squares to make moves
-- Hover over golden moves (with Show Opening) to see opening names
-- Click menu buttons
+- View real-time game updates via WebSocket
+- Modern, responsive UI
 
-**Keyboard Controls**:
-- `C` - Toggle cursor navigation
-- `Arrow Keys` - Move cursor
-- `ENTER`/`SPACE` - Select move
-- `ESC` - Pause menu
-- `Q` - Quit
+**Features**:
+- Real-time game state updates
+- Cross-platform (works on any device with a browser)
+- WebSocket communication for instant responses
+- Clean, modern interface
 
-### Terminal (ASCII) Interface
-
-**Input Methods**:
-- Type coordinates: `D3`, `E4`, etc.
-- Or use move numbers: `1`, `2`, `3`
-
-**Commands**:
-- `q` - Quit game
-- `h` - Show help
-- `u` - Undo move (if available)
+**Access**:
+- Start backend: `cd src/webgui && ./start_server.sh`
+- Open browser: `http://localhost:8080`
 
 ### Headless (No UI) Interface
 
-For automated testing and tournaments only.
+For automated testing, tournaments, and library usage only.
 
 ## Understanding the AI
 
@@ -253,7 +244,7 @@ Edit `~/.reversi42/config.json`:
 
 ```json
 {
-  "default_view": "pygame",
+  "default_view": "headless",
   "ai_depth": 9,
   "show_opening": true,
   "window_size": [1280, 720],

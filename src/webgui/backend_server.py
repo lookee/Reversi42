@@ -507,14 +507,21 @@ class GameSession:
             # Create observer for AI insights if websocket is provided
             observer = None
             if websocket:
+                logger.info("[AI_INSIGHT] Creating WebSocketSearchObserver for AI insights")
                 observer = WebSocketSearchObserver(websocket, self.session_id)
                 # Set the event loop for async operations
                 try:
                     observer.loop = asyncio.get_running_loop()
+                    logger.info(f"[AI_INSIGHT] Observer loop set: {observer.loop}")
                 except RuntimeError:
                     observer.loop = None
+                    logger.warning("[AI_INSIGHT] No running event loop found for observer")
+            else:
+                logger.info("[AI_INSIGHT] No websocket provided, observer not created")
             
+            logger.info(f"[AI_INSIGHT] Calling AI.get_move with observer={observer}")
             ai_move = ai.get_move(self.game, move_list, observer)
+            logger.info(f"[AI_INSIGHT] AI.get_move completed, move={ai_move}")
             return ai_move
             
         except Exception as e:

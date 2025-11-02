@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 
 from AI.Apocalyptron.observers.interfaces import SearchObserver
 from AI.Apocalyptron.search.alphabeta_complete import AlphaBetaSearchComplete
-from AI.Apocalyptron.search.fixed_depth import FixedDepthStrategy
+from AI.Apocalyptron.search.iterative_deepening_strategy import IterativeDeepeningStrategy
 from AI.Apocalyptron.search.strategy_interface import SearchStrategy
 
 
@@ -54,9 +54,13 @@ class AdaptiveDepthStrategy(SearchStrategy):
         self.depth_config = depth_config
         self.observers = observers or []
         
-        # Use FixedDepthStrategy internally (no iterative deepening)
-        # Could also use IterativeDeepeningStrategy if preferred
-        self.fixed_search = FixedDepthStrategy(alphabeta, observers)
+        # Use IterativeDeepeningStrategy internally for better observer notifications
+        # This gives us all the intermediate logs and iterations
+        self.iterative_search = IterativeDeepeningStrategy(
+            alphabeta, 
+            use_aspiration=True,
+            observers=observers
+        )
         
         # Validate depth config
         required_phases = {'opening', 'midgame', 'endgame'}
@@ -92,14 +96,28 @@ class AdaptiveDepthStrategy(SearchStrategy):
         # Get depth for this phase
         actual_depth = self.depth_config.get(phase, depth)
         
-        # Search at adjusted depth
-        return self.fixed_search.get_best_move(
+        # Search at adjusted depth using iterative deepening
+        return self.iterative_search.get_best_move(
             game, actual_depth, player_name, opening_book, game_history
         )
     
     def reset(self):
         """Reset search state"""
-        self.fixed_search.reset()
+        self.iterative_search.reset()
+    
+    def add_observer(self, observer: SearchObserver):
+        """Add an observer dynamically"""
+        if observer and observer not in self.observers:
+            self.observers.append(observer)
+            # Propagate to internal search strategy
+            self.iterative_search.add_observer(observer)
+    
+    def remove_observer(self, observer: SearchObserver):
+        """Remove an observer"""
+        if observer and observer in self.observers:
+            self.observers.remove(observer)
+            # Propagate to internal search strategy
+            self.iterative_search.remove_observer(observer)
     
     def _detect_phase(self, game) -> str:
         """

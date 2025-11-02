@@ -158,12 +158,14 @@ class PlayerDivZero(Player):
         # Engine search (with book moves prioritized if book_instant=False)
         try:
             bitboard_game = self._convert_to_bitboard(game)
-            move = self.bitboard_engine.get_best_move(
+            move = self._call_engine_with_observer(
+                self.bitboard_engine,
                 bitboard_game,
                 self.deep,
                 player_name=self.name,
                 opening_book=self.opening_book,
                 game_history=game_history,
+                observer=control  # Automatically passed to engine
             )
             if move and game.valid_move(move):
                 return move

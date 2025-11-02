@@ -111,7 +111,9 @@ class PlayerTheStrangler(Player):
         
         try:
             bitboard_game = self._convert_to_bitboard(game)
-            move = self.bitboard_engine.get_best_move(bitboard_game, self.deep)
+            move = self._call_engine_with_observer(
+                self.bitboard_engine, bitboard_game, self.deep, observer=control
+            )
             if move and game.valid_move(move):
                 return move
         except:
