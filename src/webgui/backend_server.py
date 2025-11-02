@@ -37,6 +37,12 @@ from Reversi.Game import Game, Move
 from Players.PlayerFactory import PlayerFactory
 from Players.Gladiators.PlayerDivZero import PlayerDivZero
 
+# Import version
+try:
+    from __version__ import __version__
+except ImportError:
+    __version__ = "3.2.0"  # Fallback
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -507,7 +513,20 @@ sessions: Dict[str, GameSession] = {}
 active_connections: Dict[str, WebSocket] = {}
 
 # FastAPI app
-app = FastAPI(title="Reversi42 WebSocket Backend")
+app = FastAPI(
+    title="Reversi42 WebSocket Backend",
+    version=__version__,
+    description="Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning",
+    contact={
+        "name": "Luca Amore",
+        "url": "https://www.lucaamore.com",
+        "email": "luca.amore@gmail.com"
+    },
+    license_info={
+        "name": "GPL-3.0-or-later",
+        "url": "https://www.gnu.org/licenses/gpl-3.0.html"
+    }
+)
 
 # CORS middleware
 app.add_middleware(
@@ -535,9 +554,19 @@ async def get_index():
 async def get_stats():
     """Get server statistics"""
     return {
+        "version": __version__,
         "active_sessions": len(sessions),
         "active_connections": len(active_connections),
         "uptime": "N/A"  # Could implement uptime tracking
+    }
+
+@app.get("/version")
+async def get_version():
+    """Get server version"""
+    return {
+        "version": __version__,
+        "name": "Reversi42",
+        "description": "Ultra-Fast Reversi (Othello) with Bitboard AI"
     }
 
 @app.get("/logs")

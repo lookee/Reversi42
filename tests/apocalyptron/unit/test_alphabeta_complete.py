@@ -12,8 +12,6 @@ sys.path.insert(0, project_root)
 src_path = os.path.join(project_root, "src")
 sys.path.insert(0, src_path)
 
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-
 from AI.Apocalyptron.evaluation import CompositeEvaluator, MobilityEvaluator, PositionalEvaluator
 from AI.Apocalyptron.ordering import (
     CompositeOrderer,

@@ -3,7 +3,7 @@ ViewFactory - Factory for Creating Board Views
 
 Simplifies view creation with sensible defaults.
 
-Version: 3.1.0
+Version: 3.2.0 - Cleaned up, removed pygame and terminal views
 """
 
 # All views use lazy imports to avoid circular dependencies
@@ -20,15 +20,7 @@ class ViewFactory:
     @staticmethod
     def _get_view_class(view_type):
         """Get view class with lazy import"""
-        if view_type in ("pygame", "gui"):
-            from ui.implementations.pygame.view import PygameBoardView
-
-            return PygameBoardView
-        elif view_type in ("terminal", "console"):
-            from ui.implementations.terminal import TerminalBoardView
-
-            return TerminalBoardView
-        elif view_type in ("headless", "none"):
+        if view_type in ("headless", "none"):
             from ui.implementations.headless import HeadlessBoardView
 
             return HeadlessBoardView
@@ -39,12 +31,12 @@ class ViewFactory:
     VIEW_TYPES = None  # Disabled to force lazy loading
 
     @classmethod
-    def create_view(cls, view_type="pygame", sizex=8, sizey=8, width=800, height=600, **kwargs):
+    def create_view(cls, view_type="headless", sizex=8, sizey=8, width=800, height=600, **kwargs):
         """
         Create a view of the specified type.
 
         Args:
-            view_type: Type of view ('pygame', 'terminal', 'headless')
+            view_type: Type of view ('headless')
             sizex: Board width
             sizey: Board height
             width: Display width
@@ -62,7 +54,7 @@ class ViewFactory:
         view_class = cls._get_view_class(view_type)
         if view_class is None:
             raise ValueError(
-                f"Unsupported view type: {view_type}. " f"Available: pygame, terminal, headless"
+                f"Unsupported view type: {view_type}. " f"Available: headless"
             )
 
         return view_class(sizex, sizey, width, height, **kwargs)
@@ -75,26 +67,12 @@ class ViewFactory:
         Returns:
             list: List of view type names
         """
-        return ["pygame", "terminal", "headless", "gui", "console", "none"]
+        return ["headless", "none"]
 
     # Note: register_view removed - use direct imports for custom views
 
 
 # Convenience functions
-
-
-def create_pygame_view(sizex=8, sizey=8):
-    """Create default Pygame graphical view"""
-    from ui.implementations.pygame.view import PygameBoardView
-
-    return PygameBoardView(sizex, sizey)
-
-
-def create_terminal_view(sizex=8, sizey=8):
-    """Create ASCII art terminal view"""
-    from ui.implementations.terminal import TerminalBoardView
-
-    return TerminalBoardView(sizex, sizey)
 
 
 def create_headless_view(sizex=8, sizey=8):

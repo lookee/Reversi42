@@ -23,9 +23,24 @@ if requirements_file.exists():
         if line.strip() and not line.startswith("#")
     ]
 
+from pathlib import Path
+
+# Read version from pyproject.toml
+def get_version():
+    """Read version from pyproject.toml"""
+    pyproject = Path(__file__).parent / "pyproject.toml"
+    if pyproject.exists():
+        with open(pyproject, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip().startswith("version"):
+                    parts = line.split("=")
+                    if len(parts) == 2:
+                        return parts[1].strip().strip('"').strip("'")
+    return "3.2.0"  # Fallback
+
 setup(
     name="reversi42",
-    version="4.1.16",
+    version=get_version(),
     author="Luca Amore",
     author_email="luca.amore@gmail.com",
     description="Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning",
@@ -74,11 +89,12 @@ setup(
             "isort>=5.12.0",
         ],
     },
-    entry_points={
-        "console_scripts": [
-            "reversi42=reversi42:main",
-        ],
-    },
+    # Entry points removed - pygame/terminal views deprecated
+    # entry_points={
+    #     "console_scripts": [
+    #         "reversi42=reversi42:main",
+    #     ],
+    # },
     zip_safe=False,
 )
 

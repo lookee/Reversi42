@@ -89,7 +89,7 @@ player = PlayerFactory.create_player('THE STRANGLER 🎯')
 
 ### In Menu
 
-All gladiators are automatically available in the Pygame menu!
+All gladiators are automatically available in the web interface!
 
 Simply:
 1. Launch Reversi42
@@ -161,7 +161,7 @@ Simply:
 
 ### Integration Points
 - `src/Players/PlayerFactory.py` - Auto-registration
-- `src/ui/implementations/pygame/components/menu.py` - Auto-display
+- Web interface - Auto-display via backend server
 
 ### Tests Added
 - 10 unit tests (strategies validation)
