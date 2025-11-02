@@ -196,9 +196,9 @@
 
     /* Elegant modal for Players */
     .modalOverlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:99998;
-      background:rgba(0,0,0,.55); backdrop-filter: blur(6px)}
-    .modalCard{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.12); border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.45);
+      background:rgba(0,0,0,.85); backdrop-filter: blur(8px)}
+    .modalCard{background:linear-gradient(180deg,rgba(15,20,30,.95),rgba(10,15,25,.98));
+      border:1px solid rgba(139,92,246,.3); border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(139,92,246,.2);
       min-width:280px; width:min(960px,92vw)}
     .modalHead{display:flex; align-items:center; justify-content:space-between; gap:12px;
       padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
@@ -318,13 +318,31 @@
     }
     .ws-status-indicator.connected .ws-status-dot{
       background: #10b981;
+      animation: none;
     }
     .ws-status-indicator.connecting .ws-status-dot{
       background: #f59e0b;
     }
+    .ws-status-indicator.ws-active .ws-status-dot{
+      animation: wsActivityFlash 0.4s ease-out;
+    }
     @keyframes wsPulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.6; transform: scale(1.2); }
+    }
+    @keyframes wsActivityFlash {
+      0% { 
+        box-shadow: 0 0 0 0 rgba(16,185,129,0.7);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 0 12px 4px rgba(16,185,129,0.5);
+        transform: scale(1.4);
+      }
+      100% { 
+        box-shadow: 0 0 0 0 rgba(16,185,129,0);
+        transform: scale(1);
+      }
     }
 
     /* JSON Editor */
@@ -1382,7 +1400,18 @@
       try{
         wsConnection && wsConnection.send(JSON.stringify(obj));
         appendWsMessage('→ send', obj);
+        flashWebSocketActivity(); // Flash on send
       }catch(e){ console.error('wsSend error', e); }
+    }
+    
+    function flashWebSocketActivity(){
+      const wsIndicator = document.getElementById('wsStatusIndicator');
+      if(wsIndicator && wsIndicator.classList.contains('connected')){
+        wsIndicator.classList.add('ws-active');
+        setTimeout(() => {
+          wsIndicator.classList.remove('ws-active');
+        }, 400);
+      }
     }
     
     function loadGameData(gameData){
@@ -1418,13 +1447,13 @@
       render();
       
       // Update notes if available
-      // Always set the AI player name as the title
-      const notesTitle = qs('deepeningSummaryTitle');
-      if(notesTitle) {
-        notesTitle.textContent = data.players?.white?.name || 'Notes';
-      }
-      
+      // Only update title and notes if there's actual AI analysis data
       if(data.notes){
+        const notesTitle = qs('deepeningSummaryTitle');
+        if(notesTitle && data.notes.title) {
+          // Use title from notes (already set by updateAIAnalysis)
+          notesTitle.textContent = data.notes.title;
+        }
         renderNotes(data.notes);
       }
       
@@ -1522,6 +1551,7 @@
         try{ appendWsMessage('← recv', JSON.parse(event.data)); }catch(_){ appendWsMessage('← recv', event.data); }
         const message = JSON.parse(event.data);
         console.log('Parsed message:', message);
+        flashWebSocketActivity(); // Flash on receive
         handleServerMessage(message);
       };
       
