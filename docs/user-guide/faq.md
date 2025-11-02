@@ -339,7 +339,7 @@ Yes, under the terms of the GPL-3.0 license. See [COPYING](../../COPYING) for de
 ### How do I cite Reversi42?
 
 ```
-Reversi42 v3.1.0 (2025)
+Reversi42 v5.0.0 (2025)
 Luca Amore
 https://github.com/lucaamore/reversi42
 ```

@@ -243,7 +243,7 @@ See [Contributing Guide](../CONTRIBUTING.md) for how to:
 ---
 
 **Last updated:** 2025-10-20  
-**Documentation version:** 3.1.0
+**Documentation version:** 5.0.0
 
 *This index is maintained manually. If you find missing or outdated links, please [open an issue](https://github.com/lucaamore/reversi42/issues).*
 

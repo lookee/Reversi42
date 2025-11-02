@@ -288,5 +288,5 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) for more details.
 
 ---
 
-**Note**: This documentation is for version 3.1.0. For other versions, see the corresponding branch or tag.
+**Note**: This documentation is for version 5.0.0. For other versions, see the corresponding branch or tag.
 

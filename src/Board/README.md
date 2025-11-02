@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Board module implements a clean Model-View-Controller architecture with **pluggable views**. As of v3.1.0, multiple view implementations are supported without changing game logic.
+The Board module implements a clean Model-View-Controller architecture with **pluggable views**. As of v5.0.0, the primary interface is web-based, with headless mode for tournaments.
 
 ## Components
 
@@ -189,5 +189,5 @@ BoardControl (MVC Controller)
 
 ---
 
-**Reversi42 v3.1.0 - Modular View Architecture** 🎨
+**Reversi42 v5.0.0 - Modular View Architecture** 🎨
 

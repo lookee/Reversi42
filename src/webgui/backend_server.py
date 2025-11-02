@@ -1114,15 +1114,39 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
     try:
         white = data.get("white")
         black = data.get("black")
+        
+        logger.info(f"Setting players - White: {white}, Black: {black}")
+        
         # Normalize: None or 'Human' or 'Human Player' => human
         session.ai_white_name = None if (white is None or str(white).lower()=="human" or str(white)=="Human Player") else str(white)
         session.ai_black_name = None if (black is None or str(black).lower()=="human" or str(black)=="Human Player") else str(black)
+        
+        logger.info(f"Configured - ai_white_name: {session.ai_white_name}, ai_black_name: {session.ai_black_name}")
+        
         # Recreate AI instances
         session.reset_session()
-        # Send updated state
-        await send_to_connection(websocket, {"type": "board_update", "data": session.get_state()})
         
-        # Frontend will request AI move if needed (respects pause state)
+        logger.info(f"Session reset - ai_white: {session.ai_white is not None}, ai_black: {session.ai_black is not None}")
+        logger.info(f"Current turn after reset: {session.game.turn}")
+        
+        # Send updated state
+        state_data = session.get_state()
+        logger.info(f"Sending state - Black: {state_data['players']['black']['name']}, White: {state_data['players']['white']['name']}, Turn: {state_data['status']['turn_by_ply'][0]}")
+        
+        await send_to_connection(websocket, {"type": "board_update", "data": state_data})
+        
+        # Check if AI should make first move (if it's AI's turn to start)
+        current_turn = session.game.turn
+        ai_present = (session.ai_white is not None and current_turn == 'W') or (session.ai_black is not None and current_turn == 'B')
+        
+        if ai_present:
+            logger.info(f"AI should move immediately (turn: {current_turn})")
+            # Small delay to ensure frontend receives board_update first
+            await asyncio.sleep(0.1)
+            await handle_ai_move_request(websocket, session, current_turn)
+        else:
+            logger.info(f"Human to move (turn: {current_turn})")
+        
     except Exception as e:
         logger.error(f"Error in handle_set_players: {e}")
         session.handle_error(e, "handle_set_players")

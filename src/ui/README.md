@@ -4,7 +4,7 @@
 
 This package provides a professional, framework-agnostic Model-View-Controller (MVC) architecture for Reversi42's user interface.
 
-**Version**: 3.1.0  
+**Version**: 5.0.0  
 **Architecture**: Clean MVC with Dependency Inversion  
 **Status**: Production Ready
 
@@ -414,9 +414,8 @@ controller, *_ = UIFactory.create_pygame_ui()
 
 ### Migration Timeline
 
-- **v3.1.0** (Current): New architecture available, old code works
-- **v3.2.0** (Future): Deprecation warnings on old imports
-- **v4.0.0** (Future): Full migration, old code removed
+- **v5.0.0** (Current): Pygame/Terminal views removed, Web interface primary
+- **v4.0.0** (Future): Full migration to web-only architecture
 
 ---
 
@@ -429,5 +428,5 @@ controller, *_ = UIFactory.create_pygame_ui()
 
 ---
 
-**Reversi42 v3.1.0 - Professional MVC Architecture** ✨
+**Reversi42 v5.0.0 - Web-First MVC Architecture** ✨
 

@@ -2,9 +2,11 @@
 
 **Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning**
 
-Version: **3.2.0** 🚀  
+Version: **5.0.0** 🚀  
 Originally released: 2011-03-07  
 Major Update: 2025-11-02
+
+> 💡 **Note**: Version is centrally managed in `pyproject.toml`. See [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md) for details.
 
 Copyright (C) 2011-2025 Luca Amore  
 Website: https://www.lucaamore.com
@@ -15,7 +17,7 @@ Website: https://www.lucaamore.com
 
 Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ultra-fast bitboard AI, interactive opening book learning, and comprehensive competitive features. The **3.2.0 release** modernizes the interface with a web-based UI while removing legacy pygame and terminal views.
 
-### 🌟 What's New in 3.2.0
+### 🌟 What's New in 5.0.0
 
 #### Web Interface (NEW!)
 - 🌐 **Modern Web UI** - Play through your browser with real-time updates
@@ -510,7 +512,7 @@ player = PlayerFactory.create_apocalyptron(depth=9)
 # ... your game logic
 ```
 
-**Pygame/Terminal views have been removed** (v3.2.0):
+**Pygame/Terminal views have been removed** (v5.0.0):
 - Web interface is the primary way to play
 - Tournament mode for AI competitions
 - Python library for programmatic use
@@ -578,7 +580,7 @@ Reversi42/
 │   │   ├── Game.py                # Standard game engine
 │   │   └── Move.py                # Move representation
 │   │
-│   ├── Board/                     # Modular view system (MVC) ⭐ v3.2.0
+│   ├── Board/                     # Modular view system (MVC) ⭐ v5.0.0
 │   │   ├── AbstractBoardView.py   # View interface
 │   │   ├── ViewFactory.py         # View factory pattern
 │   │   ├── BoardControl.py        # MVC Controller
@@ -739,15 +741,15 @@ Reversi42/
 │   └── build_macos_app.sh        # macOS app builder
 │
 ├── reversi42-splash.png          # Splash screen
-├── reversi42                      # Game launcher (symlink to start_server.sh) ⭐ NEW
-├── README.md                      # This file ⭐ UPDATED v3.2.0
+├── reversi42                      # Game launcher (symlink to start_server_robust.sh) ⭐ NEW
+├── README.md                      # This file ⭐ UPDATED v5.0.0
 ├── CHANGELOG.md                   # Version history
 ├── CONTRIBUTING.md                # Contribution guidelines
 ├── LICENSE                        # GPL v3.0 license
 └── requirements.txt               # Python dependencies ⭐ UPDATED (removed pygame)
 ```
 
-### 📊 Statistics (v3.2.0)
+### 📊 Statistics (v5.0.0)
 
 - **Total Files**: 250+ (reduced from 300+ after cleanup)
 - **Lines of Code**: ~12,000 (removed ~15,000 lines of pygame/terminal code)
