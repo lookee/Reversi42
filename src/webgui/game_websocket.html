@@ -502,7 +502,16 @@
                     <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                   </span>
                 </button>
-                <button id="copyBtn" class="btn" title="Copy compact history" data-tip="Copy compact history" aria-label="Copy compact history">⧉</button>
+                <button id="copyBtn" class="btn" title="Copy compact history" data-tip="Copy compact history" aria-label="Copy compact history">
+                  <span class="icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </span>
+                </button>
+                <button id="pasteBtn" class="btn" title="Paste compact history" data-tip="Paste compact history" aria-label="Paste compact history">
+                  <span class="icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                  </span>
+                </button>
                 <button id="saveBtn" class="btn" title="Save game" data-tip="Save game" disabled>
                   <span class="icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M12 16V6"/><path d="M8.5 10.5 12 7l3.5 3.5"/></svg>
@@ -1302,6 +1311,7 @@
       const undoBtn = qs('undoBtn');
       const redoBtn = qs('redoBtn');
       const copyBtn = qs('copyBtn');
+      const pasteBtn = qs('pasteBtn');
       const saveBtn = qs('saveBtn');
       const loadBtn = qs('loadBtn');
       const newBtn  = qs('newGameBtn');
@@ -1316,6 +1326,63 @@
         const text = getCompactHistory();
         const ok = await copyTextStrict(text);
         showToast(ok ? `Copied: ${text || '—'}` : 'Copy failed');
+      });
+      if (pasteBtn) pasteBtn.addEventListener('click', async ()=>{
+        console.log('Paste button clicked');
+        let text = null;
+        
+        // Try clipboard API first
+        try{
+          text = await navigator.clipboard.readText();
+          console.log('Read from clipboard:', text);
+        }catch(e){
+          console.log('Clipboard API error:', e, '- asking user to paste manually');
+        }
+        
+        // Fallback: prompt user to paste manually
+        if(!text){
+          text = prompt('Paste compact history:\n\nFormat: "F5f6E6f4" (uppercase=Black, lowercase=White)');
+          console.log('User provided text via prompt:', text);
+          if(!text){
+            console.log('User cancelled prompt');
+            return; // User cancelled
+          }
+        }
+        
+        const trimmed = text.trim();
+        console.log('Trimmed text:', trimmed);
+        
+        // Validate format: extract all valid moves
+        const moves = trimmed.match(/[A-Ha-h][1-8]/g);
+        console.log('Extracted moves:', moves);
+        
+        if(!moves || moves.length === 0){
+          showToast('❌ No valid moves found');
+          alert('No valid moves found in clipboard.\n\nExpected format: "F5f6E6f4" (uppercase=Black, lowercase=White)\nExample: F5 (Black), f6 (White), E6 (Black), f4 (White)');
+          return;
+        }
+        
+        // Check if there are extra characters
+        if(moves.join('') !== trimmed){
+          console.warn('Extra characters found, using only valid moves:', moves.join(''));
+          showToast('⚠️ Extra characters ignored');
+        }
+        
+        const cleanHistory = moves.join('');
+        console.log('Clean history:', cleanHistory);
+        
+        // Load via WebSocket
+        if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+          console.log('Sending load_history with:', cleanHistory);
+          wsSend({ type:'load_history', history: cleanHistory });
+          setTimeout(() => {
+            wsSend({ type:'get_state' });
+          }, 100);
+          showToast('Loading game...');
+        } else {
+          console.error('WebSocket not connected');
+          showToast('❌ WebSocket not connected');
+        }
       });
       if (saveBtn) saveBtn.addEventListener('click', ()=>{
         const txt = getCompactHistory();
