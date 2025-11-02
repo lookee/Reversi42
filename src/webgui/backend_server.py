@@ -62,6 +62,7 @@ shutdown_event = asyncio.Event()
 def signal_handler(signum, frame):
     """Handle shutdown signals gracefully"""
     logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+    logger.info(f"Active connections: {len(active_connections)}, Active sessions: {len(sessions)}")
     shutdown_event.set()
 
 def cleanup_on_exit():
@@ -607,7 +608,7 @@ async def websocket_endpoint(websocket: WebSocket):
             await handle_message(websocket, session_id, message)
             
     except WebSocketDisconnect:
-        logger.info(f"WebSocket disconnected from session {session_id}")
+        logger.info(f"WebSocket disconnected from session {session_id} (client closed connection)")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         logger.error(traceback.format_exc())
@@ -615,9 +616,10 @@ async def websocket_endpoint(websocket: WebSocket):
         # Cleanup
         if session_id in active_connections:
             del active_connections[session_id]
-        if session_id in sessions and not active_connections:
-            del sessions[session_id]
-            logger.info(f"Removed session: {session_id}")
+            logger.info(f"Removed WebSocket connection for session {session_id}")
+        # DON'T delete the session - keep it alive for reconnection
+        # Only cleanup session if it's been idle for too long
+        logger.info(f"Session {session_id} kept alive for potential reconnection")
 
 
 async def handle_message(websocket: WebSocket, session_id: str, data: dict):
@@ -778,22 +780,9 @@ async def handle_human_move(websocket: WebSocket, session: GameSession, data: di
                 await handle_game_over(websocket, session, "Both players passed")
                 return
         
-        # Check if AI should move (either side)
-        logger.info(f"Checking if AI should move. Turn: {session.game.turn}")
-        side = session.game.turn
-        ai_present = (session.ai_white is not None and side == 'W') or (session.ai_black is not None and side == 'B')
-        if ai_present:
-            ai_move_list = session.game.get_move_list()
-            if not ai_move_list:
-                logger.info(f"No moves available for AI ({side}), passing...")
-                session.game.pass_turn()
-                await broadcast(session.session_id, {"type": "board_update", "data": session.get_state()})
-                final_move_list = session.game.get_move_list()
-                if not final_move_list:
-                    await handle_game_over(websocket, session, "Both players passed")
-                    return
-            else:
-                await handle_ai_move_request(websocket, session, side)
+        # DON'T auto-trigger AI move here!
+        # Frontend will request AI move via checkAndRequestAIMove() after receiving board_update
+        logger.info(f"Human move complete. Next turn: {session.game.turn}. Frontend will request AI move if needed.")
             
     except Exception as e:
         logger.error(f"Error in handle_human_move: {e}")

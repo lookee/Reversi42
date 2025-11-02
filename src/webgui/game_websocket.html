@@ -875,15 +875,18 @@
         handleServerMessage(message);
       };
       
-      wsConnection.onclose = () => {
-        console.log('WebSocket disconnected, attempting reconnect...');
+      wsConnection.onclose = (event) => {
+        console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason, 'Clean:', event.wasClean);
+        console.log('Attempting reconnect in 3 seconds...');
         updateWSStatus('disconnected', 'Reconnecting...');
         setTimeout(initWebSocket, 3000);
       };
       
       wsConnection.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error('❌ WebSocket error:', error);
         console.error('WebSocket readyState:', wsConnection.readyState);
+        console.error('WebSocket URL:', WS_URL);
+        console.error('Stack trace:', new Error().stack);
         updateWSStatus('disconnected', 'Connection Error');
       };
       
@@ -894,6 +897,7 @@
     function handleServerMessage(message){
       console.log('Received:', message.type, message);
       
+      try {
       switch(message.type){
         case 'board_update':
           // Update board from server
@@ -937,7 +941,10 @@
           const aiMoveSide = data?.status?.turn_by_ply?.[0] || 'W';
           const aiPlayerName = aiMoveSide === 'B' ? data.players?.black?.name : data.players?.white?.name;
           console.log(`${aiPlayerName} played:`, message.data.move);
-          removeThinkingIconFromPlayerName(aiMoveSide); // Remove thinking icon from player name
+          
+          // Remove thinking icon from BOTH sides to prevent stale icons
+          removeThinkingIconFromPlayerName('B');
+          removeThinkingIconFromPlayerName('W');
           // Show AI move animation
           if(message.data.move){
             const moveCoord = message.data.move;
@@ -961,7 +968,21 @@
           console.log(message.message);
           // Add thinking icon to AI player name (determine side from current turn)
           const thinkingSide = data?.status?.turn_by_ply?.[0] || 'W';
-          addThinkingIconToPlayerName(thinkingSide);
+          
+          // ONLY add thinking icon if that side is actually AI (not Human)
+          const thinkingBlackName = data?.players?.black?.name;
+          const thinkingWhiteName = data?.players?.white?.name;
+          const isThinkingSideAI = (thinkingSide === 'B' && thinkingBlackName && thinkingBlackName !== 'Human' && thinkingBlackName !== 'Human Player')
+                                || (thinkingSide === 'W' && thinkingWhiteName && thinkingWhiteName !== 'Human' && thinkingWhiteName !== 'Human Player');
+          
+          console.log('🤔 ai_thinking received - Side:', thinkingSide, 'isAI:', isThinkingSideAI, 'BlackName:', thinkingBlackName, 'WhiteName:', thinkingWhiteName);
+          
+          if(isThinkingSideAI){
+            addThinkingIconToPlayerName(thinkingSide);
+          } else {
+            console.warn('⚠️  ai_thinking received for HUMAN player - ignoring!');
+          }
+          
           if(pendingSelectedAI && data && data.players){
             const currentAIName = thinkingSide === 'B' ? data.players.black?.name : data.players.white?.name;
             if(currentAIName === pendingSelectedAI){
@@ -1024,6 +1045,13 @@
           console.error('Server error:', message.message);
           alert(`Error: ${message.message || 'Invalid move. Please try again.'}`);
           break;
+      }
+      } catch (error) {
+        console.error('❌ CRITICAL ERROR in handleServerMessage:', error);
+        console.error('Stack trace:', error.stack);
+        console.error('Message was:', message);
+        // Don't close WebSocket connection - just log the error
+        alert(`⚠️  Frontend Error: ${error.message}\n\nCheck console for details.`);
       }
     }
     
@@ -1556,13 +1584,19 @@
     }
 
     function render(){
-      if(!data) {
-        console.log('No data to render yet');
-        return; // Don't render if data is not loaded
-      }
-      
-      const elBoard = document.getElementById('board');
-      const movesOl = document.getElementById('movesOl');
+      try {
+        if(!data) {
+          console.log('No data to render yet');
+          return; // Don't render if data is not loaded
+        }
+        
+        const elBoard = document.getElementById('board');
+        const movesOl = document.getElementById('movesOl');
+        
+        if(!elBoard) {
+          console.error('❌ Board element not found!');
+          return;
+        }
       
       // keep rows numbers aligned after any layout change
       try{ window.syncRowCoords(); }catch(_){}
@@ -1703,7 +1737,12 @@
       // highlight (removed ply display) 
       if(movesOl){
         [...movesOl.children].forEach(li=> li.classList.remove('active'));
-        if(ply>0){ const li = [...movesOl.children].find(el => +el.dataset.ply === ply); if(li) li.classList.add('active'); }
+        if(ply>0){ const li = [...movesOl.children].find(el => +el.dataset.ply === ply);         if(li) li.classList.add('active'); }
+      }
+      } catch (error) {
+        console.error('❌ CRITICAL ERROR in render():', error);
+        console.error('Stack trace:', error.stack);
+        console.error('Current data:', data);
       }
     }
     
@@ -1818,10 +1857,15 @@
 
     // === AI VISUAL FEEDBACK ===
     function updateAIAnalysis(aiData){
-      if(!data) return;
-      
-      // Determine which AI just moved (from aiData.title or infer from last move)
-      const aiName = aiData.title || data.players?.white?.name || 'AI';
+      try {
+        if(!data) return;
+        if(!aiData) {
+          console.warn('updateAIAnalysis called with null/undefined aiData');
+          return;
+        }
+        
+        // Determine which AI just moved (from aiData.title or infer from last move)
+        const aiName = aiData.title || data.players?.white?.name || 'AI';
       
       // Create dynamic AI analysis notes with all available data
       const aiAnalysis = {
@@ -1866,6 +1910,11 @@
       
       // Store for reference
       data.notes = aiAnalysis;
+      } catch (error) {
+        console.error('❌ Error in updateAIAnalysis:', error);
+        console.error('Stack trace:', error.stack);
+        console.error('aiData was:', aiData);
+      }
     }
     
 
