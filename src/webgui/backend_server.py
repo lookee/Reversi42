@@ -1016,20 +1016,11 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
                         await handle_game_over(websocket, session, "Both players passed")
                         return
                     
-                    # Next player has moves - if AI, trigger move
-                    next_side = session.game.turn
-                    next_ai_present = (session.ai_white is not None and next_side == 'W') or (session.ai_black is not None and next_side == 'B')
-                    if next_ai_present:
-                        logger.info(f"After pass, next turn {next_side} is AI with moves - triggering move")
-                        await handle_ai_move_request(websocket, session, next_side)
+                    # Next player has moves - frontend will request if AI and not paused
                     return
                 
-                # Current player has moves - check if next player is also AI and trigger their move
-                next_side = session.game.turn
-                next_ai_present = (session.ai_white is not None and next_side == 'W') or (session.ai_black is not None and next_side == 'B')
-                if next_ai_present:
-                    logger.info(f"Next turn {next_side} is also AI - triggering move")
-                    await handle_ai_move_request(websocket, session, next_side)
+                # Don't auto-trigger next AI move - let frontend control via pause/play
+                # Frontend will send ai_move_request when ready
             else:
                 # AI has no moves, pass
                 logger.info("AI has no valid moves, passing...")
@@ -1047,12 +1038,7 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
                     await handle_game_over(websocket, session, "Both players passed")
                     return
                 
-                # After pass, check if next player is AI
-                next_side = session.game.turn
-                next_ai_present = (session.ai_white is not None and next_side == 'W') or (session.ai_black is not None and next_side == 'B')
-                if next_ai_present:
-                    logger.info(f"After AI pass, next turn {next_side} is AI with moves - triggering move")
-                    await handle_ai_move_request(websocket, session, next_side)
+                # After pass, frontend will request AI move if needed and not paused
                     
         except Exception as e:
             logger.error(f"Error in AI move request: {e}")
@@ -1099,20 +1085,15 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
     try:
         white = data.get("white")
         black = data.get("black")
-        # Normalize: None or 'Human' => human
-        session.ai_white_name = None if (white is None or str(white).lower()=="human") else str(white)
-        session.ai_black_name = None if (black is None or str(black).lower()=="human") else str(black)
+        # Normalize: None or 'Human' or 'Human Player' => human
+        session.ai_white_name = None if (white is None or str(white).lower()=="human" or str(white)=="Human Player") else str(white)
+        session.ai_black_name = None if (black is None or str(black).lower()=="human" or str(black)=="Human Player") else str(black)
         # Recreate AI instances
         session.reset_session()
         # Send updated state
         await send_to_connection(websocket, {"type": "board_update", "data": session.get_state()})
         
-        # If current turn is AI after reset, trigger AI move
-        side = session.game.turn
-        ai_present = (session.ai_white is not None and side == 'W') or (session.ai_black is not None and side == 'B')
-        if ai_present:
-            logger.info(f"After set_players, current turn {side} is AI - triggering move")
-            await handle_ai_move_request(websocket, session, side)
+        # Frontend will request AI move if needed (respects pause state)
     except Exception as e:
         logger.error(f"Error in handle_set_players: {e}")
         session.handle_error(e, "handle_set_players")

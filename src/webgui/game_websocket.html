@@ -420,7 +420,7 @@
       <div class="flex items-center md:items-start justify-start gap-3">
         <div class="avatar b" id="p1Avatar">LA</div>
         <div class="min-w-0">
-          <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
             <div id="p1Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
             <button id="changeBlackBtn" class="miniIconBtn" title="Change player" data-tip="Change Black Player" aria-label="Change Black Player">
               <svg id="changeBlackIcon" viewBox="0 0 24 24" aria-hidden="true">
@@ -433,22 +433,22 @@
             <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span> Black</span>
             <span id="p1Count" class="chip">● 0</span>
             <span id="p1Delta" class="chip">±0</span>
+            <span id="p1Turn" class="chip">
+              <span id="p1TurnDot" style="display:none;width:10px;height:10px;border-radius:999px;background:var(--gold)"></span>
+            </span>
           </div>
         </div>
       </div>
 
       <!-- CENTER: Match panel -->
       <div class="flex flex-col items-center text-center gap-1.5">
-        <div class="chip text-xs" aria-live="polite">
-          <span id="turnDot" style="display:inline-block;width:10px;height:10px;border-radius:999px;background:var(--accent)"></span>
-          <span id="turnText">To move: —</span>
-        </div>
+        <!-- Turn indicator removed from center, now shows on player sides -->
       </div>
 
       <!-- RIGHT: White -->
       <div class="flex items-center md:items-start justify-end gap-3">
         <div class="min-w-0 text-right">
-          <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
             <div id="p2Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
             <button id="changeWhiteBtn" class="miniIconBtn" title="Change player" data-tip="Change White Player" aria-label="Change White Player">
               <svg id="changeWhiteIcon" viewBox="0 0 24 24" aria-hidden="true">
@@ -458,6 +458,9 @@
             </button>
           </div>
           <div class="flex items-center gap-2 flex-wrap justify-end text-[13px]" style="color:var(--muted)">
+            <span id="p2Turn" class="chip">
+              <span id="p2TurnDot" style="display:none;width:10px;height:10px;border-radius:999px;background:var(--gold)"></span>
+            </span>
             <span id="p2Count" class="chip">○ 0</span>
             <span id="p2Delta" class="chip">±0</span>
             <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span> White</span>
@@ -499,8 +502,6 @@
                     <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                   </span>
                 </button>
-                <button id="undoBtn" class="btn" title="Undo" data-tip="Undo" disabled>⟲</button>
-                <button id="redoBtn" class="btn" title="Redo" data-tip="Redo" disabled>⟳</button>
                 <button id="copyBtn" class="btn" title="Copy compact history" data-tip="Copy compact history" aria-label="Copy compact history">⧉</button>
                 <button id="saveBtn" class="btn" title="Save game" data-tip="Save game" disabled>
                   <span class="icon" aria-hidden="true">
@@ -518,7 +519,21 @@
                   </span>
                 </button>
               </div>
-              <div class="text-sm font-semibold mb-2">Move History <span id="histBadge" class="historyBadge hidden">· 50 simulated positions</span></div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="text-sm font-semibold">Move History <span id="histBadge" class="historyBadge hidden">· 50 simulated positions</span></div>
+                <div class="flex items-center gap-2">
+                  <button id="undoBtn" class="btn text-xs" title="Undo" data-tip="Undo" disabled>⟲</button>
+                  <button id="redoBtn" class="btn text-xs" title="Redo" data-tip="Redo" disabled>⟳</button>
+                  <button id="aiPlayPauseBtn" class="btn text-xs" title="Pause AI" data-tip="Pause AI" style="background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.35)">
+                    <span class="icon" aria-hidden="true">
+                      <svg id="aiPlayPauseIcon" viewBox="0 0 24 24">
+                        <rect x="6" y="4" width="4" height="16"/>
+                        <rect x="14" y="4" width="4" height="16"/>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div class="card" style="max-height:300px;overflow:auto">
                 <div id="histHead" class="historyHead historyGrid text-[12px] hidden">
                   <div class="historyCell historyNo">#</div>
@@ -604,6 +619,7 @@
     let wsConnection = null;
     let gameOverInfo = null; // { winner, black_count, white_count }
     let pendingSelectedAI = null; // confirm selected AI after init
+    let aiAutoPaused = false; // AI auto-play paused
     
     // WebSocket configuration
     const WS_URL = 'ws://localhost:8000/ws';
@@ -780,8 +796,8 @@
             : (ply%2===0 ? 'B' : 'W');
           
           // Check if current side is Human (not AI)
-          const isBlackHuman = !data?.players?.black?.name || data.players.black.name === 'Human';
-          const isWhiteHuman = !data?.players?.white?.name || data.players.white.name === 'Human';
+          const isBlackHuman = !data?.players?.black?.name || data.players.black.name === 'Human' || data.players.black.name === 'Human Player';
+          const isWhiteHuman = !data?.players?.white?.name || data.players.white.name === 'Human' || data.players.white.name === 'Human Player';
           const isCurrentSideHuman = (currentTurn === 'B' && isBlackHuman) || (currentTurn === 'W' && isWhiteHuman);
           
           const canMove = (isCurrentSideHuman && wsConnection && wsConnection.readyState === WebSocket.OPEN);
@@ -901,6 +917,11 @@
             }
           }catch(e){ console.warn('Opening tree render error', e); }
           
+          // Check if AI should move (only if not paused)
+          if(!aiAutoPaused){
+            checkAndRequestAIMove();
+          }
+          
           break;
           
         case 'ai_move':
@@ -964,6 +985,8 @@
           
         case 'game_over':
           console.log('Game over!', message.data);
+          // Stop AI auto-play
+          aiAutoPaused = true;
           // Persist winner info for header rendering
           gameOverInfo = {
             winner: message.data.winner || 'Game Over',
@@ -972,14 +995,66 @@
           };
           // Update header immediately
           render();
+          // Update Play/Pause button to show it's stopped
+          const btn = qs('aiPlayPauseBtn');
+          const icon = document.getElementById('aiPlayPauseIcon');
+          if(btn && icon){
+            icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+            btn.title = 'Play AI';
+            btn.setAttribute('data-tip', 'Play AI');
+            btn.style.background = 'rgba(245,158,11,.12)';
+            btn.style.borderColor = 'rgba(245,158,11,.35)';
+          }
           // Optional alert (kept for visibility)
-          alert(`🎮 GAME OVER\n\nWinner: ${gameOverInfo.winner}\n\nBlack: ${gameOverInfo.black_count} pieces\nWhite: ${gameOverInfo.white_count} pieces`);
+          setTimeout(() => {
+            alert(`🎮 GAME OVER\n\nWinner: ${gameOverInfo.winner}\n\nBlack: ${gameOverInfo.black_count} pieces\nWhite: ${gameOverInfo.white_count} pieces`);
+          }, 100);
           break;
           
         case 'error':
           console.error('Server error:', message.message);
           alert(`Error: ${message.message || 'Invalid move. Please try again.'}`);
           break;
+      }
+    }
+    
+    function toggleAIPlayPause(){
+      aiAutoPaused = !aiAutoPaused;
+      const btn = qs('aiPlayPauseBtn');
+      const icon = document.getElementById('aiPlayPauseIcon');
+      
+      if(aiAutoPaused){
+        // Paused - show Play icon
+        icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+        btn.title = 'Play AI';
+        btn.setAttribute('data-tip', 'Play AI');
+        btn.style.background = 'rgba(245,158,11,.12)';
+        btn.style.borderColor = 'rgba(245,158,11,.35)';
+        showToast('AI Auto-Play Paused');
+      } else {
+        // Playing - show Pause icon
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        btn.title = 'Pause AI';
+        btn.setAttribute('data-tip', 'Pause AI');
+        btn.style.background = 'rgba(16,185,129,.12)';
+        btn.style.borderColor = 'rgba(16,185,129,.35)';
+        showToast('AI Auto-Play Resumed');
+        
+        // If an AI should move now, trigger it
+        if(!aiAutoPaused && data){
+          const currentTurn = (data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0) 
+            ? data.status.turn_by_ply[0] : 'B';
+          const blackName = data.players?.black?.name;
+          const whiteName = data.players?.white?.name;
+          const isBlackAI = blackName && blackName !== 'Human' && blackName !== 'Human Player';
+          const isWhiteAI = whiteName && whiteName !== 'Human' && whiteName !== 'Human Player';
+          const isCurrentSideAI = (currentTurn === 'B' && isBlackAI) || (currentTurn === 'W' && isWhiteAI);
+          
+          if(isCurrentSideAI && wsConnection && wsConnection.readyState === WebSocket.OPEN){
+            console.log('Resuming AI - requesting move for side:', currentTurn);
+            wsSend({ type: 'ai_move_request', side: currentTurn });
+          }
+        }
       }
     }
     
@@ -993,8 +1068,8 @@
       const currentTurn = (data && data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0) 
         ? data.status.turn_by_ply[0] : 'B';
       
-      const isBlackHuman = !data?.players?.black?.name || data.players.black.name === 'Human';
-      const isWhiteHuman = !data?.players?.white?.name || data.players.white.name === 'Human';
+      const isBlackHuman = !data?.players?.black?.name || data.players.black.name === 'Human' || data.players.black.name === 'Human Player';
+      const isWhiteHuman = !data?.players?.white?.name || data.players.white.name === 'Human' || data.players.white.name === 'Human Player';
       const isCurrentSideHuman = (currentTurn === 'B' && isBlackHuman) || (currentTurn === 'W' && isWhiteHuman);
       
       if(!isCurrentSideHuman){
@@ -1004,6 +1079,36 @@
       
       console.log('Submitting human move:', move, 'for side:', currentTurn);
       wsSend({ type: 'human_move', move: move });
+    }
+    
+    function checkAndRequestAIMove(){
+      if(!data || !wsConnection || wsConnection.readyState !== WebSocket.OPEN){
+        return;
+      }
+      
+      // Don't request if paused
+      if(aiAutoPaused){
+        console.log('AI auto-play paused - not requesting move');
+        return;
+      }
+      
+      // Get current turn
+      const currentTurn = (data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0) 
+        ? data.status.turn_by_ply[0] : 'B';
+      
+      // Check if current side is AI
+      const blackName = data.players?.black?.name;
+      const whiteName = data.players?.white?.name;
+      const isBlackAI = blackName && blackName !== 'Human' && blackName !== 'Human Player';
+      const isWhiteAI = whiteName && whiteName !== 'Human' && whiteName !== 'Human Player';
+      const isCurrentSideAI = (currentTurn === 'B' && isBlackAI) || (currentTurn === 'W' && isWhiteAI);
+      
+      if(isCurrentSideAI){
+        console.log('Current turn is AI:', currentTurn, '- requesting AI move');
+        setTimeout(() => {
+          wsSend({ type: 'ai_move_request', side: currentTurn });
+        }, 100);
+      }
     }
     
     // Initialize on page load
@@ -1201,8 +1306,10 @@
       const loadBtn = qs('loadBtn');
       const newBtn  = qs('newGameBtn');
       const fsBtn   = qs('fsBtn');
+      const aiPlayPauseBtn = qs('aiPlayPauseBtn');
       // Don't access data here - it might not be loaded yet
 
+      if (aiPlayPauseBtn) aiPlayPauseBtn.addEventListener('click', toggleAIPlayPause);
       if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'undo' }); } });
       if (redoBtn) redoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'redo' }); } });
       if (copyBtn) copyBtn.addEventListener('click', async ()=>{ 
@@ -1285,7 +1392,7 @@
       let currentSide = 'W';
 
       const AVAILABLE_PLAYERS = [
-        { name:'Human', desc:'Giocatore umano locale', tag:'HUMAN' },
+        { name:'Human Player', desc:'Giocatore umano locale', tag:'HUMAN' },
         { name:'Apocalyptron', desc:'Ultimate AI - All optimizations', tag:'AI', meta:'Depth 9 (default)' },
         { name:'DIVZERO.EXE', desc:'Ultimate Singularity - The Perfect Player', tag:'AI', meta:'Adaptive depth · 8 cores' },
         { name:'LIGHTNING STRIKE', desc:'Blitz Master - Speed Above All', tag:'AI', meta:'<100ms · Depth 4' },
@@ -1295,7 +1402,7 @@
         { name:'THE ORACLE', desc:'Endgame Prophet', tag:'AI', meta:'Endgame precision' },
         { name:'BLITZ DEMON', desc:'Speed Incarnate', tag:'AI', meta:'Ultra-fast responses' },
         { name:'THE EXECUTIONER', desc:'Ruthless Destroyer', tag:'AI', meta:'Decisive tactics' },
-        { name:'GLITCH LORD', desc:'Chaotic Anomaly', tag:'AI', meta:'Unorthodox play' },
+        { name:'GLITCH_LORD', desc:'Chaotic Anomaly', tag:'AI', meta:'Unorthodox play' },
         { name:'ZEN MASTER', desc:'Enlightened One', tag:'AI', meta:'Balanced harmony' },
       ];
 
@@ -1387,19 +1494,31 @@
         if(typeof lastTurn==='undefined' || lastTurn===null) lastTurn = turn;
         if(turn !== lastTurn){ partial[turn]=0; lastTurn = turn; }
       }
+      // Update turn indicators on player sides (show/hide dots and chip borders)
+      const p1TurnDot = qs('p1TurnDot');
+      const p2TurnDot = qs('p2TurnDot');
+      const p1TurnChip = qs('p1Turn');
+      const p2TurnChip = qs('p2Turn');
+      
       if(gameOverInfo){
-        // Show winner in header
-        const winner = String(gameOverInfo.winner || '').toUpperCase();
-        // Winner label: use player name if possible
-        let winnerLabel = gameOverInfo.winner || 'Game Over';
-        if(gameOverInfo.winner === 'Black') winnerLabel = data.players?.black?.name || 'Black';
-        if(gameOverInfo.winner === 'White') winnerLabel = data.players?.white?.name || 'White';
-        const score = `${gameOverInfo.black_count} - ${gameOverInfo.white_count}`;
-        qs('turnText').textContent = `Winner: ${winnerLabel} · ${score}`;
-        qs('turnDot').style.background = 'var(--muted)';
+        // Hide both turn indicators on game over
+        if(p1TurnDot) p1TurnDot.style.display = 'none';
+        if(p2TurnDot) p2TurnDot.style.display = 'none';
+        if(p1TurnChip) p1TurnChip.style.opacity = '0';
+        if(p2TurnChip) p2TurnChip.style.opacity = '0';
       } else {
-        qs('turnText').textContent = `To move: ${turn==='B'?'Black':'White'}`;
-        qs('turnDot').style.background = (turn==='B') ? 'var(--accent)' : 'var(--accent2)';
+        // Show turn dot and chip only on the active player's side
+        if(turn === 'B'){
+          if(p1TurnDot) p1TurnDot.style.display = 'inline-block';
+          if(p2TurnDot) p2TurnDot.style.display = 'none';
+          if(p1TurnChip) p1TurnChip.style.opacity = '1';
+          if(p2TurnChip) p2TurnChip.style.opacity = '0';
+        } else {
+          if(p1TurnDot) p1TurnDot.style.display = 'none';
+          if(p2TurnDot) p2TurnDot.style.display = 'inline-block';
+          if(p1TurnChip) p1TurnChip.style.opacity = '0';
+          if(p2TurnChip) p2TurnChip.style.opacity = '1';
+        }
       }
       // removed move number display from header
 
