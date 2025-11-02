@@ -1446,15 +1446,39 @@
       if(ply > newMaxPly) ply = newMaxPly;
       render();
       
-      // Update notes if available
-      // Only update title and notes if there's actual AI analysis data
-      if(data.notes){
-        const notesTitle = qs('deepeningSummaryTitle');
-        if(notesTitle && data.notes.title) {
-          // Use title from notes (already set by updateAIAnalysis)
-          notesTitle.textContent = data.notes.title;
+      // Update notes - ONLY show AI statistics, NEVER Human
+      const notesTitle = qs('deepeningSummaryTitle');
+      const notesSummary = qs('deepeningSummary');
+      
+      if(notesTitle) {
+        // Determine which player is AI
+        const blackName = data.players?.black?.name;
+        const whiteName = data.players?.white?.name;
+        const isBlackAI = blackName && blackName !== 'Human' && blackName !== 'Human Player';
+        const isWhiteAI = whiteName && whiteName !== 'Human' && whiteName !== 'Human Player';
+        
+        // Set title to AI player name
+        if (isBlackAI && !isWhiteAI) {
+          notesTitle.textContent = blackName;
+        } else if (isWhiteAI && !isBlackAI) {
+          notesTitle.textContent = whiteName;
+        } else if (isBlackAI && isWhiteAI) {
+          // Both AI - use the one from notes, or default
+          notesTitle.textContent = (data.notes?.title && data.notes.title !== 'Human' && data.notes.title !== 'Human Player') 
+            ? data.notes.title 
+            : (whiteName || 'AI');
+        } else {
+          // No AI players
+          notesTitle.textContent = 'AI Statistics';
         }
+      }
+      
+      // Render notes ONLY if they belong to an AI player (not Human)
+      if(data.notes && data.notes.title && data.notes.title !== 'Human' && data.notes.title !== 'Human Player'){
         renderNotes(data.notes);
+      } else if(notesSummary && (!data.notes || !data.notes.title || data.notes.title === 'Human' || data.notes.title === 'Human Player')){
+        // Clear notes if they're for Human or no data
+        notesSummary.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;padding:12px">Waiting for AI move...</div>';
       }
       
       // Rebuild history
@@ -2795,7 +2819,10 @@
       if(m < 60) return `${m}m ${String(remS).padStart(2,'0')}s`;
       const h = Math.floor(m / 60);
       const remM = m % 60;
-      return `${h}h ${String(remM).padStart(2,'0')}m`;
+      if(h < 24) return `${h}h ${String(remM).padStart(2,'0')}m`;
+      const d = Math.floor(h / 24);
+      const remH = h % 24;
+      return `${d}d ${String(remH).padStart(2,'0')}h`;
     }
 
     function fmtMs(val){
@@ -2828,38 +2855,52 @@
         }
         
         // Determine which AI just moved (from aiData.title or infer from last move)
-        const aiName = aiData.title || data.players?.white?.name || 'AI';
+        // NEVER use "Human" - filter it out
+        let aiName = aiData.title || 'AI';
+        if(aiName === 'Human' || aiName === 'Human Player'){
+          // If aiData.title is Human, determine AI from players
+          const blackName = data.players?.black?.name;
+          const whiteName = data.players?.white?.name;
+          const isBlackAI = blackName && blackName !== 'Human' && blackName !== 'Human Player';
+          const isWhiteAI = whiteName && whiteName !== 'Human' && whiteName !== 'Human Player';
+          
+          if(isBlackAI) aiName = blackName;
+          else if(isWhiteAI) aiName = whiteName;
+          else aiName = 'AI';
+        }
       
       // Create dynamic AI analysis notes with all available data
       const aiAnalysis = {
         // Always update title to show AI name
         title: aiName,
         
-        // Basic analysis data
-        selected_move: aiData.move || aiData.selected_move || 'Calculating...',
-        evaluation: aiData.evaluation !== undefined ? String(aiData.evaluation) : 'Analyzing...',
-        depth: aiData.depth !== undefined ? `${aiData.depth} plies` : 'Calculating...',
+        // Basic analysis data - use available data or defaults
+        selected_move: aiData.move || aiData.selected_move || aiData.best_move || 'N/A',
+        evaluation: aiData.evaluation !== undefined ? String(aiData.evaluation) : '0',
+        depth: aiData.depth !== undefined ? `${aiData.depth} plies` : 
+               aiData.depth_reached !== undefined ? `${aiData.depth_reached} plies` : '0 plies',
         
         // Search statistics from engine
-        nodes_searched: aiData.nodes_searched !== undefined ? aiData.nodes_searched.toLocaleString() : 'Calculating...',
-        nodes_pruned: aiData.nodes_pruned !== undefined ? aiData.nodes_pruned.toLocaleString() : 'Calculating...',
-        pruning_ratio: aiData.pruning_ratio !== undefined ? `${(aiData.pruning_ratio * 100).toFixed(1)}%` : 'Calculating...',
-        avg_search_time: aiData.avg_search_time || 'Calculating...',
-        total_searches: aiData.total_searches !== undefined ? aiData.total_searches : 'Calculating...',
+        nodes_searched: (aiData.nodes_searched ?? aiData.nodes ?? 0).toLocaleString(),
+        nodes_pruned: (aiData.nodes_pruned ?? aiData.pruning ?? 0).toLocaleString(),
+        pruning_ratio: aiData.pruning_ratio !== undefined ? `${(aiData.pruning_ratio * 100).toFixed(1)}%` : 
+                       aiData.pruning_efficiency !== undefined ? `${aiData.pruning_efficiency.toFixed(1)}%` : '0%',
+        avg_search_time: aiData.avg_search_time || aiData.total_time_ms ? `${aiData.total_time_ms}ms` : '0ms',
+        total_searches: aiData.total_searches ?? 0,
         
-        // Advanced statistics
-        transposition_hits: aiData.transposition_hits !== undefined ? aiData.transposition_hits.toLocaleString() : 'N/A',
-        transposition_size: aiData.transposition_size !== undefined ? aiData.transposition_size.toLocaleString() : 'N/A',
-        killer_moves: aiData.killer_moves !== undefined ? aiData.killer_moves.toLocaleString() : 'N/A',
-        history_entries: aiData.history_entries !== undefined ? aiData.history_entries.toLocaleString() : 'N/A',
+        // Advanced statistics - use 0 instead of N/A for consistency
+        transposition_hits: (aiData.transposition_hits ?? aiData.tt_hits ?? 0).toLocaleString(),
+        transposition_size: (aiData.transposition_size ?? aiData.tt_size ?? 0).toLocaleString(),
+        killer_moves: (aiData.killer_moves ?? aiData.pv_move_hits ?? 0).toLocaleString(),
+        history_entries: (aiData.history_entries ?? 0).toLocaleString(),
         
-        // Pruning statistics
-        null_move_cutoffs: aiData.null_move_cutoffs !== undefined ? aiData.null_move_cutoffs.toLocaleString() : 'N/A',
-        null_move_searches: aiData.null_move_searches !== undefined ? aiData.null_move_searches.toLocaleString() : 'N/A',
-        futility_pruned: aiData.futility_pruned !== undefined ? aiData.futility_pruned.toLocaleString() : 'N/A',
-        lmr_reductions: aiData.lmr_reductions !== undefined ? aiData.lmr_reductions.toLocaleString() : 'N/A',
-        lmr_researches: aiData.lmr_researches !== undefined ? aiData.lmr_researches.toLocaleString() : 'N/A',
-        multi_cut_pruned: aiData.multi_cut_pruned !== undefined ? aiData.multi_cut_pruned.toLocaleString() : 'N/A'
+        // Pruning statistics - use 0 instead of N/A
+        null_move_cutoffs: (aiData.null_move_cutoffs ?? aiData.null_move_cuts ?? 0).toLocaleString(),
+        null_move_searches: (aiData.null_move_searches ?? 0).toLocaleString(),
+        futility_pruned: (aiData.futility_pruned ?? aiData.futility_cuts ?? 0).toLocaleString(),
+        lmr_reductions: (aiData.lmr_reductions ?? 0).toLocaleString(),
+        lmr_researches: (aiData.lmr_researches ?? 0).toLocaleString(),
+        multi_cut_pruned: (aiData.multi_cut_pruned ?? aiData.multi_cut_prunes ?? 0).toLocaleString()
       };
       
       // Update title
