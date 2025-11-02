@@ -202,12 +202,16 @@
     .playersGrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px}
     .playerCard{border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); border-radius:12px; padding:12px; cursor:pointer; transition:all .2s ease}
     .playerCard:hover{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18)}
+    .playerCard.ai{background:linear-gradient(135deg, rgba(59,130,246,.08), rgba(139,92,246,.08)); border-color:rgba(96,165,250,.25)}
+    .playerCard.ai:hover{background:linear-gradient(135deg, rgba(59,130,246,.12), rgba(139,92,246,.12)); border-color:rgba(96,165,250,.35)}
     .playerCard.human{background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.45); box-shadow:0 0 0 1px rgba(16,185,129,.25) inset}
     .playerCard.human .playerName{color:#e8f2eb}
+    .playerCard.ai .playerName{color:#bfdbfe}
     .playerHead{display:flex; align-items:center; justify-content:space-between; gap:10px}
     .playerName{font-weight:800; color:var(--txt); letter-spacing:.02em}
     .playerTag{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--muted); font-size:11px; padding:2px 6px; border-radius:999px}
     .playerTag.human{color:#34d399; background:rgba(16,185,129,.16); border-color:rgba(16,185,129,.45)}
+    .playerTag.ai{color:#93c5fd; background:rgba(59,130,246,.16); border-color:rgba(59,130,246,.45)}
     .playerDesc{margin-top:8px; font-size:12px; color:var(--muted)}
     .playerMeta{margin-top:6px; font-size:11px; color:#a7f3d0}
 
@@ -419,7 +423,7 @@
           <div class="flex items-center justify-between gap-2">
             <div id="p1Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
             <button id="changeBlackBtn" class="miniIconBtn" title="Change player" data-tip="Change Black Player" aria-label="Change Black Player">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
+              <svg id="changeBlackIcon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
                 <path d="M3 21a9 9 0 0 1 18 0"/>
               </svg>
@@ -447,7 +451,7 @@
           <div class="flex items-center justify-between gap-2">
             <div id="p2Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
             <button id="changeWhiteBtn" class="miniIconBtn" title="Change player" data-tip="Change White Player" aria-label="Change White Player">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
+              <svg id="changeWhiteIcon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
                 <path d="M3 21a9 9 0 0 1 18 0"/>
               </svg>
@@ -598,7 +602,6 @@
     let data = null;
     let ply = 0;
     let wsConnection = null;
-    let isHumanTurn = false;
     let gameOverInfo = null; // { winner, black_count, white_count }
     let pendingSelectedAI = null; // confirm selected AI after init
     
@@ -717,6 +720,9 @@
       qs('p1Avatar').textContent = data.players?.black?.avatar || initials(data.players?.black?.name);
       qs('p2Avatar').textContent = data.players?.white?.avatar || initials(data.players?.white?.name);
       
+      // Update player icons based on type
+      updatePlayerIcons();
+      
       // Update maxPly for calculations
       const maxPly = (data.positions?.length || 1) - 1;
 
@@ -766,20 +772,25 @@
         cell.className = 'cell';
         cell.dataset.coord = coords[i]; // Store coordinate
         cell.onclick = () => {
-          console.log('Cell clicked:', cell.dataset.coord, 'isHumanTurn:', isHumanTurn, 'wsReady:', wsConnection?.readyState === WebSocket.OPEN, 'data:', !!data);
+          console.log('Cell clicked:', cell.dataset.coord, 'wsReady:', wsConnection?.readyState === WebSocket.OPEN, 'data:', !!data);
           
-          // Always check turn from data for the current ply
+          // Check current turn from data
           let currentTurn = (data && data.status && Array.isArray(data.status.turn_by_ply))
             ? (data.status.turn_by_ply[ply] || (ply%2===0 ? 'B' : 'W'))
             : (ply%2===0 ? 'B' : 'W');
           
-          const canMove = (currentTurn === 'B' && wsConnection && wsConnection.readyState === WebSocket.OPEN);
-          console.log('Current turn from data:', currentTurn, 'canMove:', canMove);
+          // Check if current side is Human (not AI)
+          const isBlackHuman = !data?.players?.black?.name || data.players.black.name === 'Human';
+          const isWhiteHuman = !data?.players?.white?.name || data.players.white.name === 'Human';
+          const isCurrentSideHuman = (currentTurn === 'B' && isBlackHuman) || (currentTurn === 'W' && isWhiteHuman);
+          
+          const canMove = (isCurrentSideHuman && wsConnection && wsConnection.readyState === WebSocket.OPEN);
+          console.log('Current turn:', currentTurn, 'isCurrentSideHuman:', isCurrentSideHuman, 'canMove:', canMove);
           
           if(canMove){
             submitMove(cell.dataset.coord);
           } else {
-            console.log('Move rejected - not your turn or WebSocket closed');
+            console.log('Move rejected - not human player turn or WebSocket closed');
           }
         };
         const inner = document.createElement('div'); 
@@ -890,20 +901,13 @@
             }
           }catch(e){ console.warn('Opening tree render error', e); }
           
-          // Update turn indicator - Human plays Black (B), AI plays White (W)
-          const idx = Math.min(ply, (data.positions?.length || 1) - 1);
-          const turn = (data.status?.turn_by_ply && data.status.turn_by_ply[idx]) || (idx%2===0 ? 'B' : 'W');
-          const newIsHumanTurn = (turn === 'B');
-          console.log('board_update received. Turn:', turn, 'Current isHumanTurn:', isHumanTurn, 'New isHumanTurn:', newIsHumanTurn);
-          if(isHumanTurn !== newIsHumanTurn){
-            isHumanTurn = newIsHumanTurn;
-            console.log('Turn updated from board_update:', turn, 'isHumanTurn:', isHumanTurn, 'moves:', data.moves?.length || 0);
-          }
           break;
           
         case 'ai_move':
-          console.log(`${data.players.white.name} played:`, message.data.move);
-          removeThinkingIconFromPlayerName(); // Remove thinking icon from player name
+          const aiMoveSide = data?.status?.turn_by_ply?.[0] || 'W';
+          const aiPlayerName = aiMoveSide === 'B' ? data.players?.black?.name : data.players?.white?.name;
+          console.log(`${aiPlayerName} played:`, message.data.move);
+          removeThinkingIconFromPlayerName(aiMoveSide); // Remove thinking icon from player name
           // Show AI move animation
           if(message.data.move){
             const moveCoord = message.data.move;
@@ -914,29 +918,35 @@
               setTimeout(() => cell.classList.remove('ai-move-highlight'), 2000);
             }
           }
-          // Update notes with AI analysis if available
+          // Update notes with AI analysis if available (include AI name from side)
           if(message.data.evaluation !== undefined || message.data.depth || message.data.move){
-            updateAIAnalysis(message.data);
+            const aiMovedSide = aiMoveSide; // Already calculated above
+            const aiMovedName = aiPlayerName; // Already calculated above
+            updateAIAnalysis({...message.data, title: aiMovedName, side: aiMovedSide});
           }
-          // Note: isHumanTurn will be set by the following board_update message
           console.log('AI move completed, waiting for board_update');
           break;
           
         case 'ai_thinking':
           console.log(message.message);
-          // Add thinking icon to AI player name
-          addThinkingIconToPlayerName();
-          if(pendingSelectedAI && data && data.players && data.players.white && data.players.white.name === pendingSelectedAI){
-            showToast(`AI set to ${pendingSelectedAI}`);
-            pendingSelectedAI = null;
+          // Add thinking icon to AI player name (determine side from current turn)
+          const thinkingSide = data?.status?.turn_by_ply?.[0] || 'W';
+          addThinkingIconToPlayerName(thinkingSide);
+          if(pendingSelectedAI && data && data.players){
+            const currentAIName = thinkingSide === 'B' ? data.players.black?.name : data.players.white?.name;
+            if(currentAIName === pendingSelectedAI){
+              showToast(`AI set to ${pendingSelectedAI}`);
+              pendingSelectedAI = null;
+            }
           }
           // Update notes with "thinking" state if we have AI data
+          const thinkingAIName = thinkingSide === 'B' ? data.players?.black?.name : data.players?.white?.name;
           if(message.data){
-            updateAIAnalysis(message.data);
+            updateAIAnalysis({...message.data, title: thinkingAIName});
           } else {
             // If no data yet, show thinking status
             const aiAnalysis = {
-              title: data.players?.white?.name || 'DIVZERO.EXE',
+              title: thinkingAIName || 'AI',
               status: 'Thinking...',
               selected_move: 'Analyzing...',
               evaluation: 'Calculating...',
@@ -954,8 +964,6 @@
           
         case 'game_over':
           console.log('Game over!', message.data);
-          // Disable human moves
-          isHumanTurn = false;
           // Persist winner info for header rendering
           gameOverInfo = {
             winner: message.data.winner || 'Game Over',
@@ -970,9 +978,6 @@
           
         case 'error':
           console.error('Server error:', message.message);
-          // On error (invalid move), reset isHumanTurn to true to allow retry
-          isHumanTurn = true;
-          console.log('Error occurred, resetting isHumanTurn to true');
           alert(`Error: ${message.message || 'Invalid move. Please try again.'}`);
           break;
       }
@@ -984,20 +989,21 @@
         return;
       }
       
-      // Double-check turn from data
+      // Double-check current turn and human status
       const currentTurn = (data && data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0) 
         ? data.status.turn_by_ply[0] : 'B';
       
-      if(currentTurn !== 'B'){
-        console.log('Cannot submit move: not human turn. Current turn:', currentTurn);
+      const isBlackHuman = !data?.players?.black?.name || data.players.black.name === 'Human';
+      const isWhiteHuman = !data?.players?.white?.name || data.players.white.name === 'Human';
+      const isCurrentSideHuman = (currentTurn === 'B' && isBlackHuman) || (currentTurn === 'W' && isWhiteHuman);
+      
+      if(!isCurrentSideHuman){
+        console.log('Cannot submit move: current side is AI. Current turn:', currentTurn);
         return;
       }
       
-      console.log('Submitting move:', move);
-      isHumanTurn = false; // Prevent double moves temporarily
+      console.log('Submitting human move:', move, 'for side:', currentTurn);
       wsSend({ type: 'human_move', move: move });
-      console.log('Move submitted, setting isHumanTurn to false temporarily');
-      // isHumanTurn will be reset by board_update from server
     }
     
     // Initialize on page load
@@ -1298,33 +1304,14 @@
         list.innerHTML = '';
         const frag = document.createDocumentFragment();
         AVAILABLE_PLAYERS.forEach(p=>{
-          // Restrict: Black stays Human for now (UI-only)
-          if(side==='B' && p.tag==='AI'){
-            // Still show, but disabled look
-            const card = document.createElement('div');
-            card.className = 'playerCard';
-            card.style.opacity = '.5';
-            card.style.cursor = 'not-allowed';
-            card.innerHTML = `
-              <div class="playerHead">
-                <div class="playerName">${p.name}</div>
-                <div class="playerTag">${p.tag}</div>
-              </div>
-              <div class="playerDesc">${p.desc}</div>
-              ${p.meta ? `<div class="playerMeta">${p.meta}</div>` : ''}
-            `;
-            card.title = 'Solo Human disponibile per il Nero in questa versione';
-            frag.appendChild(card);
-            return;
-          }
-
           const card = document.createElement('div');
           card.className = 'playerCard';
           if(p.tag === 'HUMAN') card.classList.add('human');
+          if(p.tag === 'AI') card.classList.add('ai');
           card.innerHTML = `
             <div class="playerHead">
               <div class="playerName">${p.name}</div>
-              <div class="playerTag${p.tag==='HUMAN' ? ' human' : ''}">${p.tag}</div>
+              <div class="playerTag${p.tag==='HUMAN' ? ' human' : (p.tag==='AI' ? ' ai' : '')}">${p.tag}</div>
             </div>
             <div class="playerDesc">${p.desc}</div>
             ${p.meta ? `<div class="playerMeta">${p.meta}</div>` : ''}
@@ -1357,12 +1344,12 @@
           }
           render();
 
-          // For White AI: re-init backend session with selected AI
-          if(side==='W' && player.tag==='AI'){
-            showToast(`Loading ${player.name}...`);
-            pendingSelectedAI = player.name;
-            wsSend({ type:'init', session_id: 'default', ai_player: player.name });
-          }
+          // Send players config to backend (supports Human/AI for both sides)
+          const whiteChoice = (side==='W' ? player.name : (data.players.white?.name || 'Human'));
+          const blackChoice = (side==='B' ? player.name : (data.players.black?.name || 'Human'));
+          const payload = { type:'set_players', white: whiteChoice, black: blackChoice };
+          if(side==='W' && player.tag==='AI'){ pendingSelectedAI = player.name; showToast(`Loading ${player.name}...`); }
+          wsSend(payload);
         }catch(e){ console.error('applySelection error', e); }
         finally{ close(); }
       }
@@ -1598,20 +1585,46 @@
       if(!isFinite(n)) return '—';
       return 'D' + n;
     }
+    function formatDurationMs(ms){
+      const n = Number(ms);
+      if(!isFinite(n) || n < 0) return '—';
+      if(n < 1000) return `${Math.round(n)}ms`;
+      const s = n / 1000;
+      if(s < 60) return `${s.toFixed(s < 10 ? 1 : 0).replace(/\.0$/,'')}s`;
+      const m = Math.floor(s / 60);
+      const remS = Math.floor(s % 60);
+      if(m < 60) return `${m}m ${String(remS).padStart(2,'0')}s`;
+      const h = Math.floor(m / 60);
+      const remM = m % 60;
+      return `${h}h ${String(remM).padStart(2,'0')}m`;
+    }
+
     function fmtMs(val){
       if(val === null || val === undefined) return '—';
-      if(typeof val === 'string' && /(ms|s)$/.test(val)) return val;
-      const n = Number(val);
-      if(!isFinite(n)) return '—';
-      return `${n.toFixed(1)}ms`;
+      // Accept strings like "123ms" or "1.23s"
+      if(typeof val === 'string'){
+        const s = val.trim();
+        if(/ms$/i.test(s)){
+          const n = parseFloat(s.replace(/ms/i,''));
+          return formatDurationMs(isFinite(n) ? n : NaN);
+        }
+        if(/s$/i.test(s)){
+          const n = parseFloat(s.replace(/s/i,''));
+          return formatDurationMs(isFinite(n) ? n*1000 : NaN);
+        }
+        const n = parseFloat(s);
+        return formatDurationMs(isFinite(n) ? n : NaN);
+      }
+      // Numbers are treated as milliseconds
+      return formatDurationMs(val);
     }
 
     // === AI VISUAL FEEDBACK ===
     function updateAIAnalysis(aiData){
       if(!data) return;
       
-      // Get current AI name
-      const aiName = data.players?.white?.name || 'DIVZERO.EXE';
+      // Determine which AI just moved (from aiData.title or infer from last move)
+      const aiName = aiData.title || data.players?.white?.name || 'AI';
       
       // Create dynamic AI analysis notes with all available data
       const aiAnalysis = {
@@ -1660,26 +1673,57 @@
     
 
     
-    function addThinkingIconToPlayerName(){
-      // Add rotating icon to p2Name (AI player - white)
-      const p2Name = qs('p2Name');
-      if(p2Name && !p2Name.querySelector('.thinking-icon')){
+    function addThinkingIconToPlayerName(side = 'W'){
+      // Add rotating icon to player name based on side
+      const playerName = (side === 'B') ? qs('p1Name') : qs('p2Name');
+      if(playerName && !playerName.querySelector('.thinking-icon')){
         const icon = document.createElement('span');
         icon.className = 'thinking-icon';
         icon.innerHTML = '↻';
         icon.style.cssText = 'display:inline-block;margin-right:8px;animation:spin 1s linear infinite;color:var(--accent2);font-size:1.2em;vertical-align:middle;';
-        p2Name.insertBefore(icon, p2Name.firstChild);
+        playerName.insertBefore(icon, playerName.firstChild);
       }
     }
     
-    function removeThinkingIconFromPlayerName(){
-      // Remove rotating icon from p2Name
-      const p2Name = qs('p2Name');
-      if(p2Name){
-        const icon = p2Name.querySelector('.thinking-icon');
+    function removeThinkingIconFromPlayerName(side = 'W'){
+      // Remove rotating icon from player name based on side
+      const playerName = (side === 'B') ? qs('p1Name') : qs('p2Name');
+      if(playerName){
+        const icon = playerName.querySelector('.thinking-icon');
         if(icon){
           icon.remove();
         }
+      }
+    }
+    
+    function updatePlayerIcons(){
+      // Update change-player icons based on current player types
+      const blackName = data?.players?.black?.name;
+      const whiteName = data?.players?.white?.name;
+      const isBlackAI = blackName && blackName !== 'Human';
+      const isWhiteAI = whiteName && whiteName !== 'Human';
+      
+      const blackIcon = document.getElementById('changeBlackIcon');
+      const whiteIcon = document.getElementById('changeWhiteIcon');
+      
+      // AI icon (computer/monitor)
+      const aiIconPaths = `
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <path d="M8 21h8"/>
+        <path d="M12 17v4"/>
+      `;
+      
+      // Human icon (person)
+      const humanIconPaths = `
+        <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
+        <path d="M3 21a9 9 0 0 1 18 0"/>
+      `;
+      
+      if(blackIcon){
+        blackIcon.innerHTML = isBlackAI ? aiIconPaths : humanIconPaths;
+      }
+      if(whiteIcon){
+        whiteIcon.innerHTML = isWhiteAI ? aiIconPaths : humanIconPaths;
       }
     }
     
@@ -1752,7 +1796,7 @@
       tiles += `<div class="statBadge"><span class="statLabel">Nodes</span><span class="statValue">${fmtK(nodes)}</span></div>`;
       tiles += `<div class="statBadge"><span class="statLabel">N/s</span><span class="statValue">${typeof nps==='number' ? fmtK(nps) : '—'}</span></div>`;
       tiles += `<div class=\"statBadge\"><span class=\"statLabel\">Prune</span><span class=\"statValue\">${fmtPct(pruneR)}</span></div>`;
-      tiles += `<div class=\"statBadge\"><span class=\"statLabel\">Last</span><span class=\"statValue\">${lastMsNum !== null ? (lastMsNum + 'ms') : fmtMs(avgMs)}</span></div>`;
+      tiles += `<div class=\"statBadge\"><span class=\"statLabel\">Last</span><span class=\"statValue\">${lastMsNum !== null ? formatDurationMs(lastMsNum) : fmtMs(avgMs)}</span></div>`;
       tiles += `<div class="statBadge"><span class="statLabel">Searches</span><span class="statValue">${fmtK(searches)}</span></div>`;
 
       box.innerHTML = `<div class="statGrid">${tiles}</div>`;

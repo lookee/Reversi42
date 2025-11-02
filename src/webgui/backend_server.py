@@ -14,6 +14,7 @@ import traceback
 import signal
 import atexit
 from datetime import datetime
+from typing import Dict, Optional, Tuple
 
 # Add src to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -181,16 +182,32 @@ class GameSession:
         
         return count
     
+    def _get_opening_book(self):
+        """Return opening_book from active AI (prefer current turn), if any."""
+        try:
+            ai = None
+            if self.game.turn == 'W' and self.ai_white and hasattr(self.ai_white, 'opening_book'):
+                ai = self.ai_white
+            elif self.game.turn == 'B' and self.ai_black and hasattr(self.ai_black, 'opening_book'):
+                ai = self.ai_black
+            elif self.ai_white and hasattr(self.ai_white, 'opening_book'):
+                ai = self.ai_white
+            elif self.ai_black and hasattr(self.ai_black, 'opening_book'):
+                ai = self.ai_black
+            return ai.opening_book if ai else None
+        except Exception:
+            return None
+
     def _build_opening_tree(self, max_depth: int = 3, max_children: int = 6) -> Optional[dict]:
         """Build a compact opening tree from current position using the AI opening book.
 
         The structure returned is tailored for UI rendering and limited in depth/width.
         """
         try:
-            if not hasattr(self.ai_player, 'opening_book') or not self.ai_player.opening_book:
+            book = self._get_opening_book()
+            if not book:
                 return None
 
-            book = self.ai_player.opening_book
             history = self.game.history or ""
 
             # Build PATH-ONLY opening tree: show only the moves actually played, no alternative variants
@@ -334,13 +351,14 @@ class GameSession:
         
         # Get opening book moves with variant count (filtered to VALID moves)
         opening_moves = []
-        if hasattr(self.ai_player, 'opening_book') and self.ai_player.opening_book:
+        book = self._get_opening_book()
+        if book:
             try:
-                book_moves = self.ai_player.opening_book.get_book_moves(history)
+                book_moves = book.get_book_moves(history)
                 if book_moves:
                     # Navigate to current position in the book
-                    history_moves = self.ai_player.opening_book._parse_move_sequence(history)
-                    node = self.ai_player.opening_book.root
+                    history_moves = book._parse_move_sequence(history)
+                    node = book.root
                     for move_str in history_moves:
                         normalized = move_str.upper()
                         if normalized not in node.children:
@@ -375,10 +393,7 @@ class GameSession:
                             extended_sequence = history + move_with_turn
                             
                             # Count how many opening names contain this extended sequence
-                            variant_count = self._count_opening_sequences(
-                                self.ai_player.opening_book, 
-                                extended_sequence
-                            )
+                            variant_count = self._count_opening_sequences(book, extended_sequence)
                         else:
                             variant_count = 0
                         
@@ -428,7 +443,7 @@ class GameSession:
             "notes": notes
         }
     
-    def make_move(self, move_coord: str) -> tuple[bool, str]:
+    def make_move(self, move_coord: str) -> Tuple[bool, str]:
         """Make a move and return (success, error_message)"""
         try:
             # Convert algebraic notation (A1-H8) to Move object
@@ -855,7 +870,9 @@ async def handle_load_history(websocket: WebSocket, session: GameSession, data: 
             if not session.game.get_move_list():
                 await handle_game_over(websocket, session, "Both players passed")
                 return
-        if session.game.turn == 'W':
+        side = session.game.turn
+        ai_present = (session.ai_white is not None and side == 'W') or (session.ai_black is not None and side == 'B')
+        if ai_present:
             ai_ml = session.game.get_move_list()
             if not ai_ml:
                 session.game.pass_turn()
@@ -863,19 +880,28 @@ async def handle_load_history(websocket: WebSocket, session: GameSession, data: 
                 await send_to_connection(websocket, state_payload)
                 await broadcast(session.session_id, state_payload)
             else:
-                await handle_ai_move_request(websocket, session)
+                await handle_ai_move_request(websocket, session, side)
     except Exception as e:
         logger.error(f"Error in handle_load_history: {e}")
         session.handle_error(e, "handle_load_history")
         await send_to_connection(websocket, {"type": "error", "message": f"Error loading history: {str(e)}"})
-async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
+async def handle_ai_move_request(websocket: WebSocket, session: GameSession, side: str = None):
     """Handle AI move request with robust error handling"""
     try:
         logger.info("AI turn - requesting move...")
         
+        side = side or session.game.turn
+        ai_name = session.ai_white_name if side == 'W' else session.ai_black_name
+        ai_instance = session.ai_white if side == 'W' else session.ai_black
+        
+        # Verify AI exists for this side
+        if ai_instance is None:
+            logger.warning(f"No AI configured for side {side} (name: {ai_name})")
+            return
+        
         # Send ai_thinking with initial stats
         initial_stats = {
-            "title": session.ai_player_name,
+            "title": ai_name or "AI",
             "selected_move": "Analyzing...",
             "evaluation": "Calculating...",
             "depth": "Searching...",
@@ -888,7 +914,7 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
         
         await send_to_connection(websocket, {
             "type": "ai_thinking",
-            "message": f"{session.ai_player_name} is thinking...",
+            "message": f"{(ai_name or 'AI')} is thinking...",
             "data": initial_stats
         })
         
@@ -896,7 +922,7 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
             import time
             start_ts = time.perf_counter()
             # Get AI move
-            ai_move = session.get_ai_move()
+            ai_move = session.get_ai_move(side)
             end_ts = time.perf_counter()
             last_search_time_ms = max(0.0, (end_ts - start_ts) * 1000.0)
             logger.info(f"AI move received: {ai_move}")
@@ -916,13 +942,14 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
                 
                 # Get AI analysis data
                 ai_eval = getattr(ai_move, 'evaluation', None)
-                ai_depth = getattr(session.ai_player, 'last_depth', None)
+                ai_obj = session.ai_white if side == 'W' else session.ai_black
+                ai_depth = getattr(ai_obj, 'last_depth', None)
                 
                 # Get detailed statistics from engine
                 engine_stats = {}
                 try:
-                    if hasattr(session.ai_player, 'bitboard_engine'):
-                        stats = session.ai_player.bitboard_engine.get_statistics()
+                    if hasattr(ai_obj, 'bitboard_engine'):
+                        stats = ai_obj.bitboard_engine.get_statistics()
                         if stats:
                             engine_stats['total_searches'] = stats.get('searches_performed', 0)
                             avg_time = stats.get('avg_time', 0)
@@ -942,7 +969,7 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
                 
                 # Store AI stats for notes
                 session.last_ai_stats = {
-                    "title": session.ai_player_name,
+                    "title": ai_name or "AI",
                     "selected_move": coord,
                     "selected_value": str(ai_eval) if ai_eval is not None else "N/A",
                     "final_depth": str(ai_depth) if ai_depth is not None else "N/A",
@@ -982,11 +1009,27 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
                         "data": session.get_state()
                     })
                     
-                    # Check again after pass
-                    move_list = session.game.get_move_list()
-                    if not move_list:
+                    # Check again after pass - if still no moves, game over
+                    next_moves = session.game.get_move_list()
+                    if not next_moves:
+                        logger.info("Both players have no moves - game over")
                         await handle_game_over(websocket, session, "Both players passed")
                         return
+                    
+                    # Next player has moves - if AI, trigger move
+                    next_side = session.game.turn
+                    next_ai_present = (session.ai_white is not None and next_side == 'W') or (session.ai_black is not None and next_side == 'B')
+                    if next_ai_present:
+                        logger.info(f"After pass, next turn {next_side} is AI with moves - triggering move")
+                        await handle_ai_move_request(websocket, session, next_side)
+                    return
+                
+                # Current player has moves - check if next player is also AI and trigger their move
+                next_side = session.game.turn
+                next_ai_present = (session.ai_white is not None and next_side == 'W') or (session.ai_black is not None and next_side == 'B')
+                if next_ai_present:
+                    logger.info(f"Next turn {next_side} is also AI - triggering move")
+                    await handle_ai_move_request(websocket, session, next_side)
             else:
                 # AI has no moves, pass
                 logger.info("AI has no valid moves, passing...")
@@ -998,10 +1041,18 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession):
                 })
                 
                 # Check if game is over after pass
-                move_list = session.game.get_move_list()
-                if not move_list:
+                next_moves = session.game.get_move_list()
+                if not next_moves:
+                    logger.info("Both players have no moves after AI pass - game over")
                     await handle_game_over(websocket, session, "Both players passed")
                     return
+                
+                # After pass, check if next player is AI
+                next_side = session.game.turn
+                next_ai_present = (session.ai_white is not None and next_side == 'W') or (session.ai_black is not None and next_side == 'B')
+                if next_ai_present:
+                    logger.info(f"After AI pass, next turn {next_side} is AI with moves - triggering move")
+                    await handle_ai_move_request(websocket, session, next_side)
                     
         except Exception as e:
             logger.error(f"Error in AI move request: {e}")
@@ -1024,7 +1075,7 @@ async def handle_init_message(websocket: WebSocket, session: GameSession, data: 
     try:
         ai_player_name = data.get("ai_player", "DIVZERO.EXE")
         
-        # Always create a new session on init
+        # Always create a new session on init (white AI by default)
         new_session = GameSession("default", ai_player_name)
         sessions["default"] = new_session
         
@@ -1042,6 +1093,30 @@ async def handle_init_message(websocket: WebSocket, session: GameSession, data: 
             "type": "error",
             "message": f"Error initializing game: {str(e)}"
         })
+
+async def handle_set_players(websocket: WebSocket, session: GameSession, data: dict):
+    """Set players for both sides. Payload: {"white": "Human"|AI_NAME|None, "black": "Human"|AI_NAME|None} """
+    try:
+        white = data.get("white")
+        black = data.get("black")
+        # Normalize: None or 'Human' => human
+        session.ai_white_name = None if (white is None or str(white).lower()=="human") else str(white)
+        session.ai_black_name = None if (black is None or str(black).lower()=="human") else str(black)
+        # Recreate AI instances
+        session.reset_session()
+        # Send updated state
+        await send_to_connection(websocket, {"type": "board_update", "data": session.get_state()})
+        
+        # If current turn is AI after reset, trigger AI move
+        side = session.game.turn
+        ai_present = (session.ai_white is not None and side == 'W') or (session.ai_black is not None and side == 'B')
+        if ai_present:
+            logger.info(f"After set_players, current turn {side} is AI - triggering move")
+            await handle_ai_move_request(websocket, session, side)
+    except Exception as e:
+        logger.error(f"Error in handle_set_players: {e}")
+        session.handle_error(e, "handle_set_players")
+        await send_to_connection(websocket, {"type": "error", "message": f"Error setting players: {str(e)}"})
 
 async def handle_reset_game(websocket: WebSocket, session: GameSession):
     """Handle reset game message"""
