@@ -1327,63 +1327,74 @@
         const ok = await copyTextStrict(text);
         showToast(ok ? `Copied: ${text || '—'}` : 'Copy failed');
       });
-      if (pasteBtn) pasteBtn.addEventListener('click', async ()=>{
-        console.log('Paste button clicked');
-        let text = null;
-        
-        // Try clipboard API first
-        try{
-          text = await navigator.clipboard.readText();
-          console.log('Read from clipboard:', text);
-        }catch(e){
-          console.log('Clipboard API error:', e, '- asking user to paste manually');
-        }
-        
-        // Fallback: prompt user to paste manually
-        if(!text){
-          text = prompt('Paste compact history:\n\nFormat: "F5f6E6f4" (uppercase=Black, lowercase=White)');
-          console.log('User provided text via prompt:', text);
-          if(!text){
-            console.log('User cancelled prompt');
-            return; // User cancelled
+      if (pasteBtn){
+        console.log('✅ Paste button found in DOM, registering click handler');
+        pasteBtn.addEventListener('click', async (e)=>{
+          console.log('🔵 PASTE BUTTON CLICKED - starting paste operation');
+          e.preventDefault();
+          e.stopPropagation();
+          
+          let text = null;
+          
+          // Try clipboard API first
+          try{
+            console.log('Attempting to read from clipboard API...');
+            text = await navigator.clipboard.readText();
+            console.log('✅ Read from clipboard successfully:', text);
+          }catch(e){
+            console.warn('❌ Clipboard API failed:', e.message);
+            console.log('Falling back to manual prompt...');
           }
-        }
-        
-        const trimmed = text.trim();
-        console.log('Trimmed text:', trimmed);
-        
-        // Validate format: extract all valid moves
-        const moves = trimmed.match(/[A-Ha-h][1-8]/g);
-        console.log('Extracted moves:', moves);
-        
-        if(!moves || moves.length === 0){
-          showToast('❌ No valid moves found');
-          alert('No valid moves found in clipboard.\n\nExpected format: "F5f6E6f4" (uppercase=Black, lowercase=White)\nExample: F5 (Black), f6 (White), E6 (Black), f4 (White)');
-          return;
-        }
-        
-        // Check if there are extra characters
-        if(moves.join('') !== trimmed){
-          console.warn('Extra characters found, using only valid moves:', moves.join(''));
-          showToast('⚠️ Extra characters ignored');
-        }
-        
-        const cleanHistory = moves.join('');
-        console.log('Clean history:', cleanHistory);
-        
-        // Load via WebSocket
-        if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
-          console.log('Sending load_history with:', cleanHistory);
-          wsSend({ type:'load_history', history: cleanHistory });
-          setTimeout(() => {
-            wsSend({ type:'get_state' });
-          }, 100);
-          showToast('Loading game...');
-        } else {
-          console.error('WebSocket not connected');
-          showToast('❌ WebSocket not connected');
-        }
-      });
+          
+          // Fallback: prompt user to paste manually
+          if(!text || text.trim().length === 0){
+            console.log('Opening prompt for manual paste...');
+            text = prompt('Paste compact history:\n\nFormat: "C4e3F6e6F4c5" (uppercase=Black, lowercase=White)');
+            console.log('User input from prompt:', text, 'Type:', typeof text);
+            if(text === null || text === undefined){
+              console.log('User cancelled prompt (null/undefined)');
+              showToast('Paste cancelled');
+              return;
+            }
+            if(text.trim().length === 0){
+              console.log('User provided empty string');
+              showToast('No input provided');
+              return;
+            }
+          }
+          
+          const trimmed = text.trim();
+          console.log('Trimmed input:', trimmed, 'Length:', trimmed.length);
+          
+          // Validate and extract moves
+          const moves = trimmed.match(/[A-Ha-h][1-8]/g);
+          console.log('Extracted moves:', moves, 'Count:', moves?.length);
+          
+          if(!moves || moves.length === 0){
+            console.error('No valid moves found');
+            showToast('❌ No valid moves found');
+            alert('No valid moves found.\n\nExpected: "C4e3F6e6F4c5"\nGot: "' + trimmed + '"');
+            return;
+          }
+          
+          const cleanHistory = moves.join('');
+          console.log('Clean history to send:', cleanHistory);
+          
+          // Load via WebSocket
+          if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+            console.log('✅ WebSocket open, sending load_history');
+            wsSend({ type:'load_history', history: cleanHistory });
+            showToast('📥 Loading game...');
+            console.log('Load history sent, waiting for response...');
+          } else {
+            console.error('❌ WebSocket not connected, state:', wsConnection?.readyState);
+            showToast('❌ Not connected');
+            alert('WebSocket not connected. Reload the page and try again.');
+          }
+        });
+      } else {
+        console.error('❌ Paste button NOT found in DOM!');
+      }
       if (saveBtn) saveBtn.addEventListener('click', ()=>{
         const txt = getCompactHistory();
         if(!txt){ showToast('Nothing to save'); return; }
