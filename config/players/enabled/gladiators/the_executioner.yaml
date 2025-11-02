@@ -1,0 +1,193 @@
+# ============================================================================
+# THE EXECUTIONER ⚔️ - Ruthless Destroyer
+# ============================================================================
+# Aggressive tactical configuration - Merciless execution
+# 
+# Strategy: Aggressive evaluation, tactical destruction
+# Target: Advanced level (ELO ~1770)
+# Speed: Moderate (calculating kill shots)
+# Best for: Aggressive play, tactical battles, ruthless finishing
+# ============================================================================
+
+metadata:
+  name: "THE EXECUTIONER"
+  display_name: "The Executioner"
+  description: "Ruthless Destroyer - Merciless Execution"
+  headline: "JUDGEMENT HAS BEEN PASSED"
+  enabled: true
+  icon: "⚔️"
+  
+  # Avatar: Hooded executioner with glowing red axe
+  # Suggested: Dark figure, executioner's axe, red glow, menacing
+  # Path is relative to project root
+  # Example image: Dark hooded figure, glowing weapon, intimidating
+  avatar: "avatars/default.png"
+  
+  category: "advanced"
+  estimated_elo: 1770
+  
+  stats:
+    power: 8       # Strong tactical power
+    speed: 6       # Deliberate calculation
+    accuracy: 8    # Precise execution
+    depth: 8       # Deep tactical vision
+    lethality: 10  # Maximum aggression
+
+engine:
+  depth:
+    base: 9
+    strategy: "iterative"
+  
+  parallel:
+    enabled: true
+    num_workers: 4
+  
+  transposition_table:
+    enabled: true
+    size_mb: 128
+  
+  aspiration_windows:
+    enabled: true
+    initial_width: 50
+    widen_factor: 2.0
+
+evaluation:
+  # Aggressive preset with modifications
+  preset: "aggressive"
+  
+  # Note: aggressive preset includes:
+  # - Mobility: 1.5
+  # - Positional: 1.2
+  # - Stability: 0.8
+  # - Parity: 1.0
+
+move_ordering:
+  strategies:
+    - name: "pv_move"
+      enabled: true
+      priority: 100
+    
+    - name: "killer_moves"
+      enabled: true
+      priority: 90
+      max_killers_per_ply: 3    # More killers (tactical focus)
+    
+    - name: "history_heuristic"
+      enabled: true
+      priority: 80
+      decay_factor: 0.92        # Fast decay (tactical adaptation)
+    
+    - name: "positional"
+      enabled: true
+      priority: 70
+
+pruning:
+  # Aggressive pruning settings
+  null_move:
+    enabled: true
+    reduction_depth: 4          # Aggressive reduction
+    min_depth: 3
+  
+  futility:
+    enabled: true
+    margin: 80                  # Low margin (very aggressive)
+    max_depth: 3
+  
+  late_move_reduction:
+    enabled: true
+    threshold_move: 3           # Early LMR (aggressive)
+    reduction_depth: 1
+    min_depth: 3
+  
+  multi_cut:
+    enabled: true
+    threshold_cuts: 2           # Aggressive (only 2 cuts needed)
+    verification_depth: 2
+
+opening_book:
+  enabled: true
+  strategy: "evaluated"
+  
+  evaluation:
+    advantage_weight: 0.3       # High weight (aggressive openings)
+    variety_weight: 0.1
+    only_evaluated: true
+  
+  display:
+    show_options: false
+    show_analysis: false
+    verbose: false
+
+behavior:
+  time:
+    think_time_ms: 0
+    max_time_ms: null
+  
+  logging:
+    level: "normal"
+    show_statistics: true
+    show_thinking: false
+    show_evaluation: false
+  
+  randomization:
+    enabled: false
+    temperature: 0.0
+
+advanced:
+  quiescence:
+    enabled: false
+  singular_extension:
+    enabled: false
+  razoring:
+    enabled: true             # Enable razoring (aggressive!)
+    margin: 250               # Lower margin (more aggressive)
+  iid:
+    enabled: false
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# THE EXECUTIONER PERFORMANCE NOTES
+# ============================================================================
+# 
+# Playing Style:
+# - Ruthlessly aggressive
+# - Seeks tactical opportunities to destroy opponent
+# - High-risk, high-reward moves
+# - Unforgiving execution of winning positions
+# - Will sacrifice for attack
+# 
+# Expected Performance:
+# - Depth 9 iterative: ~2-8 seconds per move
+# - Devastating in tactical positions
+# - Can overwhelm defensive players
+# - Aggressive from move 1
+# 
+# Strength Profile:
+# - Opening: Aggressive (sharp lines)
+# - Midgame: Excellent (tactical warfare)
+# - Endgame: Strong (ruthless finishing)
+# - Overall: Advanced tier (ELO ~1770)
+# 
+# When The Executioner Shines:
+# - Against defensive/passive players (breaks through)
+# - In tactical melees (thrives on complexity)
+# - Winning positions (ruthless conversion)
+# - Time pressure (aggressive pruning = speed)
+# 
+# Unique Features:
+# - Razoring enabled (rare, aggressive technique)
+# - Multi-cut with threshold 2 (very aggressive)
+# - Aggressive preset with all attack bonuses
+# - More killer moves tracked (3 instead of 2)
+# 
+# Philosophy:
+# "There is no mercy, only victory.
+#  Every move is judgement.
+#  Every capture is execution.
+#  The weak will fall."
+#                 - The Executioner
+# ============================================================================
+

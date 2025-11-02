@@ -15,7 +15,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 from Players.PlayerApocalyptron import PlayerApocalyptron
-from Players.Gladiators.PlayerDivZero import PlayerDivZero
+from Players.PlayerFactory import PlayerFactory
 from Reversi.Game import Game
 
 
@@ -92,9 +92,9 @@ class TestBookInstantMode:
         assert selected_move in moves, "Should be a valid move"
         assert game.valid_move(selected_move), "Should be playable"
     
-    def test_divzero_instant_mode(self):
-        """Test PlayerDivZero with instant mode"""
-        player = PlayerDivZero(
+    def test_apocalyptron_instant_mode(self):
+        """Test PlayerApocalyptron with instant mode"""
+        player = PlayerApocalyptron(
             depth=8,
             show_book_options=False,
             book_instant=True
@@ -108,9 +108,9 @@ class TestBookInstantMode:
         assert selected_move is not None
         assert selected_move in moves
     
-    def test_divzero_evaluation_mode(self):
-        """Test PlayerDivZero with evaluation mode"""
-        player = PlayerDivZero(
+    def test_apocalyptron_evaluation_mode(self):
+        """Test PlayerApocalyptron with evaluation mode"""
+        player = PlayerApocalyptron(
             depth=8,
             show_book_options=False,
             book_instant=False

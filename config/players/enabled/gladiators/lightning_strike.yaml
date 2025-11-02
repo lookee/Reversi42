@@ -1,0 +1,201 @@
+# ============================================================================
+# LIGHTNING STRIKE ⚡ - The Blitz Master
+# ============================================================================
+# Maximum speed configuration - Fastest AI in Reversi42
+# 
+# Strategy: Fixed shallow depth, minimal overhead, instant responses
+# Target: Intermediate level (ELO ~1400)
+# Speed: Instant (<100ms per move)
+# Best for: Blitz games, rapid tournaments, learning basics
+# ============================================================================
+
+metadata:
+  name: "LIGHTNING STRIKE"
+  display_name: "Lightning Strike"
+  description: "Blitz Master - Speed Above All"
+  headline: "SPEED MODE ACTIVATED"
+  enabled: true
+  icon: "⚡"
+  
+  # Avatar: High-energy lightning bolt visualization
+  # Suggested: Electric blue/yellow lightning, motion blur, speed lines
+  # Path is relative to project root
+  # Example image: Stylized lightning bolt with energy particles, bright colors
+  avatar: "avatars/default.png"  # Create 512x512 PNG with electric theme
+  
+  category: "intermediate"
+  estimated_elo: 1400
+  
+  stats:
+    power: 4       # Quick strike (not deep analysis)
+    speed: 10      # Lightning fast
+    accuracy: 5    # Instinctive (shallow search)
+    depth: 3       # Shallow & fast
+    lethality: 4   # Overwhelming speed
+
+engine:
+  depth:
+    base: 4
+    strategy: "fixed"  # No iterative deepening (removes overhead)
+  
+  # Single-threaded (parallelization overhead not worth it at depth 4)
+  parallel:
+    enabled: false
+    num_workers: 1
+  
+  # No transposition table (lookup overhead not worth it)
+  transposition_table:
+    enabled: false
+  
+  # No aspiration windows (not effective with fixed depth)
+  aspiration_windows:
+    enabled: false
+
+evaluation:
+  # Custom evaluator configuration (minimal for speed)
+  preset: null
+  
+  # ONLY positional evaluator (fastest)
+  # Mobility, stability, parity disabled to minimize computation
+  evaluators:
+    - name: "mobility"
+      enabled: false  # Disabled for speed
+    
+    - name: "positional"
+      enabled: true   # Fast static evaluation only
+      weight: 1.0
+    
+    - name: "stability"
+      enabled: false  # Disabled for speed
+    
+    - name: "parity"
+      enabled: false  # Disabled for speed
+    
+    - name: "frontier"
+      enabled: false  # Disabled for speed
+
+move_ordering:
+  strategies:
+    # Simple positional ordering only (no history/killer overhead)
+    - name: "pv_move"
+      enabled: false  # No iterative deepening = no PV
+    
+    - name: "killer_moves"
+      enabled: false  # Disabled for speed
+    
+    - name: "history_heuristic"
+      enabled: false  # Disabled for speed
+    
+    - name: "positional"
+      enabled: true   # Simple static ordering
+      priority: 100
+
+pruning:
+  # ALL pruning disabled for simplicity and speed
+  # At depth 4, pruning overhead often exceeds benefit
+  
+  null_move:
+    enabled: false
+  
+  futility:
+    enabled: false
+  
+  late_move_reduction:
+    enabled: false
+  
+  multi_cut:
+    enabled: false
+
+opening_book:
+  # Use opening book with instant strategy (0ms book moves)
+  enabled: true
+  strategy: "instant"  # Instant book moves (no evaluation)
+  
+  evaluation:
+    advantage_weight: 0.2
+    variety_weight: 0.1
+    only_evaluated: true
+  
+  display:
+    show_options: false  # Silent for speed
+    show_analysis: false
+    verbose: false
+
+behavior:
+  time:
+    think_time_ms: 0      # Instant response
+    max_time_ms: null     # Not needed (already instant)
+  
+  logging:
+    level: "quiet"        # Minimal output for maximum speed
+    show_statistics: false
+    show_thinking: false
+    show_evaluation: false
+  
+  randomization:
+    enabled: false
+    temperature: 0.0
+
+advanced:
+  # All advanced features disabled
+  quiescence:
+    enabled: false
+  
+  singular_extension:
+    enabled: false
+  
+  razoring:
+    enabled: false
+  
+  iid:
+    enabled: false
+  
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# LIGHTNING STRIKE PERFORMANCE NOTES
+# ============================================================================
+# 
+# Expected Performance:
+# - In book: 0-5 ms per move (instant)
+# - Out of book: 20-100 ms per move (depth 4, single-threaded)
+# - Average: 30-50 ms per move
+# 
+# Hardware Requirements:
+# - CPU: Any (single-threaded)
+# - RAM: 50 MB (minimal)
+# - OS: Any
+# 
+# Strength Profile:
+# - Opening: Good (uses professional book)
+# - Midgame: Decent tactical awareness (depth 4)
+# - Endgame: Basic calculation (not deep enough for perfect play)
+# - Overall: Intermediate (ELO ~1400)
+# 
+# Speed Breakdown (depth 4, single-threaded):
+# - Move generation: ~1-2 ms
+# - Position evaluation: ~0.5 ms per node
+# - Total nodes (depth 4): ~1,000-5,000 nodes
+# - Total time: 20-100 ms
+# 
+# Trade-offs:
+# - Pros: Instant responses, minimal CPU/RAM, great for blitz
+# - Cons: Misses deep tactics, weaker endgame, loses to depth 8+
+# 
+# Tuning Options:
+# - For stronger play: Increase depth to 5-6 (still <500ms)
+# - For even faster: Set think_time_ms to 0 (already instant)
+# - For varied play: Enable randomization with temperature 0.1
+# - For better midgame: Enable mobility evaluator (slight slowdown)
+# 
+# When to Use:
+# - Blitz tournaments (games < 5 minutes)
+# - Rapid testing (quick iterations)
+# - Learning basics (fast feedback loop)
+# - CPU-limited environments (mobile, embedded)
+# - Casual games where speed > strength
+# ============================================================================
+

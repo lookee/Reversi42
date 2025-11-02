@@ -98,7 +98,7 @@ ensure_newline_before_comments = true
 skip_gitignore = true
 
 [tool.mypy]
-python_version = "5.0.0"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -117,7 +117,7 @@ strict_equality = true
 # ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-minversion = "5.0.0"
+minversion = "7.0"
 addopts = "-ra -q --strict-markers"
 testpaths = [
     "tests",

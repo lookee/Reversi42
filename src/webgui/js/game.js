@@ -19,8 +19,6 @@
  *  - Tailwind CSS (CDN)
  *  - CodeMirror (optional, for JSON editing)
  *  - HTML templates (templates/ directory)
- * 
- * @version 3.2.0
  */
 'use strict';
 
@@ -227,6 +225,30 @@ function loadGameData(gameData){
   qs('p1Avatar').textContent = data.players?.black?.avatar || initials(data.players?.black?.name);
   qs('p2Avatar').textContent = data.players?.white?.avatar || initials(data.players?.white?.name);
   
+  // Show/hide AI config button for White player (if AI)
+  const whitePlayerType = data.players?.white?.player_type;
+  const whiteAIName = data.players?.white?.ai_name;
+  const viewWhiteConfigBtn = document.getElementById('viewWhiteConfigBtn');
+  
+  // TEMPORARY: Force show button for testing
+  // Set AI name from white player name (fallback)
+  if (viewWhiteConfigBtn) {
+    const whiteName = data.players?.white?.name;
+    if (whiteName && whiteName !== 'Human' && whiteName !== 'Human Player') {
+      viewWhiteConfigBtn.style.display = 'inline-flex';
+      currentAIPlayerName = whiteName.toUpperCase(); // "Lightning Strike" → "LIGHTNING STRIKE"
+      console.log(`✅ AI Config button enabled for: ${currentAIPlayerName}`);
+    } else {
+      console.log('Player data:', {
+        whitePlayerType,
+        whiteAIName,
+        whiteName,
+        hasButton: !!viewWhiteConfigBtn,
+        fullPlayerData: data.players?.white
+      });
+    }
+  }
+  
   // Update player icons based on type
   updatePlayerIcons();
   
@@ -362,14 +384,30 @@ function initWebSocket(){
   updateWSStatus('connecting', 'Connecting...');
   wsConnection = new WebSocket(WS_URL);
   
-  wsConnection.onopen = () => {
+  wsConnection.onopen = async () => {
     console.log('WebSocket connected successfully');
     updateWSStatus('connected', 'Connected');
-    // Send init message
+    
+    // Load game configuration from server
+    let aiPlayer = 'LIGHTNING STRIKE';  // Fallback
+    try {
+      const response = await fetch('http://localhost:8000/api/game-config');
+      const config = await response.json();
+      console.log('Game configuration loaded:', config);
+      
+      if (config.white_player && config.white_player.ai_player) {
+        aiPlayer = config.white_player.ai_player;
+        console.log(`Using AI from config: ${aiPlayer}`);
+      }
+    } catch (error) {
+      console.warn('Could not load game config, using default:', error);
+    }
+    
+    // Send init message with configured AI
     const initMsg = {
       type: 'init',
       session_id: SESSION_ID,
-      ai_player: 'DIVZERO.EXE'
+      ai_player: aiPlayer
     };
     console.log('Sending init message:', initMsg);
     wsSend(initMsg);
@@ -562,9 +600,18 @@ function handleServerMessage(message){
         btn.style.background = 'rgba(245,158,11,.12)';
         btn.style.borderColor = 'rgba(245,158,11,.35)';
       }
-      // Optional alert (kept for visibility)
+      // Show game over message (non-blocking)
       setTimeout(() => {
-        alert(`🎮 GAME OVER\n\nWinner: ${gameOverInfo.winner}\n\nBlack: ${gameOverInfo.black_count} pieces\nWhite: ${gameOverInfo.white_count} pieces`);
+        const winner = gameOverInfo.winner;
+        const blackCount = gameOverInfo.black_count;
+        const whiteCount = gameOverInfo.white_count;
+        console.log(`🎮 GAME OVER - Winner: ${winner} (Black: ${blackCount}, White: ${whiteCount})`);
+        
+        // Show a non-blocking notification instead of alert
+        if (confirm(`🎮 GAME OVER\n\nWinner: ${winner}\n\nBlack: ${blackCount} pieces\nWhite: ${whiteCount} pieces\n\nStart a new game?`)) {
+          // User clicked OK - start new game
+          document.getElementById('newGameBtn')?.click();
+        }
       }, 100);
       break;
     
@@ -2023,3 +2070,81 @@ function renderNotes(notes){
     }
   }
 }
+
+// ============================================================================
+// AI CONFIGURATION VIEWER
+// ============================================================================
+
+let aiConfigEditor = null;
+let currentAIPlayerName = null;
+
+async function openAIConfig(playerName) {
+  try {
+    console.log(`Loading configuration for ${playerName}...`);
+    
+    // Fetch player configuration from server
+    const response = await fetch(`http://localhost:8000/api/player-config/${encodeURIComponent(playerName)}`);
+    const data = await response.json();
+    
+    if (data.error) {
+      alert(`Error loading configuration: ${data.error}`);
+      return;
+    }
+    
+    // Update modal content
+    document.getElementById('configPlayerName').textContent = `${data.player_name} Configuration`;
+    document.getElementById('configFilePath').textContent = data.config_path;
+    
+    // Initialize CodeMirror if not already done
+    if (!aiConfigEditor) {
+      const textarea = document.getElementById('aiConfigEditor');
+      aiConfigEditor = CodeMirror.fromTextArea(textarea, {
+        mode: 'yaml',
+        theme: 'monokai',
+        lineNumbers: true,
+        readOnly: true,
+        lineWrapping: false,
+        matchBrackets: true,
+        viewportMargin: Infinity
+      });
+      aiConfigEditor.setSize('100%', '100%');
+    }
+    
+    // Set YAML content
+    aiConfigEditor.setValue(data.yaml_content);
+    aiConfigEditor.refresh();
+    
+    // Show modal
+    document.getElementById('aiConfigModal').style.display = 'flex';
+    
+    // Refresh editor after modal is visible
+    setTimeout(() => aiConfigEditor.refresh(), 100);
+    
+  } catch (error) {
+    console.error('Error loading AI configuration:', error);
+    alert(`Failed to load configuration: ${error.message}`);
+  }
+}
+
+function closeAIConfigModal() {
+  document.getElementById('aiConfigModal').style.display = 'none';
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('aiConfigModal').style.display === 'flex') {
+    closeAIConfigModal();
+  }
+});
+
+// Setup button click handler
+document.addEventListener('DOMContentLoaded', () => {
+  const viewConfigBtn = document.getElementById('viewWhiteConfigBtn');
+  if (viewConfigBtn) {
+    viewConfigBtn.addEventListener('click', () => {
+      if (currentAIPlayerName) {
+        openAIConfig(currentAIPlayerName);
+      }
+    });
+  }
+});

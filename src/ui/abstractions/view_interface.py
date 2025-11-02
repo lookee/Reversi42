@@ -5,7 +5,6 @@ Defines the contract for all view implementations.
 Pure rendering responsibilities - NO input handling.
 
 Architecture: Following Single Responsibility Principle
-Version: 3.1.0
 """
 
 from abc import ABC, abstractmethod

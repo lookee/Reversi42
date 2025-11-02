@@ -7,8 +7,8 @@ Professional MVC implementation with complete separation of concerns:
 - Controller: Orchestration (core/controller.py)
 - Input: Event handling (abstractions/input_interface.py)
 
-Version: 3.2.0 - Cleaned up, removed pygame and terminal views
 Architecture: Clean MVC with Dependency Inversion
+Note: Pygame and terminal views removed in favor of web-based interface
 """
 
 # Core MVC components removed - using MVP pattern now
@@ -36,4 +36,8 @@ __all__ = [
     "InputEvent",
 ]
 
-__version__ = "3.2.0"
+# Import version from centralized location
+try:
+    from __version__ import __version__
+except ImportError:
+    __version__ = "5.0.0"  # Fallback (must match pyproject.toml)

@@ -89,7 +89,7 @@ Games are automatically saved in the `saves/` folder in XOT format (human-readab
 **Server won't start?**
 ```bash
 # Try with:
-python3 src/webgui/backend_server.py
+python3 src/webgui/reversi42_server.py
 ```
 
 **Dependency errors?**

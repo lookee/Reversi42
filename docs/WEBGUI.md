@@ -55,7 +55,7 @@ That's it! 🎮
 
 ```
 src/webgui/
-├── backend_server.py       # Main FastAPI server
+├── reversi42_server.py       # Main FastAPI server
 ├── backend_monitor.py      # Auto-restart monitor
 ├── start_server.sh         # Simple launcher
 └── start_server_robust.sh  # Production launcher
@@ -134,10 +134,10 @@ Browser → WebSocket → Backend Server → Game Engine
 ./reversi42
 
 # Custom port
-python3 -m src.webgui.server.backend_server --port 8001
+python3 -m src.webgui.server.reversi42_server --port 8001
 
 # Custom AI
-python3 -m src.webgui.server.backend_server --player "THE STRANGLER"
+python3 -m src.webgui.server.reversi42_server --player "THE STRANGLER"
 ```
 
 ### Monitor Settings
@@ -259,7 +259,7 @@ function detectFileFormat(content) {
 
 # Or manually
 cd src/webgui
-python3 -m uvicorn backend_server:app --host 0.0.0.0 --port 8000
+python3 -m uvicorn reversi42_server:app --host 0.0.0.0 --port 8000
 ```
 
 ### Production
@@ -292,7 +292,7 @@ CMD ["python3", "-m", "src.webgui.backend_monitor"]
 lsof -i :8000
 
 # Kill existing processes
-pkill -f backend_server
+pkill -f reversi42_server
 pkill -f backend_monitor
 
 # Restart

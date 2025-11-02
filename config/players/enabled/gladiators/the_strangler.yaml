@@ -1,0 +1,220 @@
+# ============================================================================
+# THE STRANGLER 🐙 - Mobility Assassin
+# ============================================================================
+# Mobility-focused configuration - Suffocating control
+# 
+# Strategy: Maximize mobility, restrict opponent options
+# Target: Advanced level (ELO ~1750)
+# Speed: Fast to moderate (aggressive calculation)
+# Best for: Mobility warfare, tempo control, suffocation strategy
+# ============================================================================
+
+metadata:
+  name: "THE STRANGLER"
+  display_name: "The Strangler"
+  description: "Mobility Assassin - Suffocating Control"
+  headline: "FEEL YOUR OPTIONS DISAPPEAR"
+  enabled: true
+  icon: "🐙"
+  
+  # Avatar: Dark octopus tentacles constricting a game board
+  # Suggested: Tentacles wrapping around pieces, dark purple/black
+  # Path is relative to project root
+  # Example image: Octopus tentacles, constricting motion, ominous
+  avatar: "avatars/default.png"
+  
+  category: "advanced"
+  estimated_elo: 1750
+  
+  stats:
+    power: 8       # Strong mobility control
+    speed: 6       # Moderately fast
+    accuracy: 7    # Tactical precision
+    depth: 7       # Good tactical depth
+    lethality: 9   # Ruthless mobility warfare
+
+engine:
+  depth:
+    base: 9
+    strategy: "iterative"
+  
+  parallel:
+    enabled: true
+    num_workers: 4
+  
+  transposition_table:
+    enabled: true
+    size_mb: 128
+  
+  aspiration_windows:
+    enabled: true
+    initial_width: 45
+    widen_factor: 2.0
+
+evaluation:
+  # Heavy mobility emphasis
+  preset: null
+  
+  evaluators:
+    # MOBILITY is everything for The Strangler
+    - name: "mobility"
+      enabled: true
+      weight: 2.5     # Massively boosted
+    
+    - name: "positional"
+      enabled: true
+      weight: 1.0
+    
+    # Stability less important (mobility > stability)
+    - name: "stability"
+      enabled: true
+      weight: 0.6     # Reduced
+    
+    - name: "parity"
+      enabled: true
+      weight: 1.0
+  
+  weights:
+    # Maximize mobility values
+    mobility_weight: 10            # 2x boost (default: 5)
+    potential_mobility_weight: 6   # 2x boost (default: 3)
+    
+    # Standard positional
+    corner_weight: 100
+    edge_weight: 10
+    
+    # Moderate penalties
+    x_square_penalty: -20
+    c_square_penalty: -8
+
+move_ordering:
+  strategies:
+    - name: "pv_move"
+      enabled: true
+      priority: 100
+    
+    - name: "killer_moves"
+      enabled: true
+      priority: 90
+      max_killers_per_ply: 2
+    
+    - name: "history_heuristic"
+      enabled: true
+      priority: 80
+      decay_factor: 0.93    # Faster decay (more adaptive)
+    
+    # Mobility-based ordering enabled
+    - name: "mobility"
+      enabled: true         # Special: enabled for mobility focus
+      priority: 65
+    
+    - name: "positional"
+      enabled: true
+      priority: 70
+
+pruning:
+  null_move:
+    enabled: true
+    reduction_depth: 3
+    min_depth: 3
+  
+  futility:
+    enabled: true
+    margin: 90      # Lower margin (more aggressive)
+    max_depth: 3
+  
+  late_move_reduction:
+    enabled: true
+    threshold_move: 3     # Earlier LMR (more aggressive)
+    reduction_depth: 1
+    min_depth: 3
+  
+  multi_cut:
+    enabled: true
+    threshold_cuts: 3
+    verification_depth: 2
+
+opening_book:
+  enabled: true
+  strategy: "evaluated"
+  
+  evaluation:
+    advantage_weight: 0.2
+    variety_weight: 0.15    # Higher variety (flexible openings)
+    only_evaluated: true
+  
+  display:
+    show_options: false
+    show_analysis: false
+    verbose: false
+
+behavior:
+  time:
+    think_time_ms: 0
+    max_time_ms: null
+  
+  logging:
+    level: "normal"
+    show_statistics: true
+    show_thinking: false
+    show_evaluation: false
+  
+  randomization:
+    enabled: false
+    temperature: 0.0
+
+advanced:
+  quiescence:
+    enabled: false
+  singular_extension:
+    enabled: false
+  razoring:
+    enabled: false
+  iid:
+    enabled: false
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# THE STRANGLER PERFORMANCE NOTES
+# ============================================================================
+# 
+# Playing Style:
+# - Maximizes own mobility while restricting opponent
+# - Aggressive tempo control
+# - Suffocation strategy (reduce opponent to no moves)
+# - Values flexibility and options
+# - Will sacrifice material for mobility advantage
+# 
+# Expected Performance:
+# - Depth 9 iterative: ~2-8 seconds per move
+# - Very strong in midgame (mobility warfare)
+# - Excels at creating zugzwang positions
+# - Aggressive, forcing style
+# 
+# Strength Profile:
+# - Opening: Good (flexible book lines)
+# - Midgame: Excellent (mobility domination)
+# - Endgame: Good (tempo control)
+# - Overall: Advanced tier (ELO ~1750)
+# 
+# When The Strangler Shines:
+# - Against positional players (outmaneuvers them)
+# - In complex tactical positions (mobility = options)
+# - When creating forced moves (restricting opponent)
+# - Midgame battles (mobility warfare peak)
+# 
+# Strategy Notes:
+# - 2.5x mobility weight is core identity
+# - Reduced stability (willing to sacrifice for tempo)
+# - Mobility-based move ordering unique feature
+# - Aggressive pruning margins match style
+# 
+# Famous Tactics:
+# - "The Squeeze": Reduce opponent to 1-2 moves
+# - "Tempo Theft": Force opponent to make bad moves
+# - "Mobility Cascade": Each move increases advantage
+# ============================================================================
+

@@ -1,0 +1,237 @@
+# ============================================================================
+# ZEN MASTER 🧘 - The Enlightened One
+# ============================================================================
+# Balanced beginner configuration - Learning and harmony
+# 
+# Strategy: Perfectly balanced, educational, harmonious play
+# Target: Beginner level (ELO ~1250)
+# Speed: Fast to moderate (patient teaching pace)
+# Best for: Learning, training, balanced introduction to Reversi
+# ============================================================================
+
+metadata:
+  name: "ZEN MASTER"
+  display_name: "Zen Master"
+  description: "Enlightened One - Perfect Balance"
+  headline: "FIND BALANCE IN ALL THINGS"
+  enabled: true
+  icon: "🧘"
+  
+  # Avatar: Serene monk in meditation, peaceful aura
+  # Suggested: Peaceful monk, lotus position, soft glow, calm colors
+  # Path is relative to project root
+  # Example image: Meditating figure, peaceful expression, gentle glow
+  avatar: "avatars/default.png"
+  
+  category: "beginner"
+  estimated_elo: 1250
+  
+  stats:
+    power: 4       # Gentle power
+    speed: 6       # Patient pace
+    accuracy: 5    # Learning accuracy
+    depth: 4       # Shallow but educational
+    lethality: 3   # Peaceful, not aggressive
+
+engine:
+  depth:
+    base: 5               # Beginner-friendly depth
+    strategy: "iterative" # Teaches about depth progression
+  
+  parallel:
+    enabled: false        # Single-threaded (simpler)
+    num_workers: 1
+  
+  transposition_table:
+    enabled: true         # Educational (shows benefit of caching)
+    size_mb: 64          # Small but present
+  
+  aspiration_windows:
+    enabled: true         # Safe optimization (doesn't change teaching)
+    initial_width: 50
+    widen_factor: 2.0
+
+evaluation:
+  # PERFECTLY balanced (all weights equal)
+  preset: "balanced"
+  
+  # The balanced preset uses:
+  # - Mobility: 1.0
+  # - Positional: 1.0
+  # - Stability: 1.0
+  # - Parity: 1.0
+  #
+  # This is ideal for learning - no bias, all concepts represented
+
+move_ordering:
+  strategies:
+    - name: "pv_move"
+      enabled: true       # Teaches about PV
+      priority: 100
+    
+    - name: "killer_moves"
+      enabled: true       # Teaches about tactics
+      priority: 90
+      max_killers_per_ply: 2
+    
+    - name: "history_heuristic"
+      enabled: true       # Safe optimization (teaches move patterns)
+      priority: 80
+      decay_factor: 0.95
+    
+    - name: "positional"
+      enabled: true       # Fundamental concept
+      priority: 70
+
+pruning:
+  # All safe optimizations enabled (don't change playing style)
+  null_move:
+    enabled: true
+    reduction_depth: 2    # Conservative (safer for learning)
+    min_depth: 3
+  
+  futility:
+    enabled: true
+    margin: 120           # Conservative (safer)
+    max_depth: 3
+  
+  late_move_reduction:
+    enabled: true         # Safe optimization (teaches efficiency)
+    threshold_move: 4
+    reduction_depth: 1
+    min_depth: 3
+  
+  multi_cut:
+    enabled: true         # Safe optimization (teaches cutoffs)
+    threshold_cuts: 3
+    verification_depth: 2
+
+opening_book:
+  enabled: true
+  strategy: "evaluated"   # Teaches evaluation
+  
+  evaluation:
+    advantage_weight: 0.2
+    variety_weight: 0.1
+    only_evaluated: true  # Quality openings for learning
+  
+  display:
+    show_options: true    # Educational: show book options!
+    show_analysis: true   # Educational: show analysis!
+    verbose: true         # Educational: explain everything!
+
+behavior:
+  time:
+    think_time_ms: 500    # Slight delay (feels natural, gives time to see)
+    max_time_ms: null
+  
+  logging:
+    level: "verbose"      # Educational: explain everything
+    show_statistics: true # Educational: show search stats
+    show_thinking: true   # Educational: show thinking process
+    show_evaluation: true # Educational: show position eval
+  
+  randomization:
+    enabled: false
+    temperature: 0.0
+
+advanced:
+  quiescence:
+    enabled: false
+  singular_extension:
+    enabled: false
+  razoring:
+    enabled: false
+  iid:
+    enabled: false
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# ZEN MASTER PERFORMANCE NOTES
+# ============================================================================
+# 
+# Playing Style:
+# - Perfectly balanced (all evaluators weight 1.0)
+# - Educational (shows thinking process)
+# - Patient (500ms thinking delay)
+# - Harmonious (no extreme strategies)
+# - Teaches fundamental concepts
+# 
+# Expected Performance:
+# - Depth 5 iterative: ~150-600ms per move (optimized!)
+# - Plus 500ms think time = ~650-1100ms total
+# - Feels natural, not too fast or slow
+# - Perfect pace for learning
+# - All optimizations enabled (teaches efficiency!)
+# 
+# Strength Profile:
+# - Opening: Educational (explains book moves)
+# - Midgame: Beginner-friendly (depth 5 adequate)
+# - Endgame: Basic (teaches fundamentals)
+# - Overall: Beginner tier (ELO ~1250)
+# 
+# When Zen Master Shines:
+# - Teaching beginners (verbose output educational)
+# - Learning games (balanced = all concepts visible)
+# - Training mode (shows thinking process)
+# - First AI opponent (friendly difficulty)
+# 
+# Educational Features:
+# - verbose logging (explains everything)
+# - show_thinking: true (see search progress)
+# - show_evaluation: true (learn position assessment)
+# - show_options: true (see book choices)
+# - show_analysis: true (understand opening theory)
+# - 500ms think time (gives time to observe)
+# 
+# Perfect For Learning:
+# 1. Balanced evaluation teaches all concepts equally
+# 2. Verbose output explains AI reasoning
+# 3. Opening book display teaches theory
+# 4. Statistics show search efficiency (now even better!)
+# 5. Depth 5 is beatable but not trivial
+# 6. Think time allows observation
+# 7. All optimizations enabled teaches modern AI techniques
+# 
+# What Beginners Learn:
+# - Mobility importance (weight 1.0 visible)
+# - Positional value (corners, edges)
+# - Stability concepts (permanent discs)
+# - Parity principles (move count)
+# - Opening theory (book explanations)
+# - Search concepts (iterative deepening)
+# - Tactical patterns (killer moves)
+# 
+# Zen Philosophy:
+# "Balance is the path to understanding.
+#  Not too aggressive, not too passive.
+#  Not too fast, not too slow.
+#  Every concept in harmony.
+#  
+#  The strongest player is not who wins,
+#  But who understands.
+#  
+#  I am here to teach,
+#  Not to destroy.
+#  
+#  Learn from our games,
+#  And you will surpass me.
+#  That is enlightenment."
+#                        - Zen Master
+# 
+# Recommended Use:
+# - First opponent for new players
+# - Training mode with verbose output
+# - Understanding Reversi fundamentals
+# - Learning AI search concepts
+# - Gradual progression to harder opponents
+# 
+# After beating Zen Master 3+ times:
+# → Progress to Lightning Strike (ELO 1400)
+# → Then to Glitch Lord (ELO 1500)
+# → Then to advanced players
+# ============================================================================
+

@@ -37,6 +37,5 @@ __all__ = [
     "list_presets",
 ]
 
-__version__ = "1.0.0"
 __author__ = "Luca Amore"
 __description__ = "Ultimate Reversi AI with clean architecture"

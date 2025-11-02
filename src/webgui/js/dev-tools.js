@@ -9,8 +9,6 @@
  *  - WebSocket traffic viewer with syntax highlighting
  *  - Auto-refresh functionality
  *  - Tab-based interface
- * 
- * @version 3.2.0
  */
 
 // Initialize Developer Tools after template is loaded

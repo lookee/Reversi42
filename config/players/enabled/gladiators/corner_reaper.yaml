@@ -1,0 +1,230 @@
+# ============================================================================
+# CORNER REAPER 👹 - Corner Specialist
+# ============================================================================
+# Corner-obsessed configuration - Corner domination
+# 
+# Strategy: Maximum corner emphasis, positional mastery
+# Target: Advanced level (ELO ~1720)
+# Speed: Moderate (calculating corner sequences)
+# Best for: Positional play, corner battles, strategic depth
+# ============================================================================
+
+metadata:
+  name: "CORNER REAPER"
+  display_name: "Corner Reaper"
+  description: "Corner Specialist - Positional Mastery"
+  headline: "THE CORNERS BELONG TO ME"
+  enabled: true
+  icon: "👹"
+  
+  # Avatar: Demonic figure collecting corner pieces like trophies
+  # Suggested: Red demon, collecting glowing corner squares, menacing grin
+  # Path is relative to project root
+  # Example image: Demon with glowing corner pieces, possessive stance
+  avatar: "avatars/default.png"
+  
+  category: "advanced"
+  estimated_elo: 1720
+  
+  stats:
+    power: 7       # Strategic power
+    speed: 6       # Methodical
+    accuracy: 8    # Precise corner play
+    depth: 7       # Deep positional analysis
+    lethality: 7   # Strategic destruction
+
+engine:
+  depth:
+    base: 9
+    strategy: "iterative"
+  
+  parallel:
+    enabled: true
+    num_workers: 4
+  
+  transposition_table:
+    enabled: true
+    size_mb: 128
+  
+  aspiration_windows:
+    enabled: true
+    initial_width: 50
+    widen_factor: 2.0
+
+evaluation:
+  # Heavy positional emphasis (corners!)
+  preset: null
+  
+  evaluators:
+    # POSITIONAL is king (corners, edges)
+    - name: "positional"
+      enabled: true
+      weight: 2.0     # Double weight
+    
+    # Stability important (corners = stable)
+    - name: "stability"
+      enabled: true
+      weight: 1.5     # Boosted
+    
+    - name: "mobility"
+      enabled: true
+      weight: 0.8     # Slightly reduced
+    
+    - name: "parity"
+      enabled: true
+      weight: 1.0
+  
+  weights:
+    # MASSIVE corner emphasis
+    corner_weight: 200          # 2x (default: 100) - OBSESSED!
+    edge_weight: 20             # 2x (default: 10)
+    
+    # Extreme X-square avoidance (NEVER give corners!)
+    x_square_penalty: -50       # 2x penalty (default: -25)
+    c_square_penalty: -20       # 2x penalty (default: -10)
+    
+    # Stability boosted (corners = stable)
+    stability_weight: 18
+    semi_stable_weight: 7
+
+move_ordering:
+  strategies:
+    - name: "pv_move"
+      enabled: true
+      priority: 100
+    
+    - name: "killer_moves"
+      enabled: true
+      priority: 90
+      max_killers_per_ply: 2
+    
+    - name: "history_heuristic"
+      enabled: true
+      priority: 80
+      decay_factor: 0.96        # Slow decay (positional memory)
+    
+    # Positional ordering crucial
+    - name: "positional"
+      enabled: true
+      priority: 70
+
+pruning:
+  null_move:
+    enabled: true
+    reduction_depth: 3
+    min_depth: 3
+  
+  futility:
+    enabled: true
+    margin: 110                 # Higher margin (positional focus)
+    max_depth: 3
+  
+  late_move_reduction:
+    enabled: true
+    threshold_move: 4
+    reduction_depth: 1
+    min_depth: 3
+  
+  multi_cut:
+    enabled: true
+    threshold_cuts: 3
+    verification_depth: 2
+
+opening_book:
+  enabled: true
+  strategy: "evaluated"
+  
+  evaluation:
+    advantage_weight: 0.25      # High quality focus
+    variety_weight: 0.08        # Moderate variety
+    only_evaluated: true
+  
+  display:
+    show_options: false
+    show_analysis: false
+    verbose: false
+
+behavior:
+  time:
+    think_time_ms: 0
+    max_time_ms: null
+  
+  logging:
+    level: "normal"
+    show_statistics: true
+    show_thinking: false
+    show_evaluation: false
+  
+  randomization:
+    enabled: false
+    temperature: 0.0
+
+advanced:
+  quiescence:
+    enabled: false
+  singular_extension:
+    enabled: false
+  razoring:
+    enabled: false
+  iid:
+    enabled: false
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# CORNER REAPER PERFORMANCE NOTES
+# ============================================================================
+# 
+# Playing Style:
+# - OBSESSED with corners (200 weight vs 100 standard)
+# - Will make significant sacrifices to secure corners
+# - Extremely careful about X-squares and C-squares
+# - Builds edge control leading to corners
+# - Positional mastery over tactical chaos
+# 
+# Expected Performance:
+# - Depth 9 iterative: ~2-8 seconds per move
+# - Dominant in corner battles
+# - Strong against tactical players (positions > tactics)
+# - Methodical corner acquisition
+# 
+# Strength Profile:
+# - Opening: Very strong (corner-focused openings)
+# - Midgame: Excellent (corner warfare)
+# - Endgame: Strong (corner advantage = victory)
+# - Overall: Advanced tier (ELO ~1720)
+# 
+# When Corner Reaper Shines:
+# - In corner battles (specialized expertise)
+# - Against aggressive players (solid positions resist attacks)
+# - Games where corners decide outcome
+# - Strategic positional play
+# 
+# Corner Strategy:
+# - NEVER play X-squares unless forced (penalty: -50!)
+# - Build edge control systematically
+# - Wait for perfect corner timing
+# - Once corner secured, never lost
+# 
+# Unique Features:
+# - corner_weight: 200 (highest in all configs!)
+# - x_square_penalty: -50 (extreme avoidance)
+# - Positional weight 2.0x
+# - Slow history decay (remembers positional patterns)
+# 
+# Famous Patterns:
+# - "The Corner Trap": Bait opponent into giving corner
+# - "Edge Fortress": Control edges leading to corners
+# - "The Reaping": Systematic corner acquisition
+# - "Corner Lock": Once taken, corners never fall
+# 
+# Philosophy:
+# "Corners are everything. They are permanence.
+#  They are victory written in stone.
+#  All paths lead to corners.
+#  And I walk those paths better than anyone."
+#                                   - Corner Reaper
+# ============================================================================
+

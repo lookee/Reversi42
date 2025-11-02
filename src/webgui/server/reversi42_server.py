@@ -35,7 +35,6 @@ from dataclasses import dataclass, asdict
 # Import game engine
 from Reversi.Game import Game, Move
 from Players.PlayerFactory import PlayerFactory
-from Players.Gladiators.PlayerDivZero import PlayerDivZero
 
 # Import WebSocket observer for AI insights
 from webgui.server.websocket_observer import WebSocketSearchObserver
@@ -44,7 +43,7 @@ from webgui.server.websocket_observer import WebSocketSearchObserver
 try:
     from __version__ import __version__
 except ImportError:
-    __version__ = "3.2.0"  # Fallback
+    __version__ = "5.0.0"  # Fallback (must match pyproject.toml)
 
 # Configure logging
 logging.basicConfig(
@@ -99,7 +98,7 @@ class GameState:
 class GameSession:
     """Manages a single game session"""
     
-    def __init__(self, session_id: str, ai_player_name: str = "DIVZERO.EXE"):
+    def __init__(self, session_id: str, ai_player_name: str = "LIGHTNING STRIKE"):
         try:
             self.session_id = session_id
             # Default: AI plays White; Black is Human
@@ -114,18 +113,13 @@ class GameSession:
             self.last_error_time = None
             
             # Create AI players (only for configured sides)
+            # Now uses PlayerFactory which delegates to PlayerRegistry for config-based players
             self.ai_white = None
             self.ai_black = None
             if self.ai_white_name:
-                if self.ai_white_name == "DIVZERO.EXE":
-                    self.ai_white = PlayerDivZero(depth=6)
-                else:
-                    self.ai_white = PlayerFactory.create_player(self.ai_white_name)
+                self.ai_white = PlayerFactory.create_player(self.ai_white_name)
             if self.ai_black_name:
-                if self.ai_black_name == "DIVZERO.EXE":
-                    self.ai_black = PlayerDivZero(depth=6)
-                else:
-                    self.ai_black = PlayerFactory.create_player(self.ai_black_name)
+                self.ai_black = PlayerFactory.create_player(self.ai_black_name)
             
             logger.info(f"Created game session {session_id} with AI {ai_player_name}")
             
@@ -160,18 +154,13 @@ class GameSession:
         try:
             self.game = Game(8)
             # Recreate AI instances based on current config
+            # Now uses PlayerFactory which delegates to PlayerRegistry
             self.ai_white = None
             self.ai_black = None
             if self.ai_white_name:
-                if self.ai_white_name == "DIVZERO.EXE":
-                    self.ai_white = PlayerDivZero(depth=6)
-                else:
-                    self.ai_white = PlayerFactory.create_player(self.ai_white_name)
+                self.ai_white = PlayerFactory.create_player(self.ai_white_name)
             if self.ai_black_name:
-                if self.ai_black_name == "DIVZERO.EXE":
-                    self.ai_black = PlayerDivZero(depth=6)
-                else:
-                    self.ai_black = PlayerFactory.create_player(self.ai_black_name)
+                self.ai_black = PlayerFactory.create_player(self.ai_black_name)
             self.last_ai_stats = {}
             logger.info(f"Session {self.session_id} reset to initial state")
         except Exception as e:
@@ -432,11 +421,15 @@ class GameSession:
             "players": {
                 "black": {
                     "name": (self.ai_black_name or "Human"),
-                    "avatar": (self.ai_black_name[:2].upper() if self.ai_black_name else "HM")
+                    "avatar": (self.ai_black_name[:2].upper() if self.ai_black_name else "HM"),
+                    "player_type": "ai" if self.ai_black_name else "human",
+                    "ai_name": self.ai_black_name
                 },
                 "white": {
                     "name": (self.ai_white_name or "Human"),
-                    "avatar": (self.ai_white_name[:2].upper() if self.ai_white_name else "HM")
+                    "avatar": (self.ai_white_name[:2].upper() if self.ai_white_name else "HM"),
+                    "player_type": "ai" if self.ai_white_name else "human",
+                    "ai_name": self.ai_white_name
                 }
             },
             "status": {
@@ -563,14 +556,150 @@ app.add_middleware(
 async def get_index():
     """Serve the main game page"""
     try:
-        html_file = os.path.join(current_dir, "game_websocket.html")
+        # HTML file is in parent directory (webgui/), not server/
+        webgui_dir = os.path.dirname(current_dir)
+        html_file = os.path.join(webgui_dir, "game_websocket.html")
+        
         if os.path.exists(html_file):
-            return FileResponse(html_file)
+            # Disable caching - always serve fresh file
+            from fastapi.responses import Response
+            with open(html_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            return Response(
+                content=content,
+                media_type="text/html",
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0"
+                }
+            )
         else:
-            return HTMLResponse("<h1>Game file not found</h1>", status_code=404)
+            logger.error(f"Game file not found at: {html_file}")
+            return HTMLResponse(f"<h1>Game file not found</h1><p>Expected at: {html_file}</p>", status_code=404)
     except Exception as e:
         logger.error(f"Error serving index: {e}")
         return HTMLResponse("<h1>Server Error</h1>", status_code=500)
+
+@app.get("/css/{filename}")
+async def get_css(filename: str):
+    """Serve CSS files"""
+    from fastapi.responses import Response
+    webgui_dir = os.path.dirname(current_dir)
+    css_file = os.path.join(webgui_dir, "css", filename)
+    if os.path.exists(css_file):
+        with open(css_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return Response(
+            content=content,
+            media_type="text/css",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+        )
+    return HTMLResponse("CSS not found", status_code=404)
+
+@app.get("/js/{filename}")
+async def get_js(filename: str):
+    """Serve JavaScript files"""
+    from fastapi.responses import Response
+    webgui_dir = os.path.dirname(current_dir)
+    js_file = os.path.join(webgui_dir, "js", filename)
+    if os.path.exists(js_file):
+        with open(js_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return Response(
+            content=content,
+            media_type="application/javascript",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+        )
+    return HTMLResponse("JS not found", status_code=404)
+
+@app.get("/templates/{filename}")
+async def get_template(filename: str):
+    """Serve HTML template files"""
+    webgui_dir = os.path.dirname(current_dir)
+    template_file = os.path.join(webgui_dir, "templates", filename)
+    if os.path.exists(template_file):
+        return FileResponse(template_file, media_type="text/html")
+    return HTMLResponse("Template not found", status_code=404)
+
+@app.get("/api/player-config/{player_name}")
+async def get_player_config(player_name: str):
+    """Get player configuration YAML content"""
+    try:
+        from Players.config import PlayerRegistry
+        registry = PlayerRegistry()
+        
+        # Get player info
+        player_info = registry.get_player_info(player_name)
+        config_file = player_info['config_file']
+        
+        # Read YAML file
+        with open(config_file.path, 'r', encoding='utf-8') as f:
+            yaml_content = f.read()
+        
+        return {
+            "player_name": player_name,
+            "config_path": str(config_file.relative_path),
+            "yaml_content": yaml_content,
+            "metadata": player_info['metadata']
+        }
+    except Exception as e:
+        logger.error(f"Error loading player config for {player_name}: {e}")
+        return {
+            "error": str(e),
+            "player_name": player_name
+        }
+
+@app.get("/api/game-config")
+async def get_game_config():
+    """Get game configuration from config/game.yaml"""
+    try:
+        from core.game_config import load_game_config
+        game_config = load_game_config()
+        
+        return {
+            "black_player": {
+                "type": game_config.black_player.player_type,
+                "name": game_config.black_player.name,
+                "ai_player": game_config.black_player.ai_player,
+                "symbol": game_config.black_player.symbol
+            },
+            "white_player": {
+                "type": game_config.white_player.player_type,
+                "name": game_config.white_player.name,
+                "ai_player": game_config.white_player.ai_player,
+                "symbol": game_config.white_player.symbol
+            },
+            "settings": {
+                "title": game_config.title,
+                "board_size": game_config.board_size,
+                "show_legal_moves": game_config.show_legal_moves,
+                "show_ai_stats": game_config.show_ai_stats
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error loading game config: {e}")
+        # Return default configuration
+        return {
+            "black_player": {
+                "type": "human",
+                "name": "Human Player",
+                "ai_player": None,
+                "symbol": "⚫"
+            },
+            "white_player": {
+                "type": "ai",
+                "name": "Lightning Strike",
+                "ai_player": "LIGHTNING STRIKE",
+                "symbol": "⚪"
+            },
+            "settings": {
+                "title": "Reversi42",
+                "board_size": 8,
+                "show_legal_moves": True,
+                "show_ai_stats": True
+            }
+        }
 
 @app.get("/stats")
 async def get_stats():
@@ -1125,7 +1254,20 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
 async def handle_init_message(websocket: WebSocket, session: GameSession, data: dict):
     """Handle init message - create new session"""
     try:
-        ai_player_name = data.get("ai_player", "DIVZERO.EXE")
+        # ALWAYS load default AI from game configuration
+        default_ai = "LIGHTNING STRIKE"  # Fallback
+        try:
+            from core.game_config import load_game_config
+            game_config = load_game_config()
+            if game_config.white_player.player_type == 'ai' and game_config.white_player.ai_player:
+                default_ai = game_config.white_player.ai_player
+                logger.info(f"📋 Using AI from config/game.yaml: {default_ai}")
+        except Exception as e:
+            logger.warning(f"Could not load game config: {e}, using fallback: {default_ai}")
+        
+        # Use configured AI (ignore client request for now - config is source of truth)
+        ai_player_name = default_ai
+        logger.info(f"🤖 Creating session with AI: {ai_player_name}")
         
         # Always create a new session on init (white AI by default)
         new_session = GameSession("default", ai_player_name)
@@ -1232,10 +1374,21 @@ async def broadcast(session_id: str, message: dict):
 
 def main():
     """Main function"""
+    # Load default AI from game configuration
+    default_ai = 'LIGHTNING STRIKE'  # Fallback if config not found
+    try:
+        from core.game_config import load_game_config
+        game_config = load_game_config()
+        if game_config.white_player.player_type == 'ai' and game_config.white_player.ai_player:
+            default_ai = game_config.white_player.ai_player
+            logger.info(f"📋 Loaded default AI from config/game.yaml: {default_ai}")
+    except Exception as e:
+        logger.warning(f"Could not load game config, using fallback: {e}")
+    
     parser = argparse.ArgumentParser(description='Reversi42 WebSocket Backend')
     parser.add_argument('--port', type=int, default=8000, help='Port to run on')
     parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
-    parser.add_argument('--player', default='DIVZERO.EXE', help='AI player to use')
+    parser.add_argument('--player', default=default_ai, help=f'AI player to use (default from config: {default_ai})')
     
     args = parser.parse_args()
     

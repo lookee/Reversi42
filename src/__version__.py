@@ -21,7 +21,7 @@ def get_version():
     3. Fallback to hardcoded version
     
     Returns:
-        str: Version string (e.g., "3.2.0")
+        str: Version string (e.g., "5.0.0")
     """
     # PRIORITY 1: Parse pyproject.toml directly (no dependencies)
     try:
@@ -33,7 +33,7 @@ def get_version():
             with open(pyproject_path, "r", encoding="utf-8") as f:
                 for line in f:
                     stripped = line.strip()
-                    # Look for: version = "3.2.0"
+                    # Look for: version = "X.Y.Z"
                     if stripped.startswith("version") and "=" in line:
                         parts = line.split("=", 1)
                         if len(parts) == 2:

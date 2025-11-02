@@ -5,9 +5,13 @@ WebSocket backend server for real-time Reversi42 gameplay
 Provides bridge between web frontend and game engine
 
 Components:
-  - backend_server.py: Main WebSocket server
+  - reversi42_server.py: Main WebSocket server
   - websocket_observer.py: AI search observer for live insights
 """
 
-__version__ = "3.2.0"
+# Import version from centralized location
+try:
+    from __version__ import __version__
+except ImportError:
+    __version__ = "5.0.0"  # Fallback (must match pyproject.toml)
 

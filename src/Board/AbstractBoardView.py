@@ -3,8 +3,6 @@ AbstractBoardView - Interface for Board Visualization
 
 This abstract class defines the interface that all board view implementations
 must follow. It enables multiple UI implementations without changing the core game logic.
-
-Version: 3.2.0 - Cleaned up, removed pygame and terminal views
 """
 
 from abc import ABC, abstractmethod

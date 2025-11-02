@@ -1,0 +1,324 @@
+# ============================================================================
+# Reversi42 Default Game Configuration
+# ============================================================================
+# This file defines the default game setup when starting Reversi42.
+#
+# The game will automatically load these players and start the match.
+#
+# Last Updated: 2025-11-02
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# PLAYER CONFIGURATION
+# ----------------------------------------------------------------------------
+# Define who plays Black and White
+players:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLACK PLAYER (Moves First)
+  # ══════════════════════════════════════════════════════════════════════════
+  black:
+    # Player type (REQUIRED)
+    # Values: "human" | "ai"
+    type: "human"
+    
+    # Display name
+    # Type: string
+    name: "Human Player"
+    
+    # Player symbol (for display)
+    # Type: string (emoji recommended)
+    symbol: "⚫"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # WHITE PLAYER (Moves Second)
+  # ══════════════════════════════════════════════════════════════════════════
+  white:
+    # Player type (REQUIRED)
+    # Values: "human" | "ai"
+    type: "ai"
+    
+    # AI player name (REQUIRED if type = "ai")
+    # Must match exactly a player name from config/players/enabled/
+    # 
+    # ┌────────────────────────────────────────────────────────────────────┐
+    # │ AVAILABLE AI PLAYERS (Choose one)                                  │
+    # ├────────────────────────────────────────────────────────────────────┤
+    # │ BEGINNER (ELO 1200-1400) - Good for learning                      │
+    # │   • ZEN MASTER       (ELO 1250) - Educational, shows thinking      │
+    # │   • BLITZ DEMON      (ELO 1350) - Ultra-fast, instant responses   │
+    # │                                                                     │
+    # │ INTERMEDIATE (ELO 1400-1600) - Balanced challenge    ⭐ START HERE │
+    # │   • LIGHTNING STRIKE (ELO 1400) - Fast, consistent  ← RECOMMENDED │
+    # │   • GLITCH LORD      (ELO 1500) - Unpredictable, varied          │
+    # │                                                                     │
+    # │ ADVANCED (ELO 1700-1800) - Strong tactical play                   │
+    # │   • CORNER REAPER    (ELO 1720) - Corner domination               │
+    # │   • THE STRANGLER    (ELO 1750) - Mobility warfare                │
+    # │   • THE EXECUTIONER  (ELO 1770) - Aggressive ruthless             │
+    # │                                                                     │
+    # │ CHAMPION (ELO 1800+) - Maximum challenge                          │
+    # │   • FORTRESS ETERNAL (ELO 1800) - Defensive wall                  │
+    # │   • THE ORACLE       (ELO 1850) - Endgame prophet                 │
+    # │   • DIVZERO.EXE      (ELO 1880) - Ultimate singularity            │
+    # │                                                                     │
+    # │ PREMIUM - Fully configurable                                       │
+    # │   • APOCALYPTRON     (ELO ~1750) - Customizable engine            │
+    # └────────────────────────────────────────────────────────────────────┘
+    #
+    # RECOMMENDATION FOR FIRST GAME:
+    # - LIGHTNING STRIKE (ELO 1400): Perfect balance of challenge and speed
+    #   * Not too strong (beatable with practice)
+    #   * Not too weak (provides real challenge)
+    #   * Fast responses (<100ms, great for learning)
+    #   * Consistent playstyle (predictable, educational)
+    #
+    # PROGRESSION PATH:
+    # 1. Start with LIGHTNING STRIKE (learn basics)
+    # 2. Move to GLITCH LORD (more variety)
+    # 3. Try THE STRANGLER (tactical improvement)
+    # 4. Challenge THE ORACLE (endgame mastery)
+    # 5. Face DIVZERO.EXE (ultimate test)
+    ai_player: "LIGHTNING STRIKE"
+    
+    # Display name (optional, defaults to ai_player name if omitted)
+    # Type: string
+    name: "Lightning Strike"
+    
+    # Player symbol (for display)
+    # Type: string (emoji recommended)
+    symbol: "⚪"
+
+# ----------------------------------------------------------------------------
+# GAME SETTINGS
+# ----------------------------------------------------------------------------
+game:
+  # Game title shown at startup
+  # Type: string
+  title: "Reversi42 - Human vs AI"
+  
+  # Auto-start game on launch
+  # Type: boolean
+  # - true: Start game immediately with configured players
+  # - false: Show player selection menu first (interactive mode)
+  auto_start: true
+  
+  # Board size (standard Reversi/Othello)
+  # Type: integer
+  # Standard: 8 (always use 8 for official rules)
+  board_size: 8
+  
+  # Starting position preset
+  # Type: string
+  # Values: "standard" (only option currently)
+  starting_position: "standard"
+
+# ----------------------------------------------------------------------------
+# DISPLAY SETTINGS
+# ----------------------------------------------------------------------------
+display:
+  # Board display style
+  # Type: string
+  # Values: "simple" | "unicode" | "emoji"
+  # - simple: ASCII characters (X, O)
+  # - unicode: Box-drawing characters (looks nice in terminal)
+  # - emoji: Colored circles (⚫ ⚪)
+  board_style: "unicode"
+  
+  # Show board coordinates (A-H columns, 1-8 rows)
+  # Type: boolean
+  show_coordinates: true
+  
+  # Show complete move history
+  # Type: boolean
+  show_history: true
+  
+  # Show current score after each move
+  # Type: boolean
+  show_score: true
+  
+  # Clear terminal screen before each move
+  # Type: boolean
+  # Recommendation: false (keep history visible)
+  clear_screen: false
+
+# ----------------------------------------------------------------------------
+# GAME RULES
+# ----------------------------------------------------------------------------
+rules:
+  # Allow pass move when player has no legal moves
+  # Type: boolean
+  # Standard Reversi: true (passing is allowed)
+  allow_pass: true
+  
+  # Show legal moves to human player
+  # Type: boolean
+  # Recommendation: true for learning, false for challenge
+  show_legal_moves: true
+  
+  # Show move hints (suggested best moves)
+  # Type: boolean
+  # Recommendation: false (let player think independently)
+  show_hints: false
+  
+  # Enable undo move functionality
+  # Type: boolean
+  # Recommendation: false for serious play, true for learning
+  allow_undo: false
+
+# ----------------------------------------------------------------------------
+# AI BEHAVIOR
+# ----------------------------------------------------------------------------
+ai_behavior:
+  # Show AI thinking process (depth, iterations, etc.)
+  # Type: boolean
+  # - true: See how AI searches (educational)
+  # - false: Only see final move (clean output)
+  show_thinking: false
+  
+  # Show AI position evaluation
+  # Type: boolean
+  # - true: See how AI scores positions (educational)
+  # - false: No evaluation details
+  show_evaluation: false
+  
+  # Show AI search statistics (nodes, time, etc.)
+  # Type: boolean
+  # - true: See performance stats after each move
+  # - false: No statistics
+  show_statistics: true
+  
+  # Show opening book usage
+  # Type: boolean
+  # - true: Display when AI uses opening theory
+  # - false: Silent book usage
+  show_opening_book: false
+  
+  # AI thinking delay (milliseconds)
+  # Type: integer (0-10000 ms)
+  # 
+  # PURPOSE: Makes AI feel more natural (instant moves can be jarring)
+  # 
+  # TIME EXAMPLES:
+  # - 0 ms = Instant (no delay, pure speed)
+  # - 300 ms = Quick but natural
+  # - 500 ms = Comfortable pace (recommended for first games)
+  # - 1000 ms = Deliberate (1 second)
+  # - 2000 ms = Slow (gives time to study position)
+  # 
+  # RECOMMENDATION:
+  # - 0 ms for speed games
+  # - 500 ms for normal play (feels responsive but not rushed)
+  # - 1000 ms for learning (time to observe board before AI moves)
+  think_delay_ms: 500
+
+# ----------------------------------------------------------------------------
+# GAME FLOW
+# ----------------------------------------------------------------------------
+game_flow:
+  # Pause after each move (milliseconds)
+  # Type: integer (0-5000 ms)
+  # Gives time to observe position changes
+  # 
+  # - 0 ms = Continuous play
+  # - 500 ms = Brief pause
+  # - 1000 ms = 1 second pause
+  # 
+  # RECOMMENDATION: 0 (no pause, think_delay_ms already provides pacing)
+  pause_after_move: 0
+  
+  # Ask for confirmation before quitting
+  # Type: boolean
+  confirm_quit: true
+  
+  # Automatically save game on exit
+  # Type: boolean
+  auto_save: false
+  
+  # Directory for saved games (relative to project root)
+  # Type: string
+  save_directory: "saves/"
+
+# ----------------------------------------------------------------------------
+# ADVANCED OPTIONS
+# ----------------------------------------------------------------------------
+advanced:
+  # Enable debug mode (detailed logging)
+  # Type: boolean
+  debug_mode: false
+  
+  # Log all moves to file
+  # Type: boolean
+  log_moves: false
+  
+  # Log file path (if log_moves = true)
+  # Type: string
+  log_file: "logs/game.log"
+
+# ============================================================================
+# QUICK CONFIGURATION EXAMPLES
+# ============================================================================
+#
+# Example 1: Human vs Human
+# --------------------------
+# players:
+#   black:
+#     type: "human"
+#     name: "Player 1"
+#   white:
+#     type: "human"
+#     name: "Player 2"
+#
+#
+# Example 2: AI vs AI (Watch Mode)
+# ---------------------------------
+# players:
+#   black:
+#     type: "ai"
+#     ai_player: "DIVZERO.EXE"
+#   white:
+#     type: "ai"
+#     ai_player: "THE ORACLE"
+#
+#
+# Example 3: Hard AI Opponent
+# ----------------------------
+# players:
+#   white:
+#     ai_player: "DIVZERO.EXE"    # Champion level (ELO 1880)
+#
+#
+# Example 4: Learning Mode (Easy + Verbose)
+# ------------------------------------------
+# players:
+#   white:
+#     ai_player: "ZEN MASTER"     # Beginner level
+# ai_behavior:
+#   show_thinking: true
+#   show_evaluation: true
+#   show_statistics: true
+#   think_delay_ms: 1000          # More time to observe
+#
+#
+# Example 5: Speed Chess Mode
+# ----------------------------
+# players:
+#   white:
+#     ai_player: "BLITZ DEMON"    # Ultra-fast (depth 3)
+# ai_behavior:
+#   think_delay_ms: 0             # Instant responses
+#
+#
+# Example 6: Epic Battle (Two Champions)
+# ---------------------------------------
+# players:
+#   black:
+#     type: "ai"
+#     ai_player: "DIVZERO.EXE"
+#   white:
+#     type: "ai"
+#     ai_player: "THE ORACLE"
+# ai_behavior:
+#   show_statistics: true         # Watch the battle stats
+#
+# ============================================================================

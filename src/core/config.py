@@ -1,6 +1,5 @@
 """
 Reversi42 - Centralized Configuration
-Version 3.1.0
 
 All constants, defaults, and configuration values in one place.
 """
@@ -278,6 +277,10 @@ WHITE_MOVE = "w"  # Possible move for white
 # Board notation
 ROWNAME = " ABCDEFGH"
 
-# Version
-VERSION = "3.1.0"
+# Version - Import from centralized location
+try:
+    from __version__ import __version__ as VERSION
+except ImportError:
+    VERSION = "5.0.0"  # Fallback (must match pyproject.toml)
+
 VERSION_NAME = "Bitboard Revolution"

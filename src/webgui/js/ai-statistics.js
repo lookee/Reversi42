@@ -11,8 +11,6 @@
  *  - Iterative deepening timeline
  *  - Optimization indicators
  *  - Interactive charts (sparklines, circular progress, bar charts)
- * 
- * @version 3.2.0
  */
 
 // Initialize AI Statistics Dashboard after template is loaded

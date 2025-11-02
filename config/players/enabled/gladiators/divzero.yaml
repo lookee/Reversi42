@@ -1,0 +1,194 @@
+# ============================================================================
+# DIVZERO.EXE - The Ultimate Singularity
+# ============================================================================
+# Maximum power configuration - The strongest AI in Reversi42
+# 
+# Strategy: Adaptive depth with extreme endgame calculation
+# Target: Champion level (ELO ~1880)
+# Speed: Slow to moderate (contemplative precision)
+# Best for: Tournament play, maximum challenge, deep analysis
+# ============================================================================
+
+metadata:
+  name: "DIVZERO.EXE"
+  display_name: "DIVZERO.EXE"
+  description: "Ultimate Singularity - The Perfect Player"
+  headline: "THE SINGULARITY HAS ARRIVED"
+  enabled: true
+  icon: "💀"
+  
+  # Avatar: Ominous dark AI entity with digital singularity aesthetics
+  # Suggested: Black hole/singularity visualization, glowing red/purple accents
+  # Path is relative to project root
+  # Example image: Dark metallic skull with circuit patterns, glowing eyes
+  avatar: "avatars/default.png"  # Create 512x512 PNG with dark/ominous theme
+  
+  category: "champion"
+  estimated_elo: 1880
+  
+  stats:
+    power: 10      # Absolute dominance
+    speed: 4       # Contemplative precision
+    accuracy: 10   # Quantum precision
+    depth: 10      # Sees the unseeable
+    lethality: 10  # Merciless execution
+
+engine:
+  depth:
+    base: 12
+    strategy: "adaptive"
+    
+    # Adaptive depth: Conservative opening → Standard midgame → Deep endgame
+    adaptive:
+      opening: 8   # Opening (moves 1-20): Depth 8 (book + light calculation)
+      midgame: 12  # Midgame (moves 21-50): Depth 12 (full power)
+      endgame: 16  # Endgame (moves 51-60): Depth 16 (near-perfect)
+  
+  # Maximum parallelization (8 cores)
+  parallel:
+    enabled: true
+    num_workers: 8  # Maximum workers for extreme performance
+  
+  # Large transposition table (256 MB)
+  transposition_table:
+    enabled: true
+    size_mb: 256    # High-end cache for deep searches
+  
+  # Aspiration windows (with adaptive depth, very effective)
+  aspiration_windows:
+    enabled: true
+    initial_width: 50
+    widen_factor: 2.0
+
+evaluation:
+  # Use balanced preset with all evaluators at equal weight
+  preset: "balanced"
+  
+  # Note: When preset is used, individual evaluator configuration is ignored
+  # The balanced preset includes:
+  # - Mobility: weight 1.0
+  # - Positional: weight 1.0
+  # - Stability: weight 1.0
+  # - Parity: weight 1.0
+
+move_ordering:
+  strategies:
+    # All ordering strategies enabled for maximum pruning efficiency
+    - name: "pv_move"
+      enabled: true
+      priority: 100
+    
+    - name: "killer_moves"
+      enabled: true
+      priority: 90
+      max_killers_per_ply: 2
+    
+    - name: "history_heuristic"
+      enabled: true
+      priority: 80
+      decay_factor: 0.95
+    
+    - name: "positional"
+      enabled: true
+      priority: 70
+
+pruning:
+  # All pruning optimizations enabled for 10-100x speedup
+  
+  null_move:
+    enabled: true
+    reduction_depth: 3
+    min_depth: 3
+  
+  futility:
+    enabled: true
+    margin: 100
+    max_depth: 3
+  
+  late_move_reduction:
+    enabled: true
+    threshold_move: 4
+    reduction_depth: 1
+    min_depth: 3
+  
+  multi_cut:
+    enabled: true
+    threshold_cuts: 3
+    verification_depth: 2
+
+opening_book:
+  # Book moves are evaluated (modern approach)
+  enabled: true
+  strategy: "evaluated"  # Validate book theory with engine
+  
+  evaluation:
+    advantage_weight: 0.2
+    variety_weight: 0.1
+    only_evaluated: true
+  
+  display:
+    show_options: false   # Silent execution (champion doesn't explain)
+    show_analysis: false
+    verbose: false
+
+behavior:
+  time:
+    think_time_ms: 0      # No artificial delay (instant when ready)
+    max_time_ms: null     # No time limit (search to full depth)
+  
+  logging:
+    level: "normal"       # Show statistics but not verbose
+    show_statistics: true
+    show_thinking: false
+    show_evaluation: false
+  
+  randomization:
+    enabled: false        # Deterministic (always best move)
+    temperature: 0.0
+
+advanced:
+  # All advanced features disabled (conservative, proven configuration)
+  quiescence:
+    enabled: false
+  
+  singular_extension:
+    enabled: false
+  
+  razoring:
+    enabled: false
+  
+  iid:
+    enabled: false
+  
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# DIVZERO.EXE PERFORMANCE NOTES
+# ============================================================================
+# 
+# Expected Performance:
+# - Opening (depth 8): ~1-3 seconds per move
+# - Midgame (depth 12): ~10-30 seconds per move
+# - Endgame (depth 16): ~5-20 seconds per move (fewer pieces = faster)
+# 
+# Hardware Requirements:
+# - CPU: 8+ cores recommended (scales well to 8 cores)
+# - RAM: 512 MB minimum (256 MB for TT + 256 MB for workers)
+# - OS: Any (Linux, macOS, Windows)
+# 
+# Strength Profile:
+# - Opening: Professional theory (book) + engine validation
+# - Midgame: Elite tactical and positional play
+# - Endgame: Near-perfect calculation (16 ply lookahead)
+# - Overall: Champion tier (ELO ~1880)
+# 
+# Tuning Options:
+# - For faster play: Reduce base depth to 10 (still very strong)
+# - For slower/stronger: Increase endgame depth to 18
+# - For less RAM: Reduce size_mb to 128
+# - For fewer cores: Set num_workers to 4
+# ============================================================================
+

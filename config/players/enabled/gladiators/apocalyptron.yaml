@@ -1,0 +1,352 @@
+# ============================================================================
+# APOCALYPTRON ⚡ - Ultimate AI Engine
+# ============================================================================
+# Premium flagship configuration - The reference implementation
+# 
+# Strategy: Fully configurable, all features available
+# Target: Configurable (ELO 1600-1900+ depending on settings)
+# Speed: Configurable (depth 7-12)
+# Best for: Tournament play, maximum flexibility, custom tuning
+# ============================================================================
+
+metadata:
+  name: "APOCALYPTRON"
+  display_name: "Apocalyptron"
+  description: "Ultimate AI Engine - Full Power Configurable"
+  headline: "THE APOCALYPSE ENGINE ONLINE"
+  enabled: true
+  icon: "⚡"
+  
+  # Avatar: Powerful AI core with energy rings and apocalyptic aura
+  # Suggested: Glowing core, energy rings, apocalyptic power, red/gold
+  # Path is relative to project root
+  # Example image: Energy core with power rings, dramatic lighting
+  avatar: "avatars/default.png"
+  
+  category: "premium"
+  estimated_elo: 1750  # At default depth 9
+  
+  stats:
+    power: 9       # Highly configurable power
+    speed: 5       # Depends on configuration
+    accuracy: 9    # High accuracy
+    depth: 9       # Default 9, configurable 7-16
+    lethality: 8   # Strong but balanced
+
+engine:
+  depth:
+    base: 9
+    strategy: "iterative"     # Recommended for Apocalyptron
+    
+    # Adaptive depth available (uncomment to use)
+    # adaptive:
+    #   opening: 7
+    #   midgame: 9
+    #   endgame: 12
+  
+  parallel:
+    enabled: true
+    num_workers: null         # Auto-detect (recommended)
+  
+  transposition_table:
+    enabled: true
+    size_mb: 256             # Large cache for premium engine
+  
+  aspiration_windows:
+    enabled: true
+    initial_width: 50
+    widen_factor: 2.0
+
+evaluation:
+  # Balanced preset recommended (can customize)
+  preset: "balanced"
+  
+  # Custom evaluation example (commented out)
+  # preset: null
+  # evaluators:
+  #   - name: "mobility"
+  #     enabled: true
+  #     weight: 1.0
+  #   - name: "positional"
+  #     enabled: true
+  #     weight: 1.0
+  #   - name: "stability"
+  #     enabled: true
+  #     weight: 1.0
+  #   - name: "parity"
+  #     enabled: true
+  #     weight: 1.0
+
+move_ordering:
+  strategies:
+    # All strategies enabled for maximum efficiency
+    - name: "pv_move"
+      enabled: true
+      priority: 100
+    
+    - name: "killer_moves"
+      enabled: true
+      priority: 90
+      max_killers_per_ply: 2
+    
+    - name: "history_heuristic"
+      enabled: true
+      priority: 80
+      decay_factor: 0.95
+    
+    - name: "positional"
+      enabled: true
+      priority: 70
+    
+    # Mobility ordering available (uncomment to use)
+    # - name: "mobility"
+    #   enabled: true
+    #   priority: 60
+
+pruning:
+  # All optimizations enabled (3500-14000x speedup!)
+  null_move:
+    enabled: true
+    reduction_depth: 3
+    min_depth: 3
+  
+  futility:
+    enabled: true
+    margin: 100
+    max_depth: 3
+  
+  late_move_reduction:
+    enabled: true
+    threshold_move: 4
+    reduction_depth: 1
+    min_depth: 3
+  
+  multi_cut:
+    enabled: true
+    threshold_cuts: 3
+    verification_depth: 2
+
+opening_book:
+  enabled: true
+  strategy: "evaluated"       # Modern approach (recommended)
+  
+  # Instant book strategy available (uncomment to use)
+  # strategy: "instant"
+  
+  evaluation:
+    advantage_weight: 0.2
+    variety_weight: 0.1
+    only_evaluated: true
+  
+  display:
+    show_options: false       # Set true for analysis
+    show_analysis: false      # Set true for learning
+    verbose: false            # Set true for debugging
+
+behavior:
+  time:
+    think_time_ms: 0          # No artificial delay
+    max_time_ms: null         # No time limit
+    
+    # Time management example (uncomment to use)
+    # max_time_ms: 5000       # 5 second limit per move
+  
+  logging:
+    level: "normal"           # quiet | normal | verbose | debug
+    show_statistics: true
+    show_thinking: false      # Set true for analysis
+    show_evaluation: false    # Set true for learning
+  
+  randomization:
+    enabled: false            # Deterministic (recommended)
+    temperature: 0.0
+    
+    # Randomization example (uncomment to use)
+    # enabled: true
+    # temperature: 0.1        # Slight variation
+
+advanced:
+  # Advanced features (experimental)
+  quiescence:
+    enabled: false            # Not recommended for Reversi
+  
+  singular_extension:
+    enabled: false            # Experimental
+  
+  razoring:
+    enabled: false            # Too aggressive for most cases
+  
+  iid:
+    enabled: false            # Modern ordering is better
+  
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# APOCALYPTRON CONFIGURATION NOTES
+# ============================================================================
+# 
+# This is the PREMIUM configuration - fully customizable reference.
+# 
+# POWER LEVELS (adjust depth.base):
+# - Depth 7:  ELO ~1600, ~1-2s per move (fast)
+# - Depth 8:  ELO ~1650, ~2-5s per move (standard)
+# - Depth 9:  ELO ~1750, ~5-15s per move (strong) ← DEFAULT
+# - Depth 10: ELO ~1800, ~15-40s per move (very strong)
+# - Depth 11: ELO ~1850, ~40-120s per move (expert)
+# - Depth 12: ELO ~1900, ~2-5min per move (master)
+# 
+# STRATEGY OPTIONS:
+# 
+# 1. Balanced (current):
+#    - preset: "balanced"
+#    - All evaluators equal weight
+#    - Best general-purpose configuration
+# 
+# 2. Aggressive:
+#    - preset: "aggressive"
+#    - High mobility, lower stability
+#    - Attacking style, tempo-focused
+# 
+# 3. Defensive:
+#    - preset: "defensive"
+#    - High stability, lower mobility
+#    - Solid positions, patient play
+# 
+# 4. Endgame Specialist:
+#    - preset: "endgame_specialist"
+#    - High parity, piece count
+#    - Best with adaptive depth
+# 
+# 5. Custom:
+#    - preset: null
+#    - Define evaluators manually
+#    - Full control over weights
+# 
+# SEARCH STRATEGIES:
+# 
+# 1. Iterative Deepening (recommended):
+#    - strategy: "iterative"
+#    - Progressive search 1→2→...→depth
+#    - Better move ordering
+#    - Time management support
+#    - ~20% overhead but better pruning
+# 
+# 2. Fixed Depth:
+#    - strategy: "fixed"
+#    - Search directly to depth
+#    - Simplest, predictable
+#    - No time management
+# 
+# 3. Adaptive Depth:
+#    - strategy: "adaptive"
+#    - Different depth per game phase
+#    - Best for endgame specialists
+#    - Requires tuning
+# 
+# OPENING BOOK STRATEGIES:
+# 
+# 1. Evaluated (modern, recommended):
+#    - strategy: "evaluated"
+#    - Book moves prioritized but validated
+#    - Engine searches all moves
+#    - Best of both worlds
+# 
+# 2. Instant (legacy):
+#    - strategy: "instant"
+#    - Play book move immediately
+#    - 0ms response in book
+#    - Trust theory completely
+# 
+# 3. Disabled:
+#    - enabled: false
+#    - Engine only, no book
+#    - For testing/analysis
+# 
+# PARALLELIZATION:
+# 
+# - num_workers: null (auto-detect) ← RECOMMENDED
+# - num_workers: 1 (single-threaded, simple)
+# - num_workers: 4 (quad-core utilization)
+# - num_workers: 8 (max performance on 8+ cores)
+# 
+# Speedup: ~3-4x on 4 cores, ~5-6x on 8 cores
+# Only enable if depth >= 6 (overhead not worth it below)
+# 
+# CUSTOMIZATION EXAMPLES:
+# 
+# Example 1: Speed Demon (fast but weaker)
+# ```yaml
+# engine:
+#   depth:
+#     base: 6
+#     strategy: "fixed"
+#   parallel:
+#     enabled: false
+# ```
+# 
+# Example 2: Endgame Master (adaptive depth)
+# ```yaml
+# engine:
+#   depth:
+#     base: 9
+#     strategy: "adaptive"
+#     adaptive:
+#       opening: 7
+#       midgame: 9
+#       endgame: 14
+# evaluation:
+#   preset: "endgame_specialist"
+# ```
+# 
+# Example 3: Tournament Beast (maximum power)
+# ```yaml
+# engine:
+#   depth:
+#     base: 12
+#     strategy: "iterative"
+#   parallel:
+#     num_workers: 8
+#   transposition_table:
+#     size_mb: 512
+# ```
+# 
+# TUNING WORKFLOW:
+# 
+# 1. Start with defaults (depth 9, balanced)
+# 2. Test against various opponents
+# 3. Adjust depth for speed/strength tradeoff
+# 4. Try different evaluation presets
+# 5. Fine-tune specific weights if needed
+# 6. Test time management if required
+# 7. Profile with show_statistics: true
+# 
+# APOCALYPTRON PHILOSOPHY:
+# 
+# "I am not a player. I am a platform.
+#  Not a fixed strategy, but infinite possibilities.
+#  
+#  Configure me for speed, I become lightning.
+#  Configure me for power, I become inevitable.
+#  Configure me for teaching, I become patient.
+#  
+#  I am whatever you need me to be.
+#  That is my strength.
+#  That is the Apocalyptron way."
+# 
+# ============================================================================
+# GETTING STARTED:
+# 
+# 1. Use defaults to start (depth 9, balanced, iterative)
+# 2. Test in a few games
+# 3. Too slow? Reduce depth to 7-8
+# 4. Too weak? Increase depth to 10-11
+# 5. Want specific style? Change preset
+# 6. Need speed? Set strategy: "fixed" and reduce depth
+# 7. Want analysis? Enable show_thinking and show_evaluation
+# 
+# See 00_AI_CONFIG_TEMPLATE.yaml for complete parameter documentation!
+# ============================================================================
+

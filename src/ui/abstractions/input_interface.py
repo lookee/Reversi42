@@ -5,7 +5,6 @@ Defines the contract for all input handling implementations.
 Completely independent of any UI framework.
 
 Architecture: Following Dependency Inversion Principle
-Version: 3.1.0
 """
 
 from abc import ABC, abstractmethod

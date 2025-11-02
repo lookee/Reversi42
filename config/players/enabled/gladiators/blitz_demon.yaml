@@ -1,0 +1,219 @@
+# ============================================================================
+# BLITZ DEMON 😈 - Speed Incarnate
+# ============================================================================
+# Ultra-fast configuration - Even faster than Lightning Strike
+# 
+# Strategy: Minimum depth, maximum speed, pure instinct
+# Target: Beginner level (ELO ~1350)
+# Speed: Ultra-fast (<50ms per move)
+# Best for: Speed chess, rapid tournaments, instant responses
+# ============================================================================
+
+metadata:
+  name: "BLITZ DEMON"
+  display_name: "Blitz Demon"
+  description: "Speed Incarnate - Faster Than Thought"
+  headline: "BLINK AND YOU'LL MISS IT"
+  enabled: true
+  icon: "😈"
+  
+  # Avatar: Red demon in motion blur, speed trails
+  # Suggested: Red devil with motion effects, speed blur, fire trail
+  # Path is relative to project root
+  # Example image: Demonic figure racing, motion blur, fiery trail
+  avatar: "avatars/default.png"
+  
+  category: "beginner"
+  estimated_elo: 1350
+  
+  stats:
+    power: 3       # Low power (shallow depth)
+    speed: 10      # Maximum speed
+    accuracy: 4    # Instinctive (low accuracy)
+    depth: 2       # Very shallow
+    lethality: 5   # Fast attacks
+
+engine:
+  depth:
+    base: 3               # Even shallower than Lightning Strike!
+    strategy: "fixed"     # No iterative (overhead)
+  
+  parallel:
+    enabled: false        # Single-threaded only
+    num_workers: 1
+  
+  transposition_table:
+    enabled: false        # No cache (overhead)
+  
+  aspiration_windows:
+    enabled: false        # No aspiration
+
+evaluation:
+  # Absolute minimum - positional only
+  preset: null
+  
+  evaluators:
+    - name: "mobility"
+      enabled: false      # Disabled
+    
+    - name: "positional"
+      enabled: true       # ONLY evaluator
+      weight: 1.0
+    
+    - name: "stability"
+      enabled: false      # Disabled
+    
+    - name: "parity"
+      enabled: false      # Disabled
+    
+    - name: "frontier"
+      enabled: false      # Disabled
+
+move_ordering:
+  strategies:
+    # Simple positional only
+    - name: "pv_move"
+      enabled: false
+    
+    - name: "killer_moves"
+      enabled: false
+    
+    - name: "history_heuristic"
+      enabled: false
+    
+    - name: "positional"
+      enabled: true
+      priority: 100
+    
+    - name: "mobility"
+      enabled: false
+
+pruning:
+  # ALL pruning disabled (depth 3 too shallow)
+  null_move:
+    enabled: false
+  
+  futility:
+    enabled: false
+  
+  late_move_reduction:
+    enabled: false
+  
+  multi_cut:
+    enabled: false
+
+opening_book:
+  # Use book for instant moves
+  enabled: true
+  strategy: "instant"     # Instant book moves
+  
+  evaluation:
+    advantage_weight: 0.1
+    variety_weight: 0.2   # High variety (fun)
+    only_evaluated: false # All openings
+  
+  display:
+    show_options: false
+    show_analysis: false
+    verbose: false
+
+behavior:
+  time:
+    think_time_ms: 0      # Absolute instant
+    max_time_ms: null
+  
+  logging:
+    level: "quiet"        # Quiet (speed focus)
+    show_statistics: false
+    show_thinking: false
+    show_evaluation: false
+  
+  randomization:
+    enabled: false
+    temperature: 0.0
+
+advanced:
+  quiescence:
+    enabled: false
+  singular_extension:
+    enabled: false
+  razoring:
+    enabled: false
+  iid:
+    enabled: false
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# BLITZ DEMON PERFORMANCE NOTES
+# ============================================================================
+# 
+# Playing Style:
+# - PURE SPEED above all else
+# - Depth 3 fixed (even shallower than Lightning Strike's 4)
+# - Positional evaluation only
+# - No pruning, no caching, no overhead
+# - In book: 0-2ms, out of book: 10-50ms
+# 
+# Expected Performance:
+# - In book: 0-5 ms per move (instant)
+# - Out of book: 10-50 ms per move
+# - Average: 20-30 ms per move
+# - Fastest player in entire roster!
+# 
+# Strength Profile:
+# - Opening: Good (uses book extensively)
+# - Midgame: Weak (depth 3 misses tactics)
+# - Endgame: Very weak (not deep enough)
+# - Overall: Beginner tier (ELO ~1350)
+# 
+# When Blitz Demon Shines:
+# - Bullet chess (games < 1 minute)
+# - Ultra-blitz tournaments
+# - CPU-limited environments
+# - When speed > strength
+# - Testing/debugging (instant feedback)
+# 
+# Comparison to Lightning Strike:
+# - Lightning Strike: depth 4, ~50-100ms
+# - Blitz Demon: depth 3, ~10-50ms
+# - Blitz Demon is 2-3x faster
+# - Lightning Strike is ~50 ELO stronger
+# 
+# Performance Breakdown:
+# Move gen: ~0.5-1 ms
+# Evaluation: ~0.1 ms per node
+# Nodes (depth 3): ~100-500 nodes
+# Total: 10-50 ms
+# 
+# Unique Features:
+# - Shallowest depth (3) in entire roster
+# - No transposition table (overhead > benefit)
+# - Quiet logging (speed focus)
+# - Instant book strategy
+# - All openings allowed (variety)
+# 
+# Use Cases:
+# - Bullet tournaments (time is everything)
+# - Mobile/embedded (limited CPU)
+# - Testing loops (need instant feedback)
+# - Fun casual games (fast-paced action)
+# - Training beginners (quick games)
+# 
+# Limitations:
+# - Misses tactical sequences (depth 3 too shallow)
+# - Weak endgame (needs depth 8+ for good endgame)
+# - Loses to depth 6+ consistently
+# - Makes positional mistakes
+# 
+# Philosophy:
+# "Speed is the only stat that matters.
+#  While you think, I've already moved.
+#  While you calculate, I'm three moves ahead.
+#  Not in depth - in time.
+#  By the time you find the best move, the game is over."
+#                                           - Blitz Demon
+# ============================================================================
+

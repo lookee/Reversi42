@@ -19,51 +19,32 @@ from Players.Player import Player
 from Players.PlayerApocalyptron import PlayerApocalyptron
 from Players.PlayerHuman import PlayerHuman
 
-# Epic Gladiators - 10 Legendary Fighters (from separate files)
-from Players.Gladiators import (
-    PlayerDivZero,
-    PlayerLightningStrike,
-    PlayerTheStrangler,
-    PlayerFortressEternal,
-    PlayerCornerReaper,
-    PlayerTheOracle,
-    PlayerBlitzDemon,
-    PlayerTheExecutioner,
-    PlayerGlitchLord,
-    PlayerZenMaster,
-)
-
 
 class PlayerFactory:
     """
     Factory class for creating players with Dependency Injection.
-
+    
+    MIGRATION NOTE: This factory now wraps the new PlayerRegistry system.
+    All Gladiator players are now created from YAML configurations.
+    
     Clean Architecture: Factory handles dependency injection of InputProviders
     for human players, keeping the Player domain layer UI-agnostic.
-
-    Player types are automatically discovered from their metadata.
+    
+    Legacy Support: Maintains backward compatibility with old API.
+    New code should use Players.config.PlayerRegistry directly.
     """
 
-    # Registry of all player classes
-    # Apocalyptron is the ultimate AI, followed by Epic Gladiators
-    ALL_PLAYER_CLASSES = [
-        PlayerHuman,  # Human player (disabled in menu, but available for API)
-        PlayerApocalyptron,  # Apocalyptron - The ultimate AI (enabled in menu)
-        # Epic Gladiators - 10 Legendary Fighters
-        PlayerDivZero,  # The Ultimate Singularity (ELO 1880)
-        PlayerLightningStrike,  # Lightning Fast (ELO 1400)
-        PlayerTheStrangler,  # Mobility Assassin (ELO 1750)
-        PlayerFortressEternal,  # Defensive Master (ELO 1800)
-        PlayerCornerReaper,  # Corner Specialist (ELO 1720)
-        PlayerTheOracle,  # Endgame Prophet (ELO 1850)
-        PlayerBlitzDemon,  # Speed Incarnate (ELO 1350)
-        PlayerTheExecutioner,  # Ruthless Destroyer (ELO 1770)
-        PlayerGlitchLord,  # Chaotic Anomaly (ELO 1500)
-        PlayerZenMaster,  # Enlightened One (ELO 1250)
+    # Legacy player classes (kept for backward compatibility)
+    LEGACY_PLAYER_CLASSES = [
+        PlayerHuman,         # Human player
+        PlayerApocalyptron,  # Apocalyptron AI
     ]
 
-    # Build registry from metadata
-    PLAYER_TYPES = {cls.PLAYER_METADATA["display_name"]: cls for cls in ALL_PLAYER_CLASSES}
+    # Build legacy registry
+    PLAYER_TYPES = {cls.PLAYER_METADATA["display_name"]: cls for cls in LEGACY_PLAYER_CLASSES}
+    
+    # NEW: PlayerRegistry integration
+    _registry = None
 
     # Store board_control for DI (set externally)
     _board_control = None
@@ -90,12 +71,22 @@ class PlayerFactory:
         cls._ui_type = ui_type
 
     @classmethod
+    def _get_registry(cls):
+        """Get or create PlayerRegistry instance (lazy initialization)."""
+        if cls._registry is None:
+            from Players.config import PlayerRegistry
+            cls._registry = PlayerRegistry(auto_discover=True)
+        return cls._registry
+    
+    @classmethod
     def create_player(cls, player_type, **kwargs):
         """
         Create a player of the specified type with dependency injection.
-
+        
+        MIGRATION: Now uses PlayerRegistry for AI players.
+        
         For PlayerHuman, automatically injects appropriate InputProvider.
-        For AI players, creates normally.
+        For AI players, delegates to PlayerRegistry (config-based).
 
         Args:
             player_type (str): Type of player to create
@@ -107,17 +98,45 @@ class PlayerFactory:
         Raises:
             ValueError: If player type is not supported
         """
-        if player_type not in cls.PLAYER_TYPES:
-            raise ValueError(f"Unsupported player type: {player_type}")
-
-        player_class = cls.PLAYER_TYPES[player_type]
-
-        # Special handling for PlayerHuman - inject InputProvider
-        if player_class == PlayerHuman:
-            return cls.create_human_player(**kwargs)
-
-        # Other players (AI) don't need InputProvider
-        return player_class(**kwargs)
+        # Check legacy players first (Human, Apocalyptron)
+        if player_type in cls.PLAYER_TYPES:
+            player_class = cls.PLAYER_TYPES[player_type]
+            
+            # Special handling for PlayerHuman - inject InputProvider
+            if player_class == PlayerHuman:
+                return cls.create_human_player(**kwargs)
+            
+            # Apocalyptron uses legacy class
+            return player_class(**kwargs)
+        
+        # Try PlayerRegistry for config-based players (Gladiators)
+        try:
+            registry = cls._get_registry()
+            
+            # Check if player exists in registry
+            if player_type in registry.list_players():
+                return registry.create_player(player_type, cached=False)
+            
+            # Also check by display name variations
+            for registered_name in registry.list_players():
+                if registered_name.upper() == player_type.upper():
+                    return registry.create_player(registered_name, cached=False)
+            
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).debug(f"Registry lookup failed for {player_type}: {e}")
+        
+        # Player not found
+        available = list(cls.PLAYER_TYPES.keys())
+        try:
+            available.extend(cls._get_registry().list_players())
+        except:
+            pass
+        
+        raise ValueError(
+            f"Unsupported player type: '{player_type}'\n"
+            f"Available players: {', '.join(sorted(set(available)))}"
+        )
 
     @classmethod
     def create_human_player(cls, name="Human", board_control=None, **kwargs):
@@ -198,25 +217,49 @@ class PlayerFactory:
     def get_available_player_types(cls):
         """
         Get list of available (enabled) player types.
+        
+        MIGRATION: Now includes both legacy and config-based players.
 
         Returns:
             list: List of available player type names
         """
-        return [
-            player_class.PLAYER_METADATA["display_name"]
-            for player_class in cls.ALL_PLAYER_CLASSES
-            if player_class.PLAYER_METADATA["enabled"]
-        ]
+        available = []
+        
+        # Legacy players
+        for player_class in cls.LEGACY_PLAYER_CLASSES:
+            if player_class.PLAYER_METADATA.get("enabled", False):
+                available.append(player_class.PLAYER_METADATA["display_name"])
+        
+        # Config-based players from registry
+        try:
+            registry = cls._get_registry()
+            available.extend(registry.list_players())
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Could not load registry players: {e}")
+        
+        return sorted(set(available))
 
     @classmethod
     def get_all_player_types(cls):
         """
         Get list of all player types (including disabled).
+        
+        MIGRATION: Now includes both legacy and config-based players.
 
         Returns:
             list: List of all player type names
         """
-        return list(cls.PLAYER_TYPES.keys())
+        all_types = list(cls.PLAYER_TYPES.keys())
+        
+        # Add config-based players
+        try:
+            registry = cls._get_registry()
+            all_types.extend(registry.list_players())
+        except Exception:
+            pass
+        
+        return sorted(set(all_types))
 
     @classmethod
     def get_player_metadata(cls, player_type):

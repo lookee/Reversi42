@@ -684,7 +684,7 @@ Reversi42/
 │   │           └── renderers/     # Board renderers
 │   │
 │   ├── webgui/                    # Web interface ⭐ NEW in 3.2.0
-│   │   ├── backend_server.py      # FastAPI WebSocket server
+│   │   ├── reversi42_server.py      # FastAPI WebSocket server
 │   │   ├── backend_monitor.py     # Server monitor
 │   │   ├── websocket_observer.py  # Game state observer
 │   │   ├── game.html              # Main game interface

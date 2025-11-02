@@ -19,4 +19,4 @@ echo "   Port: 8000"
 echo "   AI Player: DIVZERO.EXE"
 echo ""
 
-$PYTHON_BIN -m src.webgui.server.backend_server --port 8000 --player DIVZERO.EXE
+$PYTHON_BIN -m src.webgui.server.reversi42_server --port 8000 --player DIVZERO.EXE

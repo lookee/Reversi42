@@ -3,8 +3,6 @@ Headless Input Handler
 
 No-op input handler for headless mode.
 All methods return empty/None.
-
-Version: 3.1.0
 """
 
 import os

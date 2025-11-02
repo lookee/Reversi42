@@ -1,0 +1,1586 @@
+# ============================================================================
+# REVERSI42 AI PLAYER CONFIGURATION TEMPLATE
+# ============================================================================
+# Version: 5.0
+# Last Updated: 2025-11-02
+# 
+# This file serves as the complete reference and template for creating
+# custom AI players in Reversi42. Every parameter is documented with:
+# - Description of what it does
+# - Valid values and ranges
+# - Performance impact
+# - Recommended settings
+# - Examples
+#
+# USAGE:
+# 1. Copy this file to a new name (e.g., my_player.yaml)
+# 2. Edit the metadata section with your player info
+# 3. Adjust engine, evaluation, and behavior settings
+# 4. Load with: ConfigurableAIPlayer("path/to/my_player.yaml")
+#
+# TIME UNITS USED IN THIS FILE:
+# - ms  = milliseconds (1 second = 1000 ms)
+# - s   = seconds
+# - MB  = megabytes (memory)
+# - ply = search depth level (half-moves)
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# SECTION 1: PLAYER METADATA
+# ----------------------------------------------------------------------------
+# This section defines how the player appears in menus, logs, and UI.
+# These are cosmetic settings that don't affect game strength.
+metadata:
+
+  # Player name (REQUIRED)
+  # Used internally and in game logs
+  # Type: string
+  # Example: "My Custom AI", "DESTROYER-3000", "Bobby Fischer Bot"
+  name: "TEMPLATE_PLAYER"
+
+  # Display name (OPTIONAL)
+  # Alternative name shown in UI if different from 'name'
+  # If omitted, 'name' is used
+  # Type: string | null
+  display_name: "Template Player"
+
+  # Description (OPTIONAL)
+  # Short description of player strategy/personality
+  # Shown in player selection menu
+  # Type: string
+  # Max length: ~100 characters recommended
+  description: "Balanced AI with standard optimizations"
+
+  # Headline (OPTIONAL)
+  # Epic tagline or battle cry
+  # Displayed when player is initialized
+  # Type: string
+  # Example: "DESTRUCTION MODE ACTIVATED", "THE ORACLE AWAKENS"
+  headline: "READY FOR BATTLE"
+
+  # Enabled (OPTIONAL, default: true)
+  # Whether this player appears in the selection menu
+  # Set to false to disable without deleting the file
+  # Type: boolean
+  # Values: true | false
+  enabled: true
+
+  # Icon (OPTIONAL)
+  # Emoji or symbol representing the player
+  # Used in UI and logs for visual identification
+  # Type: string (single emoji recommended)
+  # Examples: "🤖", "⚡", "🔮", "💀", "🦁", "🐉"
+  icon: "🤖"
+
+  # Avatar/Image (OPTIONAL)
+  # Path to player avatar image or URL
+  # Displayed in GUI, tournaments, player selection screens
+  # Type: string (file path or URL) | null
+  #
+  # SUPPORTED FORMATS:
+  # - PNG (.png) - Recommended, supports transparency
+  # - JPEG/JPG (.jpg, .jpeg) - Good for photos
+  # - SVG (.svg) - Vector graphics, scalable
+  # - GIF (.gif) - Animated avatars supported
+  # - WebP (.webp) - Modern format
+  #
+  # PATH OPTIONS:
+  # 1. Relative path (from project root):
+  #    avatar: "players/avatars/my_player.png"
+  #
+  # 2. Absolute path:
+  #    avatar: "/home/user/reversi/avatars/bot.png"
+  #
+  # 3. URL (web image):
+  #    avatar: "https://example.com/avatars/ai_player.png"
+  #
+  # 4. Asset path (from Images/ directory):
+  #    avatar: "Images/my_avatar.png"
+  #
+  # 5. null (no avatar, uses icon as fallback):
+  #    avatar: null
+  #
+  # RECOMMENDATIONS:
+  # - Size: 256x256 or 512x512 pixels (square)
+  # - Format: PNG with transparency
+  # - File size: < 500 KB (for fast loading)
+  # - Style: Match player personality (robot, mystical, aggressive, etc.)
+  #
+  # EXAMPLES:
+  # - Robot AI: Metallic robot face, blue/silver colors
+  # - Speed AI: Lightning bolt, motion blur, yellow/white
+  # - Oracle: Crystal ball, mystical symbols, purple/blue
+  # - Aggressive: Fierce animal, red/orange, sharp edges
+  # - Defensive: Shield, fortress, blue/gray, solid
+  #
+  # FALLBACK:
+  # If avatar file not found or null, icon emoji is used instead
+  avatar: null
+
+  # Category (OPTIONAL, default: "intermediate")
+  # Difficulty tier for grouping players
+  # Type: string
+  # Values:
+  #   - "beginner"     : ELO 1000-1300, depth 3-5, minimal optimizations
+  #   - "intermediate" : ELO 1300-1600, depth 5-8, standard optimizations
+  #   - "advanced"     : ELO 1600-1800, depth 8-11, all optimizations
+  #   - "champion"     : ELO 1800+, depth 11+, maximum power
+  category: "intermediate"
+
+  # Estimated ELO (OPTIONAL)
+  # Approximate Elo rating (chess-style rating system)
+  # Type: integer
+  # Typical range: 1000 (beginner) to 2000 (world-class)
+  # Reference points:
+  #   - 1200: Casual player
+  #   - 1400: Club player
+  #   - 1600: Strong club player
+  #   - 1800: Expert
+  #   - 2000: Master level
+  estimated_elo: 1500
+
+  # Visual statistics (OPTIONAL)
+  # Displayed as star ratings in UI (1-10 scale)
+  # These are cosmetic and don't affect gameplay
+  stats:
+    # Power: Strategic strength and positional understanding
+    # 1-3: Weak, 4-6: Average, 7-8: Strong, 9-10: Elite
+    power: 6
+
+    # Speed: Average time per move
+    # 1-3: Very slow (5+ seconds), 4-6: Moderate (1-5s), 7-8: Fast (<1s), 9-10: Instant (<100ms)
+    speed: 5
+
+    # Accuracy: Move quality and precision
+    # 1-3: Makes mistakes, 4-6: Decent, 7-8: Rarely wrong, 9-10: Near-perfect
+    accuracy: 7
+
+    # Depth: Search depth capability
+    # 1-3: Shallow (3-4 ply), 4-6: Medium (5-7 ply), 7-8: Deep (8-10 ply), 9-10: Very deep (11+ ply)
+    depth: 6
+
+    # Lethality: Aggressiveness and attacking style
+    # 1-3: Very defensive, 4-6: Balanced, 7-8: Aggressive, 9-10: Ruthless
+    lethality: 5
+
+# ----------------------------------------------------------------------------
+# SECTION 2: ENGINE CONFIGURATION
+# ----------------------------------------------------------------------------
+# Core search engine settings that determine how the AI thinks.
+# These have the biggest impact on strength and speed.
+engine:
+
+  # ==========================================================================
+  # SUBSECTION 2.1: SEARCH DEPTH
+  # ==========================================================================
+  # Controls how many moves ahead the AI calculates.
+  # Higher depth = stronger but slower
+  depth:
+
+    # Base depth (REQUIRED)
+    # Number of ply (half-moves) to search ahead
+    # Type: integer
+    # Valid range: 1-20 (practical range: 4-16)
+    # 
+    # PERFORMANCE IMPACT:
+    # Each +1 ply increases search time by ~3-10x (depends on pruning)
+    # 
+    # RECOMMENDED VALUES:
+    # - depth 4: ~50-100ms per move (beginner)
+    # - depth 6: ~200-500ms per move (intermediate)
+    # - depth 8: ~1-3 seconds per move (advanced)
+    # - depth 10: ~5-15 seconds per move (expert)
+    # - depth 12: ~20-60 seconds per move (master)
+    # - depth 14+: 1+ minutes per move (extreme)
+    #
+    # EXAMPLES:
+    # base: 4   # Blitz/speed player
+    # base: 8   # Tournament standard
+    # base: 12  # Deep analysis
+    base: 8
+
+    # Search strategy (REQUIRED)
+    # Determines how depth is applied during the game
+    # Type: string
+    # Values: "fixed" | "iterative" | "adaptive"
+    #
+    # STRATEGY DETAILS:
+    #
+    # "fixed": Always search to exactly base depth
+    #   - Simplest and fastest
+    #   - Predictable time per move
+    #   - No time management
+    #   - Best for: Speed players, testing, consistent behavior
+    #
+    # "iterative": Iterative deepening (search 1, 2, 3... up to base)
+    #   - Searches depth 1, then 2, then 3... up to base depth
+    #   - Better move ordering (uses previous iteration results)
+    #   - Can be interrupted with best move so far
+    #   - ~20-30% more nodes but better pruning = similar/better time
+    #   - Enables time management and early stopping
+    #   - Best for: Tournament play, time-constrained games
+    #
+    # "adaptive": Different depth based on game phase
+    #   - Opening: Shallow search (book positions, less critical)
+    #   - Midgame: Standard search (complex tactical play)
+    #   - Endgame: Deep search (fewer moves, exact calculation possible)
+    #   - Best for: Maximum strength, endgame specialists
+    #
+    # RECOMMENDATION: "iterative" for best overall performance
+    strategy: "iterative"
+
+    # Adaptive depth configuration (used only if strategy = "adaptive")
+    # Defines depth for each game phase
+    adaptive:
+      # Opening depth (moves 1-20 typically)
+      # Suggestion: base - 2 to base - 4
+      # Type: integer (1-20)
+      opening: 6
+
+      # Midgame depth (moves 21-50 typically)
+      # Suggestion: equal to base depth
+      # Type: integer (1-20)
+      midgame: 8
+
+      # Endgame depth (moves 51-60 typically)
+      # Suggestion: base + 2 to base + 6
+      # Can be much higher since fewer pieces = faster search
+      # Type: integer (1-20)
+      # Note: In pure endgame (last 10-15 moves), perfect play is possible at depth 15-20
+      endgame: 12
+
+    # Iterative deepening configuration (used only if strategy = "iterative")
+    iterative:
+      # Enable iterative deepening
+      # Type: boolean
+      # Should always be true if strategy = "iterative"
+      enabled: true
+
+      # Time limit per move (OPTIONAL, default: null = unlimited)
+      # Maximum time allowed for thinking per move
+      # Type: integer (milliseconds) | null
+      # 
+      # TIME EXAMPLES:
+      # - 100 ms  = very fast blitz
+      # - 500 ms  = fast blitz
+      # - 1000 ms = 1 second (rapid)
+      # - 3000 ms = 3 seconds (standard)
+      # - 10000 ms = 10 seconds (slow)
+      # - null = no limit (search to full depth)
+      #
+      # HOW IT WORKS:
+      # - Engine stops iterating when time limit reached
+      # - Returns best move from deepest completed iteration
+      # - Guarantees response within time limit
+      #
+      # RECOMMENDATION: null for strength, 1000-3000 for blitz
+      time_limit_ms: null
+
+  # ==========================================================================
+  # SUBSECTION 2.2: PARALLEL PROCESSING
+  # ==========================================================================
+  # Multi-core CPU utilization for faster search
+  parallel:
+
+    # Enable parallelization
+    # Type: boolean
+    # 
+    # WHEN TO USE:
+    # - enabled: true  = Multi-core search (2-5x speedup on 4-8 cores)
+    # - enabled: false = Single-threaded (simpler, less overhead)
+    #
+    # TRADE-OFFS:
+    # Pros: 2-5x speedup with 4-8 CPU cores, same strength
+    # Cons: ~10-20ms overhead for job distribution, uses more CPU/memory
+    #
+    # RECOMMENDATION:
+    # - true for depth >= 7 (overhead is worth it)
+    # - false for depth <= 5 (overhead not worth it)
+    enabled: true
+
+    # Number of worker processes
+    # Type: integer (1-32) | null
+    # 
+    # VALUES:
+    # - null: Auto-detect CPU cores (recommended)
+    # - 1: Single-threaded (same as enabled: false)
+    # - 2-4: Low parallelization (for 4-core CPUs)
+    # - 4-8: High parallelization (for 8+ core CPUs)
+    # - 8-16: Maximum parallelization (for high-end CPUs)
+    #
+    # PERFORMANCE SCALING:
+    # - 2 workers: ~1.8x speedup
+    # - 4 workers: ~3.2x speedup
+    # - 8 workers: ~5.0x speedup
+    # - 16 workers: ~6.5x speedup (diminishing returns)
+    #
+    # RECOMMENDATION: null (auto-detect) or match your CPU core count
+    num_workers: null
+
+  # ==========================================================================
+  # SUBSECTION 2.3: TRANSPOSITION TABLE (CACHE)
+  # ==========================================================================
+  # Hash table for caching evaluated positions
+  transposition_table:
+
+    # Enable transposition table
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - Caches position evaluations to avoid re-searching
+    # - Same position can occur via different move orders (transpositions)
+    # - Stores: position hash, depth, score, best move
+    #
+    # IMPACT:
+    # - Speedup: 2-5x for typical games
+    # - Memory: Uses configured MB of RAM
+    # - Hit rate: 30-60% in midgame
+    #
+    # RECOMMENDATION: Always true (massive speedup, small memory cost)
+    enabled: true
+
+    # Cache size in megabytes
+    # Type: integer (MB)
+    # Valid range: 16-2048 MB (practical: 64-512 MB)
+    #
+    # MEMORY USAGE EXAMPLES:
+    # - 64 MB: ~500,000 positions (minimum recommended)
+    # - 128 MB: ~1,000,000 positions (standard)
+    # - 256 MB: ~2,000,000 positions (high performance)
+    # - 512 MB: ~4,000,000 positions (extreme)
+    #
+    # RECOMMENDATIONS:
+    # - 64-128 MB: For depth 6-8
+    # - 128-256 MB: For depth 8-10
+    # - 256-512 MB: For depth 10-12
+    #
+    # Note: More isn't always better - diminishing returns after 256 MB
+    size_mb: 128
+
+  # ==========================================================================
+  # SUBSECTION 2.4: ASPIRATION WINDOWS
+  # ==========================================================================
+  # Advanced alpha-beta optimization technique
+  aspiration_windows:
+
+    # Enable aspiration windows
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - Searches with narrow alpha-beta window around expected score
+    # - If score outside window, re-search with wider window
+    # - Improves pruning efficiency when guess is accurate
+    #
+    # IMPACT:
+    # - Speedup: 20-40% when windows don't fail
+    # - Slowdown: 10-20% when windows fail (rare with good tuning)
+    # - Net benefit: ~15-30% speedup
+    #
+    # WHEN TO USE:
+    # - Works best with iterative deepening (uses previous iteration score)
+    # - Less effective with fixed depth (no score estimate)
+    #
+    # RECOMMENDATION: true if strategy = "iterative", false otherwise
+    enabled: true
+
+    # Initial window width
+    # Type: integer (centipawns)
+    # Range: 20-100
+    #
+    # WHAT IT MEANS:
+    # - Start search with window [prev_score - width, prev_score + width]
+    # - Smaller = more pruning but higher fail risk
+    # - Larger = less pruning but lower fail risk
+    #
+    # TYPICAL VALUES:
+    # - 30: Aggressive (more fails, faster when works)
+    # - 50: Balanced (standard)
+    # - 75: Conservative (fewer fails, less speedup)
+    #
+    # RECOMMENDATION: 40-50 for balanced performance
+    initial_width: 50
+
+    # Window expansion factor
+    # Type: float
+    # Range: 1.5-3.0
+    #
+    # WHAT IT DOES:
+    # - When window fails, expand by this factor
+    # - New width = old width * widen_factor
+    # - Prevents repeated failures
+    #
+    # EXAMPLES:
+    # - widen_factor: 2.0, initial: 50
+    #   Fail 1: window = [-100, +100]
+    #   Fail 2: window = [-200, +200]
+    #   Fail 3: window = [-400, +400]
+    #
+    # RECOMMENDATION: 2.0 (doubles window on each fail)
+    widen_factor: 2.0
+
+# ----------------------------------------------------------------------------
+# SECTION 3: EVALUATION CONFIGURATION
+# ----------------------------------------------------------------------------
+# Defines how the AI scores board positions.
+# This is the "chess knowledge" of the AI.
+evaluation:
+
+  # ==========================================================================
+  # SUBSECTION 3.1: EVALUATION PRESET
+  # ==========================================================================
+  # Pre-configured evaluation profiles
+  # Type: string | null
+  # Values: null | "balanced" | "aggressive" | "defensive" | "endgame_specialist"
+  #
+  # PRESET DESCRIPTIONS:
+  #
+  # null (no preset):
+  #   - Uses evaluators and weights sections below
+  #   - Full customization
+  #
+  # "balanced":
+  #   - Equal weight to all evaluators
+  #   - Good all-around performance
+  #   - Recommended for general play
+  #
+  # "aggressive":
+  #   - Emphasizes mobility and attacking
+  #   - High mobility weight, lower stability
+  #   - Plays for tempo and initiative
+  #
+  # "defensive":
+  #   - Emphasizes stability and solid positions
+  #   - High stability weight, lower mobility
+  #   - Builds strong positions slowly
+  #
+  # "endgame_specialist":
+  #   - Optimized for endgame (moves 40+)
+  #   - Heavy parity and piece count emphasis
+  #   - Best with adaptive depth (deep endgame)
+  #
+  # NOTE: If preset is set, evaluators and weights sections are ignored
+  # RECOMMENDATION: null for full control, "balanced" for quick start
+  preset: null
+
+  # ==========================================================================
+  # SUBSECTION 3.2: EVALUATORS
+  # ==========================================================================
+  # Individual evaluation components
+  # Each evaluator analyzes a different aspect of the position
+  # Final score = weighted sum of all enabled evaluators
+  evaluators:
+
+    # ------------------------------------------------------------------------
+    # MOBILITY EVALUATOR
+    # ------------------------------------------------------------------------
+    # Measures move availability and flexibility
+    - name: "mobility"
+      
+      # Enable this evaluator
+      # Type: boolean
+      enabled: true
+      
+      # Relative importance weight
+      # Type: float
+      # Range: 0.0-5.0 (practical: 0.5-2.0)
+      #
+      # WHAT IT MEASURES:
+      # - Current mobility: Number of legal moves right now
+      # - Potential mobility: Empty squares adjacent to opponent
+      #
+      # WHY IT MATTERS:
+      # - More moves = more options = better position
+      # - Limiting opponent mobility is key strategy
+      # - Critical in midgame (moves 20-45)
+      #
+      # WEIGHT GUIDANCE:
+      # - 0.5-0.8: Mobility is secondary
+      # - 1.0: Standard importance (balanced)
+      # - 1.5-2.0: Mobility-focused (aggressive style)
+      #
+      # RECOMMENDATION: 1.0 for balanced play
+      weight: 1.0
+
+    # ------------------------------------------------------------------------
+    # POSITIONAL EVALUATOR
+    # ------------------------------------------------------------------------
+    # Evaluates static board position value (corners, edges, X-squares)
+    - name: "positional"
+      enabled: true
+      
+      # Weight for positional evaluation
+      # Type: float
+      # Range: 0.0-5.0 (practical: 0.8-2.0)
+      #
+      # WHAT IT MEASURES:
+      # - Corner control: Corners are stable (never flip)
+      # - Edge control: Edges are semi-stable
+      # - X-square penalty: Squares diagonal to corners (dangerous early)
+      # - C-square penalty: Squares adjacent to corners (risky)
+      #
+      # WHY IT MATTERS:
+      # - Corners = permanent discs (huge advantage)
+      # - Edges = hard to flip (strong positions)
+      # - X/C-squares early = often gives corner to opponent
+      #
+      # WEIGHT GUIDANCE:
+      # - 0.8-1.2: Balanced positional awareness
+      # - 1.5-2.0: Heavy emphasis on corners/edges (positional style)
+      # - 0.5: De-emphasize static position (dynamic style)
+      #
+      # RECOMMENDATION: 1.0-1.2 (positional play is important)
+      weight: 1.0
+
+    # ------------------------------------------------------------------------
+    # STABILITY EVALUATOR
+    # ------------------------------------------------------------------------
+    # Measures disc permanence and resistance to flipping
+    - name: "stability"
+      enabled: true
+      
+      # Weight for stability evaluation
+      # Type: float
+      # Range: 0.0-5.0 (practical: 0.5-2.0)
+      #
+      # WHAT IT MEASURES:
+      # - Stable discs: Can never be flipped (corners, edges along walls)
+      # - Semi-stable: Hard to flip, requires specific sequences
+      # - Unstable: Can be flipped
+      #
+      # WHY IT MATTERS:
+      # - Stable discs = permanent points
+      # - Building stability = building advantage
+      # - Critical in endgame (stable = guaranteed points)
+      #
+      # WEIGHT GUIDANCE:
+      # - 0.5-0.8: Stability is secondary
+      # - 1.0-1.5: Standard importance
+      # - 1.5-2.0: Stability-focused (defensive style)
+      #
+      # RECOMMENDATION: 1.0 for balanced, 1.5+ for defensive
+      weight: 1.0
+
+    # ------------------------------------------------------------------------
+    # PARITY EVALUATOR
+    # ------------------------------------------------------------------------
+    # Evaluates who will make the last move in each region
+    - name: "parity"
+      enabled: true
+      
+      # Weight for parity evaluation
+      # Type: float
+      # Range: 0.0-5.0 (practical: 0.5-2.5)
+      #
+      # WHAT IT MEASURES:
+      # - Move parity: Who moves last in endgame
+      # - Disc parity: Odd/even disc count dynamics
+      #
+      # WHY IT MATTERS:
+      # - Moving last = filling last empty squares (big advantage)
+      # - Endgame parity can swing 10+ points
+      # - Critical in endgame (moves 50+)
+      #
+      # WEIGHT GUIDANCE:
+      # - 0.5-0.8: Opening/midgame focused
+      # - 1.0: Balanced (standard)
+      # - 1.5-2.5: Endgame specialist
+      #
+      # RECOMMENDATION: 1.0 for balanced, 2.0+ for endgame specialist
+      weight: 1.0
+
+    # ------------------------------------------------------------------------
+    # FRONTIER EVALUATOR (OPTIONAL)
+    # ------------------------------------------------------------------------
+    # Measures exposed discs (adjacent to empty squares)
+    - name: "frontier"
+      
+      # Often disabled in favor of other evaluators
+      enabled: false
+      
+      # Weight for frontier evaluation
+      # Type: float
+      # Range: 0.0-5.0 (practical: 0.3-1.0)
+      #
+      # WHAT IT MEASURES:
+      # - Frontier discs: Your discs adjacent to empty squares
+      # - Exposed = vulnerable to flipping
+      #
+      # WHY IT MATTERS:
+      # - Fewer frontier discs = more solid position
+      # - Correlates with stability and mobility
+      # - Often redundant with other evaluators
+      #
+      # WEIGHT GUIDANCE:
+      # - Usually 0.3-0.5 if enabled
+      # - Often disabled (covered by stability + mobility)
+      #
+      # RECOMMENDATION: Disabled (other evaluators cover this)
+      weight: 0.5
+
+  # ==========================================================================
+  # SUBSECTION 3.3: FINE-GRAINED WEIGHTS
+  # ==========================================================================
+  # Detailed tuning of evaluation components
+  # These override default values for each evaluator
+  # 
+  # WHEN TO USE:
+  # - Advanced customization only
+  # - After understanding default behavior
+  # - For competition/tournament tuning
+  #
+  # NOTE: These are OPTIONAL - defaults are well-tuned
+  weights:
+
+    # ========================================================================
+    # POSITIONAL WEIGHTS
+    # ========================================================================
+    # Control the value of different board squares
+
+    # Corner value (default: 100)
+    # Type: integer
+    # Range: 50-200
+    # Higher = prioritize corners more
+    # RECOMMENDATION: 100 (standard)
+    corner_weight: 100
+
+    # Edge square value (default: 10)
+    # Type: integer
+    # Range: 5-25
+    # Edges are semi-stable, valuable but not as critical as corners
+    # RECOMMENDATION: 10-15
+    edge_weight: 10
+
+    # X-square penalty (default: -25)
+    # Type: integer (negative)
+    # Range: -50 to -10
+    # X-squares (diagonal to empty corners) often give away corners
+    # More negative = avoid X-squares more strongly
+    # RECOMMENDATION: -20 to -30
+    x_square_penalty: -25
+
+    # C-square penalty (default: -10)
+    # Type: integer (negative)
+    # Range: -20 to -5
+    # C-squares (adjacent to empty corners) can be risky
+    # Less dangerous than X-squares
+    # RECOMMENDATION: -10 to -15
+    c_square_penalty: -10
+
+    # ========================================================================
+    # MOBILITY WEIGHTS
+    # ========================================================================
+    # Control how mobility is valued
+
+    # Current mobility weight (default: 5)
+    # Type: integer
+    # Range: 3-10
+    # Value per legal move available
+    # RECOMMENDATION: 4-6
+    mobility_weight: 5
+
+    # Potential mobility weight (default: 3)
+    # Type: integer
+    # Range: 2-8
+    # Value per empty square adjacent to opponent
+    # RECOMMENDATION: 2-4
+    potential_mobility_weight: 3
+
+    # ========================================================================
+    # STABILITY WEIGHTS
+    # ========================================================================
+    # Control how disc stability is valued
+
+    # Stable disc value (default: 15)
+    # Type: integer
+    # Range: 10-30
+    # Value per disc that can never be flipped
+    # Higher = emphasize building permanent positions
+    # RECOMMENDATION: 12-18
+    stability_weight: 15
+
+    # Semi-stable disc value (default: 5)
+    # Type: integer
+    # Range: 3-10
+    # Value per disc that is hard to flip
+    # RECOMMENDATION: 4-7
+    semi_stable_weight: 5
+
+    # ========================================================================
+    # PARITY WEIGHTS
+    # ========================================================================
+    # Control how parity is valued
+
+    # Parity favorable bonus (default: 25)
+    # Type: integer
+    # Range: 15-50
+    # Bonus when you have favorable parity (will move last)
+    # Higher = emphasize endgame parity more
+    # RECOMMENDATION: 20-30 (balanced), 40-50 (endgame specialist)
+    parity_favorable: 25
+
+    # Piece count weight (default: 20)
+    # Type: integer
+    # Range: 10-35
+    # Weight for disc count advantage
+    # Note: In Reversi, more discs is NOT always better (unlike Chess)
+    # RECOMMENDATION: 15-25
+    piece_count_weight: 20
+
+    # ========================================================================
+    # FRONTIER WEIGHTS
+    # ========================================================================
+    # Control how frontier discs are valued
+
+    # Frontier disc penalty (default: -2)
+    # Type: integer (negative)
+    # Range: -5 to -1
+    # Penalty per disc adjacent to empty square
+    # More negative = avoid frontier discs more
+    # RECOMMENDATION: -2 to -3 (if frontier evaluator enabled)
+    frontier_penalty: -2
+
+# ----------------------------------------------------------------------------
+# SECTION 4: MOVE ORDERING CONFIGURATION
+# ----------------------------------------------------------------------------
+# Determines the order in which moves are evaluated.
+# Better ordering = better alpha-beta pruning = faster search.
+# This doesn't change strength, only speed.
+move_ordering:
+
+  # List of ordering strategies (applied in priority order)
+  # Higher priority = evaluated first
+  strategies:
+
+    # ------------------------------------------------------------------------
+    # PRINCIPAL VARIATION (PV) MOVE
+    # ------------------------------------------------------------------------
+    # Always try the best move from previous iteration first
+    - name: "pv_move"
+      
+      # Enable PV move ordering
+      # Type: boolean
+      #
+      # WHAT IT DOES:
+      # - Stores best move from each position
+      # - Tries stored move first in re-search
+      # - Extremely effective with iterative deepening
+      #
+      # IMPACT: 30-50% speedup (massive!)
+      # RECOMMENDATION: Always enabled with iterative deepening
+      enabled: true
+      
+      # Evaluation priority (higher = first)
+      # Type: integer
+      # Range: 0-1000
+      # RECOMMENDATION: Highest priority (100)
+      priority: 100
+
+    # ------------------------------------------------------------------------
+    # KILLER MOVES
+    # ------------------------------------------------------------------------
+    # Remember moves that caused cutoffs at same depth
+    - name: "killer_moves"
+      enabled: true
+      
+      # Priority for killer moves
+      # Type: integer
+      # Should be high but below PV move
+      # RECOMMENDATION: 90
+      priority: 90
+      
+      # Maximum killers stored per ply
+      # Type: integer
+      # Range: 1-4
+      #
+      # WHAT IT MEANS:
+      # - Store top N moves that caused beta cutoffs at each depth
+      # - More = better coverage but more memory
+      #
+      # IMPACT:
+      # - 2 killers: Standard, good balance
+      # - 3-4 killers: Slightly better but diminishing returns
+      #
+      # RECOMMENDATION: 2
+      max_killers_per_ply: 2
+
+    # ------------------------------------------------------------------------
+    # HISTORY HEURISTIC
+    # ------------------------------------------------------------------------
+    # Track global success rate of each move
+    - name: "history_heuristic"
+      enabled: true
+      
+      # Priority for history ordering
+      # Type: integer
+      # Should be below PV and killers
+      # RECOMMENDATION: 80
+      priority: 80
+      
+      # History decay factor
+      # Type: float
+      # Range: 0.8-0.99
+      #
+      # WHAT IT DOES:
+      # - After each search, multiply all history scores by decay
+      # - Prevents old data from dominating
+      # - Lower = forget faster (adapt to current position)
+      # - Higher = remember longer (stable across game)
+      #
+      # EXAMPLES:
+      # - 0.90: Aggressive decay (adapts quickly)
+      # - 0.95: Balanced (standard)
+      # - 0.98: Slow decay (long memory)
+      #
+      # RECOMMENDATION: 0.93-0.96
+      decay_factor: 0.95
+
+    # ------------------------------------------------------------------------
+    # POSITIONAL ORDERING
+    # ------------------------------------------------------------------------
+    # Try positionally strong moves (corners, edges) first
+    - name: "positional"
+      enabled: true
+      
+      # Priority for positional ordering
+      # Type: integer
+      # Should be below heuristics but useful as fallback
+      # RECOMMENDATION: 70
+      priority: 70
+
+    # ------------------------------------------------------------------------
+    # MOBILITY ORDERING (OPTIONAL)
+    # ------------------------------------------------------------------------
+    # Order by resulting mobility (computationally expensive)
+    - name: "mobility"
+      
+      # Usually disabled (too expensive for benefit)
+      # Type: boolean
+      enabled: false
+      
+      # Priority if enabled
+      # Type: integer
+      # RECOMMENDATION: 60 (lowest)
+      priority: 60
+
+# ----------------------------------------------------------------------------
+# SECTION 5: PRUNING OPTIMIZATIONS
+# ----------------------------------------------------------------------------
+# Advanced techniques to skip searching unpromising positions.
+# These are the "secret sauce" that makes modern engines fast.
+# Proper tuning can give 10-100x speedup with no strength loss!
+pruning:
+
+  # ==========================================================================
+  # NULL MOVE PRUNING
+  # ==========================================================================
+  # Test if position is so good that even skipping a turn still wins
+  null_move:
+
+    # Enable null move pruning
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - Give opponent a free move (pass turn)
+    # - If we still win at reduced depth, position is too good
+    # - Skip searching most moves (beta cutoff)
+    #
+    # WHEN IT WORKS:
+    # - Strong positions (we're ahead)
+    # - Midgame (most effective)
+    #
+    # WHEN IT FAILS:
+    # - Zugzwang positions (rare in Reversi)
+    # - Endgame (can be unreliable)
+    #
+    # IMPACT: 30-60% speedup in midgame
+    # RECOMMENDATION: Always enabled
+    enabled: true
+
+    # Depth reduction for null move search
+    # Type: integer
+    # Range: 2-4
+    #
+    # WHAT IT MEANS:
+    # - Search null move at (current_depth - reduction)
+    # - Higher = more aggressive = faster but less safe
+    #
+    # EXAMPLES:
+    # - reduction: 2 = Conservative (safer, less speedup)
+    # - reduction: 3 = Balanced (standard)
+    # - reduction: 4 = Aggressive (risky, more speedup)
+    #
+    # RECOMMENDATION: 3 (proven optimal in most engines)
+    reduction_depth: 3
+
+    # Minimum depth for null move
+    # Type: integer
+    # Range: 2-4
+    #
+    # WHAT IT MEANS:
+    # - Don't use null move if remaining depth < min_depth
+    # - Avoids unreliable results at shallow depths
+    #
+    # RECOMMENDATION: 3 (don't use at frontier nodes)
+    min_depth: 3
+
+  # ==========================================================================
+  # FUTILITY PRUNING
+  # ==========================================================================
+  # Skip moves that can't improve alpha even with best outcome
+  futility:
+
+    # Enable futility pruning
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - At frontier nodes (depth 1-3), estimate max possible gain
+    # - If current_score + margin < alpha, skip move (can't improve)
+    # - Fast heuristic, no search required
+    #
+    # WHEN IT WORKS:
+    # - Frontier nodes (depth 1-3)
+    # - Quiet positions (no tactics)
+    #
+    # WHEN TO DISABLE:
+    # - Endgame (every point matters)
+    # - Tactical positions (margin estimate unreliable)
+    #
+    # IMPACT: 15-30% speedup at frontier
+    # RECOMMENDATION: Enabled for depth >= 5
+    enabled: true
+
+    # Futility margin (centipawns)
+    # Type: integer
+    # Range: 50-200
+    #
+    # WHAT IT MEANS:
+    # - If score + margin < alpha, prune
+    # - Higher = more conservative (prune less)
+    # - Lower = more aggressive (prune more, risk missing tactics)
+    #
+    # EXAMPLES:
+    # - margin: 80 = Aggressive
+    # - margin: 100 = Balanced
+    # - margin: 120 = Conservative
+    #
+    # RECOMMENDATION: 100 (one piece value approximately)
+    margin: 100
+
+    # Maximum depth for futility pruning
+    # Type: integer
+    # Range: 1-4
+    #
+    # WHAT IT MEANS:
+    # - Only apply futility pruning when depth <= max_depth
+    # - Usually only at frontier (depth 1-3)
+    #
+    # RECOMMENDATION: 3 (frontier nodes only)
+    max_depth: 3
+
+  # ==========================================================================
+  # LATE MOVE REDUCTION (LMR)
+  # ==========================================================================
+  # Search late moves (likely bad) at reduced depth
+  late_move_reduction:
+
+    # Enable late move reduction
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - First N moves: Search at full depth
+    # - Remaining moves: Search at reduced depth (depth - R)
+    # - If reduced search surprisingly good, re-search at full depth
+    #
+    # RATIONALE:
+    # - Good move ordering means best moves come first
+    # - Late moves usually bad (unlikely to improve)
+    # - Quick verification at reduced depth sufficient
+    #
+    # IMPACT: 40-80% speedup (huge!)
+    # RECOMMENDATION: Always enabled with good move ordering
+    enabled: true
+
+    # Start reducing after move N
+    # Type: integer
+    # Range: 3-6
+    #
+    # WHAT IT MEANS:
+    # - Moves 1-N: Search at full depth
+    # - Moves N+1 onwards: Search at reduced depth
+    #
+    # EXAMPLES:
+    # - threshold: 3 = Very aggressive (reduce most moves)
+    # - threshold: 4 = Balanced (standard)
+    # - threshold: 5 = Conservative (reduce fewer moves)
+    #
+    # RECOMMENDATION: 4 (proven optimal)
+    threshold_move: 4
+
+    # Depth reduction amount
+    # Type: integer
+    # Range: 1-2
+    #
+    # WHAT IT MEANS:
+    # - Reduced depth = current_depth - reduction_depth
+    # - 1 = Conservative (less reduction)
+    # - 2 = Aggressive (more reduction)
+    #
+    # RECOMMENDATION: 1 (safe and effective)
+    reduction_depth: 1
+
+    # Minimum depth for LMR
+    # Type: integer
+    # Range: 3-5
+    #
+    # WHAT IT MEANS:
+    # - Don't use LMR if remaining depth < min_depth
+    # - Need enough depth for reduction to be meaningful
+    #
+    # RECOMMENDATION: 3
+    min_depth: 3
+
+  # ==========================================================================
+  # MULTI-CUT PRUNING
+  # ==========================================================================
+  # If multiple moves fail high, position is likely too good (beta cutoff)
+  multi_cut:
+
+    # Enable multi-cut pruning
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - Search first M moves at reduced depth
+    # - If C or more cause beta cutoff, assume position fails high
+    # - Skip searching remaining moves
+    #
+    # RATIONALE:
+    # - If many moves are good, position is excellent
+    # - Don't need to verify all moves
+    #
+    # IMPACT: 15-30% speedup
+    # RECOMMENDATION: Enabled (conservative, safe)
+    enabled: true
+
+    # Number of cutoffs needed to trigger multi-cut
+    # Type: integer
+    # Range: 2-4
+    #
+    # WHAT IT MEANS:
+    # - If >= threshold_cuts moves cause cutoff, prune
+    # - Lower = more aggressive
+    # - Higher = more conservative
+    #
+    # EXAMPLES:
+    # - threshold: 2 = Aggressive
+    # - threshold: 3 = Balanced (standard)
+    # - threshold: 4 = Conservative
+    #
+    # RECOMMENDATION: 3
+    threshold_cuts: 3
+
+    # Depth for verification search
+    # Type: integer
+    # Range: 1-3
+    #
+    # WHAT IT MEANS:
+    # - Test each move at (current_depth - main_depth + verification_depth)
+    # - Typically 2-3 ply verification
+    #
+    # RECOMMENDATION: 2
+    verification_depth: 2
+
+# ----------------------------------------------------------------------------
+# SECTION 6: OPENING BOOK CONFIGURATION
+# ----------------------------------------------------------------------------
+# Integration with professional opening theory.
+# Database of ~650 analyzed opening sequences.
+opening_book:
+
+  # Enable opening book
+  # Type: boolean
+  #
+  # WHAT IT DOES:
+  # - Uses database of professional opening sequences
+  # - Plays theory instead of calculating in opening
+  # - Instant responses (no thinking time)
+  #
+  # BENEFITS:
+  # - Perfect opening play (professional theory)
+  # - Instant moves (save time for midgame/endgame)
+  # - Varied games (multiple lines per position)
+  #
+  # RECOMMENDATION: Always enabled
+  enabled: true
+
+  # Book strategy
+  # Type: string
+  # Values: "instant" | "evaluated" | "disabled"
+  #
+  # STRATEGY DETAILS:
+  #
+  # "instant": (LEGACY)
+  #   - Play book move immediately (no engine evaluation)
+  #   - Fastest (0ms thinking)
+  #   - Trusts opening theory completely
+  #   - Best for: Speed, professional openings
+  #
+  # "evaluated": (MODERN)
+  #   - Book moves prioritized but evaluated by engine
+  #   - Engine searches all moves, book moves first
+  #   - Better alpha-beta cutoffs (book moves usually best)
+  #   - Validates book theory with engine
+  #   - Best for: Maximum strength, hybrid play
+  #
+  # "disabled":
+  #   - Don't use opening book at all
+  #   - Engine calculates from move 1
+  #   - Best for: Testing, engine-only play
+  #
+  # RECOMMENDATION: "evaluated" (modern best practice)
+  strategy: "evaluated"
+
+  # Book evaluation parameters
+  evaluation:
+
+    # Advantage weight (used only with instant strategy)
+    # Type: float
+    # Range: 0.0-1.0
+    #
+    # WHAT IT DOES:
+    # - When multiple book moves available, rate by advantage
+    # - advantage_weight = importance of theoretical advantage
+    # - Higher = prefer openings with better evaluation
+    #
+    # EXAMPLES:
+    # - 0.0 = Ignore advantage (random selection)
+    # - 0.2 = Slight preference for good positions (default)
+    # - 0.5 = Strong preference for best evaluations
+    #
+    # RECOMMENDATION: 0.2-0.3
+    advantage_weight: 0.2
+
+    # Variety weight (used only with instant strategy)
+    # Type: float
+    # Range: 0.0-0.3
+    #
+    # WHAT IT DOES:
+    # - Bonus for openings with more continuations
+    # - More continuations = more flexibility
+    # - Encourages rich, varied openings
+    #
+    # EXAMPLES:
+    # - 0.0 = Ignore variety
+    # - 0.1 = Slight variety preference (default)
+    # - 0.2 = Strong variety preference
+    #
+    # RECOMMENDATION: 0.05-0.15
+    variety_weight: 0.1
+
+    # Only use evaluated openings
+    # Type: boolean
+    #
+    # WHAT IT MEANS:
+    # - true: Only use openings with advantage data (=, w, w+, etc.)
+    # - false: Use all openings (including unevaluated)
+    #
+    # RECOMMENDATION: true (quality over quantity)
+    only_evaluated: true
+
+  # Display settings
+  display:
+
+    # Show book options in console
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - true: Print available book moves and opening names
+    # - false: Silent book usage
+    #
+    # USE CASES:
+    # - true: Learning, debugging, understanding openings
+    # - false: Production, clean output
+    #
+    # RECOMMENDATION: false (unless learning/debugging)
+    show_options: false
+
+    # Show opening analysis
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - true: Show detailed evaluation of each book move
+    # - false: Just show selection
+    #
+    # RECOMMENDATION: false (very verbose)
+    show_analysis: false
+
+    # Verbose book information
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - true: Show extensive book statistics and details
+    # - false: Minimal book output
+    #
+    # RECOMMENDATION: false
+    verbose: false
+
+# ----------------------------------------------------------------------------
+# SECTION 7: BEHAVIOR CONFIGURATION
+# ----------------------------------------------------------------------------
+# AI personality, time management, and output settings
+behavior:
+
+  # ==========================================================================
+  # TIME MANAGEMENT
+  # ==========================================================================
+  time:
+
+    # Minimum thinking time per move
+    # Type: integer (milliseconds)
+    # Range: 0-10000 ms
+    #
+    # WHAT IT DOES:
+    # - Delay move output by at least this amount
+    # - Makes AI appear to "think" (cosmetic)
+    # - Useful for human opponents (instant moves feel weird)
+    #
+    # TIME EXAMPLES:
+    # - 0 ms = Instant (play immediately)
+    # - 500 ms = 0.5 seconds (feels responsive)
+    # - 1000 ms = 1 second (natural pace)
+    # - 2000 ms = 2 seconds (deliberate)
+    #
+    # RECOMMENDATION: 0 for speed, 500-1000 for human opponents
+    think_time_ms: 0
+
+    # Maximum thinking time per move
+    # Type: integer (milliseconds) | null
+    # Range: 1000-300000 ms (1 second to 5 minutes) | null = unlimited
+    #
+    # WHAT IT DOES:
+    # - Hard time limit per move
+    # - With iterative deepening: stops after deepest complete iteration
+    # - Without iterative deepening: might not finish search!
+    #
+    # TIME EXAMPLES:
+    # - 1000 ms = 1 second (blitz)
+    # - 3000 ms = 3 seconds (rapid)
+    # - 10000 ms = 10 seconds (standard)
+    # - 30000 ms = 30 seconds (slow)
+    # - 60000 ms = 1 minute (very slow)
+    # - null = no limit (search to full depth)
+    #
+    # RECOMMENDATION: null (unless tournament with time control)
+    max_time_ms: null
+
+  # ==========================================================================
+  # LOGGING
+  # ==========================================================================
+  logging:
+
+    # Logging verbosity level
+    # Type: string
+    # Values: "quiet" | "normal" | "verbose" | "debug"
+    #
+    # LEVEL DESCRIPTIONS:
+    #
+    # "quiet":
+    #   - Minimal output (only move selected)
+    #   - No statistics, no progress
+    #   - Best for: Production, automated games
+    #
+    # "normal":
+    #   - Move selected + basic statistics
+    #   - Shows depth, time, nodes searched
+    #   - Best for: General use, tournaments
+    #
+    # "verbose":
+    #   - Detailed search information
+    #   - Shows PV, evaluation, cutoffs
+    #   - Best for: Analysis, learning
+    #
+    # "debug":
+    #   - Everything (very noisy)
+    #   - Internal state, all iterations
+    #   - Best for: Development, debugging
+    #
+    # RECOMMENDATION: "normal"
+    level: "normal"
+
+    # Show move statistics
+    # Type: boolean
+    #
+    # WHAT IT SHOWS:
+    # - Nodes searched
+    # - Time taken
+    # - Nodes per second
+    # - Transposition table hits
+    #
+    # RECOMMENDATION: true
+    show_statistics: true
+
+    # Show thinking progress (during search)
+    # Type: boolean
+    #
+    # WHAT IT SHOWS:
+    # - Current depth being searched
+    # - Best move so far
+    # - Current evaluation
+    #
+    # WARNING: Very verbose, updates continuously
+    # RECOMMENDATION: false (unless debugging)
+    show_thinking: false
+
+    # Show position evaluation details
+    # Type: boolean
+    #
+    # WHAT IT SHOWS:
+    # - Breakdown of evaluation (mobility, positional, etc.)
+    # - Component scores
+    # - Final score
+    #
+    # RECOMMENDATION: false (unless analyzing)
+    show_evaluation: false
+
+  # ==========================================================================
+  # RANDOMIZATION (OPTIONAL)
+  # ==========================================================================
+  # Add controlled randomness for variety
+  randomization:
+
+    # Enable randomization
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - Adds slight randomness to move selection
+    # - Varies play even from same position
+    # - Useful for training, avoiding predictability
+    #
+    # HOW IT WORKS:
+    # - temperature = 0.0: Always best move (deterministic)
+    # - temperature > 0.0: Probability weighted by score
+    #
+    # RECOMMENDATION: false (deterministic play is stronger)
+    enabled: false
+
+    # Randomization temperature
+    # Type: float
+    # Range: 0.0-1.0
+    #
+    # TEMPERATURE GUIDE:
+    # - 0.0 = No randomness (always best move)
+    # - 0.1 = Slight variation (occasionally pick 2nd best)
+    # - 0.3 = Moderate variation (varied play)
+    # - 0.5 = High variation (somewhat random)
+    # - 1.0 = Very random (poor play)
+    #
+    # RECOMMENDATION: 0.0-0.1 if enabled
+    temperature: 0.0
+
+# ----------------------------------------------------------------------------
+# SECTION 8: ADVANCED OPTIONS
+# ----------------------------------------------------------------------------
+# Experimental and expert-level features.
+# Most users should leave these at default values.
+# Only modify if you understand the implications!
+advanced:
+
+  # ==========================================================================
+  # QUIESCENCE SEARCH
+  # ==========================================================================
+  # Search tactical sequences beyond horizon
+  quiescence:
+
+    # Enable quiescence search
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - At leaf nodes, continue searching "forcing" moves
+    # - Prevents horizon effect (missing tactics just beyond depth)
+    # - Common in chess engines, less common in Reversi
+    #
+    # WHY UNCOMMON IN REVERSI:
+    # - Reversi has fewer "forcing" moves than chess
+    # - Hard to define what's "tactical" in Reversi
+    # - Better to just search deeper
+    #
+    # RECOMMENDATION: false (not well-tuned for Reversi)
+    enabled: false
+
+    # Maximum quiescence depth
+    # Type: integer
+    # Range: 2-8
+    #
+    # WHAT IT MEANS:
+    # - How deep to extend tactical search
+    # - Can significantly increase search time
+    #
+    # RECOMMENDATION: 4 (if enabled)
+    max_depth: 4
+
+  # ==========================================================================
+  # SINGULAR EXTENSION
+  # ==========================================================================
+  # Extend search when one move is clearly best
+  singular_extension:
+
+    # Enable singular extensions
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - If one move much better than others, search it deeper
+    # - Detects "forced" or critical moves
+    # - Can prevent missing important tactics
+    #
+    # IMPACT: 5-15% slower but slightly stronger
+    # RECOMMENDATION: false (experimental, not well-tuned)
+    enabled: false
+
+    # Singularity margin
+    # Type: integer (centipawns)
+    # Range: 30-100
+    #
+    # WHAT IT MEANS:
+    # - How much better move must be to be "singular"
+    # - Lower = extend more often
+    # - Higher = extend only clearly best moves
+    #
+    # RECOMMENDATION: 50 (if enabled)
+    margin: 50
+
+  # ==========================================================================
+  # RAZORING
+  # ==========================================================================
+  # Aggressive forward pruning technique
+  razoring:
+
+    # Enable razoring
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - If position seems very bad, reduce depth or prune entirely
+    # - Very aggressive optimization
+    # - Risk of missing defensive resources
+    #
+    # WARNING: Can hurt tactical strength
+    # RECOMMENDATION: false (too risky for Reversi)
+    enabled: false
+
+    # Razoring margin
+    # Type: integer (centipawns)
+    # Range: 200-400
+    #
+    # WHAT IT MEANS:
+    # - If static eval < alpha - margin, apply razoring
+    # - Higher = more conservative (safer)
+    #
+    # RECOMMENDATION: 300 (if enabled, but disabled recommended)
+    margin: 300
+
+  # ==========================================================================
+  # INTERNAL ITERATIVE DEEPENING (IID)
+  # ==========================================================================
+  # Search to lower depth to improve move ordering
+  iid:
+
+    # Enable IID
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - When no PV move available, search to lower depth first
+    # - Uses result to improve move ordering
+    # - Useful when transposition table misses
+    #
+    # IMPACT: Small speedup in some positions, overhead in others
+    # RECOMMENDATION: false (modern engines use other techniques)
+    enabled: false
+
+    # Minimum depth for IID
+    # Type: integer
+    # Range: 4-8
+    #
+    # WHAT IT MEANS:
+    # - Only use IID when depth >= min_depth
+    # - Need enough depth for benefit to outweigh cost
+    #
+    # RECOMMENDATION: 4 (if enabled)
+    min_depth: 4
+
+    # IID depth reduction
+    # Type: integer
+    # Range: 2-3
+    #
+    # WHAT IT MEANS:
+    # - IID searches at (current_depth - reduction)
+    # - Higher = faster but less accurate ordering
+    #
+    # RECOMMENDATION: 2
+    reduction: 2
+
+  # ==========================================================================
+  # DEBUG OPTIONS
+  # ==========================================================================
+  # Development and testing features
+  debug:
+
+    # Validate all moves (slow!)
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - Check every move for legality
+    # - Verify board state consistency
+    # - Catches engine bugs
+    #
+    # WARNING: 10-50x slower!
+    # RECOMMENDATION: false (only for development)
+    validate_moves: false
+
+    # Track nodes visited
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - Count total nodes searched
+    # - Useful for performance analysis
+    #
+    # OVERHEAD: Minimal (~1-2%)
+    # RECOMMENDATION: false (unless analyzing)
+    track_nodes: false
+
+    # Export search tree (VERY slow!)
+    # Type: boolean
+    #
+    # WHAT IT DOES:
+    # - Save complete search tree to file
+    # - Useful for understanding engine decisions
+    #
+    # WARNING: 100-1000x slower, huge files!
+    # RECOMMENDATION: false (only for single-position analysis)
+    export_search_tree: false
+
+# ============================================================================
+# END OF TEMPLATE
+# ============================================================================
+# 
+# NEXT STEPS:
+# 1. Copy this file to create your custom player
+# 2. Modify metadata (name, description, etc.)
+# 3. Adjust engine depth and strategy
+# 4. Enable/disable evaluators and pruning
+# 5. Test and tune!
+#
+# TUNING TIPS:
+# - Start with preset: "balanced"
+# - Adjust depth for speed/strength trade-off
+# - Enable all pruning for maximum speed
+# - Tune evaluator weights for playing style
+# - Use iterative deepening for best results
+#
+# COMMON CONFIGURATIONS:
+# - Speed demon: depth 4, fixed strategy, no pruning, parallel off
+# - Balanced: depth 8, iterative, all pruning, balanced preset
+# - Power house: depth 12, adaptive, all pruning, 8 workers
+# - Endgame specialist: adaptive (7/9/14), parity weight 2.0
+#
+# For questions and support, see documentation at:
+# https://github.com/lucaamore/reversi42
+# ============================================================================
+

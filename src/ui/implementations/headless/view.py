@@ -9,7 +9,6 @@ This view implementation performs no rendering at all. It's perfect for:
 
 Maximum speed - zero overhead from graphics!
 
-Version: 3.1.0
 Architecture: Isolated in ui/implementations/headless/
 """
 

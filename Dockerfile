@@ -1,12 +1,15 @@
 # Multi-stage Dockerfile for Reversi42
 # Optimized for size and security
 
+# Build argument for version (passed during docker build)
+ARG VERSION=5.0.0
+
 # Stage 1: Builder
 FROM python:3.11-slim as builder
 
 LABEL maintainer="Luca Amore <luca.amore@gmail.com>"
 LABEL description="Reversi42 - Ultra-Fast Reversi/Othello with AI"
-LABEL version="3.1.0"
+LABEL version="${VERSION}"
 
 WORKDIR /build
 

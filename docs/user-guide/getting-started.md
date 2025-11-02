@@ -182,10 +182,10 @@ Reversi42 features **12 AI opponents** with different difficulty levels:
 **Solution**:
 ```bash
 # Kill existing process
-pkill -f backend_server
+pkill -f reversi42_server
 
 # Or use different port
-python3 -m src.webgui.server.backend_server --port 8001
+python3 -m src.webgui.server.reversi42_server --port 8001
 ```
 
 ### Can't connect to server

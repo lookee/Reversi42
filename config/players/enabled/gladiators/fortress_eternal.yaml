@@ -1,0 +1,218 @@
+# ============================================================================
+# FORTRESS ETERNAL 🏰 - The Defensive Master
+# ============================================================================
+# Maximum defense configuration - Impenetrable stability
+# 
+# Strategy: Heavy stability emphasis, defensive positioning
+# Target: Champion level (ELO ~1800)
+# Speed: Moderate to slow (careful calculation)
+# Best for: Defensive play, stability focus, solid positions
+# ============================================================================
+
+metadata:
+  name: "FORTRESS ETERNAL"
+  display_name: "Fortress Eternal"
+  description: "Defensive Master - Impenetrable Stability"
+  headline: "THE FORTRESS STANDS ETERNAL"
+  enabled: true
+  icon: "🏰"
+  
+  # Avatar: Massive stone fortress with glowing protective barriers
+  # Suggested: Medieval fortress, blue/gray stone, magical shields
+  # Path is relative to project root
+  # Example image: Stone castle with energy barriers, defensive aura
+  avatar: "avatars/default.png"
+  
+  category: "champion"
+  estimated_elo: 1800
+  
+  stats:
+    power: 9       # Defensive dominance
+    speed: 5       # Methodical calculation
+    accuracy: 8    # Precise defensive play
+    depth: 8       # Deep defensive analysis
+    lethality: 6   # Patient destruction
+
+engine:
+  depth:
+    base: 10
+    strategy: "iterative"
+  
+  # Moderate parallelization
+  parallel:
+    enabled: true
+    num_workers: 4
+  
+  # Large transposition table for position caching
+  transposition_table:
+    enabled: true
+    size_mb: 256
+  
+  aspiration_windows:
+    enabled: true
+    initial_width: 50
+    widen_factor: 2.0
+
+evaluation:
+  # Custom evaluator configuration emphasizing defense
+  preset: null
+  
+  evaluators:
+    # STABILITY is king for Fortress Eternal
+    - name: "stability"
+      enabled: true
+      weight: 2.5     # Massively boosted (2.5x)
+    
+    # Positional for corners/edges
+    - name: "positional"
+      enabled: true
+      weight: 1.5     # Boosted
+    
+    # Mobility less important (defensive style)
+    - name: "mobility"
+      enabled: true
+      weight: 0.7     # Reduced (less aggressive)
+    
+    # Parity standard
+    - name: "parity"
+      enabled: true
+      weight: 1.0
+  
+  # Fine-tuned weights for maximum defense
+  weights:
+    # Maximize stability values
+    stability_weight: 25        # 1.67x boost (default: 15)
+    semi_stable_weight: 10      # 2x boost (default: 5)
+    
+    # Strong positional play
+    corner_weight: 120          # 1.2x boost (default: 100)
+    edge_weight: 15             # 1.5x boost (default: 10)
+    
+    # Avoid risky squares
+    x_square_penalty: -35       # More aggressive penalty (default: -25)
+    c_square_penalty: -15       # More aggressive penalty (default: -10)
+
+move_ordering:
+  strategies:
+    - name: "pv_move"
+      enabled: true
+      priority: 100
+    
+    - name: "killer_moves"
+      enabled: true
+      priority: 90
+      max_killers_per_ply: 2
+    
+    - name: "history_heuristic"
+      enabled: true
+      priority: 80
+      decay_factor: 0.95
+    
+    # Positional ordering critical for defensive play
+    - name: "positional"
+      enabled: true
+      priority: 70
+
+pruning:
+  # All pruning enabled for speed
+  null_move:
+    enabled: true
+    reduction_depth: 3
+    min_depth: 3
+  
+  # Conservative futility (defensive play = fewer tactics)
+  futility:
+    enabled: true
+    margin: 120     # Higher margin (more conservative)
+    max_depth: 3
+  
+  late_move_reduction:
+    enabled: true
+    threshold_move: 4
+    reduction_depth: 1
+    min_depth: 3
+  
+  multi_cut:
+    enabled: true
+    threshold_cuts: 3
+    verification_depth: 2
+
+opening_book:
+  enabled: true
+  strategy: "evaluated"
+  
+  evaluation:
+    advantage_weight: 0.25    # Higher weight (quality over variety)
+    variety_weight: 0.05      # Lower variety (focused on solid openings)
+    only_evaluated: true
+  
+  display:
+    show_options: false
+    show_analysis: false
+    verbose: false
+
+behavior:
+  time:
+    think_time_ms: 0
+    max_time_ms: null
+  
+  logging:
+    level: "normal"
+    show_statistics: true
+    show_thinking: false
+    show_evaluation: false
+  
+  randomization:
+    enabled: false
+    temperature: 0.0
+
+advanced:
+  quiescence:
+    enabled: false
+  singular_extension:
+    enabled: false
+  razoring:
+    enabled: false
+  iid:
+    enabled: false
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# FORTRESS ETERNAL PERFORMANCE NOTES
+# ============================================================================
+# 
+# Playing Style:
+# - Builds stable positions methodically
+# - Prioritizes corner and edge control
+# - Avoids risky X-squares and C-squares aggressively
+# - Patient, defensive strategy
+# - Strong in endgame (stability = permanent discs)
+# 
+# Expected Performance:
+# - Depth 10 iterative: ~5-20 seconds per move
+# - Strong against aggressive opponents (absorbs pressure)
+# - Excels in positional battles
+# - May struggle against very fast opponents (needs time)
+# 
+# Strength Profile:
+# - Opening: Solid (defensive book lines preferred)
+# - Midgame: Excellent (builds impenetrable positions)
+# - Endgame: Strong (stable discs = guaranteed points)
+# - Overall: Champion tier (ELO ~1800)
+# 
+# When Fortress Eternal Shines:
+# - Against aggressive attackers (defensive wall)
+# - In positional battles (stability expertise)
+# - Endgames with stable disc advantages
+# - Games where patience wins
+# 
+# Tuning Notes:
+# - Stability weight 2.5x is core identity
+# - Could increase to 3.0x for even more defense
+# - Depth 10 balances strength with speed
+# - Conservative pruning margins match defensive style
+# ============================================================================
+

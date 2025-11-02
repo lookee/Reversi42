@@ -36,7 +36,7 @@ def get_version():
                     parts = line.split("=")
                     if len(parts) == 2:
                         return parts[1].strip().strip('"').strip("'")
-    return "3.2.0"  # Fallback
+    return "5.0.0"  # Fallback (must match pyproject.toml)
 
 setup(
     name="reversi42",

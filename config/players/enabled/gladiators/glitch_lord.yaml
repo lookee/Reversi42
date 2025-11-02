@@ -1,0 +1,201 @@
+# ============================================================================
+# GLITCH LORD 👾 - Chaotic Anomaly
+# ============================================================================
+# Unconventional configuration - Unpredictable chaos
+# 
+# Strategy: Slight randomization, varied play, chaos theory
+# Target: Intermediate level (ELO ~1500)
+# Speed: Fast (chaotic but quick)
+# Best for: Unpredictable games, variety, fun matches
+# ============================================================================
+
+metadata:
+  name: "GLITCH LORD"
+  display_name: "Glitch Lord"
+  description: "Chaotic Anomaly - Embrace the Glitch"
+  headline: "REALITY.EXE HAS STOPPED WORKING"
+  enabled: true
+  icon: "👾"
+  
+  # Avatar: Glitchy pixelated figure with digital corruption effects
+  # Suggested: Retro game sprite with glitch effects, neon colors
+  # Path is relative to project root
+  # Example image: Pixelated character with corruption, neon green/pink
+  avatar: "avatars/default.png"
+  
+  category: "intermediate"
+  estimated_elo: 1500
+  
+  stats:
+    power: 6       # Moderate power
+    speed: 7       # Quick decisions
+    accuracy: 5    # Intentionally variable
+    depth: 6       # Medium depth
+    lethality: 6   # Unpredictable threat
+
+engine:
+  depth:
+    base: 7
+    strategy: "iterative"
+  
+  parallel:
+    enabled: true
+    num_workers: 3            # Odd number (chaotic!)
+  
+  transposition_table:
+    enabled: true
+    size_mb: 96               # Non-standard size
+  
+  aspiration_windows:
+    enabled: true
+    initial_width: 55         # Unusual width
+    widen_factor: 2.3         # Non-standard factor
+
+evaluation:
+  # Balanced with slight chaos
+  preset: "balanced"
+
+move_ordering:
+  strategies:
+    - name: "pv_move"
+      enabled: true
+      priority: 100
+    
+    - name: "killer_moves"
+      enabled: true
+      priority: 90
+      max_killers_per_ply: 2
+    
+    - name: "history_heuristic"
+      enabled: true
+      priority: 80
+      decay_factor: 0.88      # Fast decay (more chaotic)
+    
+    - name: "positional"
+      enabled: true
+      priority: 70
+
+pruning:
+  # All optimizations enabled (don't affect randomization style)
+  null_move:
+    enabled: true
+    reduction_depth: 3
+    min_depth: 3
+  
+  futility:
+    enabled: true
+    margin: 95                # Unusual value (chaotic!)
+    max_depth: 3
+  
+  late_move_reduction:
+    enabled: true
+    threshold_move: 4
+    reduction_depth: 1
+    min_depth: 3
+  
+  multi_cut:
+    enabled: true             # Safe optimization (doesn't affect chaos)
+    threshold_cuts: 3
+    verification_depth: 2
+
+opening_book:
+  enabled: true
+  strategy: "evaluated"
+  
+  evaluation:
+    advantage_weight: 0.15    # Lower (more varied openings)
+    variety_weight: 0.20      # Higher (embrace variety!)
+    only_evaluated: false     # Allow non-evaluated (more variety)
+  
+  display:
+    show_options: false
+    show_analysis: false
+    verbose: false
+
+behavior:
+  time:
+    think_time_ms: 0
+    max_time_ms: null
+  
+  logging:
+    level: "normal"
+    show_statistics: true
+    show_thinking: false
+    show_evaluation: false
+  
+  randomization:
+    enabled: true             # UNIQUE: Randomization enabled!
+    temperature: 0.15         # Slight randomness for variety
+
+advanced:
+  quiescence:
+    enabled: false
+  singular_extension:
+    enabled: false
+  razoring:
+    enabled: false
+  iid:
+    enabled: false
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+
+# ============================================================================
+# GLITCH LORD PERFORMANCE NOTES
+# ============================================================================
+# 
+# Playing Style:
+# - Intentionally unpredictable
+# - Slight randomization (temperature 0.15)
+# - Varied opening selection (higher variety weight)
+# - Non-standard parameter values
+# - Chaotic but not random (still strong!)
+# 
+# Expected Performance:
+# - Depth 7 iterative: ~300ms-1.5s per move (optimized!)
+# - Unpredictable move selection (randomization)
+# - Different games even from same position
+# - Fun to play against (never boring!)
+# - All optimizations enabled for speed (doesn't affect chaos)
+# 
+# Strength Profile:
+# - Opening: Varied (explores many lines)
+# - Midgame: Decent (depth 7 is respectable)
+# - Endgame: Good (chaotic endgames fun!)
+# - Overall: Intermediate tier (ELO ~1500)
+# 
+# When Glitch Lord Shines:
+# - Against predictable opponents (chaos breaks patterns)
+# - In training (varied games for learning)
+# - Fun matches (unpredictable = entertaining)
+# - Multiple games (different each time!)
+# 
+# Unique Features:
+# - randomization.enabled: true (RARE!)
+# - temperature: 0.15 (slight controlled chaos)
+# - variety_weight: 0.20 (highest among all players)
+# - only_evaluated: false (explores all openings)
+# - Odd number of workers (3) for flavor
+# - Non-standard parameter values throughout
+# - All pruning enabled (chaos from randomization, not missing optimizations!)
+# 
+# Randomization Details:
+# - Temperature 0.15 = ~10-15% chance of 2nd/3rd best move
+# - Still plays strong moves (not random walk)
+# - Creates variety without throwing games
+# - Same position can lead to different moves
+# 
+# Philosophy:
+# "Order is boring. Patterns are predictable.
+#  I am the glitch in the system.
+#  The anomaly in the algorithm.
+#  You cannot predict what you cannot understand.
+#  And I don't even understand myself."
+#                                    - Glitch Lord
+# 
+# Warning:
+# Due to randomization, ELO rating varies ±50 points.
+# This is intentional - chaos is the strategy!
+# ============================================================================
+

@@ -2,8 +2,6 @@
 UI Factories
 
 Factory classes for creating UI components with proper dependency injection.
-
-Version: 3.1.0
 """
 
 from .ui_factory import UIFactory

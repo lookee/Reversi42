@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/yaml/yaml.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
   <link rel="stylesheet" href="css/styles.css">
@@ -58,6 +59,22 @@
               <svg id="changeWhiteIcon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
                 <path d="M3 21a9 9 0 0 1 18 0"/>
+              </svg>
+            </button>
+            <button id="viewWhiteConfigBtn" class="miniIconBtn" style="display:inline-flex !important; width:28px !important; height:28px !important; align-items:center !important; justify-content:center !important; cursor:pointer !important; padding:0 !important" title="View AI Configuration" data-tip="View AI Configuration" aria-label="View AI Configuration">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px !important; height:16px !important; display:block !important">
+                <!-- DNA double helix - simplified for small size -->
+                <path d="M7 4 Q5 12 7 20" fill="none"/>
+                <path d="M17 4 Q19 12 17 20" fill="none"/>
+                <!-- Base pairs - only 3 for clarity -->
+                <line x1="7" y1="7" x2="17" y2="7" stroke-width="2.5"/>
+                <line x1="7" y1="12" x2="17" y2="12" stroke-width="2.5"/>
+                <line x1="7" y1="17" x2="17" y2="17" stroke-width="2.5"/>
+                <!-- End caps -->
+                <circle cx="7" cy="4" r="1.8" fill="currentColor"/>
+                <circle cx="17" cy="4" r="1.8" fill="currentColor"/>
+                <circle cx="7" cy="20" r="1.8" fill="currentColor"/>
+                <circle cx="17" cy="20" r="1.8" fill="currentColor"/>
               </svg>
             </button>
           </div>
@@ -235,6 +252,37 @@
     </article>
   </main>
 
+
+  <!-- ========================================
+       AI CONFIG VIEWER MODAL
+       ======================================== -->
+  <div id="aiConfigModal" class="modal" style="display:none">
+    <div class="modal-content" style="max-width:900px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column">
+      <div class="modal-header" style="padding:20px;border-bottom:1px solid rgba(255,255,255,0.1)">
+        <h2 style="margin:0;font-size:24px;font-weight:700">
+          <span style="margin-right:8px">⚙️</span>
+          <span id="configPlayerName">AI Configuration</span>
+        </h2>
+        <button class="modal-close" onclick="closeAIConfigModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="flex:1;overflow:hidden;padding:0;display:flex;flex-direction:column">
+        <div style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.2)">
+          <div style="font-size:13px;color:var(--muted)">
+            <strong>File:</strong> <code id="configFilePath" style="color:var(--gold)">—</code>
+          </div>
+        </div>
+        <div style="flex:1;overflow:auto;position:relative">
+          <textarea id="aiConfigEditor" style="display:none"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:13px;color:var(--muted)">
+          <span>📝 Read-only view</span>
+        </div>
+        <button class="btn" onclick="closeAIConfigModal()">Close</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ========================================
        MODALS & OVERLAYS (Loaded from templates/)

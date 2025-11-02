@@ -9,8 +9,6 @@
  *  - Search progress tracking
  *  - Move evaluation details
  *  - Auto-scroll to latest logs
- * 
- * @version 3.2.0
  */
 
 // Initialize AI Insight Panel after template is loaded
