@@ -1424,25 +1424,87 @@
         console.error('❌ Paste button NOT found in DOM!');
       }
       if (saveBtn) saveBtn.addEventListener('click', ()=>{
-        const txt = getCompactHistory();
-        if(!txt){ showToast('Nothing to save'); return; }
-        const blob = new Blob([txt + '\n'], {type:'text/plain'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'reversi-game.rev'; a.click();
+        // Save in XOT format (eXtended Othello Transcript)
+        const xotContent = generateXOT();
+        if(!xotContent){ 
+          showToast('Nothing to save'); 
+          return; 
+        }
+        
+        // Generate filename with timestamp
+        const now = new Date();
+        const timestamp = now.toISOString()
+          .replace(/[T:]/g, '_')
+          .replace(/\..+/, '')
+          .replace(/-/g, '');
+        const filename = `reversi42_${timestamp}.xot`;
+        
+        const blob = new Blob([xotContent], {type:'text/plain'});
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(blob); 
+        a.download = filename;
+        a.click();
         setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+        
+        showToast(`💾 Saved: ${filename}`);
+        console.log('Game saved in XOT format:', filename);
       });
       if (loadBtn) loadBtn.addEventListener('click', ()=>{
-        const inp = document.createElement('input'); inp.type='file'; inp.accept='.r42,.rev,.txt,text/plain';
+        const inp = document.createElement('input'); 
+        inp.type='file'; 
+        inp.accept='.xot,.r42,.rev,.txt,text/plain'; // Accept XOT and legacy formats
+        
         inp.onchange = async ()=>{
-          const file = inp.files?.[0]; if(!file) return;
+          const file = inp.files?.[0]; 
+          if(!file) return;
+          
           try{
-            const txt = (await file.text()).trim();
-            if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
-              wsSend({ type:'load_history', history: txt });
-              wsSend({ type:'get_state' });
-              showToast('Loading game...');
+            const fileContent = await file.text();
+            const format = detectFileFormat(fileContent);
+            
+            console.log(`📂 Loading file: ${file.name}, detected format: ${format}`);
+            
+            let historyToLoad = '';
+            let metadata = null;
+            
+            if(format === 'xot'){
+              // Parse XOT format
+              const parsed = parseXOT(fileContent);
+              if(parsed){
+                historyToLoad = parsed.history;
+                metadata = parsed.metadata;
+                console.log('XOT metadata:', metadata);
+                showToast(`📖 Loading XOT: ${metadata.black} vs ${metadata.white}`);
+              } else {
+                throw new Error('Invalid XOT format');
+              }
+            } else if(format === 'compact'){
+              // Extract compact history
+              historyToLoad = fileContent.trim();
+              showToast('📖 Loading compact format...');
+            } else {
+              throw new Error('Unknown file format');
             }
-          }catch(e){ console.error('Invalid file', e); showToast('Load failed'); }
-        }; inp.click();
+            
+            // Send to backend
+            if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+              wsSend({ type:'load_history', history: historyToLoad });
+              wsSend({ type:'get_state' });
+              
+              // TODO: If XOT has player names, we could set them too
+              // This would require a new backend message type
+            } else {
+              showToast('❌ Not connected');
+            }
+            
+          }catch(e){ 
+            console.error('Load file error:', e); 
+            showToast(`❌ Load failed: ${e.message}`);
+            alert(`Failed to load file:\n\n${e.message}\n\nSupported formats:\n- XOT (.xot)\n- Compact (.rev, .r42)`);
+          }
+        }; 
+        
+        inp.click();
       });
       if (newBtn) newBtn.addEventListener('click', ()=>{
         if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
@@ -1761,6 +1823,149 @@
     function getCompactHistory(){
       if(data && typeof data.history_compact === 'string' && data.history_compact.length>0) return data.history_compact;
       return buildCompactHistoryFromMoves(data?.moves);
+    }
+    
+    // === XOT FORMAT SUPPORT ===
+    
+    function generateXOT(){
+      /**
+       * Generate XOT (eXtended Othello Transcript) format file content
+       * Returns a complete XOT file as string
+       */
+      if(!data) return null;
+      
+      const now = new Date();
+      const timestamp = now.toISOString().replace('T', ' ').substring(0, 19);
+      const blackName = data.players?.black?.name || 'Human';
+      const whiteName = data.players?.white?.name || 'Human';
+      const turn = data.status?.turn_by_ply?.[0] || 'B';
+      const blackScore = data.status?.black_count || 2;
+      const whiteScore = data.status?.white_count || 2;
+      const size = 8;
+      const history = getCompactHistory();
+      const moveCount = history ? Math.floor(history.length / 2) : 0;
+      
+      // Get board state (current position)
+      const boardPos = data.positions?.[data.positions.length - 1] || data.positions?.[0];
+      const board64 = normalize64(boardPos);
+      
+      let xot = [];
+      xot.push('# Reversi42 Game Save - XOT Format v1.0');
+      xot.push(`# Saved: ${timestamp}`);
+      xot.push('');
+      xot.push('[GAME]');
+      xot.push(`Black=${blackName}`);
+      xot.push(`White=${whiteName}`);
+      xot.push(`Turn=${turn}`);
+      xot.push(`BlackScore=${blackScore}`);
+      xot.push(`WhiteScore=${whiteScore}`);
+      xot.push(`Size=${size}`);
+      xot.push('');
+      xot.push('[MOVES]');
+      xot.push(`History=${history}`);
+      xot.push(`Count=${moveCount}`);
+      xot.push('');
+      xot.push('[BOARD]');
+      
+      // Board state - 8 rows of 8 characters
+      for(let row = 0; row < 8; row++){
+        let rowStr = '';
+        for(let col = 0; col < 8; col++){
+          const idx = row * 8 + col;
+          rowStr += board64[idx];
+        }
+        xot.push(rowStr);
+      }
+      xot.push('');
+      
+      return xot.join('\n');
+    }
+    
+    function parseXOT(content){
+      /**
+       * Parse XOT format file content
+       * Returns { history, metadata } or null if not XOT format
+       */
+      if(!content || typeof content !== 'string') return null;
+      
+      // Check if it's XOT format (must start with # Reversi42 or contain [GAME])
+      if(!content.includes('[GAME]') && !content.includes('# Reversi42')) {
+        return null; // Not XOT format
+      }
+      
+      const lines = content.split('\n').map(l => l.trim());
+      let history = '';
+      let metadata = {
+        black: 'Human',
+        white: 'Human',
+        turn: 'B',
+        blackScore: 2,
+        whiteScore: 2,
+        size: 8
+      };
+      
+      let currentSection = null;
+      
+      for(const line of lines){
+        // Skip comments and empty lines
+        if(!line || line.startsWith('#')) continue;
+        
+        // Section headers
+        if(line.startsWith('[')){
+          if(line.includes('[GAME]')) currentSection = 'game';
+          else if(line.includes('[MOVES]')) currentSection = 'moves';
+          else if(line.includes('[BOARD]')) currentSection = 'board';
+          continue;
+        }
+        
+        // Parse based on current section
+        if(currentSection === 'game'){
+          if(line.startsWith('Black=')) metadata.black = line.substring(6);
+          else if(line.startsWith('White=')) metadata.white = line.substring(6);
+          else if(line.startsWith('Turn=')) metadata.turn = line.substring(5);
+          else if(line.startsWith('BlackScore=')) metadata.blackScore = parseInt(line.substring(11)) || 2;
+          else if(line.startsWith('WhiteScore=')) metadata.whiteScore = parseInt(line.substring(11)) || 2;
+          else if(line.startsWith('Size=')) metadata.size = parseInt(line.substring(5)) || 8;
+        }
+        else if(currentSection === 'moves'){
+          if(line.startsWith('History=')) history = line.substring(8);
+        }
+        // Board section is optional, we ignore it (we replay from history)
+      }
+      
+      return {
+        history: history,
+        metadata: metadata
+      };
+    }
+    
+    function detectFileFormat(content){
+      /**
+       * Auto-detect file format: 'xot', 'compact', or 'unknown'
+       */
+      if(!content || typeof content !== 'string') return 'unknown';
+      
+      const trimmed = content.trim();
+      
+      // Check for XOT format markers
+      if(trimmed.includes('[GAME]') || trimmed.includes('[MOVES]') || trimmed.startsWith('# Reversi42')){
+        return 'xot';
+      }
+      
+      // Check for compact format (only move notation, no metadata)
+      // Compact format: C4e3F6e6F4c5... (letters + numbers only)
+      const compactRegex = /^[A-Ha-h][1-8]+$/;
+      if(compactRegex.test(trimmed)){
+        return 'compact';
+      }
+      
+      // If it contains valid moves but with extra characters, try to extract
+      const moves = trimmed.match(/[A-Ha-h][1-8]/g);
+      if(moves && moves.length > 0){
+        return 'compact'; // Probably compact with extra formatting
+      }
+      
+      return 'unknown';
     }
     function normalize64(pos){ 
       // Support both formats: string (legacy) and coordinate object (new)
