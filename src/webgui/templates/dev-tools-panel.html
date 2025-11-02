@@ -1,0 +1,39 @@
+<!-- 
+  Dev Tools Panel Template
+  
+  This template is loaded dynamically by the main HTML
+  Part of Reversi42 WebGUI modular architecture
+-->
+
+  <div id="jsonEditorWrapper" style="display:none">
+    <div class="json-editor-header">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold">Server Logs</span>
+        <button class="btn text-xs" id="refreshLogs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></span> Refresh</button>
+        <button class="btn text-xs" id="clearLogs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M9 6l1-2h4l1 2"/></svg></span> Clear</button>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn text-xs" id="closeJsonEditor2"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></span> Close</button>
+      </div>
+    </div>
+    <div class="json-editor-tabs">
+      <button class="tab-btn active" id="tabBtnLogs" data-tab="logs">Server Logs</button>
+      <button class="tab-btn" id="tabBtnWs" data-tab="ws">WebSocket</button>
+    </div>
+    <div id="tabLogsPane" class="tab-content active">
+      <div id="logsContainer">
+        <div id="logsContent"></div>
+      </div>
+    </div>
+    <div id="tabWsPane" class="tab-content">
+      <div class="json-editor-header">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold">WebSocket Messages</span>
+          <button class="btn text-xs" id="clearWs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M9 6l1-2h4l1 2"/></svg></span> Clear</button>
+        </div>
+      </div>
+      <div id="wsTrafficContainer" style="background:#1a1a1a;color:#e5e5e5;font-family:'Courier New',monospace;overflow:auto;max-height:100%">
+        <div id="wsTrafficContent" style="padding:16px;white-space:pre;line-height:1.6"></div>
+      </div>
+    </div>
+  </div>

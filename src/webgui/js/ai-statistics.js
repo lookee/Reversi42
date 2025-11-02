@@ -15,13 +15,14 @@
  * @version 3.2.0
  */
 
-// Statistics Dashboard Management
-const statsDashboard = document.getElementById('aiStatsDashboard');
-const statsCollapsibleBody = document.getElementById('statsCollapsibleBody');
-const toggleStatsCollapseBtn = document.getElementById('toggleStatsCollapse');
-const toggleAiStatsBtn = document.getElementById('toggleAiStatsBtn');
-const toggleAiStatsText = document.getElementById('toggleAiStatsText');
-const toggleAiStatsIcon = document.getElementById('toggleAiStatsIcon');
+// Initialize AI Statistics Dashboard after template is loaded
+function initAIStatistics() {
+  const statsDashboard = document.getElementById('aiStatsDashboard');
+  const statsCollapsibleBody = document.getElementById('statsCollapsibleBody');
+  const toggleStatsCollapseBtn = document.getElementById('toggleStatsCollapse');
+  const toggleAiStatsBtn = document.getElementById('toggleAiStatsBtn');
+  const toggleAiStatsText = document.getElementById('toggleAiStatsText');
+  const toggleAiStatsIcon = document.getElementById('toggleAiStatsIcon');
 
 let statsCollapsed = false;
 let statsVisible = false;
@@ -459,3 +460,6 @@ function toggleSection(contentId, buttonId){
 window.showAIStatisticsDashboard = showAIStatisticsDashboard;
 window.formatCompactNumber = formatCompactNumber;
 window.toggleSection = toggleSection;
+}
+
+// Will be called by loadTemplates() in game.js after templates are loaded

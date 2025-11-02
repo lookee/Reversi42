@@ -13,11 +13,12 @@
  * @version 3.2.0
  */
 
-// Developer-Insight: Logs and WebSocket traffic viewer
-function q(id){ return document.getElementById(id); }
-const toggleBtn = q('toggleJsonEditor');
-const editorWrapper = q('jsonEditorWrapper');
-const closeBtn2 = q('closeJsonEditor2');
+// Initialize Developer Tools after template is loaded
+function initDevTools() {
+  function q(id){ return document.getElementById(id); }
+  const toggleBtn = q('toggleJsonEditor');
+  const editorWrapper = q('jsonEditorWrapper');
+  const closeBtn2 = q('closeJsonEditor2');
 if(toggleBtn) toggleBtn.addEventListener('click', () => {
   const isVisible = editorWrapper.style.display !== 'none';
   editorWrapper.style.display = isVisible ? 'none' : 'flex';
@@ -100,6 +101,7 @@ function activateTab(which){
 }
 tabBtnLogs?.addEventListener('click', ()=>activateTab('logs'));
 tabBtnWs?.addEventListener('click', ()=>activateTab('ws'));
+}
 
-// No tabs: logs are the only content now
+// Will be called by loadTemplates() in game.js after templates are loaded
 

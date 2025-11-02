@@ -1,0 +1,258 @@
+<!-- 
+  Ai Insight Panel Template
+  
+  This template is loaded dynamically by the main HTML
+  Part of Reversi42 WebGUI modular architecture
+-->
+
+  <div id="aiInsightWrapper" style="display:none">
+    <div class="ai-insight-header">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold" style="color:#63b3ed;font-size:16px">🧠 AI Insight - Real-time Reasoning</span>
+        <button class="btn text-xs" id="clearAiLogs">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 6h18"/>
+              <path d="M8 6v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"/>
+              <path d="M10 10v8"/>
+              <path d="M14 10v8"/>
+              <path d="M9 6l1-2h4l1 2"/>
+            </svg>
+          </span>
+          Clear Logs
+        </button>
+        <button class="btn text-xs" id="toggleAiStatsBtn" style="display:none">
+          <span class="icon" aria-hidden="true" id="toggleAiStatsIcon">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 15l-6-6-6 6"/>
+            </svg>
+          </span>
+          <span id="toggleAiStatsText">Hide Stats</span>
+        </button>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn text-xs" id="closeAiInsight">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 6L6 18"/>
+              <path d="M6 6l12 12"/>
+            </svg>
+          </span>
+          Close
+        </button>
+      </div>
+    </div>
+    
+    <!-- Statistics Dashboard Section (inside AI Insight) - IN ALTO -->
+    <div id="aiStatsDashboard" class="stats-dashboard-section" style="display:none">
+      <div class="stats-compact-header">
+        <div style="display:flex;align-items:center;gap:8px;flex:1">
+          <div class="stats-player-avatar-xs" id="statsPlayerAvatar">AI</div>
+          <div class="stats-player-name-xs" id="statsPlayerName">AI Player</div>
+          <div style="color:rgba(99,179,237,0.4);margin:0 4px">•</div>
+          <div class="stats-timestamp-xs" id="statsTimestamp">--:--:--</div>
+          <div style="color:rgba(99,179,237,0.4);margin:0 4px">•</div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <span style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px">Move:</span>
+            <span style="font-size:18px;font-weight:700;font-family:'Courier New',monospace;color:#63b3ed" id="statMoveBadge">--</span>
+          </div>
+        </div>
+        <button class="btn text-xs" id="toggleStatsCollapse" title="Hide statistics">▲</button>
+      </div>
+      <div id="statsCollapsibleBody" class="stats-compact-body">
+        <!-- Row 1: Primary KPIs with Circular Charts -->
+        <div class="stats-grid-4" style="margin-bottom:12px">
+          <div class="stat-card-graph" title="Selected move by AI">
+            <div class="stat-label">Move</div>
+            <div class="stat-value-lg" id="statMove">--</div>
+          </div>
+          <div class="stat-card-graph" title="Position evaluation: positive=advantage, negative=disadvantage">
+            <div class="stat-label">Evaluation</div>
+            <div class="stat-value-lg stat-eval-value" id="statEval">--</div>
+          </div>
+          <div class="stat-card-graph" title="Total search time in milliseconds">
+            <div class="stat-label">Search Time</div>
+            <div class="stat-value-md" id="statTime">--</div>
+            <svg class="stat-sparkline" id="sparklineTime" width="100%" height="20"></svg>
+          </div>
+          <div class="stat-card-graph" title="Maximum depth reached in search tree">
+            <div class="stat-label">Depth</div>
+            <div class="stat-value-md" id="statDepth">--</div>
+            <div class="stat-badge" id="statDepthTarget">/ --</div>
+          </div>
+        </div>
+
+        <!-- Row 2: Node Statistics with Circular Progress -->
+        <div class="stats-grid-3" style="margin-bottom:12px">
+          <div class="stat-card-graph" title="Total nodes explored in search tree">
+            <div class="stat-label">Nodes Searched</div>
+            <div class="stat-value-md" id="statNodesSearched">--</div>
+            <svg class="stat-sparkline" id="sparklineNodes" width="100%" height="18"></svg>
+          </div>
+          <div class="stat-card-graph" title="Nodes pruned (skipped) thanks to optimizations">
+            <div class="stat-label">Nodes Pruned</div>
+            <div class="stat-value-md" id="statNodesPruned">--</div>
+            <svg class="stat-sparkline" id="sparklinePruned" width="100%" height="18"></svg>
+          </div>
+          <div class="stat-card-graph stat-card-accent" title="Pruning efficiency: % of nodes pruned - Higher is better">
+            <div class="stat-label">Pruning Efficiency</div>
+            <div class="stat-value-md" id="statPruningEff">--%</div>
+            <svg class="circular-progress" width="60" height="60" id="circularPruning">
+              <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/>
+              <circle cx="30" cy="30" r="25" fill="none" stroke="url(#gradientPruning)" stroke-width="4" 
+                      stroke-dasharray="157" stroke-dashoffset="157" id="circularPruningFill"
+                      transform="rotate(-90 30 30)" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="gradientPruning" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#10b981"/>
+                  <stop offset="100%" style="stop-color:#34d399"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Row 3: Advanced Metrics with Mini Charts -->
+        <div class="stats-grid-4" style="margin-bottom:12px">
+          <div class="stat-card-graph" title="Nodes Per Second: search speed (thousands/sec)">
+            <div class="stat-label">NPS</div>
+            <div class="stat-value-md" id="statNPS">--</div>
+            <svg class="stat-sparkline" id="sparklineNPS" width="100%" height="18"></svg>
+          </div>
+          <div class="stat-card-graph" title="Iterative Deepening: completed depth iterations (1→N)">
+            <div class="stat-label">Iterations</div>
+            <div class="stat-value-md" id="statIterations">--</div>
+            <svg class="stat-micro-chart" id="chartIterations" width="100%" height="24"></svg>
+          </div>
+          <div class="stat-card-graph" title="Aspiration Windows: success rate avoiding re-search">
+            <div class="stat-label">Aspiration</div>
+            <div class="stat-value-md" id="statAspirationRate">--%</div>
+            <svg class="circular-progress-sm" width="40" height="40" id="circularAspiration">
+              <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
+              <circle cx="20" cy="20" r="16" fill="none" stroke="#8b5cf6" stroke-width="3" 
+                      stroke-dasharray="100" stroke-dashoffset="100" id="circularAspirationFill"
+                      transform="rotate(-90 20 20)" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="stat-card-graph" title="Transposition Table: total cache hits (positions reused from memory)">
+            <div class="stat-label">TT Hits</div>
+            <div class="stat-value-md" id="statTTRate">--</div>
+            <svg class="stat-sparkline" id="sparklineTT" width="100%" height="18"></svg>
+            <div class="stat-sublabel" id="statTTPercent" style="font-size:9px;margin-top:-2px;color:rgba(167,139,250,0.7)">-- hit rate</div>
+          </div>
+        </div>
+
+        <!-- 🔧 Optimizations Heat Map -->
+        <div class="stats-section-mini">
+          <div class="stats-section-title-mini">🔧 Optimization Techniques</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:8px">
+            <div class="stat-card-mini" title="Null Move Pruning: cutoffs from null moves (skip turn to verify threats)">
+              <div class="stat-label-mini">NULL</div>
+              <div class="stat-value-mini" id="statNullMove">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barNull" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Futility Pruning: cuts of futile moves in losing positions">
+              <div class="stat-label-mini">FUT</div>
+              <div class="stat-value-mini" id="statFutility">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barFut" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Late Move Reduction: reduced search for likely weak moves">
+              <div class="stat-label-mini">LMR</div>
+              <div class="stat-value-mini" id="statLMR">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barLMR" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Multi-Cut Pruning: multiple moves exceeding beta threshold">
+              <div class="stat-label-mini">M-CUT</div>
+              <div class="stat-value-mini" id="statMultiCut">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barMC" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Opening Book: pre-computed opening moves from database">
+              <div class="stat-label-mini">BOOK</div>
+              <div class="stat-value-mini" id="statBooking">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barBook" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card-mini" title="Parallel Search: threads actively searching different branches">
+              <div class="stat-label-mini">PARALLEL</div>
+              <div class="stat-value-mini" id="statParallel">--</div>
+              <div class="stat-bar-mini"><div class="stat-bar-fill-opt" id="barParallel" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⚙️ AI Configuration (checkbox) -->
+        <div class="stats-section-mini">
+          <div class="stats-section-title-mini">
+            <span>⚙️ AI Configuration</span>
+            <button class="section-toggle-btn" id="toggleAiConfig" onclick="toggleSection('aiConfigContent', 'toggleAiConfig')">Hide</button>
+          </div>
+          <div id="aiConfigContent">
+            <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:6px;padding:8px 10px;margin-bottom:10px">
+              <div class="ai-config-description" id="aiConfigDescription" style="font-size:11px;color:rgba(255,255,255,0.65);line-height:1.5;font-style:italic">
+                Advanced AI engine with multi-threaded alpha-beta search, iterative deepening, and extensive pruning optimizations.
+              </div>
+            </div>
+            <div class="optimization-checklist" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+              <div class="opt-check-item-compact" title="Null Move Pruning: Skip a turn to verify threats. If position still winning after giving opponent free move, it's strong → prune this branch.">
+                <span class="opt-checkbox" id="optNull">☐</span>
+                <span class="opt-label-compact">Null Move</span>
+              </div>
+              <div class="opt-check-item-compact" title="Futility Pruning: In losing positions near leaf nodes (low depth), skip moves that are very unlikely to improve score significantly.">
+                <span class="opt-checkbox" id="optFutility">☐</span>
+                <span class="opt-label-compact">Futility</span>
+              </div>
+              <div class="opt-check-item-compact" title="Late Move Reduction (LMR): Reduce search depth for moves ordered late in move list (statistically likely to be weak moves).">
+                <span class="opt-checkbox" id="optLMR">☐</span>
+                <span class="opt-label-compact">LMR</span>
+              </div>
+              <div class="opt-check-item-compact" title="Multi-Cut Pruning: If multiple sibling moves exceed beta threshold, prune remaining siblings without evaluation.">
+                <span class="opt-checkbox" id="optMultiCut">☐</span>
+                <span class="opt-label-compact">Multi-Cut</span>
+              </div>
+              <div class="opt-check-item-compact" title="Aspiration Windows: Narrow alpha-beta window around expected score for faster search. Re-search with wider window if score falls outside.">
+                <span class="opt-checkbox" id="optAspiration">☐</span>
+                <span class="opt-label-compact">Aspiration</span>
+              </div>
+              <div class="opt-check-item-compact" title="Transposition Table: Cache previously evaluated positions to avoid redundant computation when same position reached via different move orders.">
+                <span class="opt-checkbox" id="optTT">☐</span>
+                <span class="opt-label-compact">Trans. Table</span>
+              </div>
+              <div class="opt-check-item-compact" title="Killer Move Heuristic: Prioritize moves that caused cutoffs in sibling nodes at same depth. These 'killer' moves likely strong across similar positions.">
+                <span class="opt-checkbox" id="optKiller">☐</span>
+                <span class="opt-label-compact">Killer Moves</span>
+              </div>
+              <div class="opt-check-item-compact" title="History Heuristic: Boost priority of moves that have historically performed well (caused cutoffs) throughout the game tree.">
+                <span class="opt-checkbox" id="optHistory">☐</span>
+                <span class="opt-label-compact">History</span>
+              </div>
+              <div class="opt-check-item-compact" title="Parallel Search: Multi-threaded search using multiple CPU cores to explore different branches simultaneously for faster computation.">
+                <span class="opt-checkbox" id="optParallel">☐</span>
+                <span class="opt-label-compact">Parallel</span>
+              </div>
+              <div class="opt-check-item-compact" title="Opening Book: Pre-computed database of optimal opening moves from master games and deep analysis, avoiding search in known positions.">
+                <span class="opt-checkbox" id="optBook">☐</span>
+                <span class="opt-label-compact">Opening Book</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline: Iterative Deepening Progress -->
+        <div class="stats-section-mini" style="margin-top:12px" id="iterationTimelineSection">
+          <div class="stats-section-title-mini" title="Shows progressive depth iterations. Green ✓ = Aspiration window success (fast). Red ✗ = Re-search needed (wider window).">
+            📊 Iterative Deepening Timeline
+            <span style="font-size:9px;color:rgba(255,255,255,0.4);font-weight:400;margin-left:6px">(✓ = Aspiration success, ✗ = Re-search)</span>
+          </div>
+          <div id="iterationTimeline" class="iteration-timeline"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Logs Section - SOTTO le statistiche -->
+    <div id="aiLogsContainer">
+      <div id="aiLogsContent">
+        <div style="color:#63b3ed;padding:20px;text-align:center;opacity:0.6">
+          AI reasoning logs will appear here during search...
+        </div>
+      </div>
+    </div>
+  </div>

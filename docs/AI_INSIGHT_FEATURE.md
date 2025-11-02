@@ -207,7 +207,7 @@ Ogni tipo di log ha colore e background specifici per rapida identificazione:
 ```bash
 ./reversi42
 # oppure
-python3 -m src.webgui.backend_server
+python3 -m src.webgui.server.backend_server
 ```
 
 ### 2. Apri il browser

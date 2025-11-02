@@ -462,7 +462,7 @@ NULL: 25K | FUT: 18K | LMR: 42K | M-CUT: 8K
 ```bash
 ./reversi42
 # or
-python3 -m src.webgui.backend_server
+python3 -m src.webgui.server.backend_server
 ```
 
 ### 2. Open Browser

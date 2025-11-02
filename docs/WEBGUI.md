@@ -134,10 +134,10 @@ Browser → WebSocket → Backend Server → Game Engine
 ./reversi42
 
 # Custom port
-python3 -m src.webgui.backend_server --port 8001
+python3 -m src.webgui.server.backend_server --port 8001
 
 # Custom AI
-python3 -m src.webgui.backend_server --player "THE STRANGLER"
+python3 -m src.webgui.server.backend_server --player "THE STRANGLER"
 ```
 
 ### Monitor Settings

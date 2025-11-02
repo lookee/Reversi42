@@ -24,7 +24,7 @@ project_root = os.path.dirname(os.path.dirname(current_dir))
 src_dir = os.path.join(project_root, 'src')
 sys.path.insert(0, src_dir)
 
-from webgui.websocket_observer import WebSocketSearchObserver
+from webgui.server.websocket_observer import WebSocketSearchObserver
 from Reversi.Game import Move
 
 

@@ -26,7 +26,7 @@ project_root = os.path.dirname(os.path.dirname(current_dir))
 src_dir = os.path.join(project_root, 'src')
 sys.path.insert(0, src_dir)
 
-from webgui.backend_server import (
+from webgui.server.backend_server import (
     app,
     GameSession,
     handle_message,
@@ -206,7 +206,7 @@ class TestRESTEndpoints:
         """Test stats endpoint exists and returns dict"""
         # Test the endpoint function directly
         import asyncio
-        from webgui.backend_server import get_stats
+        from webgui.server.backend_server import get_stats
         
         async def _test():
             result = await get_stats()
@@ -220,7 +220,7 @@ class TestRESTEndpoints:
     def test_get_version(self):
         """Test version endpoint exists and returns dict"""
         import asyncio
-        from webgui.backend_server import get_version
+        from webgui.server.backend_server import get_version
         
         async def _test():
             result = await get_version()

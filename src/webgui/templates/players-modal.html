@@ -1,0 +1,23 @@
+<!-- 
+  Players Modal Template
+  
+  This template is loaded dynamically by the main HTML
+  Part of Reversi42 WebGUI modular architecture
+-->
+
+  <div id="playersModal" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="playersTitle" style="display:none">
+    <div class="modalCard" role="document">
+      <div class="modalHead">
+        <div id="playersTitle" class="modalTitle">Players</div>
+        <button id="playersCloseBtn" class="btn text-xs" title="Close" data-tip="Close" aria-label="Close">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </span>
+        </button>
+      </div>
+      <div class="modalBody">
+        <div id="playersIntro" class="text-[13px]" style="margin-bottom:10px;color:var(--muted)">Select a player for this side.</div>
+        <div id="playersList" class="playersGrid"></div>
+      </div>
+    </div>
+  </div>

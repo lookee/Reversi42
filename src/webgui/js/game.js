@@ -13,14 +13,51 @@
  *  - Move history management (compact & XOT formats)
  *  - Player management (Human/AI)
  *  - Undo/Redo functionality
+ *  - Dynamic template loading
  * 
  * Dependencies:
  *  - Tailwind CSS (CDN)
  *  - CodeMirror (optional, for JSON editing)
+ *  - HTML templates (templates/ directory)
  * 
  * @version 3.2.0
  */
 'use strict';
+
+/* ========================================
+   TEMPLATE LOADER - Load HTML Components
+   ======================================== */
+async function loadTemplates() {
+  const templates = [
+    { url: 'templates/players-modal.html', container: 'playersModalContainer' },
+    { url: 'templates/ai-insight-panel.html', container: 'aiInsightContainer' },
+    { url: 'templates/dev-tools-panel.html', container: 'devToolsContainer' }
+  ];
+  
+  for (const template of templates) {
+    try {
+      const response = await fetch(template.url);
+      const html = await response.text();
+      const container = document.getElementById(template.container);
+      if (container) {
+        container.innerHTML = html;
+      }
+    } catch (error) {
+      console.error(`Failed to load template ${template.url}:`, error);
+    }
+  }
+  
+  // Initialize template-dependent scripts after loading
+  if (typeof initDevTools === 'function') {
+    initDevTools();
+  }
+  if (typeof initAIInsight === 'function') {
+    initAIInsight();
+  }
+  if (typeof initAIStatistics === 'function') {
+    initAIStatistics();
+  }
+}
 
 /* ========================================
    GLOBAL VARIABLES & CONFIGURATION
@@ -756,7 +793,12 @@ function init(){
 }
 
 // Start when DOM is ready
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded', async () => {
+  // Load HTML templates first
+  await loadTemplates();
+  // Then initialize game
+  init();
+});
 
 function setupHistoryDemo(){
   const histHead = document.getElementById('histHead');

@@ -13,12 +13,13 @@
  * @version 3.2.0
  */
 
-// AI Insight Panel Management
-const toggleAiInsightBtn = document.getElementById('toggleAiInsight');
-const aiInsightWrapper = document.getElementById('aiInsightWrapper');
-const closeAiInsightBtn = document.getElementById('closeAiInsight');
-const clearAiLogsBtn = document.getElementById('clearAiLogs');
-const aiLogsContent = document.getElementById('aiLogsContent');
+// Initialize AI Insight Panel after template is loaded
+function initAIInsight() {
+  const toggleAiInsightBtn = document.getElementById('toggleAiInsight');
+  const aiInsightWrapper = document.getElementById('aiInsightWrapper');
+  const closeAiInsightBtn = document.getElementById('closeAiInsight');
+  const clearAiLogsBtn = document.getElementById('clearAiLogs');
+  const aiLogsContent = document.getElementById('aiLogsContent');
 
 // Toggle AI Insight panel
 if(toggleAiInsightBtn){
@@ -84,3 +85,6 @@ function appendAILog(logData){
 
 // Make appendAILog available globally
 window.appendAILog = appendAILog;
+}
+
+// Will be called by loadTemplates() in game.js after templates are loaded

@@ -38,7 +38,7 @@ from Players.PlayerFactory import PlayerFactory
 from Players.Gladiators.PlayerDivZero import PlayerDivZero
 
 # Import WebSocket observer for AI insights
-from webgui.websocket_observer import WebSocketSearchObserver
+from webgui.server.websocket_observer import WebSocketSearchObserver
 
 # Import version
 try:
