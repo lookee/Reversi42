@@ -306,6 +306,7 @@ class WebSocketSearchObserver(SearchObserver):
         pruning_ratio = (pruned / nodes * 100) if nodes > 0 else 0
         final_depth = statistics.get("depth_reached", 0)
         
+        # total_time is already in milliseconds from the search engine
         self._send_ai_log(
             "search_complete",
             f"🏁 Search complete! Move: {coord or 'N/A'} ({value:+d}) | Depth: {final_depth} | Nodes: {nodes:,} | Pruned: {pruned:,} ({pruning_ratio:.1f}%) | Time: {total_time:.0f}ms",

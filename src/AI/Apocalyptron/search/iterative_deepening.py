@@ -158,14 +158,14 @@ class IterativeDeepeningSearch:
                 move_time = time.perf_counter() - move_start
                 is_new_best = value > best_value or best_move is None
 
-                # Notify: Move evaluated
+                # Notify: Move evaluated (convert time to milliseconds)
                 self._notify_move_evaluated(
                     move,
                     value,
                     is_new_best,
                     self.alphabeta.nodes,
                     self.alphabeta.pruning,
-                    move_time,
+                    move_time * 1000,  # Convert seconds to milliseconds
                 )
 
                 if value > best_value or best_move is None:
@@ -182,9 +182,9 @@ class IterativeDeepeningSearch:
 
             iter_time = time.perf_counter() - iter_start
 
-            # Notify: Iteration complete
+            # Notify: Iteration complete (convert time to milliseconds)
             self._notify_iteration_complete(
-                current_depth, best_move, best_value, iter_time, not re_search_needed
+                current_depth, best_move, best_value, iter_time * 1000, not re_search_needed
             )
 
         # Prepare final statistics
@@ -194,9 +194,9 @@ class IterativeDeepeningSearch:
         stats["aspiration_hits"] = aspiration_hits
         stats["aspiration_fails"] = aspiration_fails
 
-        # Notify: Search complete
+        # Notify: Search complete (convert time to milliseconds)
         self._notify_search_complete(
-            final_best_move, final_best_value, stats, time_total, opening_book, game_history, game
+            final_best_move, final_best_value, stats, time_total * 1000, opening_book, game_history, game
         )
 
         return final_best_move

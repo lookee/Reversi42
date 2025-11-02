@@ -295,13 +295,16 @@ class ParallelSearch:
         stats["depth_reached"] = depth
         stats["nodes_searched"] = total_nodes
         stats["nodes_pruned"] = total_pruning
-        stats["parallel_time"] = parallel_time
-        stats["total_time"] = time_total
+        stats["parallel_time"] = parallel_time * 1000  # Convert to ms
+        stats["total_time"] = time_total * 1000  # Convert to ms
+        stats["parallel_workers"] = self.num_workers
+        stats["parallel_mode"] = "active"
+        stats["parallel_moves_evaluated"] = len(work_items)
         stats["num_workers"] = self.num_workers
 
         for observer in self.observers:
             observer.on_search_complete(
-                best_move, best_value, stats, time_total, opening_book, game_history, game
+                best_move, best_value, stats, time_total * 1000, opening_book, game_history, game  # Convert to ms
             )
 
         return best_move

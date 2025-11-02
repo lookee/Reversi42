@@ -68,11 +68,17 @@
     .board{display:grid; grid-template-columns:repeat(8,1fr); gap:4px;
       border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px;
       background:linear-gradient(180deg,#1d3c31,#17362b)}
-    .cell{position:relative; width:100%}
+    .cell{position:relative; width:100%; cursor:pointer; transition:all 0.2s ease}
     .cell::before{content:""; display:block; padding-top:100%}
     .cell-content{position:absolute; inset:0;
       background:linear-gradient(180deg,#255744,#204e3d);
-      border:1px solid var(--line); border-radius:10px}
+      border:1px solid var(--line); border-radius:10px;
+      transition:all 0.2s ease}
+    .cell:hover .cell-content{
+      background:linear-gradient(180deg,#2a6850,#25594a);
+      border-color:rgba(139,92,246,0.25);
+      box-shadow:0 0 12px rgba(139,92,246,0.15), inset 0 0 20px rgba(139,92,246,0.08);
+      transform:scale(1.02)}
 
     .disc{position:absolute; inset:12%; border-radius:50%;
       box-shadow:0 0 0 1.5px rgba(255,255,255,.06), 0 10px 20px rgba(0,0,0,.45)}

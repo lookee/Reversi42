@@ -117,9 +117,9 @@ class FixedDepthStrategy(SearchStrategy):
         stats["depth"] = depth
         stats["search_type"] = "fixed_depth"
         
-        # Notify: Search complete
+        # Notify: Search complete (convert time to milliseconds)
         self._notify_search_complete(
-            best_move, best_value, stats, time_total, opening_book, game_history, game
+            best_move, best_value, stats, time_total * 1000, opening_book, game_history, game
         )
         
         return best_move
