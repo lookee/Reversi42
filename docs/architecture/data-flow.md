@@ -339,12 +339,12 @@ How saved games are restored:
 
 ```
 ┌─────────────────┐
-│  User Input     │  Press ESC → Load Game
+│  User Input     │  Click Load Button
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  Pygame View    │  Show file browser
+│   Web UI        │  Show file browser
 └────────┬────────┘
          │ User selects file
          ▼
@@ -389,7 +389,7 @@ How saved games are restored:
          │
          ▼
 ┌─────────────────┐
-│  All Views      │  Update to show loaded game
+│   Web UI        │  Update to show loaded game
 └─────────────────┘
 ```
 
@@ -588,10 +588,10 @@ Disk Storage (text file)
    - Efficient heuristics
    - Early termination
 
-3. **View Rendering** - 60 FPS target
-   - Dirty rectangle optimization
-   - Sprite caching
-   - Event batching
+3. **WebSocket Communication** - Real-time updates
+   - Async message handling
+   - JSON serialization
+   - Event-driven architecture
 
 ### Data Flow Optimization
 
@@ -634,8 +634,10 @@ Graceful Recovery or Termination
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2025-10-20
+**Document Version**: 2.0  
+**Last Updated**: 2025-11-02  
+
+> 💡 **Note**: Updated for v5.0.0 - Pygame and Terminal views removed, WebGUI introduced.
 
 *For questions about data flow, see [Architecture Guide](README.md).*
 

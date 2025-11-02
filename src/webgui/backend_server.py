@@ -37,6 +37,9 @@ from Reversi.Game import Game, Move
 from Players.PlayerFactory import PlayerFactory
 from Players.Gladiators.PlayerDivZero import PlayerDivZero
 
+# Import WebSocket observer for AI insights
+from webgui.websocket_observer import WebSocketSearchObserver
+
 # Import version
 try:
     from __version__ import __version__
@@ -489,7 +492,7 @@ class GameSession:
             logger.error(traceback.format_exc())
             return False, str(e)
     
-    def get_ai_move(self, side: str) -> Move:
+    def get_ai_move(self, side: str, websocket: WebSocket = None) -> Move:
         """Get AI move for side 'B' or 'W'"""
         try:
             move_list = self.game.get_move_list()
@@ -500,7 +503,18 @@ class GameSession:
             ai = self.ai_white if side == 'W' else self.ai_black
             if ai is None:
                 return None
-            ai_move = ai.get_move(self.game, move_list, None)
+            
+            # Create observer for AI insights if websocket is provided
+            observer = None
+            if websocket:
+                observer = WebSocketSearchObserver(websocket, self.session_id)
+                # Set the event loop for async operations
+                try:
+                    observer.loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    observer.loop = None
+            
+            ai_move = ai.get_move(self.game, move_list, observer)
             return ai_move
             
         except Exception as e:
@@ -939,8 +953,8 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
         try:
             import time
             start_ts = time.perf_counter()
-            # Get AI move
-            ai_move = session.get_ai_move(side)
+            # Get AI move (with websocket observer for AI insights)
+            ai_move = session.get_ai_move(side, websocket)
             end_ts = time.perf_counter()
             last_search_time_ms = max(0.0, (end_ts - start_ts) * 1000.0)
             logger.info(f"AI move received: {ai_move}")

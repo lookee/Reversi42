@@ -29,7 +29,7 @@ Reversi42 is built with a modular, layered architecture that separates concerns 
 
 ### Design Decisions
 - [**ADR Index**](adr/README.md) - Architecture Decision Records
-- [**Technology Choices**](technology-choices.md) - Why Python, Pygame, etc.
+- [**Technology Choices**](technology-choices.md) - Why Python, FastAPI, WebSockets
 - [**Performance Optimizations**](performance.md) - How we achieve 100x+ speedup
 - [**Concurrency Model**](concurrency.md) - Threading and multiprocessing
 
@@ -38,7 +38,7 @@ Reversi42 is built with a modular, layered architecture that separates concerns 
 ```
 ┌─────────────────────────────────────────────────┐
 │              Presentation Layer                 │
-│  (Pygame UI, Terminal UI, Headless)             │
+│  (WebGUI, Headless, Python Library)             │
 └─────────────────────────────────────────────────┘
                       ↕
 ┌─────────────────────────────────────────────────┐
@@ -218,7 +218,7 @@ class BitboardGame:
 User Click
     │
     ▼
-Pygame View (handles click)
+Web UI (handles click)
     │
     ▼
 BoardControl (validates move)

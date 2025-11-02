@@ -79,13 +79,9 @@ For installing, configuring, and deploying Reversi42.
 - [**Installation Guide**](deployment/installation.md) - How to install
 - [**Configuration Guide**](deployment/configuration.md) - Post-install setup
 
-### Platform-Specific
-- [**macOS Deployment**](deployment/platforms/macos.md) - macOS installation
-- [**Windows Deployment**](deployment/platforms/windows.md) - Windows installation
-- [**Linux Deployment**](deployment/platforms/linux.md) - Linux installation
-
-### Building & Distribution
-- [**Building Guide**](deployment/building.md) - Create executables
+### Server Deployment
+- [**Web Server Setup**](deployment/web-server.md) - Deploy WebGUI backend ⭐ NEW
+- [**Backend Monitor**](deployment/backend-monitor.md) - Auto-restart configuration ⭐ NEW
 - [**Docker Guide**](deployment/docker.md) - Containerized deployment
 - [**CI/CD Guide**](deployment/ci-cd.md) - Continuous integration
 
@@ -107,10 +103,10 @@ For contributors and community members.
 
 Quick reference and specific topics.
 
-### Features
-- [**Features Guide**](FEATURES.md) - Complete feature list
-- [**View Architecture**](VIEW_ARCHITECTURE.md) - Modular UI system
-- [**Board Module**](../src/Board/README.md) - MVP board system
+### Features & Formats
+- [**XOT Format Guide**](XOT_FORMAT.md) - eXtended Othello Transcript format ⭐ NEW
+- [**WebGUI Guide**](WEBGUI.md) - Modern web interface ⭐ NEW
+- [**Board Module**](../src/Board/README.md) - Core game engine
 - [**Strategy Improvements**](STRATEGY_IMPROVEMENTS.md) - AI techniques
 
 ### Player Types
@@ -215,11 +211,11 @@ External resources and references.
 
 Features planned but not yet documented:
 
-- [ ] Network play documentation (when implemented)
+- [x] Web interface guide ✅ (Completed v5.0.0)
+- [x] XOT format documentation ✅ (Completed v5.0.0)
 - [ ] Mobile app guide (when available)
 - [ ] Advanced AI training guide
-- [ ] Database backend docs
-- [ ] Web interface guide
+- [ ] Network multiplayer (future)
 
 ## 🤔 Can't Find What You Need?
 
@@ -242,8 +238,11 @@ See [Contributing Guide](../CONTRIBUTING.md) for how to:
 
 ---
 
-**Last updated:** 2025-10-20  
+**Last updated:** 2025-11-02  
 **Documentation version:** 5.0.0
+
+> 💡 **Note**: Reversi42 v5.0.0 removed legacy Pygame and Terminal views.  
+> The project now focuses on: **Web Interface** (interactive play), **Tournament Mode** (AI battles), and **Python Library** (programmatic use).
 
 *This index is maintained manually. If you find missing or outdated links, please [open an issue](https://github.com/lucaamore/reversi42/issues).*
 

@@ -410,6 +410,76 @@
     #logsContent .log-warning{color:#ffd93d;border-left-color:#ffd93d;font-weight:500}
     #logsContent .log-info{color:#74c0fc;border-left-color:#74c0fc}
     #logsContent .log-debug{color:#c5a3ff}
+    
+    /* AI Insight Panel */
+    #aiInsightWrapper{
+      position:fixed;
+      top:0;
+      right:0;
+      width:50%;
+      min-width:600px;
+      max-width:900px;
+      height:100vh;
+      background:linear-gradient(135deg,#1a1f2e 0%,#0f1419 100%);
+      box-shadow:-4px 0 24px rgba(0,0,0,.5);
+      z-index:9999;
+      display:flex;
+      flex-direction:column;
+      border-left:1px solid rgba(99,179,237,.2)
+    }
+    .ai-insight-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 16px;
+      background:rgba(99,179,237,.15);
+      border-bottom:1px solid rgba(99,179,237,.3);
+      flex-shrink:0
+    }
+    #aiLogsContainer{
+      flex:1;
+      overflow:auto;
+      position:relative;
+      min-height:0;
+      background:#0f1419;
+      color:#e5e5e5;
+      font-family:'Courier New',monospace
+    }
+    #aiLogsContent{
+      padding:16px;
+      font-family:'Courier New',monospace;
+      font-size:12px;
+      line-height:1.8;
+      color:#e5e5e5
+    }
+    .ai-log-entry{
+      padding:6px 8px;
+      margin:4px 0;
+      border-left:3px solid transparent;
+      padding-left:10px;
+      border-radius:2px;
+      transition:background .15s ease
+    }
+    .ai-log-entry:hover{
+      background:rgba(99,179,237,.08)
+    }
+    .ai-log-timestamp{
+      color:#63b3ed;
+      font-weight:600;
+      margin-right:8px
+    }
+    .ai-log-search_start{border-left-color:#10b981;background:rgba(16,185,129,.05)}
+    .ai-log-iteration_start{border-left-color:#63b3ed;background:rgba(99,179,237,.05)}
+    .ai-log-move_evaluated{border-left-color:#a78bfa;background:rgba(167,139,250,.04)}
+    .ai-log-iteration_complete{border-left-color:#34d399;background:rgba(52,211,153,.05)}
+    .ai-log-search_complete{border-left-color:#fbbf24;background:rgba(251,191,36,.08);font-weight:600}
+    .ai-log-parallel_start{border-left-color:#f97316;background:rgba(249,115,22,.05)}
+    .ai-log-phase_transition{border-left-color:#ec4899;background:rgba(236,72,153,.05)}
+    .ai-log-message{
+      color:#e5e5e5;
+      font-family:'Courier New',monospace;
+      font-size:12px
+    }
   </style>
 </head>
 <body>
@@ -586,8 +656,15 @@
             </div>
             <div class="ws-status-text">Connecting...</div>
           </div>
+          <!-- AI Insight Button -->
+          <button class="json-editor-toggle" id="toggleAiInsight" style="position:relative;bottom:0;right:0">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+            <span>AI Insight</span>
+          </button>
           <!-- Developer-Insight Button -->
-          <button class="json-editor-toggle" id="toggleJsonEditor" style="position:relative;bottom:0;right:0;margin-left:auto">
+          <button class="json-editor-toggle" id="toggleJsonEditor" style="position:relative;bottom:0;right:0">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
             </svg>
@@ -1039,6 +1116,13 @@
           setTimeout(() => {
             alert(`🎮 GAME OVER\n\nWinner: ${gameOverInfo.winner}\n\nBlack: ${gameOverInfo.black_count} pieces\nWhite: ${gameOverInfo.white_count} pieces`);
           }, 100);
+          break;
+        
+        case 'ai_log':
+          // Handle AI reasoning logs
+          if(message.data){
+            appendAILog(message.data);
+          }
           break;
           
         case 'error':
@@ -2379,7 +2463,44 @@
     </div>
   </noscript>
 
-
+  <!-- AI Insight Panel: Real-time AI Reasoning -->
+  <div id="aiInsightWrapper" style="display:none">
+    <div class="ai-insight-header">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold" style="color:#63b3ed;font-size:16px">🧠 AI Insight - Real-time Reasoning</span>
+        <button class="btn text-xs" id="clearAiLogs">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 6h18"/>
+              <path d="M8 6v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"/>
+              <path d="M10 10v8"/>
+              <path d="M14 10v8"/>
+              <path d="M9 6l1-2h4l1 2"/>
+            </svg>
+          </span>
+          Clear
+        </button>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn text-xs" id="closeAiInsight">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 6L6 18"/>
+              <path d="M6 6l12 12"/>
+            </svg>
+          </span>
+          Close
+        </button>
+      </div>
+    </div>
+    <div id="aiLogsContainer">
+      <div id="aiLogsContent">
+        <div style="color:#63b3ed;padding:20px;text-align:center;opacity:0.6">
+          AI reasoning logs will appear here during search...
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Developer-Insight: Live Server Logs (tail -f) -->
   <div id="jsonEditorWrapper" style="display:none">
@@ -2506,6 +2627,81 @@
 
     // No tabs: logs are the only content now
 
+  </script>
+
+  <!-- AI Insight JavaScript Logic -->
+  <script>
+    // AI Insight Panel Management
+    const toggleAiInsightBtn = document.getElementById('toggleAiInsight');
+    const aiInsightWrapper = document.getElementById('aiInsightWrapper');
+    const closeAiInsightBtn = document.getElementById('closeAiInsight');
+    const clearAiLogsBtn = document.getElementById('clearAiLogs');
+    const aiLogsContent = document.getElementById('aiLogsContent');
+    
+    // Toggle AI Insight panel
+    if(toggleAiInsightBtn){
+      toggleAiInsightBtn.addEventListener('click', () => {
+        const isVisible = aiInsightWrapper.style.display !== 'none';
+        aiInsightWrapper.style.display = isVisible ? 'none' : 'flex';
+      });
+    }
+    
+    // Close AI Insight panel
+    if(closeAiInsightBtn){
+      closeAiInsightBtn.addEventListener('click', () => {
+        aiInsightWrapper.style.display = 'none';
+      });
+    }
+    
+    // Clear AI logs
+    if(clearAiLogsBtn){
+      clearAiLogsBtn.addEventListener('click', () => {
+        if(aiLogsContent){
+          aiLogsContent.innerHTML = '<div style="color:#63b3ed;padding:20px;text-align:center;opacity:0.6">AI reasoning logs will appear here during search...</div>';
+        }
+      });
+    }
+    
+    // Append AI log entry
+    function appendAILog(logData){
+      if(!aiLogsContent) return;
+      
+      // Remove placeholder if it exists
+      if(aiLogsContent.children.length === 1 && aiLogsContent.children[0].textContent.includes('will appear here')){
+        aiLogsContent.innerHTML = '';
+      }
+      
+      const { timestamp, log_type, message, details } = logData;
+      
+      // Create log entry
+      const logEntry = document.createElement('div');
+      logEntry.className = `ai-log-entry ai-log-${log_type}`;
+      
+      // Format timestamp
+      const timestampSpan = document.createElement('span');
+      timestampSpan.className = 'ai-log-timestamp';
+      timestampSpan.textContent = `[${timestamp}]`;
+      
+      // Format message
+      const messageSpan = document.createElement('span');
+      messageSpan.className = 'ai-log-message';
+      messageSpan.textContent = ` ${message}`;
+      
+      logEntry.appendChild(timestampSpan);
+      logEntry.appendChild(messageSpan);
+      
+      // Add to container
+      aiLogsContent.appendChild(logEntry);
+      
+      // Auto-scroll to bottom
+      const container = aiLogsContent.parentElement;
+      if(container){
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+    
+    // Make appendAILog available globally
+    window.appendAILog = appendAILog;
   </script>
 </body>
 </html>

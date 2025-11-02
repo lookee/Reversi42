@@ -26,11 +26,11 @@ This directory contains detailed API documentation for all major components of R
 - [**AI Players**](ai-players.md) - All AI player implementations
 
 ### UI System
+- [**WebGUI**](../WEBGUI.md) - Modern web interface ⭐ NEW (v5.0.0)
 - [**View Interface**](view-interface.md) - Abstract view protocol
-- [**Pygame View**](pygame-view.md) - Graphical user interface
-- [**Terminal View**](terminal-view.md) - ASCII art interface
-- [**Headless View**](headless-view.md) - No-UI interface
-- [**Widgets**](widgets.md) - Reusable UI components
+- [**Headless View**](headless-view.md) - No-UI interface (for tournaments/library use)
+
+> 💡 **Note**: Pygame and Terminal views removed in v5.0.0. Use WebGUI for interactive play.
 
 ### Utilities
 - [**Configuration**](configuration.md) - Game configuration system
@@ -261,7 +261,7 @@ Bitboard operations are O(1) but with varying constant factors:
 
 - Game state is **immutable** - safe to share between threads
 - AI search uses **multiprocessing** for parallelism
-- UI updates must be on **main thread** (Pygame requirement)
+- WebSocket communication is **async** - event-driven architecture
 
 ## API Reference by Module
 
