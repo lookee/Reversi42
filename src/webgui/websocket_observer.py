@@ -498,6 +498,25 @@ class WebSocketSearchObserver(SearchObserver):
         tt_hits = statistics.get("tt_hits", 0)
         nodes = statistics.get("nodes_searched", 1)
         return round((tt_hits / nodes * 100), 2) if nodes > 0 else 0
+    
+    def _format_time_smart(self, ms):
+        """Format time with appropriate unit (ms, s, m, h, d)"""
+        if ms < 1000:
+            return f"{ms:.0f}ms"
+        s = ms / 1000
+        if s < 60:
+            return f"{s:.1f}s" if s < 10 else f"{s:.0f}s"
+        m = int(s / 60)
+        rem_s = int(s % 60)
+        if m < 60:
+            return f"{m}m {rem_s:02d}s"
+        h = int(m / 60)
+        rem_m = m % 60
+        if h < 24:
+            return f"{h}h {rem_m:02d}m"
+        d = int(h / 24)
+        rem_h = h % 24
+        return f"{d}d {rem_h:02d}h"
 
     def on_parallel_phase_start(self, depth: int, num_workers: int):
         """Parallel phase started"""

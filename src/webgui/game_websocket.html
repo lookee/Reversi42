@@ -1774,6 +1774,29 @@
           // Handle comprehensive AI statistics for data science dashboard
           if(message.data){
             showAIStatisticsDashboard(message.data);
+            
+            // Also update the Notes box with comprehensive statistics
+            updateAIAnalysis({
+              ...message.data,
+              title: message.data.player_name,
+              move: message.data.best_move,
+              evaluation: message.data.evaluation,
+              depth: message.data.depth_reached,
+              nodes_searched: message.data.nodes_searched,
+              nodes_pruned: message.data.nodes_pruned,
+              pruning_ratio: message.data.pruning_efficiency / 100, // Convert % to ratio
+              avg_search_time: `${message.data.total_time_ms}ms`,
+              total_searches: message.data.iterations_completed || 0,
+              nodes_per_second: message.data.nodes_per_second, // Add N/s
+              transposition_hits: message.data.tt_hits,
+              killer_moves: message.data.pv_move_hits,
+              history_entries: message.data.history_entries,
+              null_move_cutoffs: message.data.null_move_cuts,
+              futility_pruned: message.data.futility_cuts,
+              lmr_reductions: message.data.lmr_reductions,
+              multi_cut_pruned: message.data.multi_cut_prunes,
+              last_search_time_ms: message.data.total_time_ms
+            });
           }
           
           // Deactivate AI Insight button animation (search complete)
@@ -2887,6 +2910,7 @@
                        aiData.pruning_efficiency !== undefined ? `${aiData.pruning_efficiency.toFixed(1)}%` : '0%',
         avg_search_time: aiData.avg_search_time || aiData.total_time_ms ? `${aiData.total_time_ms}ms` : '0ms',
         total_searches: aiData.total_searches ?? 0,
+        nodes_per_second: aiData.nodes_per_second ?? 0, // Add N/s
         
         // Advanced statistics - use 0 instead of N/A for consistency
         transposition_hits: (aiData.transposition_hits ?? aiData.tt_hits ?? 0).toLocaleString(),
@@ -3027,12 +3051,22 @@
         const n = parseFloat(str);
         return isFinite(n) ? n : null;
       }
-      let nps = '—';
-      const secs = (lastMsNum !== null && lastMsNum > 0)
-        ? (lastMsNum / 1000)
-        : parseSeconds(avgMs);
-      if(typeof nodes === 'number' && nodes > 0 && secs && secs > 0){
-        nps = nodes / secs;
+      // Compute Nodes/s - use provided value if available, otherwise calculate
+      let nps = nd.nodes_per_second; // Use from backend if available
+      console.log('[renderNotes] nodes_per_second from data:', nd.nodes_per_second, 'nodes:', nodes, 'lastMsNum:', lastMsNum);
+      if(!nps || nps === 0){
+        const secs = (lastMsNum !== null && lastMsNum > 0)
+          ? (lastMsNum / 1000)
+          : parseSeconds(avgMs);
+        if(typeof nodes === 'number' && nodes > 0 && secs && secs > 0){
+          nps = nodes / secs;
+          console.log('[renderNotes] Calculated nps:', nps, 'from nodes:', nodes, 'secs:', secs);
+        } else {
+          nps = 0;
+          console.log('[renderNotes] Cannot calculate nps - missing data');
+        }
+      } else {
+        console.log('[renderNotes] Using provided nps:', nps);
       }
 
       // Decide which tiles to show (compact): hide Eval/Depth if not available
@@ -3044,7 +3078,7 @@
       if(showEval){ tiles += `<div class="statBadge"><span class="statLabel">Eval</span><span class="statValue">${fmtEval(evalVal)}</span></div>`; }
       if(showDepth){ tiles += `<div class="statBadge"><span class="statLabel">Depth</span><span class="statValue">${fmtDepth(depthVal)}</span></div>`; }
       tiles += `<div class="statBadge"><span class="statLabel">Nodes</span><span class="statValue">${fmtK(nodes)}</span></div>`;
-      tiles += `<div class="statBadge"><span class="statLabel">N/s</span><span class="statValue">${typeof nps==='number' ? fmtK(nps) : '—'}</span></div>`;
+      tiles += `<div class="statBadge"><span class="statLabel">N/s</span><span class="statValue">${typeof nps==='number' && nps > 0 ? fmtK(nps) : '0'}</span></div>`;
       tiles += `<div class=\"statBadge\"><span class=\"statLabel\">Prune</span><span class=\"statValue\">${fmtPct(pruneR)}</span></div>`;
       tiles += `<div class=\"statBadge\"><span class=\"statLabel\">Last</span><span class=\"statValue\">${lastMsNum !== null ? formatDurationMs(lastMsNum) : fmtMs(avgMs)}</span></div>`;
       tiles += `<div class="statBadge"><span class="statLabel">Searches</span><span class="statValue">${fmtK(searches)}</span></div>`;
