@@ -67,7 +67,7 @@ class PlayerFactory:
 
     # Store board_control for DI (set externally)
     _board_control = None
-    _ui_type = "pygame"  # Default UI type
+    _ui_type = "headless"  # Default UI type
 
     @classmethod
     def set_board_control(cls, board_control):
@@ -75,7 +75,7 @@ class PlayerFactory:
         Set BoardControl for dependency injection.
 
         Args:
-            board_control: BoardControl instance for pygame InputProvider
+            board_control: BoardControl instance
         """
         cls._board_control = board_control
 
@@ -85,7 +85,7 @@ class PlayerFactory:
         Set UI type for InputProvider selection.
 
         Args:
-            ui_type: 'pygame', 'terminal', or 'headless'
+            ui_type: 'headless'
         """
         cls._ui_type = ui_type
 
@@ -126,7 +126,7 @@ class PlayerFactory:
 
         Args:
             name: Player name
-            board_control: BoardControl instance (for pygame), if None uses factory's stored one
+            board_control: BoardControl instance, if None uses factory's stored one
             **kwargs: Additional arguments
 
         Returns:
@@ -149,36 +149,17 @@ class PlayerFactory:
         Design Pattern: Factory Method
 
         Args:
-            board_control: BoardControl instance (for pygame)
+            board_control: BoardControl instance
 
         Returns:
             InputProvider implementation
         """
-        if cls._ui_type == "pygame" and board_control:
-            from ui.implementations.pygame.input_providers import PygameInputProvider
+        # Only headless is supported now
+        from Reversi.Game import Move
+        from ui.implementations.headless.input_providers import MockInputProvider
 
-            return PygameInputProvider(board_control)
-        elif cls._ui_type == "terminal":
-            from ui.implementations.terminal.input_providers import TerminalInputProvider
-
-            return TerminalInputProvider()
-        elif cls._ui_type == "headless":
-            from Reversi.Game import Move
-            from ui.implementations.headless.input_providers import MockInputProvider
-
-            # Default mock moves for testing
-            return MockInputProvider([Move(3, 3)], auto_exit=False)
-        else:
-            # Fallback to pygame if available
-            if board_control:
-                from ui.implementations.pygame.input_providers import PygameInputProvider
-
-                return PygameInputProvider(board_control)
-            else:
-                # Last resort: terminal
-                from ui.implementations.terminal.input_providers import TerminalInputProvider
-
-                return TerminalInputProvider()
+        # Default mock moves for testing
+        return MockInputProvider([Move(3, 3)], auto_exit=False)
 
     @classmethod
     def create_apocalyptron(cls, depth=9, weights=None, **kwargs):

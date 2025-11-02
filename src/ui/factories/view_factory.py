@@ -4,7 +4,7 @@ View Factory
 Creates view instances based on type string.
 Provides convenient methods for view creation.
 
-Version: 3.1.0
+Version: 3.2.0 - Cleaned up, removed pygame and terminal views
 """
 
 import os
@@ -16,17 +16,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 from ui.implementations.headless.view import HeadlessBoardView  # New Headless
 
-# Import views from their proper isolated locations
-from ui.implementations.pygame.view import PygameBoardView  # New Pygame
-from ui.implementations.terminal.view import TerminalBoardView  # New Terminal
-
 
 class ViewFactory:
     """
     Factory for creating view instances.
 
-    Eventually will use views from ui.implementations.*
-    For now, uses legacy Board views for compatibility.
+    Uses views from ui.implementations.*
     """
 
     @staticmethod
@@ -37,7 +32,7 @@ class ViewFactory:
         Create view instance based on type.
 
         Args:
-            view_type: 'pygame', 'terminal', or 'headless'
+            view_type: 'headless'
             width: Board width in cells
             height: Board height in cells
             window_width: Display width
@@ -48,28 +43,10 @@ class ViewFactory:
         """
         view_type = view_type.lower()
 
-        if view_type in ["pygame", "gui"]:
-            return PygameBoardView(width, height, window_width, window_height)
-        elif view_type in ["terminal", "console", "ascii"]:
-            return TerminalBoardView(width, height, window_width, window_height)
-        elif view_type in ["headless", "none", "null"]:
+        if view_type in ["headless", "none", "null"]:
             return HeadlessBoardView(width, height, window_width, window_height)
         else:
-            raise ValueError(f"Unknown view type: {view_type}")
-
-    @staticmethod
-    def create_pygame_view(
-        width: int, height: int, window_width: int = 800, window_height: int = 600
-    ):
-        """Create Pygame view"""
-        return PygameBoardView(width, height, window_width, window_height)
-
-    @staticmethod
-    def create_terminal_view(
-        width: int, height: int, window_width: int = 80, window_height: int = 24
-    ):
-        """Create Terminal view"""
-        return TerminalBoardView(width, height, window_width, window_height)
+            raise ValueError(f"Unknown view type: {view_type}. Available: headless, none, null")
 
     @staticmethod
     def create_headless_view(width: int, height: int):

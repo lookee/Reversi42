@@ -19,23 +19,14 @@
 BoardControl - Controller for Board MVC Architecture
 
 Manages interaction between Model and View with support for multiple view types.
-Now 100% framework-agnostic using InputHandler abstraction.
+Framework-agnostic using InputHandler abstraction.
 
-Version: 3.1.0
+Version: 3.2.0 - Cleaned up, removed pygame and terminal views
 Architecture: Framework-independent controller
 """
 
 from Board.BoardModel import BoardModel
 from ui.abstractions.input_interface import InputEvent
-
-# Lazy import for pygame only when needed
-try:
-    import pygame
-    from pygame.locals import *
-
-    _PYGAME_AVAILABLE = True
-except ImportError:
-    _PYGAME_AVAILABLE = False
 
 
 class BoardControl(object):
@@ -43,8 +34,6 @@ class BoardControl(object):
     Board controller with pluggable view support.
 
     Supports dependency injection of view implementation:
-    - PygameBoardView (default) - Graphical Pygame UI
-    - TerminalBoardView - ASCII art terminal
     - HeadlessBoardView - No rendering (tournaments)
     - Custom views implementing AbstractBoardView
     """
@@ -56,7 +45,7 @@ class BoardControl(object):
         Args:
             sizex: Board width
             sizey: Board height
-            view_class: View class to use (default: BoardView/PygameBoardView)
+            view_class: View class to use
             view_args: Additional arguments for view constructor (dict)
             input_handler: Optional input handler (auto-created if None)
         """
@@ -65,7 +54,8 @@ class BoardControl(object):
 
         # Create view with dependency injection
         if view_class is None:
-            view_class = BoardView  # Default to Pygame view
+            from ui.implementations.headless import HeadlessBoardView
+            view_class = HeadlessBoardView  # Default to headless view
 
         if view_args is None:
             view_args = {}
@@ -99,28 +89,15 @@ class BoardControl(object):
         """Auto-create appropriate input handler based on view type"""
         view_type = type(self.view).__name__
 
-        if "Pygame" in view_type:
-            from ui.implementations.pygame.input_handler import PygameInputHandler
-
-            return PygameInputHandler()
-        elif "Terminal" in view_type:
-            from ui.implementations.terminal.input_handler import TerminalInputHandler
-
-            return TerminalInputHandler()
-        elif "Headless" in view_type:
+        if "Headless" in view_type:
             from ui.implementations.headless.input_handler import HeadlessInputHandler
 
             return HeadlessInputHandler()
         else:
-            # Default to pygame if unknown
-            if _PYGAME_AVAILABLE:
-                from ui.implementations.pygame.input_handler import PygameInputHandler
+            # Default to headless
+            from ui.implementations.headless.input_handler import HeadlessInputHandler
 
-                return PygameInputHandler()
-            else:
-                from ui.implementations.headless.input_handler import HeadlessInputHandler
-
-                return HeadlessInputHandler()
+            return HeadlessInputHandler()
 
     def action(self):
         """Non-blocking action method that processes events once"""
@@ -184,26 +161,8 @@ class BoardControl(object):
 
     def handleEvent(self, event):
         """Legacy method for backward compatibility"""
-        # For backward compatibility with old code that might call this directly
-        if _PYGAME_AVAILABLE and hasattr(event, "type"):
-            # This is a raw pygame event - handle with legacy methods
-            from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, QUIT, VIDEORESIZE
-
-            if event.type == QUIT:
-                self.triggerEnd()
-            elif event.type == VIDEORESIZE:
-                self.view.resize(event.w, event.h)
-                self.renderModel()
-            elif event.type == MOUSEBUTTONDOWN:
-                self.handleMouseButtonEvents(event)
-            elif event.type == KEYUP:
-                self.keyPressed = False
-            elif event.type == KEYDOWN and not self.keyPressed:
-                self.keyPressed = True
-                self.handleKeyEventsLegacy(event)
-        else:
-            # Already an InputEvent dict
-            self.handleInputEvent(event)
+        # Handle InputEvent dict
+        self.handleInputEvent(event)
 
     def handleToggleCursor(self):
         """Toggle cursor navigation mode"""
@@ -302,23 +261,12 @@ class BoardControl(object):
         # Update piece counts in the view
         self.view.setPlayerCounts(black_count, white_count)
 
-        # Set opening book moves BEFORE update for Terminal views (so they're in place when drawn)
-        # For Pygame views, we'll set them again AFTER update (so they appear on top)
+        # Set opening book moves BEFORE update
         if self.show_opening and len(self.book_moves) > 0:
             for bx, by, count in self.book_moves:
                 self.view.setCanMoveBook(bx, by, count)
 
         self.view.update(self.cursor_mode)
-
-        # Redraw opening book moves AFTER update for Pygame (so they appear on top and don't get erased)
-        if self.show_opening and len(self.book_moves) > 0:
-            # For Pygame views, redraw book moves on top
-            if hasattr(self.view, "screen") and self.view.screen is not None:
-                for bx, by, count in self.book_moves:
-                    self.view.setCanMoveBook(bx, by, count)
-                import pygame
-
-                pygame.display.update()
 
     def importModel(self, model):
         for y in range(self.sizey):

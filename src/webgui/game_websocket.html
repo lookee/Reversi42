@@ -1,0 +1,2306 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Reversi42 • Board (JSON-driven, Tournament Green)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- CodeMirror for editable JSON -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+  <style>
+    :root{
+      --bg:#0b1210; --panel:#10241c; --line:#2b4d3e; --txt:#e8f2eb; --muted:#a5b5a9;
+      --accent:#10b981; --accent2:#34d399; --gold:#f4c15d;
+      --discW:#f7f9fc; --discB:#0b0f14;
+    }
+    html,body{
+      background:
+        radial-gradient(1100px 600px at 100% -10%, rgba(52,211,153,.08), transparent),
+        radial-gradient(900px 600px at 0% 110%, rgba(16,185,129,.07), transparent),
+        var(--bg);
+      color:var(--txt); margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;
+    }
+    .container{max-width:1160px;margin:0 auto;padding:24px}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
+      border:1px solid rgba(255,255,255,.06); border-radius:16px; overflow:hidden;
+      box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35);
+    }
+    .chip{border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04);
+          border-radius:999px; padding:.4rem .7rem; display:inline-flex; gap:.45rem; align-items:center}
+    .btn{border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05);
+         border-radius:10px; padding:.5rem .8rem; cursor:pointer; transition: all 0.2s ease}
+    .btn:hover{background:rgba(255,255,255,.08)}
+    .btn .icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px}
+    .btn .icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+    .btn:disabled{
+      opacity: 0.35;
+      cursor: not-allowed;
+      background: rgba(255,255,255,.02);
+      border-color: rgba(255,255,255,.06);
+      filter: grayscale(0.3);
+    }
+    .btn:disabled:hover{
+      background: rgba(255,255,255,.02);
+    }
+    /* Tiny player action button */
+    .miniIconBtn{border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05);
+         border-radius:999px; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+         color:var(--muted); transition:all .2s ease}
+    .miniIconBtn:hover{background:rgba(255,255,255,.08); color:var(--txt)}
+    .miniIconBtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent)}
+
+    /* Avatars */
+    .avatar{width:72px;height:72px;border-radius:14px;display:grid;place-items:center;font-weight:900;
+            font-size:22px; letter-spacing:.5px;
+            color:#e6f6ec;border:1px solid rgba(255,255,255,.14);box-shadow:0 6px 18px rgba(16,185,129,.18)}
+    .avatar.b{background:radial-gradient(circle at 35% 35%, #0b9b70, #0a6c4f)}
+    .avatar.w{background:radial-gradient(circle at 35% 35%, #9ba7a0, #636f69)}
+
+    /* Board */
+    .board{display:grid; grid-template-columns:repeat(8,1fr); gap:4px;
+      border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px;
+      background:linear-gradient(180deg,#1d3c31,#17362b)}
+    .cell{position:relative; width:100%}
+    .cell::before{content:""; display:block; padding-top:100%}
+    .cell-content{position:absolute; inset:0;
+      background:linear-gradient(180deg,#255744,#204e3d);
+      border:1px solid var(--line); border-radius:10px}
+
+    .disc{position:absolute; inset:12%; border-radius:50%;
+      box-shadow:0 0 0 1.5px rgba(255,255,255,.06), 0 10px 20px rgba(0,0,0,.45)}
+    .disc.white{background:radial-gradient(circle at 35% 35%, #ffffff, #e7eef7 60%, #cdd7e5)}
+    .disc.black{background:radial-gradient(circle at 35% 35%, #2a3531, #0b0f14 65%, #000)}
+
+    .valid{position:absolute; inset:32%; border-radius:999px;
+      box-shadow:0 0 0 2px rgba(16,185,129,.85) inset;
+      background:radial-gradient(circle, rgba(16,185,129,.28), transparent 60%);
+      z-index:60}
+    .book-move-badge{position:absolute; top:8%; right:8%; background:linear-gradient(135deg, #f59e0b, #d97706);
+      color:#fff; font-size:11px; font-weight:700; padding:3px 6px; border-radius:8px;
+      box-shadow:0 2px 8px rgba(245,158,11,.5), 0 0 12px rgba(245,158,11,.3);
+      border:1px solid rgba(255,255,255,.2); min-width:22px; text-align:center;
+      z-index:50; pointer-events:none; line-height:1}
+    .hint{position:absolute; inset:16%; border-radius:999px; border:3px solid var(--gold);
+      box-shadow:0 0 20px rgba(244,193,93,.75), 0 0 40px rgba(244,193,93,.25) inset;
+      display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--gold);
+      background:transparent; font-size:15px; letter-spacing:.02em; z-index:40}
+
+    /* Hoshi */
+    .centerMark{position:absolute; left:50%; top:50%; width:clamp(6px,1vw,8px); height:clamp(6px,1vw,8px);
+      transform:translate(-50%,-50%); border-radius:999px; pointer-events:none; background: rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.08); box-shadow: inset 0 1px 2px rgba(0,0,0,.45), 0 0 0 2px rgba(0,0,0,.05);
+      opacity:.85; z-index:0}
+
+    /* Moves list */
+    #movesOl li.active{ color:#e8f2eb; font-weight:700 }
+    #movesOl li::marker{ color:var(--muted) }
+      /* Compact tournament history (50 moves demo) */
+    .historyHead{position:sticky; top:0; z-index:1; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
+      border-bottom:1px solid rgba(255,255,255,.08)}
+    .historyGrid{display:grid; grid-template-columns:48px 1fr 1fr}
+    .historyRow{display:contents}
+    .historyCell{padding:.35rem .5rem; font-variant-numeric:tabular-nums}
+    .historyNo{color:var(--muted); text-align:right}
+    .historyMove{color:var(--muted); cursor:pointer; text-align:center}
+    .historyGrid .historyRow:nth-child(odd) .historyCell{background:rgba(255,255,255,.02)}
+    .historyMove:hover{color:var(--txt)}
+    .historyMove.active{color:var(--txt); font-weight:700}
+.historyMove.last-move{color:var(--accent2); font-weight:700; text-shadow:0 0 8px rgba(52,211,153,.5)}
+    .historyBadge{margin-left:.5rem; font-size:11px; color:var(--muted)}
+    /* Partial clock styling (safe, minimal) */
+    .pclock{font-variant-numeric:tabular-nums}
+    .pclock .sep{opacity:.4; padding:0 .25rem}
+    .pclock .partial{opacity:.8; font-size:.9em}
+    /* Partial clock styling (safe, minimal) */
+    .pclock{font-variant-numeric:tabular-nums}
+    .pclock .sep{opacity:.4; padding:0 .25rem}
+    .pclock .partial{opacity:.8; font-size:.9em}
+
+    /* Compact AI Stats */
+    .statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .statBadge{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);border-radius:10px;padding:.5rem .6rem}
+    .statLabel{color:var(--muted);font-size:11px}
+    .statValue{font-weight:700;color:var(--txt);font-size:13px}
+    .bestMove{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+    .bestMove .label{color:var(--muted);font-size:12px}
+    .bestMove .pill{border:1px solid rgba(255,255,255,.14);background:rgba(16,185,129,.12);color:#34d399;border-radius:999px;padding:.25rem .6rem;font-weight:800;letter-spacing:.03em}
+
+    /* Opening Tree */
+    .opening-tree{--pad:8px}
+    .opening-tree .node-row{display:flex;align-items:center;gap:10px;padding:6px var(--pad);border-radius:10px;transition:background .15s ease}
+    .opening-tree .node-row:hover{background:rgba(255,255,255,.04)}
+    .opening-tree .move-pill{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);border-radius:999px;padding:.15rem .55rem;font-weight:800;letter-spacing:.02em}
+    .opening-tree .meta{color:var(--muted);font-size:12px}
+    .opening-tree .names{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .opening-tree details{padding-left:12px}
+    .opening-tree summary{cursor:pointer;color:var(--muted);font-size:12px;padding:2px var(--pad);list-style:none}
+    .opening-tree summary::-webkit-details-marker{display:none}
+    .opening-tree .adv{border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:.05rem .4rem;font-weight:800;font-size:11px;margin-right:6px}
+    .opening-tree .adv-eq{background:rgba(255,255,255,.05);color:var(--muted)}
+    .opening-tree .adv-unk{background:rgba(255,255,255,.08);color:var(--muted);border-style:dashed}
+    .opening-tree .adv-w{background:rgba(16,185,129,.14);color:#34d399}
+    .opening-tree .adv-wp{background:rgba(16,185,129,.22);color:#34d399}
+    .opening-tree .adv-wpp{background:rgba(16,185,129,.30);color:#34d399}
+    .opening-tree .adv-b{background:rgba(239,68,68,.18);color:#ff8a8a}
+    .opening-tree .adv-bp{background:rgba(239,68,68,.26);color:#ff9e9e}
+    .opening-tree .adv-bpp{background:rgba(239,68,68,.34);color:#ffb3b3}
+
+    /* WebSocket traffic viewer */
+    .ws-item{border-bottom:1px solid rgba(255,255,255,.08);padding:6px 8px}
+    .ws-head{display:flex;align-items:center;gap:8px;color:#e5e5e5;font-size:12px;cursor:pointer}
+    .ws-head .ws-time{opacity:.6}
+    .ws-head .ws-sum{opacity:.9}
+    /* Badges */
+    .ws-badge{display:inline-flex;align-items:center;gap:6px;padding:2px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-weight:600;letter-spacing:.02em}
+    .ws-dir{font-variant-numeric:tabular-nums}
+    .ws-dir.send{color:#10b981;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.35)}
+    .ws-dir.recv{color:#60a5fa;background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35)}
+    .ws-type{color:#d1fae5;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}
+    .ws-type.type-board_update{color:#93c5fd;background:rgba(59,130,246,.16);border-color:rgba(59,130,246,.35)}
+    .ws-type.type-ai_move{color:#86efac;background:rgba(16,185,129,.18);border-color:rgba(16,185,129,.35)}
+    .ws-type.type-ai_thinking{color:#fde68a;background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.35)}
+    .ws-type.type-human_move{color:#c4b5fd;background:rgba(139,92,246,.18);border-color:rgba(139,92,246,.35)}
+    .ws-type.type-init{color:#99f6e4;background:rgba(20,184,166,.18);border-color:rgba(20,184,166,.35)}
+    .ws-type.type-reset_game{color:#fdba74;background:rgba(249,115,22,.18);border-color:rgba(249,115,22,.35)}
+    .ws-type.type-error{color:#fca5a5;background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.35)}
+    .ws-body{display:none;color:#e5e5e5;background:#141414;border:1px solid #333;border-radius:8px;padding:8px;margin-top:6px;white-space:pre;overflow:auto}
+    /* JSON syntax highlighting */
+    .ws-json .json-key{color:#9cdcfe}
+    .ws-json .json-string{color:#ce9178}
+    .ws-json .json-number{color:#b5cea8}
+    .ws-json .json-boolean{color:#569cd6}
+    .ws-json .json-null{color:#569cd6;font-style:italic}
+
+    /* Global tooltip appended to body to avoid clipping */
+    #globalTooltip{position:fixed;display:none;pointer-events:none;z-index:99999;
+      background:rgba(0,0,0,.88); color:#e5e5e5; padding:4px 8px; border-radius:6px;
+      font-size:12px; white-space:nowrap; border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 4px 12px rgba(0,0,0,.35)}
+    #toast{position:fixed;right:16px;bottom:16px;z-index:99998;display:none;
+      background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.4);color:#a7f3d0;
+      padding:8px 12px;border-radius:8px;font-size:12px;backdrop-filter:blur(4px)}
+
+    /* Elegant modal for Players */
+    .modalOverlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:99998;
+      background:rgba(0,0,0,.55); backdrop-filter: blur(6px)}
+    .modalCard{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.12); border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.45);
+      min-width:280px; width:min(960px,92vw)}
+    .modalHead{display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
+    .modalTitle{font-weight:800; letter-spacing:.02em}
+    .modalBody{padding:18px; color:var(--muted); font-size:14px; max-height:70vh; overflow:auto}
+    /* Players grid */
+    .playersGrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px}
+    .playerCard{border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); border-radius:12px; padding:12px; cursor:pointer; transition:all .2s ease}
+    .playerCard:hover{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18)}
+    .playerCard.ai{background:linear-gradient(135deg, rgba(59,130,246,.08), rgba(139,92,246,.08)); border-color:rgba(96,165,250,.25)}
+    .playerCard.ai:hover{background:linear-gradient(135deg, rgba(59,130,246,.12), rgba(139,92,246,.12)); border-color:rgba(96,165,250,.35)}
+    .playerCard.human{background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.45); box-shadow:0 0 0 1px rgba(16,185,129,.25) inset}
+    .playerCard.human .playerName{color:#e8f2eb}
+    .playerCard.ai .playerName{color:#bfdbfe}
+    .playerHead{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .playerName{font-weight:800; color:var(--txt); letter-spacing:.02em}
+    .playerTag{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--muted); font-size:11px; padding:2px 6px; border-radius:999px}
+    .playerTag.human{color:#34d399; background:rgba(16,185,129,.16); border-color:rgba(16,185,129,.45)}
+    .playerTag.ai{color:#93c5fd; background:rgba(59,130,246,.16); border-color:rgba(59,130,246,.45)}
+    .playerDesc{margin-top:8px; font-size:12px; color:var(--muted)}
+    .playerMeta{margin-top:6px; font-size:11px; color:#a7f3d0}
+
+    /* Board coordinates alignment */
+    .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
+
+    /* CodeMirror styling */
+    .CodeMirror{
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      height: auto;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .CodeMirror-scroll{
+      min-height: 400px;
+    }
+    .rows-nums{display:grid; grid-template-rows:repeat(8,1fr); gap:4px; align-self:start; margin-top:12px; width:1.6rem; height:auto; justify-self:end; margin-right:-18px}  
+    .rows-nums .coords{display:flex; align-items:center; justify-content:flex-end}
+    .col-letters{position:absolute; left:0; right:0; top:-22px; display:grid; grid-template-columns:repeat(8,1fr); gap:4px; padding:0 12px; place-items:center; pointer-events:none}
+    
+    /* Last move indicator - elegant red dot */
+    .last-move-indicator::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      width: 16px;
+      height: 16px;
+      background: radial-gradient(circle, #ef4444 0%, #dc2626 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.9), inset 0 2px 3px rgba(255, 255, 255, 0.4);
+      animation: dotPulse 2s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 100;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    @keyframes dotPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+    }
+    
+    /* AI move highlight animation */
+    .ai-move-highlight{
+      animation: aiMovePulse 0.6s ease-out;
+    }
+    @keyframes aiMovePulse {
+      0% { 
+        background: linear-gradient(180deg, rgba(52, 211, 153, 0.4), rgba(52, 211, 153, 0.2));
+        box-shadow: 0 0 20px rgba(52, 211, 153, 0.6);
+      }
+      50% { 
+        background: linear-gradient(180deg, rgba(52, 211, 153, 0.6), rgba(52, 211, 153, 0.4));
+        box-shadow: 0 0 30px rgba(52, 211, 153, 0.8);
+      }
+      100% { 
+        background: linear-gradient(180deg, #255744, #204e3d);
+        box-shadow: none;
+      }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* WebSocket Status Indicator */
+    .ws-status-indicator{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      border-radius: 10px;
+      padding: .5rem .8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--txt);
+      transition: all 0.2s ease;
+      cursor: default;
+    }
+    .ws-status-icon{
+      position: relative;
+      width: 8px;
+      height: 8px;
+    }
+    .ws-status-dot{
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: wsPulse 2s ease-in-out infinite;
+    }
+    .ws-status-indicator.connected .ws-status-dot{
+      background: #10b981;
+    }
+    .ws-status-indicator.connecting .ws-status-dot{
+      background: #f59e0b;
+    }
+    @keyframes wsPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    /* JSON Editor */
+    .json-editor-toggle{
+      background:rgba(16,185,129,.1);
+      border:1px solid rgba(16,185,129,.3);
+      color:#10b981;
+      font-weight:500;
+      padding:8px 14px;
+      font-size:13px;
+      border-radius:8px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:all 0.2s ease;
+      white-space:nowrap
+    }
+    .json-editor-toggle:hover{
+      background:rgba(16,185,129,.2);
+      border-color:rgba(16,185,129,.5);
+      color:#34d399
+    }
+    .json-editor-toggle span{
+      font-size:13px;
+      letter-spacing:0.2px
+    }
+    #jsonEditorWrapper{
+      position:fixed;
+      bottom:0;
+      left:0;
+      right:0;
+      height:50vh;
+      background:var(--panel);
+      border-top:2px solid rgba(255,255,255,.1);
+      padding:0;
+      z-index:999;
+      display:flex;
+      flex-direction:column;
+      box-shadow:0 -4px 12px rgba(0,0,0,0.4);
+    }
+    .json-editor-tabs{display:flex;gap:2px;padding:0;background:rgba(0,0,0,.3);border-bottom:1px solid rgba(255,255,255,.1)}
+    .tab-btn{flex:1;padding:10px 16px;background:rgba(0,0,0,.3);border:none;color:var(--muted);cursor:pointer;transition:all 0.2s;font-size:13px;font-weight:500}
+    .tab-btn:hover{background:rgba(0,0,0,.4);color:var(--txt)}
+    .tab-btn.active{background:rgba(255,255,255,.05);color:var(--accent);border-bottom:2px solid var(--accent)}
+    .tab-content{
+      display:none;
+      flex:1;
+      overflow:hidden;
+      flex-direction:column;
+    }
+    .tab-content.active{
+      display:flex;
+    }
+    .json-editor-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 16px;
+      background:rgba(0,0,0,.2);
+      border-bottom:1px solid rgba(255,255,255,.1);
+      flex-shrink:0;
+    }
+    #jsonEditorContainer, #logsContainer{
+      flex:1;
+      overflow:auto;
+      position:relative;
+      min-height:0;
+    }
+    #logsContainer{
+      background:#1a1a1a;
+      color:#e5e5e5;
+      font-family:'Courier New',monospace;
+    }
+    #jsonEditor{background:#1e1e1e;font-family:'Courier New',monospace;font-size:13px;line-height:1.6}
+    code.language-json{font-size:13px}
+    #logsContent{
+      padding:16px;
+      font-family:'Courier New',monospace;
+      font-size:12px;
+      line-height:1.8;
+      white-space:pre;
+      word-wrap:normal;
+      overflow-wrap:normal;
+      color:#e5e5e5;
+    }
+    #logsContent .log-line{padding:2px 0;border-left:3px solid transparent;padding-left:6px;margin:2px 0;line-height:1.6}
+    #logsContent .log-error{color:#ff6b6b;border-left-color:#ff6b6b;font-weight:500}
+    #logsContent .log-warning{color:#ffd93d;border-left-color:#ffd93d;font-weight:500}
+    #logsContent .log-info{color:#74c0fc;border-left-color:#74c0fc}
+    #logsContent .log-debug{color:#c5a3ff}
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="container" style="padding-bottom:0">
+    <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-4 md:gap-8">
+      <!-- LEFT: Black -->
+      <div class="flex items-center md:items-start justify-start gap-3">
+        <div class="avatar b" id="p1Avatar">LA</div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <div id="p1Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
+            <button id="changeBlackBtn" class="miniIconBtn" title="Change player" data-tip="Change Black Player" aria-label="Change Black Player">
+              <svg id="changeBlackIcon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
+                <path d="M3 21a9 9 0 0 1 18 0"/>
+              </svg>
+            </button>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap text-[13px]" style="color:var(--muted)">
+            <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span> Black</span>
+            <span id="p1Count" class="chip">● 0</span>
+            <span id="p1Delta" class="chip">±0</span>
+            <span id="p1Turn" class="chip">
+              <span id="p1TurnDot" style="display:none;width:10px;height:10px;border-radius:999px;background:var(--gold)"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER: Match panel -->
+      <div class="flex flex-col items-center text-center gap-1.5">
+        <!-- Turn indicator removed from center, now shows on player sides -->
+      </div>
+
+      <!-- RIGHT: White -->
+      <div class="flex items-center md:items-start justify-end gap-3">
+        <div class="min-w-0 text-right">
+          <div class="flex items-center gap-2">
+            <div id="p2Name" class="truncate font-extrabold leading-tight tracking-tight text-2xl md:text-4xl">—</div>
+            <button id="changeWhiteBtn" class="miniIconBtn" title="Change player" data-tip="Change White Player" aria-label="Change White Player">
+              <svg id="changeWhiteIcon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
+                <path d="M3 21a9 9 0 0 1 18 0"/>
+              </svg>
+            </button>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap justify-end text-[13px]" style="color:var(--muted)">
+            <span id="p2Turn" class="chip">
+              <span id="p2TurnDot" style="display:none;width:10px;height:10px;border-radius:999px;background:var(--gold)"></span>
+            </span>
+            <span id="p2Count" class="chip">○ 0</span>
+            <span id="p2Delta" class="chip">±0</span>
+            <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span> White</span>
+          </div>
+        </div>
+        <div class="avatar w" id="p2Avatar">AP</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="container">
+    <article class="card">
+      <div style="padding:18px 22px">
+        <div class="grid gap-6 md:grid-cols-[auto_1fr_320px]">
+          <!-- Row numbers -->
+          <div class="rows-nums">
+            <div class="coords" style="text-align:right">1</div><div class="coords" style="text-align:right">2</div>
+            <div class="coords" style="text-align:right">3</div><div class="coords" style="text-align:right">4</div>
+            <div class="coords" style="text-align:right">5</div><div class="coords" style="text-align:right">6</div>
+            <div class="coords" style="text-align:right">7</div><div class="coords" style="text-align:right">8</div>
+          </div>
+
+          <!-- Board -->
+          <div style="position:relative">
+            <div id="board" class="board" role="grid" aria-label="Scacchiera Reversi"></div>
+            <div class="col-letters">
+              <span class="coords">A</span><span class="coords">B</span><span class="coords">C</span><span class="coords">D</span>
+              <span class="coords">E</span><span class="coords">F</span><span class="coords">G</span><span class="coords">H</span>
+            </div>
+          </div>
+
+          <!-- Right column: history + AI -->
+          <aside class="flex flex-col gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <button id="newGameBtn" class="btn" title="New Game" data-tip="New game">
+                  <span class="icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  </span>
+                </button>
+                <button id="copyBtn" class="btn" title="Copy compact history" data-tip="Copy compact history" aria-label="Copy compact history">
+                  <span class="icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </span>
+                </button>
+                <button id="pasteBtn" class="btn" title="Paste compact history" data-tip="Paste compact history" aria-label="Paste compact history">
+                  <span class="icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                  </span>
+                </button>
+                <button id="saveBtn" class="btn" title="Save game" data-tip="Save game" disabled>
+                  <span class="icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M12 16V6"/><path d="M8.5 10.5 12 7l3.5 3.5"/></svg>
+                  </span>
+                </button>
+                <button id="loadBtn" class="btn" title="Load game" data-tip="Load game">
+                  <span class="icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 4h16"/><path d="M12 8v10"/><path d="M15.5 13.5 12 17l-3.5-3.5"/></svg>
+                  </span>
+                </button>
+                <button id="fsBtn" class="btn" title="Fullscreen" data-tip="Fullscreen">
+                  <span class="icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M7 3H3v4"/><path d="M17 3h4v4"/><path d="M21 17v4h-4"/><path d="M3 17v4h4"/></svg>
+                  </span>
+                </button>
+              </div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="text-sm font-semibold">Move History <span id="histBadge" class="historyBadge hidden">· 50 simulated positions</span></div>
+                <div class="flex items-center gap-2">
+                  <button id="undoBtn" class="btn text-xs" title="Undo" data-tip="Undo" disabled>⟲</button>
+                  <button id="redoBtn" class="btn text-xs" title="Redo" data-tip="Redo" disabled>⟳</button>
+                  <button id="aiPlayPauseBtn" class="btn text-xs" title="Pause AI" data-tip="Pause AI" style="background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.35)">
+                    <span class="icon" aria-hidden="true">
+                      <svg id="aiPlayPauseIcon" viewBox="0 0 24 24">
+                        <rect x="6" y="4" width="4" height="16"/>
+                        <rect x="14" y="4" width="4" height="16"/>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <div class="card" style="max-height:300px;overflow:auto">
+                <div id="histHead" class="historyHead historyGrid text-[12px] hidden">
+                  <div class="historyCell historyNo">#</div>
+                  <div class="historyCell">Black</div>
+                  <div class="historyCell">White</div>
+                </div>
+                <div id="historyGrid" class="historyGrid text-[14px] hidden"></div>
+                <ol id="movesOl" class="list-decimal pl-6 py-2 pr-3 text-[14px]" style="color:var(--muted)"></ol>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <div class="text-sm font-semibold">Opening Tree</div>
+              </div>
+              <div class="card" style="max-height:300px;overflow:auto">
+                <div id="openingTree" class="opening-tree p-3 text-[14px]"></div>
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-semibold mb-2"><span id="deepeningSummaryTitle">Notes</span></div>
+              <div class="card">
+                <div class="p-4 text-[14px] leading-6">
+                  <div id="deepeningSummary" class="grid grid-cols-1 gap-2" style="color:var(--muted)">
+                    <!-- Popolato da JS: chiave, valore, valore2 (in grigio) -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex flex-wrap items-center gap-3 text-[13px]" style="color:var(--muted);margin-top:14px">
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discB)"></span>Black Disc</span>
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:var(--discW)"></span>White Disc</span>
+          <span class="chip"><span style="display:inline-block;width:12px;height:12px;border-radius:999px; box-shadow:0 0 0 2px rgba(16,185,129,.85) inset"></span>Valid Move</span>
+          <!-- WebSocket Status Indicator -->
+          <div id="wsStatusIndicator" class="ws-status-indicator">
+            <div class="ws-status-icon">
+              <div class="ws-status-dot"></div>
+            </div>
+            <div class="ws-status-text">Connecting...</div>
+          </div>
+          <!-- Developer-Insight Button -->
+          <button class="json-editor-toggle" id="toggleJsonEditor" style="position:relative;bottom:0;right:0;margin-left:auto">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            <span>Developer-Insight</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <!-- WebSocket connection (no static JSON) -->
+
+  <!-- ======= WebSocket Game Logic ======= -->
+  
+  <!-- Elegant Players Modal -->
+  <div id="playersModal" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="playersTitle" style="display:none">
+    <div class="modalCard" role="document">
+      <div class="modalHead">
+        <div id="playersTitle" class="modalTitle">Players</div>
+        <button id="playersCloseBtn" class="btn text-xs" title="Close" data-tip="Close" aria-label="Close">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </span>
+        </button>
+      </div>
+      <div class="modalBody">
+        <div id="playersIntro" class="text-[13px]" style="margin-bottom:10px;color:var(--muted)">Select a player for this side.</div>
+        <div id="playersList" class="playersGrid"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    'use strict';
+    
+    // Global variables
+    let data = null;
+    let ply = 0;
+    let wsConnection = null;
+    let gameOverInfo = null; // { winner, black_count, white_count }
+    let pendingSelectedAI = null; // confirm selected AI after init
+    let aiAutoPaused = false; // AI auto-play paused
+    
+    // WebSocket configuration
+    const WS_URL = 'ws://localhost:8000/ws';
+    const SESSION_ID = 'default';
+    function pretty(obj){ try{ return JSON.stringify(obj, null, 2); }catch(_){ return String(obj); } }
+    function highlightJson(json){
+      const esc = (s)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return esc(json)
+        .replace(/(&quot;.*?&quot;)(:\s*)/g, '<span class="json-key">$1</span>$2')
+        .replace(/&quot;([^\"]|\\\")*&quot;/g, '<span class="json-string">$&</span>')
+        .replace(/\b(true|false)\b/g, '<span class="json-boolean">$1</span>')
+        .replace(/\b(null)\b/g, '<span class="json-null">$1</span>')
+        .replace(/(-?\b\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?\b)/g, '<span class="json-number">$1</span>');
+    }
+    function summarizeMessage(direction, payload){
+      let p = payload;
+      if(typeof p === 'string'){
+        try{ p = JSON.parse(p); }catch(_){ /* ignore */ }
+      }
+      if(p && typeof p === 'object'){
+        const t = p.type || p?.data?.type;
+        if(t === 'board_update'){
+          const last = p?.data?.moves && p.data.moves.length ? p.data.moves[p.data.moves.length-1] : '-';
+          const turn = p?.data?.status?.turn_by_ply?.[0] || '-';
+          const valid = (p?.data?.valid_by_ply?.[0] || []).length;
+          const book = (p?.data?.opening_by_ply || []).length;
+          return `turn ${turn} · last ${last} · valid ${valid} · book ${book}`;
+        }
+        if(t === 'ai_move'){
+          const mv = p?.data?.move || '-';
+          return `move ${mv}`;
+        }
+        if(t === 'ai_thinking'){
+          return 'thinking…';
+        }
+        if(t === 'human_move'){
+          return `move ${p.move}`;
+        }
+        if(t === 'init'){
+          return `ai=${p.ai_player || ''}`;
+        }
+        if(t === 'reset_game'){
+          return 'reset';
+        }
+      }
+      return `${direction}`;
+    }
+    async function copyTextStrict(text){
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      }catch(_){/* fallthrough */}
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.top='-9999px';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        return true;
+      }catch(_){ return false; }
+    }
+
+    function appendWsMessage(direction, payload){
+      const box = document.getElementById('wsTrafficContent');
+      if(!box) return;
+      const time = new Date().toISOString();
+      const item = document.createElement('div'); item.className = 'ws-item';
+      const head = document.createElement('div'); head.className = 'ws-head';
+      const timeSpan = document.createElement('span'); timeSpan.className = 'ws-time'; timeSpan.textContent = time;
+
+      // Direction badge
+      const dirSpan = document.createElement('span');
+      dirSpan.className = 'ws-badge ws-dir';
+      dirSpan.textContent = direction;
+      if(/^\s*→/.test(direction)) dirSpan.classList.add('send');
+      if(/^\s*←/.test(direction)) dirSpan.classList.add('recv');
+
+      // Determine command/type and create colored badge
+      let payloadObj = payload;
+      if(typeof payloadObj === 'string'){
+        try{ payloadObj = JSON.parse(payloadObj); }catch(_){ /* noop */ }
+      }
+      const typeVal = payloadObj && typeof payloadObj === 'object' ? (payloadObj.type || payloadObj?.data?.type || '—') : '—';
+      const typeSpan = document.createElement('span');
+      typeSpan.className = 'ws-badge ws-type';
+      typeSpan.textContent = String(typeVal);
+      if(typeVal && typeof typeVal === 'string'){
+        typeSpan.classList.add(`type-${typeVal}`);
+      }
+
+      const sumSpan = document.createElement('span'); sumSpan.className = 'ws-sum'; sumSpan.textContent = summarizeMessage(direction, payload);
+      const copyBtn = document.createElement('button'); copyBtn.className = 'btn text-xs'; copyBtn.textContent = 'Copy JSON'; copyBtn.setAttribute('data-tip','Copy JSON'); copyBtn.title = 'Copy JSON';
+      copyBtn.addEventListener('click', async (e)=>{ e.stopPropagation(); const ok = await copyTextStrict(pretty(payload)); showToast(ok? 'Copied JSON' : 'Copy failed'); });
+      head.appendChild(timeSpan); head.appendChild(dirSpan); head.appendChild(typeSpan); head.appendChild(sumSpan); head.appendChild(copyBtn);
+      const body = document.createElement('pre'); body.className = 'ws-body ws-json'; body.innerHTML = highlightJson(pretty(payload));
+      head.addEventListener('click', ()=>{ body.style.display = (body.style.display==='none'||!body.style.display) ? 'block' : 'none'; });
+      item.appendChild(head); item.appendChild(body); box.appendChild(item);
+      const container = document.getElementById('wsTrafficContainer'); if(container){ container.scrollTop = container.scrollHeight; }
+    }
+    function wsSend(obj){
+      try{
+        wsConnection && wsConnection.send(JSON.stringify(obj));
+        appendWsMessage('→ send', obj);
+      }catch(e){ console.error('wsSend error', e); }
+    }
+    
+    function loadGameData(gameData){
+      data = gameData;
+      console.log('Loading game data:', data);
+
+      // Update header
+      qs('p1Name').textContent   = data.players?.black?.name || '—';
+      qs('p2Name').textContent   = data.players?.white?.name || '—';
+      qs('p1Avatar').textContent = data.players?.black?.avatar || initials(data.players?.black?.name);
+      qs('p2Avatar').textContent = data.players?.white?.avatar || initials(data.players?.white?.name);
+      
+      // Update player icons based on type
+      updatePlayerIcons();
+      
+      // Update maxPly for calculations
+      const maxPly = (data.positions?.length || 1) - 1;
+
+      // Update moves list if exists
+      const movesOl = document.getElementById('movesOl');
+      if(movesOl && !movesOl.classList.contains('hidden')){
+        movesOl.innerHTML = '';
+        (data.moves||[]).forEach((m,i)=>{
+          const li = document.createElement('li'); li.textContent = m; li.dataset.ply = i+1;
+                      li.addEventListener('click', ()=>{ if(data){ ply = i+1; render(); } });
+          movesOl.appendChild(li);
+        });
+      }
+
+      // Re-render with new data (keep current ply; clamp within new bounds)
+      const newMaxPly = (data.positions?.length || 1) - 1;
+      if(ply > newMaxPly) ply = newMaxPly;
+      render();
+      
+      // Update notes if available
+      // Always set the AI player name as the title
+      const notesTitle = qs('deepeningSummaryTitle');
+      if(notesTitle) {
+        notesTitle.textContent = data.players?.white?.name || 'Notes';
+      }
+      
+      if(data.notes){
+        renderNotes(data.notes);
+      }
+      
+      // Rebuild history
+      if(window.buildHistory){
+        window.buildHistory();
+      }
+    }
+    
+    // Build board only once during init
+    function buildBoard(){
+      const elBoard = document.getElementById('board');
+      const coords = ['A1','B1','C1','D1','E1','F1','G1','H1','A2','B2','C2','D2','E2','F2','G2','H2',
+                      'A3','B3','C3','D3','E3','F3','G3','H3','A4','B4','C4','D4','E4','F4','G4','H4',
+                      'A5','B5','C5','D5','E5','F5','G5','H5','A6','B6','C6','D6','E6','F6','G6','H6',
+                      'A7','B7','C7','D7','E7','F7','G7','H7','A8','B8','C8','D8','E8','F8','G8','H8'];
+      
+      for (let i=0;i<64;i++){
+        const cell = document.createElement('div'); 
+        cell.className = 'cell';
+        cell.dataset.coord = coords[i]; // Store coordinate
+        cell.onclick = () => {
+          console.log('Cell clicked:', cell.dataset.coord, 'wsReady:', wsConnection?.readyState === WebSocket.OPEN, 'data:', !!data);
+          
+          // Check current turn from data
+          let currentTurn = (data && data.status && Array.isArray(data.status.turn_by_ply))
+            ? (data.status.turn_by_ply[ply] || (ply%2===0 ? 'B' : 'W'))
+            : (ply%2===0 ? 'B' : 'W');
+          
+          // Check if current side is Human (not AI)
+          const isBlackHuman = !data?.players?.black?.name || data.players.black.name === 'Human' || data.players.black.name === 'Human Player';
+          const isWhiteHuman = !data?.players?.white?.name || data.players.white.name === 'Human' || data.players.white.name === 'Human Player';
+          const isCurrentSideHuman = (currentTurn === 'B' && isBlackHuman) || (currentTurn === 'W' && isWhiteHuman);
+          
+          const canMove = (isCurrentSideHuman && wsConnection && wsConnection.readyState === WebSocket.OPEN);
+          console.log('Current turn:', currentTurn, 'isCurrentSideHuman:', isCurrentSideHuman, 'canMove:', canMove);
+          
+          if(canMove){
+            submitMove(cell.dataset.coord);
+          } else {
+            console.log('Move rejected - not human player turn or WebSocket closed');
+          }
+        };
+        const inner = document.createElement('div'); 
+        inner.className = 'cell-content';
+        cell.appendChild(inner); 
+        elBoard.appendChild(cell);
+      }
+    }
+
+    // WebSocket Status Indicator Functions
+    function updateWSStatus(status, text) {
+      const indicator = document.getElementById('wsStatusIndicator');
+      if (!indicator) {
+        console.error('WebSocket status indicator not found!');
+        return;
+      }
+      
+      const textEl = indicator.querySelector('.ws-status-text');
+      if (!textEl) {
+        console.error('WebSocket status text element not found!');
+        return;
+      }
+      
+      // Remove all status classes
+      indicator.classList.remove('connected', 'connecting', 'disconnected');
+      
+      // Add appropriate class and update text
+      indicator.classList.add(status);
+      textEl.textContent = text;
+      
+      console.log('WebSocket status updated:', status, text);
+    }
+
+    // WebSocket functions
+    function initWebSocket(){
+      updateWSStatus('connecting', 'Connecting...');
+      wsConnection = new WebSocket(WS_URL);
+      
+      wsConnection.onopen = () => {
+        console.log('WebSocket connected successfully');
+        updateWSStatus('connected', 'Connected');
+        // Send init message
+        const initMsg = {
+          type: 'init',
+          session_id: SESSION_ID,
+          ai_player: 'DIVZERO.EXE'
+        };
+        console.log('Sending init message:', initMsg);
+        wsSend(initMsg);
+      };
+      
+      wsConnection.onmessage = (event) => {
+        console.log('Raw message received:', event.data);
+        try{ appendWsMessage('← recv', JSON.parse(event.data)); }catch(_){ appendWsMessage('← recv', event.data); }
+        const message = JSON.parse(event.data);
+        console.log('Parsed message:', message);
+        handleServerMessage(message);
+      };
+      
+      wsConnection.onclose = (event) => {
+        console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason, 'Clean:', event.wasClean);
+        console.log('Attempting reconnect in 3 seconds...');
+        updateWSStatus('disconnected', 'Reconnecting...');
+        setTimeout(initWebSocket, 3000);
+      };
+      
+      wsConnection.onerror = (error) => {
+        console.error('❌ WebSocket error:', error);
+        console.error('WebSocket readyState:', wsConnection.readyState);
+        console.error('WebSocket URL:', WS_URL);
+        console.error('Stack trace:', new Error().stack);
+        updateWSStatus('disconnected', 'Connection Error');
+      };
+      
+      // Log connection attempt
+      console.log('Attempting to connect to:', WS_URL);
+    }
+    
+    function handleServerMessage(message){
+      console.log('Received:', message.type, message);
+      
+      try {
+      switch(message.type){
+        case 'board_update':
+          // Update board from server
+          data = message.data;
+          // Clear any previous game-over banner on fresh state
+          gameOverInfo = null;
+          console.log('Board data:', data);
+          console.log('Positions:', data.positions);
+          console.log('Ply:', ply, 'Positions[0]:', data.positions?.[0]);
+          
+          // Update player names everywhere
+          if(data.players?.white?.name){
+            const p2Name = qs('p2Name');
+            if(p2Name) p2Name.textContent = data.players.white.name;
+            const p2Avatar = qs('p2Avatar');
+            if(p2Avatar) p2Avatar.textContent = data.players.white.avatar || 'AI';
+            if(pendingSelectedAI && data.players.white.name === pendingSelectedAI){
+              showToast(`AI set to ${pendingSelectedAI}`);
+              pendingSelectedAI = null;
+            }
+          }
+          
+          loadGameData(data);
+          // Render opening tree if provided
+          try{
+            if(data && data.opening_tree){
+              renderOpeningTree(data.opening_tree);
+            } else {
+              renderOpeningTree(null);
+            }
+          }catch(e){ console.warn('Opening tree render error', e); }
+          
+          // Check if AI should move (only if not paused)
+          if(!aiAutoPaused){
+            checkAndRequestAIMove();
+          }
+          
+          break;
+          
+        case 'ai_move':
+          const aiMoveSide = data?.status?.turn_by_ply?.[0] || 'W';
+          const aiPlayerName = aiMoveSide === 'B' ? data.players?.black?.name : data.players?.white?.name;
+          console.log(`${aiPlayerName} played:`, message.data.move);
+          
+          // Remove thinking icon from BOTH sides to prevent stale icons
+          removeThinkingIconFromPlayerName('B');
+          removeThinkingIconFromPlayerName('W');
+          // Show AI move animation
+          if(message.data.move){
+            const moveCoord = message.data.move;
+            const moveIdx = coordToIdx(moveCoord);
+            const cell = document.getElementById('board')?.children[moveIdx];
+            if(cell){
+              cell.classList.add('ai-move-highlight');
+              setTimeout(() => cell.classList.remove('ai-move-highlight'), 2000);
+            }
+          }
+          // Update notes with AI analysis if available (include AI name from side)
+          if(message.data.evaluation !== undefined || message.data.depth || message.data.move){
+            const aiMovedSide = aiMoveSide; // Already calculated above
+            const aiMovedName = aiPlayerName; // Already calculated above
+            updateAIAnalysis({...message.data, title: aiMovedName, side: aiMovedSide});
+          }
+          console.log('AI move completed, waiting for board_update');
+          break;
+          
+        case 'ai_thinking':
+          console.log(message.message);
+          // Add thinking icon to AI player name (determine side from current turn)
+          const thinkingSide = data?.status?.turn_by_ply?.[0] || 'W';
+          
+          // ONLY add thinking icon if that side is actually AI (not Human)
+          const thinkingBlackName = data?.players?.black?.name;
+          const thinkingWhiteName = data?.players?.white?.name;
+          const isThinkingSideAI = (thinkingSide === 'B' && thinkingBlackName && thinkingBlackName !== 'Human' && thinkingBlackName !== 'Human Player')
+                                || (thinkingSide === 'W' && thinkingWhiteName && thinkingWhiteName !== 'Human' && thinkingWhiteName !== 'Human Player');
+          
+          console.log('🤔 ai_thinking received - Side:', thinkingSide, 'isAI:', isThinkingSideAI, 'BlackName:', thinkingBlackName, 'WhiteName:', thinkingWhiteName);
+          
+          if(isThinkingSideAI){
+            addThinkingIconToPlayerName(thinkingSide);
+          } else {
+            console.warn('⚠️  ai_thinking received for HUMAN player - ignoring!');
+          }
+          
+          if(pendingSelectedAI && data && data.players){
+            const currentAIName = thinkingSide === 'B' ? data.players.black?.name : data.players.white?.name;
+            if(currentAIName === pendingSelectedAI){
+              showToast(`AI set to ${pendingSelectedAI}`);
+              pendingSelectedAI = null;
+            }
+          }
+          // Update notes with "thinking" state if we have AI data
+          const thinkingAIName = thinkingSide === 'B' ? data.players?.black?.name : data.players?.white?.name;
+          if(message.data){
+            updateAIAnalysis({...message.data, title: thinkingAIName});
+          } else {
+            // If no data yet, show thinking status
+            const aiAnalysis = {
+              title: thinkingAIName || 'AI',
+              status: 'Thinking...',
+              selected_move: 'Analyzing...',
+              evaluation: 'Calculating...',
+              depth: 'Searching...',
+              nodes_searched: 'Calculating...',
+              nodes_pruned: 'Calculating...',
+              pruning_ratio: 'Calculating...',
+              avg_search_time: 'Calculating...',
+              total_searches: 'Calculating...'
+            };
+            data.notes = aiAnalysis;
+            updateAIAnalysis(aiAnalysis);
+          }
+          break;
+          
+        case 'game_over':
+          console.log('Game over!', message.data);
+          // Stop AI auto-play
+          aiAutoPaused = true;
+          // Persist winner info for header rendering
+          gameOverInfo = {
+            winner: message.data.winner || 'Game Over',
+            black_count: message.data.black_count || 0,
+            white_count: message.data.white_count || 0
+          };
+          // Update header immediately
+          render();
+          // Update Play/Pause button to show it's stopped
+          const btn = qs('aiPlayPauseBtn');
+          const icon = document.getElementById('aiPlayPauseIcon');
+          if(btn && icon){
+            icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+            btn.title = 'Play AI';
+            btn.setAttribute('data-tip', 'Play AI');
+            btn.style.background = 'rgba(245,158,11,.12)';
+            btn.style.borderColor = 'rgba(245,158,11,.35)';
+          }
+          // Optional alert (kept for visibility)
+          setTimeout(() => {
+            alert(`🎮 GAME OVER\n\nWinner: ${gameOverInfo.winner}\n\nBlack: ${gameOverInfo.black_count} pieces\nWhite: ${gameOverInfo.white_count} pieces`);
+          }, 100);
+          break;
+          
+        case 'error':
+          console.error('Server error:', message.message);
+          alert(`Error: ${message.message || 'Invalid move. Please try again.'}`);
+          break;
+      }
+      } catch (error) {
+        console.error('❌ CRITICAL ERROR in handleServerMessage:', error);
+        console.error('Stack trace:', error.stack);
+        console.error('Message was:', message);
+        // Don't close WebSocket connection - just log the error
+        alert(`⚠️  Frontend Error: ${error.message}\n\nCheck console for details.`);
+      }
+    }
+    
+    function toggleAIPlayPause(){
+      aiAutoPaused = !aiAutoPaused;
+      const btn = qs('aiPlayPauseBtn');
+      const icon = document.getElementById('aiPlayPauseIcon');
+      
+      if(aiAutoPaused){
+        // Paused - show Play icon
+        icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+        btn.title = 'Play AI';
+        btn.setAttribute('data-tip', 'Play AI');
+        btn.style.background = 'rgba(245,158,11,.12)';
+        btn.style.borderColor = 'rgba(245,158,11,.35)';
+        showToast('AI Auto-Play Paused');
+      } else {
+        // Playing - show Pause icon
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        btn.title = 'Pause AI';
+        btn.setAttribute('data-tip', 'Pause AI');
+        btn.style.background = 'rgba(16,185,129,.12)';
+        btn.style.borderColor = 'rgba(16,185,129,.35)';
+        showToast('AI Auto-Play Resumed');
+        
+        // If an AI should move now, trigger it
+        if(!aiAutoPaused && data){
+          const currentTurn = (data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0) 
+            ? data.status.turn_by_ply[0] : 'B';
+          const blackName = data.players?.black?.name;
+          const whiteName = data.players?.white?.name;
+          const isBlackAI = blackName && blackName !== 'Human' && blackName !== 'Human Player';
+          const isWhiteAI = whiteName && whiteName !== 'Human' && whiteName !== 'Human Player';
+          const isCurrentSideAI = (currentTurn === 'B' && isBlackAI) || (currentTurn === 'W' && isWhiteAI);
+          
+          if(isCurrentSideAI && wsConnection && wsConnection.readyState === WebSocket.OPEN){
+            console.log('Resuming AI - requesting move for side:', currentTurn);
+            wsSend({ type: 'ai_move_request', side: currentTurn });
+          }
+        }
+      }
+    }
+    
+    function submitMove(move){
+      if(!wsConnection || wsConnection.readyState !== WebSocket.OPEN){
+        console.log('Cannot submit move: WebSocket not open');
+        return;
+      }
+      
+      // Double-check current turn and human status
+      const currentTurn = (data && data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0) 
+        ? data.status.turn_by_ply[0] : 'B';
+      
+      const isBlackHuman = !data?.players?.black?.name || data.players.black.name === 'Human' || data.players.black.name === 'Human Player';
+      const isWhiteHuman = !data?.players?.white?.name || data.players.white.name === 'Human' || data.players.white.name === 'Human Player';
+      const isCurrentSideHuman = (currentTurn === 'B' && isBlackHuman) || (currentTurn === 'W' && isWhiteHuman);
+      
+      if(!isCurrentSideHuman){
+        console.log('Cannot submit move: current side is AI. Current turn:', currentTurn);
+        return;
+      }
+      
+      console.log('Submitting human move:', move, 'for side:', currentTurn);
+      wsSend({ type: 'human_move', move: move });
+    }
+    
+    function checkAndRequestAIMove(){
+      if(!data || !wsConnection || wsConnection.readyState !== WebSocket.OPEN){
+        return;
+      }
+      
+      // Don't request if paused
+      if(aiAutoPaused){
+        console.log('AI auto-play paused - not requesting move');
+        return;
+      }
+      
+      // Get current turn
+      const currentTurn = (data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0) 
+        ? data.status.turn_by_ply[0] : 'B';
+      
+      // Check if current side is AI
+      const blackName = data.players?.black?.name;
+      const whiteName = data.players?.white?.name;
+      const isBlackAI = blackName && blackName !== 'Human' && blackName !== 'Human Player';
+      const isWhiteAI = whiteName && whiteName !== 'Human' && whiteName !== 'Human Player';
+      const isCurrentSideAI = (currentTurn === 'B' && isBlackAI) || (currentTurn === 'W' && isWhiteAI);
+      
+      if(isCurrentSideAI){
+        console.log('Current turn is AI:', currentTurn, '- requesting AI move');
+        setTimeout(() => {
+          wsSend({ type: 'ai_move_request', side: currentTurn });
+        }, 100);
+      }
+    }
+    
+    // Initialize on page load
+    function init(){
+      // Test WebSocket indicator visibility
+      const indicator = document.getElementById('wsStatusIndicator');
+      if (indicator) {
+        console.log('WebSocket indicator found:', indicator);
+        console.log('Indicator styles:', window.getComputedStyle(indicator));
+      } else {
+        console.error('WebSocket indicator NOT found!');
+      }
+      
+      // Build board once
+      buildBoard();
+      
+      // Setup WebSocket
+      initWebSocket();
+      
+      // Toolbar setup
+      setupToolbar();
+      setupTooltips();
+      setupPlayersUI();
+      
+      // History grid setup
+      setupHistoryDemo();
+      
+      // Coord sync setup
+      setupCoordSync();
+      
+      // Keyboard shortcuts
+      window.addEventListener('keydown', (e)=>{
+        if(!data) return;
+        const maxPly = (data?.positions?.length || 1) - 1;
+        if(e.key==='ArrowLeft'){ if(ply>0){ ply--; render(); } }
+        if(e.key==='ArrowRight'){ if(ply<maxPly){ ply++; render(); } }
+      });
+    }
+    
+    // Start when DOM is ready
+    window.addEventListener('DOMContentLoaded', init);
+    
+    function setupHistoryDemo(){
+      const histHead = document.getElementById('histHead');
+      const histGrid = document.getElementById('historyGrid');
+      const histBadge = document.getElementById('histBadge');
+      const movesOl = document.getElementById('movesOl');
+      
+      window.buildHistory = function(){
+        if(!data) return;
+        if(!histGrid || !histHead) return;
+        
+        // Read moves from JSON
+        const moves = data?.moves || [];
+        
+        histGrid.innerHTML='';
+        
+        if(moves.length === 0){
+          // Show header and an empty-state row when there are no moves
+          histHead.classList.remove('hidden');
+          histGrid.classList.remove('hidden');
+          const emptyRow = document.createElement('div');
+          emptyRow.className = 'historyCell';
+          emptyRow.style.gridColumn = '1 / -1';
+          emptyRow.style.padding = '0.6rem 0.5rem';
+          emptyRow.style.textAlign = 'center';
+          emptyRow.style.color = 'var(--muted)';
+          emptyRow.textContent = 'No moves yet';
+          histGrid.appendChild(emptyRow);
+          return;
+        }
+        
+        let rowNo=1;
+        const maxPly = (data?.positions?.length || 1) - 1;
+        
+        // Process moves in pairs (Black, White)
+        for(let i=0; i<moves.length; i+=2){
+          const b = moves[i] || '';
+          const w = moves[i+1] || '';
+          
+          const row = document.createElement('div'); 
+          row.className='historyRow'; 
+          row.dataset.row=rowNo;
+          
+          const cNo = document.createElement('div'); 
+          cNo.className='historyCell historyNo'; 
+          cNo.textContent=rowNo;
+          
+          const cB = document.createElement('div'); 
+          cB.className='historyCell historyMove'; 
+          // Display passed moves as "-"
+          cB.textContent = (b.toUpperCase() === 'PASSED' || b === '-') ? '—' : b;
+          cB.title = `Move ${rowNo} (Black)`;
+          cB.onclick = ()=>{ 
+            const targetPly = (rowNo-1)*2 + 1; 
+            if(targetPly<=maxPly){ 
+              ply = targetPly; 
+              render(); 
+              highlightDemoRow(rowNo, /*isWhite*/false); 
+            } 
+          };
+          
+          const cW = document.createElement('div'); 
+          cW.className='historyCell historyMove'; 
+          // Display passed moves as "-"
+          cW.textContent = (w.toUpperCase() === 'PASSED' || w === '-') ? '—' : w;
+          cW.title = `Move ${rowNo} (White)`;
+          cW.onclick = ()=>{ 
+            const targetPly = (rowNo-1)*2 + 2; 
+            if(targetPly<=maxPly){ 
+              ply = targetPly; 
+              render(); 
+              highlightDemoRow(rowNo, /*isWhite*/true); 
+            } 
+          };
+          
+          row.appendChild(cNo); 
+          row.appendChild(cB); 
+          row.appendChild(cW); 
+          histGrid.appendChild(row);
+          rowNo++;
+        }
+        
+        // Show history grid if there are moves
+        histHead.classList.remove('hidden');
+        histGrid.classList.remove('hidden');
+        movesOl?.classList.add('hidden');
+        
+        // Highlight only the last move (most recent move)
+        highlightLastMove(moves);
+      }
+      
+      function highlightLastMove(moves){
+        if(!histGrid || !moves || moves.length === 0) return;
+        
+        // Clear all active states
+        histGrid.querySelectorAll('.historyMove').forEach(n=>n.classList.remove('active', 'last-move'));
+        
+        // Find the last non-empty move
+        let lastNonEmptyIdx = moves.length - 1;
+        while(lastNonEmptyIdx >= 0 && (!moves[lastNonEmptyIdx] || moves[lastNonEmptyIdx] === '' || moves[lastNonEmptyIdx] === '-')) {
+          lastNonEmptyIdx--;
+        }
+        
+        if(lastNonEmptyIdx >= 0) {
+          const rowNo = Math.floor(lastNonEmptyIdx / 2) + 1;
+          const isWhite = lastNonEmptyIdx % 2 === 1;
+          const row = histGrid.querySelector(`.historyRow[data-row="${rowNo}"]`);
+          if(row){ 
+            const cell = row.children[isWhite?2:1]; 
+            cell?.classList.add('active', 'last-move'); 
+            row.scrollIntoView({block:'nearest'}); 
+          }
+        }
+      }
+      
+      function highlightDemoRow(rowNo, isWhite){
+        if(!histGrid) return;
+        histGrid.querySelectorAll('.historyMove').forEach(n=>n.classList.remove('active'));
+        const row = histGrid.querySelector(`.historyRow[data-row="${rowNo}"]`);
+        if(row){ 
+          const cell = row.children[isWhite?2:1]; 
+          cell?.classList.add('active'); 
+          row.scrollIntoView({block:'nearest'}); 
+        }
+      };
+      
+      buildHistory();
+    }
+    
+    function setupCoordSync(){
+      const rowsNums = document.querySelector('.rows-nums');
+      const elBoard = document.getElementById('board');
+      
+      window.syncRowCoords = function(){
+        if(!rowsNums || !elBoard) return;
+        const PADDING = 12;
+        const innerHeight = Math.max(0, elBoard.clientHeight - (PADDING*2));
+        rowsNums.style.height = innerHeight + 'px';
+        rowsNums.style.marginTop = PADDING + 'px';
+        rowsNums.style.marginRight = '-18px';
+      };
+      
+      window.syncRowCoords();
+      const ro = new ResizeObserver(()=> window.syncRowCoords());
+      ro.observe(elBoard);
+      window.addEventListener('resize', window.syncRowCoords);
+    }
+    
+    function setupToolbar(){
+      const undoBtn = qs('undoBtn');
+      const redoBtn = qs('redoBtn');
+      const copyBtn = qs('copyBtn');
+      const pasteBtn = qs('pasteBtn');
+      const saveBtn = qs('saveBtn');
+      const loadBtn = qs('loadBtn');
+      const newBtn  = qs('newGameBtn');
+      const fsBtn   = qs('fsBtn');
+      const aiPlayPauseBtn = qs('aiPlayPauseBtn');
+      // Don't access data here - it might not be loaded yet
+
+      if (aiPlayPauseBtn) aiPlayPauseBtn.addEventListener('click', toggleAIPlayPause);
+      if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'undo' }); } });
+      if (redoBtn) redoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'redo' }); } });
+      if (copyBtn) copyBtn.addEventListener('click', async ()=>{ 
+        const text = getCompactHistory();
+        const ok = await copyTextStrict(text);
+        showToast(ok ? `Copied: ${text || '—'}` : 'Copy failed');
+      });
+      if (pasteBtn){
+        console.log('✅ Paste button found in DOM, registering click handler');
+        pasteBtn.addEventListener('click', async (e)=>{
+          console.log('🔵 PASTE BUTTON CLICKED - starting paste operation');
+          e.preventDefault();
+          e.stopPropagation();
+          
+          let text = null;
+          
+          // Try clipboard API first
+          try{
+            console.log('Attempting to read from clipboard API...');
+            text = await navigator.clipboard.readText();
+            console.log('✅ Read from clipboard successfully:', text);
+          }catch(e){
+            console.warn('❌ Clipboard API failed:', e.message);
+            console.log('Falling back to manual prompt...');
+          }
+          
+          // Fallback: prompt user to paste manually
+          if(!text || text.trim().length === 0){
+            console.log('Opening prompt for manual paste...');
+            text = prompt('Paste compact history:\n\nFormat: "C4e3F6e6F4c5" (uppercase=Black, lowercase=White)');
+            console.log('User input from prompt:', text, 'Type:', typeof text);
+            if(text === null || text === undefined){
+              console.log('User cancelled prompt (null/undefined)');
+              showToast('Paste cancelled');
+              return;
+            }
+            if(text.trim().length === 0){
+              console.log('User provided empty string');
+              showToast('No input provided');
+              return;
+            }
+          }
+          
+          const trimmed = text.trim();
+          console.log('Trimmed input:', trimmed, 'Length:', trimmed.length);
+          
+          // Validate and extract moves
+          const moves = trimmed.match(/[A-Ha-h][1-8]/g);
+          console.log('Extracted moves:', moves, 'Count:', moves?.length);
+          
+          if(!moves || moves.length === 0){
+            console.error('No valid moves found');
+            showToast('❌ No valid moves found');
+            alert('No valid moves found.\n\nExpected: "C4e3F6e6F4c5"\nGot: "' + trimmed + '"');
+            return;
+          }
+          
+          const cleanHistory = moves.join('');
+          console.log('Clean history to send:', cleanHistory);
+          
+          // Load via WebSocket
+          if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+            console.log('✅ WebSocket open, sending load_history');
+            wsSend({ type:'load_history', history: cleanHistory });
+            showToast('📥 Loading game...');
+            console.log('Load history sent, waiting for response...');
+          } else {
+            console.error('❌ WebSocket not connected, state:', wsConnection?.readyState);
+            showToast('❌ Not connected');
+            alert('WebSocket not connected. Reload the page and try again.');
+          }
+        });
+      } else {
+        console.error('❌ Paste button NOT found in DOM!');
+      }
+      if (saveBtn) saveBtn.addEventListener('click', ()=>{
+        const txt = getCompactHistory();
+        if(!txt){ showToast('Nothing to save'); return; }
+        const blob = new Blob([txt + '\n'], {type:'text/plain'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'reversi-game.rev'; a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+      });
+      if (loadBtn) loadBtn.addEventListener('click', ()=>{
+        const inp = document.createElement('input'); inp.type='file'; inp.accept='.r42,.rev,.txt,text/plain';
+        inp.onchange = async ()=>{
+          const file = inp.files?.[0]; if(!file) return;
+          try{
+            const txt = (await file.text()).trim();
+            if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+              wsSend({ type:'load_history', history: txt });
+              wsSend({ type:'get_state' });
+              showToast('Loading game...');
+            }
+          }catch(e){ console.error('Invalid file', e); showToast('Load failed'); }
+        }; inp.click();
+      });
+      if (newBtn) newBtn.addEventListener('click', ()=>{
+        if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+          wsConnection.send(JSON.stringify({ type: 'reset_game' }));
+        }
+      });
+      if (fsBtn) fsBtn.addEventListener('click', ()=>{ if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); } else { document.exitFullscreen?.(); } });
+    }
+
+    function setupTooltips(){
+      const tip = document.createElement('div');
+      tip.id = 'globalTooltip';
+      document.body.appendChild(tip);
+      function show(el){
+        const text = el.getAttribute('data-tip');
+        if(!text) return;
+        tip.textContent = text;
+        tip.style.display = 'block';
+        position(el);
+      }
+      function hide(){ tip.style.display = 'none'; }
+      function position(el){
+        const r = el.getBoundingClientRect();
+        const pad = 8;
+        const x = r.left + r.width/2;
+        const y = r.top - pad;
+        const tw = tip.offsetWidth; const th = tip.offsetHeight;
+        let left = Math.round(x - tw/2);
+        let top  = Math.round(y - th);
+        // clamp within viewport
+        left = Math.min(Math.max(8, left), window.innerWidth - tw - 8);
+        top  = Math.max(8, top);
+        tip.style.left = left + 'px';
+        tip.style.top = top + 'px';
+      }
+      const targets = document.querySelectorAll('.btn[data-tip], .miniIconBtn[data-tip]');
+      targets.forEach(el=>{
+        el.addEventListener('mouseenter', ()=>show(el));
+        el.addEventListener('mouseleave', hide);
+        el.addEventListener('mousemove', ()=>position(el));
+        window.addEventListener('scroll', ()=>{ if(tip.style.display==='block') position(el); }, true);
+        window.addEventListener('resize', ()=>{ if(tip.style.display==='block') position(el); });
+      });
+    }
+
+    function setupPlayersUI(){
+      const overlay = document.getElementById('playersModal');
+      const closeBtn = document.getElementById('playersCloseBtn');
+      const btnB = document.getElementById('changeBlackBtn');
+      const btnW = document.getElementById('changeWhiteBtn');
+      const list = document.getElementById('playersList');
+      const title = document.getElementById('playersTitle');
+      let currentSide = 'W';
+
+      const AVAILABLE_PLAYERS = [
+        { name:'Human Player', desc:'Giocatore umano locale', tag:'HUMAN' },
+        { name:'Apocalyptron', desc:'Ultimate AI - All optimizations', tag:'AI', meta:'Depth 9 (default)' },
+        { name:'DIVZERO.EXE', desc:'Ultimate Singularity - The Perfect Player', tag:'AI', meta:'Adaptive depth · 8 cores' },
+        { name:'LIGHTNING STRIKE', desc:'Blitz Master - Speed Above All', tag:'AI', meta:'<100ms · Depth 4' },
+        { name:'THE STRANGLER', desc:'Mobility Assassin', tag:'AI', meta:'Aggressive mobility control' },
+        { name:'FORTRESS ETERNAL', desc:'Defensive Master', tag:'AI', meta:'Stability and structure' },
+        { name:'CORNER REAPER', desc:'Corner Specialist', tag:'AI', meta:'Corner-first strategy' },
+        { name:'THE ORACLE', desc:'Endgame Prophet', tag:'AI', meta:'Endgame precision' },
+        { name:'BLITZ DEMON', desc:'Speed Incarnate', tag:'AI', meta:'Ultra-fast responses' },
+        { name:'THE EXECUTIONER', desc:'Ruthless Destroyer', tag:'AI', meta:'Decisive tactics' },
+        { name:'GLITCH_LORD', desc:'Chaotic Anomaly', tag:'AI', meta:'Unorthodox play' },
+        { name:'ZEN MASTER', desc:'Enlightened One', tag:'AI', meta:'Balanced harmony' },
+      ];
+
+      function renderPlayers(side){
+        if(!list) return;
+        list.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        AVAILABLE_PLAYERS.forEach(p=>{
+          const card = document.createElement('div');
+          card.className = 'playerCard';
+          if(p.tag === 'HUMAN') card.classList.add('human');
+          if(p.tag === 'AI') card.classList.add('ai');
+          card.innerHTML = `
+            <div class="playerHead">
+              <div class="playerName">${p.name}</div>
+              <div class="playerTag${p.tag==='HUMAN' ? ' human' : (p.tag==='AI' ? ' ai' : '')}">${p.tag}</div>
+            </div>
+            <div class="playerDesc">${p.desc}</div>
+            ${p.meta ? `<div class="playerMeta">${p.meta}</div>` : ''}
+          `;
+          card.addEventListener('click', ()=> applySelection(side, p));
+          frag.appendChild(card);
+        });
+        list.appendChild(frag);
+      }
+
+      function open(side){
+        currentSide = side || 'W';
+        if(title){ title.textContent = `Players · ${currentSide==='B'?'Black':'White'}`; }
+        renderPlayers(currentSide);
+        if(overlay){ overlay.style.display = 'flex'; }
+      }
+      function close(){ if(overlay){ overlay.style.display = 'none'; } }
+
+      async function applySelection(side, player){
+        try{
+          // Update UI immediately
+          if(!data) data = {};
+          if(!data.players) data.players = { black:{}, white:{} };
+          if(side==='B'){
+            data.players.black.name = player.name;
+            data.players.black.avatar = initials(player.name);
+          } else {
+            data.players.white.name = player.name;
+            data.players.white.avatar = initials(player.name);
+          }
+          render();
+
+          // Send players config to backend (supports Human/AI for both sides)
+          const whiteChoice = (side==='W' ? player.name : (data.players.white?.name || 'Human'));
+          const blackChoice = (side==='B' ? player.name : (data.players.black?.name || 'Human'));
+          const payload = { type:'set_players', white: whiteChoice, black: blackChoice };
+          if(side==='W' && player.tag==='AI'){ pendingSelectedAI = player.name; showToast(`Loading ${player.name}...`); }
+          wsSend(payload);
+        }catch(e){ console.error('applySelection error', e); }
+        finally{ close(); }
+      }
+
+      btnB?.addEventListener('click', ()=> open('B'));
+      btnW?.addEventListener('click', ()=> open('W'));
+      closeBtn?.addEventListener('click', close);
+      overlay?.addEventListener('click', (e)=>{ if(e.target === overlay) close(); });
+      window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') close(); });
+    }
+
+    function showToast(msg){
+      let t = document.getElementById('toast');
+      if(!t){ t = document.createElement('div'); t.id='toast'; document.body.appendChild(t); }
+      t.textContent = msg;
+      t.style.display = 'block';
+      clearTimeout(showToast._tid);
+      showToast._tid = setTimeout(()=>{ t.style.display='none'; }, 1500);
+    }
+
+    function render(){
+      try {
+        if(!data) {
+          console.log('No data to render yet');
+          return; // Don't render if data is not loaded
+        }
+        
+        const elBoard = document.getElementById('board');
+        const movesOl = document.getElementById('movesOl');
+        
+        if(!elBoard) {
+          console.error('❌ Board element not found!');
+          return;
+        }
+      
+      // keep rows numbers aligned after any layout change
+      try{ window.syncRowCoords(); }catch(_){}
+      const turn = (data.status?.turn_by_ply && data.status.turn_by_ply[ply]) || (ply%2===0 ? 'B':'W');
+      // ensure partial resets on jump/undo/redo safely
+      if(typeof partial!=='undefined'){
+        if(typeof lastTurn==='undefined' || lastTurn===null) lastTurn = turn;
+        if(turn !== lastTurn){ partial[turn]=0; lastTurn = turn; }
+      }
+      // Update turn indicators on player sides (show/hide dots and chip borders)
+      const p1TurnDot = qs('p1TurnDot');
+      const p2TurnDot = qs('p2TurnDot');
+      const p1TurnChip = qs('p1Turn');
+      const p2TurnChip = qs('p2Turn');
+      
+      if(gameOverInfo){
+        // Hide both turn indicators on game over
+        if(p1TurnDot) p1TurnDot.style.display = 'none';
+        if(p2TurnDot) p2TurnDot.style.display = 'none';
+        if(p1TurnChip) p1TurnChip.style.opacity = '0';
+        if(p2TurnChip) p2TurnChip.style.opacity = '0';
+      } else {
+        // Show turn dot and chip only on the active player's side
+        if(turn === 'B'){
+          if(p1TurnDot) p1TurnDot.style.display = 'inline-block';
+          if(p2TurnDot) p2TurnDot.style.display = 'none';
+          if(p1TurnChip) p1TurnChip.style.opacity = '1';
+          if(p2TurnChip) p2TurnChip.style.opacity = '0';
+        } else {
+          if(p1TurnDot) p1TurnDot.style.display = 'none';
+          if(p2TurnDot) p2TurnDot.style.display = 'inline-block';
+          if(p1TurnChip) p1TurnChip.style.opacity = '0';
+          if(p2TurnChip) p2TurnChip.style.opacity = '1';
+        }
+      }
+      // removed move number display from header
+
+      // Board position
+      const s = normalize64(data.positions?.[ply]);
+      for(let i=0;i<64;i++){
+        const inner = elBoard.children[i].firstElementChild;
+        inner.innerHTML='';
+        if(s[i]==='B' || s[i]==='W'){
+          const d=document.createElement('div'); d.className='disc '+(s[i]==='B'?'black':'white'); inner.appendChild(d);
+        }
+      }
+
+      // Remove all last-move indicators from all cell-contents
+      elBoard.querySelectorAll('.last-move-indicator').forEach(el => {
+        el.classList.remove('last-move-indicator');
+      });
+      
+      // Also remove from all cells (in case it was added to cell instead of cell-content)
+      [...elBoard.children].forEach(cell => {
+        cell.classList.remove('last-move-indicator');
+      });
+      
+      // Valid moves
+      const vm = (data.valid_by_ply?.[ply]) || [];
+      vm.map(coordToIdx).forEach(i=>{
+        const dot=document.createElement('div'); dot.className='valid';
+        elBoard.children[i].firstElementChild.appendChild(dot);
+      });
+      
+      // Clear previous opening overlays (badges and opening rings)
+      elBoard.querySelectorAll('.book-move-badge').forEach(el=>el.remove());
+      elBoard.querySelectorAll('.hint[data-__om="1"]').forEach(el=>el.remove());
+
+      // Opening book moves with variant count (draw only if also valid now)
+      const openingMoves = (data.opening_by_ply || []);
+      const validSetNow = new Set(vm.map(String));
+      if(Array.isArray(openingMoves) && openingMoves.length > 0) {
+        openingMoves.forEach(obj => {
+          if(obj && obj.move) {
+            const idx = coordToIdx(obj.move);
+            const cell = elBoard.children[idx];
+            // guard: only draw if this opening move is valid now
+            if(!validSetNow.has(String(obj.move).toUpperCase())) return;
+            if(cell && cell.firstElementChild) {
+              // Add opening highlight ring
+              const ring = document.createElement('div');
+              ring.className = 'hint';
+              ring.dataset.__om = '1';
+              ring.textContent = '';
+              cell.firstElementChild.appendChild(ring);
+              // Add variant count badge
+              const badge = document.createElement('div');
+              badge.className = 'book-move-badge';
+              const v = Number(obj.variants || 0);
+              const small = window.matchMedia && window.matchMedia('(max-width: 480px)').matches;
+              const displayV = (small && v > 99) ? '99+' : String(v);
+              badge.textContent = displayV; // only number on board
+              badge.title = `${obj.move} · ${v} variant(s) in opening book`;
+              cell.firstElementChild.appendChild(badge);
+            }
+          }
+        });
+      }
+      
+      // Highlight last move with elegant red dot
+      if(data.moves && data.moves.length > 0) {
+        const lastMove = data.moves[data.moves.length - 1];
+        const lastMoveIdx = coordToIdx(lastMove);
+        const cell = elBoard.children[lastMoveIdx];
+        if(cell) {
+          const cellContent = cell.firstElementChild; // Get cell-content
+          if(cellContent) {
+            cellContent.classList.add('last-move-indicator');
+          }
+        }
+      }
+
+      // Counts + delta
+      const counts = countBW(s); 
+      qs('p1Count').textContent = `● ${counts.b}`; 
+      qs('p2Count').textContent = `○ ${counts.w}`;
+      const adv = counts.b - counts.w; 
+      setDelta('p1Delta', adv); 
+      setDelta('p2Delta', -adv);
+
+      // Toggle Undo/Redo availability using server-provided flags when available
+      const st = data.status || {};
+      const open = !!(wsConnection && wsConnection.readyState === WebSocket.OPEN);
+      const undoBtnEl = qs('undoBtn');
+      if(undoBtnEl){
+        const canUndo = (st.can_undo !== undefined) ? !!st.can_undo : (Array.isArray(data.moves) && data.moves.length > 0);
+        undoBtnEl.disabled = !(open && canUndo);
+      }
+      const redoBtnEl = qs('redoBtn');
+      if(redoBtnEl){
+        const canRedo = (st.can_redo !== undefined) ? !!st.can_redo : false;
+        redoBtnEl.disabled = !(open && canRedo);
+      }
+      // Always allow saving (even empty game saves as empty history)
+      const saveBtnEl = qs('saveBtn');
+      if(saveBtnEl){ saveBtnEl.disabled = false; }
+
+      // highlight (removed ply display) 
+      if(movesOl){
+        [...movesOl.children].forEach(li=> li.classList.remove('active'));
+        if(ply>0){ const li = [...movesOl.children].find(el => +el.dataset.ply === ply);         if(li) li.classList.add('active'); }
+      }
+      } catch (error) {
+        console.error('❌ CRITICAL ERROR in render():', error);
+        console.error('Stack trace:', error.stack);
+        console.error('Current data:', data);
+      }
+    }
+    
+    // Make function globally accessible
+    window.reloadGameData = loadGameData;
+
+    // === Utils ===
+    function qs(id){ return document.getElementById(id); }
+    function idx(r,c){ return r*8 + c; }
+    function coordToIdx(coord){ const L='ABCDEFGH'; const c=L.indexOf(String(coord).toUpperCase()[0]); const r=parseInt(String(coord).slice(1),10)-1; return r*8 + c; }
+    function initials(name){ return (name||'').trim().split(/\s+/).map(s=>s[0]).join('').slice(0,2).toUpperCase() || '?'; }
+    function buildCompactHistoryFromMoves(moves){
+      if(!Array.isArray(moves)) return '';
+      return moves.map((m,i)=> i%2===0 ? String(m).toUpperCase() : String(m).toLowerCase()).join('');
+    }
+    function getCompactHistory(){
+      if(data && typeof data.history_compact === 'string' && data.history_compact.length>0) return data.history_compact;
+      return buildCompactHistoryFromMoves(data?.moves);
+    }
+    function normalize64(pos){ 
+      // Support both formats: string (legacy) and coordinate object (new)
+      if(typeof pos === 'string'){
+        const raw = (pos||'').trim(); 
+        if(raw.length!==64){ 
+          const a = Array(64).fill('.'); a[27]='W'; a[28]='B'; a[35]='B'; a[36]='W'; 
+          return a; 
+        } 
+        return raw.split(''); 
+      }
+      // Convert coordinate object to 64-char array
+      if(typeof pos === 'object' && pos !== null){
+        const coords = ['A1','B1','C1','D1','E1','F1','G1','H1','A2','B2','C2','D2','E2','F2','G2','H2',
+                        'A3','B3','C3','D3','E3','F3','G3','H3','A4','B4','C4','D4','E4','F4','G4','H4',
+                        'A5','B5','C5','D5','E5','F5','G5','H5','A6','B6','C6','D6','E6','F6','G6','H6',
+                        'A7','B7','C7','D7','E7','F7','G7','H7','A8','B8','C8','D8','E8','F8','G8','H8'];
+        return coords.map(coord => pos[coord] || '.');
+      }
+      // Default fallback
+      const a = Array(64).fill('.'); a[27]='W'; a[28]='B'; a[35]='B'; a[36]='W'; 
+      return a; 
+    }
+    function countBW(arr){ let b=0,w=0; for(const ch of arr){ if(ch==='B') b++; else if(ch==='W') w++; } return {b,w}; }
+    function msToClock(ms){ const s = Math.max(0, Math.floor(ms/1000)); const m = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return `${m}:${ss}`; }
+    function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function setDelta(id, n){ const el = qs(id); if(!el) return; if(n===0){ el.textContent = '±0'; return; } el.textContent = `${n>0?'+':'−'}${Math.abs(n)}`; }
+
+    // Formatting helpers for compact AI stats
+    function fmtK(num){
+      const n = Number(num);
+      if(!isFinite(n)) return '—';
+      const abs = Math.abs(n);
+      if(abs >= 1e9) return (n/1e9).toFixed(1).replace(/\.0$/,'') + 'B';
+      if(abs >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'') + 'M';
+      if(abs >= 1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'') + 'K';
+      return String(Math.round(n));
+    }
+    function fmtPct(val){
+      if(val === null || val === undefined) return '—';
+      if(typeof val === 'string'){
+        if(/%/.test(val)) return val; // already formatted
+        const parsed = Number(val);
+        if(isFinite(parsed)) val = parsed; else return '—';
+      }
+      // Treat 0-1 as ratio
+      const p = (val <= 1 ? val*100 : val);
+      return `${Math.round(p)}%`;
+    }
+    function fmtEval(val){
+      const n = Number(val);
+      if(!isFinite(n)) return '—';
+      const s = n>0?'+':'';
+      return s + n.toFixed(Math.abs(n) < 10 ? 1 : 0);
+    }
+    function fmtDepth(val){
+      const n = parseInt(String(val).replace(/[^0-9]/g,''),10);
+      if(!isFinite(n)) return '—';
+      return 'D' + n;
+    }
+    function formatDurationMs(ms){
+      const n = Number(ms);
+      if(!isFinite(n) || n < 0) return '—';
+      if(n < 1000) return `${Math.round(n)}ms`;
+      const s = n / 1000;
+      if(s < 60) return `${s.toFixed(s < 10 ? 1 : 0).replace(/\.0$/,'')}s`;
+      const m = Math.floor(s / 60);
+      const remS = Math.floor(s % 60);
+      if(m < 60) return `${m}m ${String(remS).padStart(2,'0')}s`;
+      const h = Math.floor(m / 60);
+      const remM = m % 60;
+      return `${h}h ${String(remM).padStart(2,'0')}m`;
+    }
+
+    function fmtMs(val){
+      if(val === null || val === undefined) return '—';
+      // Accept strings like "123ms" or "1.23s"
+      if(typeof val === 'string'){
+        const s = val.trim();
+        if(/ms$/i.test(s)){
+          const n = parseFloat(s.replace(/ms/i,''));
+          return formatDurationMs(isFinite(n) ? n : NaN);
+        }
+        if(/s$/i.test(s)){
+          const n = parseFloat(s.replace(/s/i,''));
+          return formatDurationMs(isFinite(n) ? n*1000 : NaN);
+        }
+        const n = parseFloat(s);
+        return formatDurationMs(isFinite(n) ? n : NaN);
+      }
+      // Numbers are treated as milliseconds
+      return formatDurationMs(val);
+    }
+
+    // === AI VISUAL FEEDBACK ===
+    function updateAIAnalysis(aiData){
+      try {
+        if(!data) return;
+        if(!aiData) {
+          console.warn('updateAIAnalysis called with null/undefined aiData');
+          return;
+        }
+        
+        // Determine which AI just moved (from aiData.title or infer from last move)
+        const aiName = aiData.title || data.players?.white?.name || 'AI';
+      
+      // Create dynamic AI analysis notes with all available data
+      const aiAnalysis = {
+        // Always update title to show AI name
+        title: aiName,
+        
+        // Basic analysis data
+        selected_move: aiData.move || aiData.selected_move || 'Calculating...',
+        evaluation: aiData.evaluation !== undefined ? String(aiData.evaluation) : 'Analyzing...',
+        depth: aiData.depth !== undefined ? `${aiData.depth} plies` : 'Calculating...',
+        
+        // Search statistics from engine
+        nodes_searched: aiData.nodes_searched !== undefined ? aiData.nodes_searched.toLocaleString() : 'Calculating...',
+        nodes_pruned: aiData.nodes_pruned !== undefined ? aiData.nodes_pruned.toLocaleString() : 'Calculating...',
+        pruning_ratio: aiData.pruning_ratio !== undefined ? `${(aiData.pruning_ratio * 100).toFixed(1)}%` : 'Calculating...',
+        avg_search_time: aiData.avg_search_time || 'Calculating...',
+        total_searches: aiData.total_searches !== undefined ? aiData.total_searches : 'Calculating...',
+        
+        // Advanced statistics
+        transposition_hits: aiData.transposition_hits !== undefined ? aiData.transposition_hits.toLocaleString() : 'N/A',
+        transposition_size: aiData.transposition_size !== undefined ? aiData.transposition_size.toLocaleString() : 'N/A',
+        killer_moves: aiData.killer_moves !== undefined ? aiData.killer_moves.toLocaleString() : 'N/A',
+        history_entries: aiData.history_entries !== undefined ? aiData.history_entries.toLocaleString() : 'N/A',
+        
+        // Pruning statistics
+        null_move_cutoffs: aiData.null_move_cutoffs !== undefined ? aiData.null_move_cutoffs.toLocaleString() : 'N/A',
+        null_move_searches: aiData.null_move_searches !== undefined ? aiData.null_move_searches.toLocaleString() : 'N/A',
+        futility_pruned: aiData.futility_pruned !== undefined ? aiData.futility_pruned.toLocaleString() : 'N/A',
+        lmr_reductions: aiData.lmr_reductions !== undefined ? aiData.lmr_reductions.toLocaleString() : 'N/A',
+        lmr_researches: aiData.lmr_researches !== undefined ? aiData.lmr_researches.toLocaleString() : 'N/A',
+        multi_cut_pruned: aiData.multi_cut_pruned !== undefined ? aiData.multi_cut_pruned.toLocaleString() : 'N/A'
+      };
+      
+      // Update title
+      const notesTitle = qs('deepeningSummaryTitle');
+      if(notesTitle) {
+        notesTitle.textContent = aiName;
+      }
+      
+      // Re-render notes with AI analysis
+      renderNotes(aiAnalysis);
+      
+      // Store for reference
+      data.notes = aiAnalysis;
+      } catch (error) {
+        console.error('❌ Error in updateAIAnalysis:', error);
+        console.error('Stack trace:', error.stack);
+        console.error('aiData was:', aiData);
+      }
+    }
+    
+
+    
+    function addThinkingIconToPlayerName(side = 'W'){
+      // Add rotating icon to player name based on side
+      const playerName = (side === 'B') ? qs('p1Name') : qs('p2Name');
+      if(playerName && !playerName.querySelector('.thinking-icon')){
+        const icon = document.createElement('span');
+        icon.className = 'thinking-icon';
+        icon.innerHTML = '↻';
+        icon.style.cssText = 'display:inline-block;margin-right:8px;animation:spin 1s linear infinite;color:var(--accent2);font-size:1.2em;vertical-align:middle;';
+        playerName.insertBefore(icon, playerName.firstChild);
+      }
+    }
+    
+    function removeThinkingIconFromPlayerName(side = 'W'){
+      // Remove rotating icon from player name based on side
+      const playerName = (side === 'B') ? qs('p1Name') : qs('p2Name');
+      if(playerName){
+        const icon = playerName.querySelector('.thinking-icon');
+        if(icon){
+          icon.remove();
+        }
+      }
+    }
+    
+    function updatePlayerIcons(){
+      // Update change-player icons based on current player types
+      const blackName = data?.players?.black?.name;
+      const whiteName = data?.players?.white?.name;
+      const isBlackAI = blackName && blackName !== 'Human';
+      const isWhiteAI = whiteName && whiteName !== 'Human';
+      
+      const blackIcon = document.getElementById('changeBlackIcon');
+      const whiteIcon = document.getElementById('changeWhiteIcon');
+      
+      // AI icon (computer/monitor)
+      const aiIconPaths = `
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <path d="M8 21h8"/>
+        <path d="M12 17v4"/>
+      `;
+      
+      // Human icon (person)
+      const humanIconPaths = `
+        <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
+        <path d="M3 21a9 9 0 0 1 18 0"/>
+      `;
+      
+      if(blackIcon){
+        blackIcon.innerHTML = isBlackAI ? aiIconPaths : humanIconPaths;
+      }
+      if(whiteIcon){
+        whiteIcon.innerHTML = isWhiteAI ? aiIconPaths : humanIconPaths;
+      }
+    }
+    
+    // === NOTES RENDERING ===
+    function renderNotes(notes){
+      const box = qs('deepeningSummary'); 
+      if(!box){ return; }
+      
+      const nd = { ...notes };
+      delete nd.title;
+      
+      // Extract key fields with fallbacks
+      const evalVal  = nd.selected_value ?? nd.evaluation;
+      const depthVal = nd.final_depth ?? nd.depth;
+      const nodes    = nd.nodes_searched;
+      const pruned   = nd.nodes_pruned;
+      const pruneR   = nd.pruning_ratio;
+      const avgMs    = nd.avg_search_time;
+      function parseMsInt(v){
+        if(v === null || v === undefined) return null;
+        if(typeof v === 'number' && isFinite(v)) return Math.round(v);
+        const s = String(v).trim();
+        // Accept "123.4ms" or "0.123s" or plain number string
+        if(/ms$/i.test(s)){
+          const n = parseFloat(s.replace(/ms/i,''));
+          return isFinite(n) ? Math.round(n) : null;
+        }
+        if(/s$/i.test(s)){
+          const n = parseFloat(s.replace(/s/i,''));
+          return isFinite(n) ? Math.round(n*1000) : null;
+        }
+        const n = parseFloat(s);
+        return isFinite(n) ? Math.round(n) : null;
+      }
+      const lastMsNum = parseMsInt(nd.last_search_time_ms);
+      const searches = nd.total_searches;
+
+      // Compute Nodes/s (approximate) from nodes and avg_search_time
+      function parseSeconds(s){
+        if(!s) return null;
+        if(typeof s === 'number') return s; // already seconds
+        const str = String(s).trim();
+        if(/ms$/i.test(str)){
+          const n = parseFloat(str.replace(/ms/i,''));
+          return isFinite(n) ? n/1000 : null;
+        }
+        if(/s$/i.test(str)){
+          const n = parseFloat(str.replace(/s/i,''));
+          return isFinite(n) ? n : null;
+        }
+        const n = parseFloat(str);
+        return isFinite(n) ? n : null;
+      }
+      let nps = '—';
+      const secs = (lastMsNum !== null && lastMsNum > 0)
+        ? (lastMsNum / 1000)
+        : parseSeconds(avgMs);
+      if(typeof nodes === 'number' && nodes > 0 && secs && secs > 0){
+        nps = nodes / secs;
+      }
+
+      // Decide which tiles to show (compact): hide Eval/Depth if not available
+      const showEval = Number.isFinite(Number(evalVal));
+      const depthNum = parseInt(String(depthVal).replace(/[^0-9]/g,''),10);
+      const showDepth = Number.isFinite(depthNum) && depthNum > 0;
+
+      let tiles = '';
+      if(showEval){ tiles += `<div class="statBadge"><span class="statLabel">Eval</span><span class="statValue">${fmtEval(evalVal)}</span></div>`; }
+      if(showDepth){ tiles += `<div class="statBadge"><span class="statLabel">Depth</span><span class="statValue">${fmtDepth(depthVal)}</span></div>`; }
+      tiles += `<div class="statBadge"><span class="statLabel">Nodes</span><span class="statValue">${fmtK(nodes)}</span></div>`;
+      tiles += `<div class="statBadge"><span class="statLabel">N/s</span><span class="statValue">${typeof nps==='number' ? fmtK(nps) : '—'}</span></div>`;
+      tiles += `<div class=\"statBadge\"><span class=\"statLabel\">Prune</span><span class=\"statValue\">${fmtPct(pruneR)}</span></div>`;
+      tiles += `<div class=\"statBadge\"><span class=\"statLabel\">Last</span><span class=\"statValue\">${lastMsNum !== null ? formatDurationMs(lastMsNum) : fmtMs(avgMs)}</span></div>`;
+      tiles += `<div class="statBadge"><span class="statLabel">Searches</span><span class="statValue">${fmtK(searches)}</span></div>`;
+
+      box.innerHTML = `<div class="statGrid">${tiles}</div>`;
+    }
+
+    // === OPENING TREE RENDERING ===
+      function renderOpeningTree(tree){
+      const box = document.getElementById('openingTree');
+      if(!box) return;
+      const hasChildren = !!(tree && Array.isArray(tree.children) && tree.children.length>0);
+      const hasNames = !!(tree && Array.isArray(tree.names_at_position) && tree.names_at_position.length>0);
+      const hasCurrent = !!(tree && tree.current_opening);
+      if(!hasChildren && !hasNames && !hasCurrent){
+        box.innerHTML = '<div style="color:var(--muted);padding:6px 4px">Nessuna linea di libro dalla posizione corrente</div>';
+        return;
+      }
+
+      // Clear
+      box.innerHTML = '';
+
+        // Build set of valid moves for current position to avoid highlighting invalid variants
+        const validSet = new Set(((data && data.valid_by_ply && data.valid_by_ply[0]) || []).map(String));
+
+      // Path removed per request (compact view)
+
+      // Current opening (if any) - always show a compact header
+      if(tree.current_opening){
+        const playing = document.createElement('div');
+        playing.style.cssText = 'color:var(--muted);font-size:12px;padding:0 8px 6px 8px';
+        playing.textContent = `Playing: ${tree.current_opening}`;
+        box.appendChild(playing);
+      }
+
+      // If we have children, render them as a compact list; otherwise show variant names
+      if(hasChildren){
+        const ul = document.createElement('ul');
+        ul.style.listStyle = 'none';
+        ul.style.paddingLeft = '0';
+        box.appendChild(ul);
+
+      function advClass(adv){
+        if(adv === undefined || adv === null) return 'adv adv-unk';
+        if(adv === '=') return 'adv adv-eq';
+        const a = String(adv).toLowerCase();
+        if(a==='w') return 'adv adv-w';
+        if(a==='w+') return 'adv adv-wp';
+        if(a==='w++') return 'adv adv-wpp';
+        if(a==='b') return 'adv adv-b';
+        if(a==='b+') return 'adv adv-bp';
+        if(a==='b++') return 'adv adv-bpp';
+        return 'adv adv-eq';
+      }
+
+      function highlightCell(move){
+        try{
+          const i = coordToIdx(move);
+          const cell = document.getElementById('board')?.children[i]?.firstElementChild;
+          if(!cell) return;
+          const hint = document.createElement('div');
+          hint.className = 'hint';
+          hint.textContent = '•';
+          hint.dataset.__ot = '1';
+          cell.appendChild(hint);
+        }catch(_){/* noop */}
+      }
+
+      function clearHighlights(){
+        document.querySelectorAll('.hint[data-__ot="1"]').forEach(e=>e.remove());
+      }
+
+      function nodeRow(n){
+        const wrap = document.createElement('div');
+        wrap.className = 'node-row';
+        const move = document.createElement('span');
+        move.className = 'move-pill';
+        move.textContent = n.move;
+        const namesFull = Array.isArray(n.names) && n.names.length
+          ? n.names
+          : (Array.isArray(n.openings) ? n.openings.map(o=>o && o.name ? String(o.name) : '').filter(Boolean) : []);
+        const namesShort = namesFull.slice(0, 5).join(', ');
+        const namesSpan = document.createElement('span');
+        namesSpan.className = 'names';
+        namesSpan.textContent = namesShort || '';
+        if(namesFull.length){ namesSpan.title = namesFull.join(', '); }
+        wrap.appendChild(move);
+        wrap.appendChild(namesSpan);
+
+        wrap.onmouseenter = ()=>{ 
+          clearHighlights(); 
+          if(validSet.has(String(n.move).toUpperCase())){ highlightCell(n.move); }
+        };
+        wrap.onmouseleave = ()=>{ clearHighlights(); };
+        wrap.onclick = ()=>{
+          try{
+            const i = coordToIdx(n.move); const cell = document.getElementById('board')?.children[i];
+            cell?.scrollIntoView({block:'nearest', inline:'nearest'});
+          }catch(_){/* noop */}
+        };
+        return wrap;
+      }
+
+      function build(list, nodes, depth=0){
+        nodes.forEach(n=>{
+          const li = document.createElement('li');
+          li.style.marginLeft = (depth*8)+'px';
+          li.appendChild(nodeRow(n));
+          // Compact mode: no nested details; names are shown inline
+          list.appendChild(li);
+        });
+      }
+      const filteredChildren = (tree.children || []).filter(n => validSet.has(String(n.move).toUpperCase()));
+      build(ul, filteredChildren, 0);
+      } else {
+        // No children: compact names-only list (header shown above already)
+        if(hasNames){
+          const names = Array.from(new Set(tree.names_at_position)).slice(0,24);
+          const p = document.createElement('div');
+          p.className = 'names';
+          p.textContent = names.join(', ');
+          box.appendChild(p);
+        }
+      }
+    }
+  </script>
+
+  <noscript>
+    <div style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#10241c;color:#fff;padding:8px 12px;border-radius:8px;border:1px solid #2b4d3e">
+      Attiva JavaScript: la pagina mostra solo i dati presenti nel JSON incorporato.
+    </div>
+  </noscript>
+
+
+
+  <!-- Developer-Insight: Live Server Logs (tail -f) -->
+  <div id="jsonEditorWrapper" style="display:none">
+    <div class="json-editor-header">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold">Server Logs</span>
+        <button class="btn text-xs" id="refreshLogs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></span> Refresh</button>
+        <button class="btn text-xs" id="clearLogs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M9 6l1-2h4l1 2"/></svg></span> Clear</button>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn text-xs" id="closeJsonEditor2"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></span> Close</button>
+      </div>
+    </div>
+    <div class="json-editor-tabs">
+      <button class="tab-btn active" id="tabBtnLogs" data-tab="logs">Server Logs</button>
+      <button class="tab-btn" id="tabBtnWs" data-tab="ws">WebSocket</button>
+    </div>
+    <div id="tabLogsPane" class="tab-content active">
+      <div id="logsContainer">
+        <div id="logsContent"></div>
+      </div>
+    </div>
+    <div id="tabWsPane" class="tab-content">
+      <div class="json-editor-header">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold">WebSocket Messages</span>
+          <button class="btn text-xs" id="clearWs"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M9 6l1-2h4l1 2"/></svg></span> Clear</button>
+        </div>
+      </div>
+      <div id="wsTrafficContainer" style="background:#1a1a1a;color:#e5e5e5;font-family:'Courier New',monospace;overflow:auto;max-height:100%">
+        <div id="wsTrafficContent" style="padding:16px;white-space:pre;line-height:1.6"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Developer-Insight: Logs only
+    function q(id){ return document.getElementById(id); }
+    const toggleBtn = q('toggleJsonEditor');
+    const editorWrapper = q('jsonEditorWrapper');
+    const closeBtn2 = q('closeJsonEditor2');
+    if(toggleBtn) toggleBtn.addEventListener('click', () => {
+      const isVisible = editorWrapper.style.display !== 'none';
+      editorWrapper.style.display = isVisible ? 'none' : 'flex';
+      if(!isVisible){
+        loadLogs();
+        if(logsAutoRefreshInterval) clearInterval(logsAutoRefreshInterval);
+        logsAutoRefreshInterval = setInterval(loadLogs, 2000);
+      } else {
+        if(logsAutoRefreshInterval) { clearInterval(logsAutoRefreshInterval); logsAutoRefreshInterval = null; }
+      }
+    });
+    if(closeBtn2) closeBtn2.addEventListener('click', () => { editorWrapper.style.display = 'none'; if(logsAutoRefreshInterval){ clearInterval(logsAutoRefreshInterval); logsAutoRefreshInterval = null; } });
+
+    // Logs functionality
+    const refreshLogsBtn = q('refreshLogs');
+    const clearLogsBtn = q('clearLogs');
+    const clearWsBtn = q('clearWs');
+    const tabBtnLogs = q('tabBtnLogs');
+    const tabBtnWs = q('tabBtnWs');
+    const tabLogsPane = q('tabLogsPane');
+    const tabWsPane = q('tabWsPane');
+    const logsContent = q('logsContent');
+
+    function colorizeLog(line) {
+      let colorClass = 'log-info';
+      if(line.includes('ERROR')) colorClass = 'log-error';
+      else if(line.includes('WARNING')) colorClass = 'log-warning';
+      else if(line.includes('INFO')) colorClass = 'log-info';
+      else if(line.includes('DEBUG')) colorClass = 'log-debug';
+      
+      // Escape HTML and preserve the full line
+      const escapedLine = line
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      
+      return `<div class="log-line ${colorClass}">${escapedLine}</div>`;
+    }
+
+    function loadLogs() {
+      // Fetch logs from backend API endpoint
+      fetch('http://localhost:8000/logs')
+        .then(response => response.text())
+        .then(text => {
+          const lines = text.split('\n').filter(l => l.trim());
+          logsContent.innerHTML = lines.map(line => colorizeLog(line)).join('');
+          
+          // Auto-scroll to bottom (tail -f behavior)
+          const logsContainer = logsContent.parentElement;
+          logsContainer.scrollTop = logsContainer.scrollHeight;
+        })
+        .catch(err => {
+          logsContent.innerHTML = `<div class="log-error">Error loading logs: ${err.message}</div>`;
+        });
+    }
+    
+    // Auto-refresh logs every 2 seconds (tail -f behavior)
+    let logsAutoRefreshInterval = null;
+
+    if(refreshLogsBtn) refreshLogsBtn.addEventListener('click', loadLogs);
+    if(clearLogsBtn) clearLogsBtn.addEventListener('click', () => {
+      logsContent.innerHTML = '';
+    });
+    if(clearWsBtn) clearWsBtn.addEventListener('click', () => {
+      const w = q('wsTrafficContent'); if(w) w.innerHTML = '';
+    });
+
+    // Tab switching between Logs and WebSocket
+    function activateTab(which){
+      if(which==='logs'){
+        tabBtnLogs?.classList.add('active'); tabBtnWs?.classList.remove('active');
+        tabLogsPane?.classList.add('active'); tabWsPane?.classList.remove('active');
+        if(logsAutoRefreshInterval) clearInterval(logsAutoRefreshInterval);
+        logsAutoRefreshInterval = setInterval(loadLogs, 2000);
+      } else {
+        tabBtnWs?.classList.add('active'); tabBtnLogs?.classList.remove('active');
+        tabWsPane?.classList.add('active'); tabLogsPane?.classList.remove('active');
+        if(logsAutoRefreshInterval){ clearInterval(logsAutoRefreshInterval); logsAutoRefreshInterval = null; }
+      }
+    }
+    tabBtnLogs?.addEventListener('click', ()=>activateTab('logs'));
+    tabBtnWs?.addEventListener('click', ()=>activateTab('ws'));
+
+    // No tabs: logs are the only content now
+
+  </script>
+</body>
+</html>

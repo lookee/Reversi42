@@ -2,9 +2,11 @@
 
 **Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning**
 
-Version: **3.1.0** 🚀  
+Version: **5.0.0** 🚀  
 Originally released: 2011-03-07  
-Major Update: 2025-10-18
+Major Update: 2025-11-02
+
+> 💡 **Note**: Version is centrally managed in `pyproject.toml`. See [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md) for details.
 
 Copyright (C) 2011-2025 Luca Amore  
 Website: https://www.lucaamore.com
@@ -13,32 +15,31 @@ Website: https://www.lucaamore.com
 
 ## 📖 Description
 
-Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ultra-fast bitboard AI, interactive opening book learning, and comprehensive competitive features. The **3.1.0 release** adds advanced tournament system with 12 pre-configured tournaments and comprehensive player documentation.
+Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ultra-fast bitboard AI, interactive opening book learning, and comprehensive competitive features. The **3.2.0 release** modernizes the interface with a web-based UI while removing legacy pygame and terminal views.
 
-### 🌟 What's New in 3.1.0
+### 🌟 What's New in 5.0.0
 
-#### Modular View Architecture
-- 🎨 **3 View Types** - Pygame (GUI), Terminal (ASCII), Headless (no UI)
-- 🎮 **Command-line Selection** - `--view terminal|pygame|headless`
-- 🖥️ **Terminal Mode** - Pure ASCII art, works on any background
-- 🚀 **Headless Mode** - Zero rendering overhead for tournaments
-- 🔌 **Pluggable Design** - Easy to add new view types
+#### Web Interface (NEW!)
+- 🌐 **Modern Web UI** - Play through your browser with real-time updates
+- ⚡ **WebSocket Communication** - Instant game state synchronization
+- 🎮 **FastAPI Backend** - High-performance async server
+- 🚀 **Simple Launch** - Just run `./reversi42` and open browser
 
-#### Terminal Mode Features
-- ⌨️ **Numbered Moves** - Select by number (1-4) or coordinates (D3)
-- 🎨 **Pure ASCII** - Works on white or black terminal backgrounds
-- 📊 **Compact Layout** - Minimal vertical space usage
-- 🌐 **SSH-Friendly** - Perfect for remote play
-- ✅ **All 10 Players** - Including Terminal Human Player
+#### Streamlined Architecture
+- 🗑️ **Removed Legacy Views** - Pygame and Terminal views deprecated
+- 📦 **No External UI Dependencies** - No pygame required
+- 🎯 **Focused Design** - Web interface for playing, tournaments for AI battles
+- 💻 **Library Mode** - Use as Python library for custom integrations
 
 #### Tournament System
 - 🏆 **Tournament Support** - Run AI competitions
 - 📊 **Configurable** - Customizable tournament setups
+- 🤖 **12 AI Gladiators** - Epic opponents ready to battle
 
-#### Documentation
-- 📚 **Comprehensive Documentation** - Complete guides for users and developers
-- 📖 **View Architecture** - Modular UI system documentation
-- 📝 **Architecture Documentation** - Technical deep dives and design principles
+#### Clean Codebase
+- ✨ **Simplified Dependencies** - Only FastAPI + Uvicorn for web
+- 🧹 **Code Cleanup** - Removed ~15,000 lines of pygame/terminal code
+- 📚 **Updated Documentation** - Reflects new architecture
 
 ### What's New in 3.0.0
 
@@ -51,17 +52,17 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 
 ### Key Features
 
-- 🎮 **Modular View System** - Play in GUI, Terminal, or Headless mode (NEW in 3.1.0)
-- 🎨 **Multiple UI Options** - Pygame (graphical), Terminal (ASCII), Headless (no rendering)
+- 🌐 **Web Interface** - Modern browser-based UI with real-time updates (NEW in 3.2.0)
 - ⚡ **Ultra-Fast Bitboard AI** - 50-100x faster than standard implementation
-- 🤖 **Multiple AI Types** - From random to deep bitboard search (depth 1-12)
-- 📚 **Opening Book System** - 57+ classic openings with visual learning mode
+- 🤖 **12 AI Gladiators** - Epic opponents with unique personalities and strategies
+- 📚 **Opening Book System** - 644 professional opening sequences
 - 🏆 **Tournament System** - Run AI competitions and benchmarks
 - 💾 **Save/Load** - XOT (eXtended Othello Transcript) format
-- 🎯 **Modular Design** - Metadata-driven player system, pluggable views
-- 🔄 **Resizable Window** - Adaptive graphics (Pygame mode)
+- 🎯 **Clean Architecture** - Metadata-driven player system, modular design
 - 📊 **Real-time Statistics** - Move history, timing, book usage
-- 🖥️ **SSH-Friendly** - Play over SSH with terminal view
+- 🔌 **WebSocket Communication** - Instant game state synchronization
+- 💻 **Python Library** - Use as library for custom integrations
+- 🚀 **Easy Deployment** - Single command to start server
 
 ---
 
@@ -470,81 +471,72 @@ See [Tournament Documentation](tournament/README.md) for details.
 
 ### Requirements
 
-- Python 3.6 or higher
-- Pygame 2.0+
+- Python 3.9 or higher
+- FastAPI & Uvicorn (for web interface)
 
 ```bash
-pip install pygame
+pip install -r requirements.txt
 ```
 
 ### Running the Game
 
+**🌐 Web Interface (RECOMMENDED):**
+
 ```bash
-# Default (Pygame graphical interface)
+# Quick start - launches web server
 ./reversi42
 
-# Terminal mode (ASCII art - SSH friendly)
-./reversi42 --view terminal
-
-# Headless mode (no graphics - for testing)
-./reversi42 --view headless
-
-# Show available view types
-./reversi42 --list-views
-
-# Show version
-./reversi42 --version
-
-# Or using Python directly
-python3 src/reversi42.py --view pygame
+# Then open your browser at: http://localhost:8000
 ```
 
-**View Options** (NEW in 3.1.0):
-- `--view pygame` (or `gui`) - Graphical interface [default]
-- `--view terminal` (or `console`) - ASCII art in terminal  
-- `--view headless` (or `none`) - No rendering (tournaments/testing)
+The game now features a modern web interface with real-time gameplay!
+
+**🏆 Tournament Mode (AI vs AI):**
+
+```bash
+# Quick tournament
+python3 tournament/quick_tournament.py
+
+# Custom tournament
+python3 tournament/tournament.py ring/apocalypse_now.json
+```
+
+**📚 Use as Python Library:**
+
+```python
+from Reversi.BitboardGame import BitboardGame
+from Players.PlayerFactory import PlayerFactory
+
+game = BitboardGame()
+player = PlayerFactory.create_apocalyptron(depth=9)
+# ... your game logic
+```
+
+**Pygame/Terminal views have been removed** (v5.0.0):
+- Web interface is the primary way to play
+- Tournament mode for AI competitions
+- Python library for programmatic use
 
 ### Game Controls
 
-**Mouse:**
-- Click on highlighted squares to make moves
-- Hover over golden moves to see opening names (when Show Opening enabled)
+**Web Interface:**
+- Click on valid squares to make moves
+- Real-time game state updates via WebSocket
+- Interactive web UI with board visualization
+- Game info and status displayed on the page
 
-*Keyboard:*
-- `C` - Toggle cursor navigation mode
-- `Arrow Keys` - Move cursor (in cursor mode)
-- `ENTER/SPACE` - Select move at cursor
-- `ESC` - Pause menu (save/load/resume)
-- `Q` - Quick exit
+### Web Interface Features
 
-**Terminal Mode:**
-- Type coordinates: `D3`, `E4`, etc.
-- Or use numbers: `1`, `2`, `3` (from numbered move list)
-- `q` - Quit game
-- `h` - Show help
+**Player Selection:**
+- Choose AI opponent from available gladiators
+- Configurable difficulty levels
+- Play as Black or White
 
-**Headless Mode:**
-- No user controls (automated only)
-
-### Menu Options
-
-**Main Menu:**
-- Black Player (choose type and difficulty)
-- White Player (choose type and difficulty)
-- **Show Opening** / Hide Opening (toggle golden move highlights)
-- Start Game
-- Help (controls and player descriptions)
-- **About** (game rules, version info, credits)
-- Exit
-
-### Pause Menu (ESC during game)
-
-- Resume Game
-- Undo Move
-- Save Game (XOT format)
-- Load Game
-- Return to Menu
-- Exit
+**Game Features:**
+- Real-time board state
+- Move validation
+- Game statistics
+- WebSocket communication for instant updates
 
 ---
 
@@ -588,11 +580,8 @@ Reversi42/
 │   │   ├── Game.py                # Standard game engine
 │   │   └── Move.py                # Move representation
 │   │
-│   ├── Board/                     # Modular view system (MVC) ⭐ v3.1.0
+│   ├── Board/                     # Modular view system (MVC) ⭐ v5.0.0
 │   │   ├── AbstractBoardView.py   # View interface
-│   │   ├── PygameBoardView.py     # Pygame graphical UI
-│   │   ├── TerminalBoardView.py   # ASCII art terminal view
-│   │   ├── HeadlessBoardView.py   # No rendering (tournaments)
 │   │   ├── ViewFactory.py         # View factory pattern
 │   │   ├── BoardControl.py        # MVC Controller
 │   │   └── BoardModel.py          # MVC Model
@@ -669,16 +658,19 @@ Reversi42/
 │   │       └── PlayerZenMaster.py         # 🧘 ZEN MASTER (ELO 1250)
 │   │
 │   ├── ui/                        # UI components
-│   │   ├── implementations/       # UI implementations
-│   │   │   └── pygame/            # Pygame UI
-│   │   │       ├── components/    
-│   │   │       │   └── menu.py    # Menu system ⭐ UPDATED (95%x90% panel)
-│   │   │       └── views/
-│   │   │
-│   │   └── widgets/               # UI widgets (Bootstrap-like)
-│   │       ├── base.py            # Base widget classes
-│   │       ├── layout.py          # Layout components (Stack, HBox, Center)
-│   │       └── primitives/        # Primitive widgets
+│   │   └── implementations/       # UI implementations
+│   │       ├── headless/          # Headless view (tournaments)
+│   │       └── guiweb/            # Web GUI ⭐ NEW in 3.2.0
+│   │           ├── bridge/        # Game engine bridge
+│   │           └── renderers/     # Board renderers
+│   │
+│   ├── webgui/                    # Web interface ⭐ NEW in 3.2.0
+│   │   ├── backend_server.py      # FastAPI WebSocket server
+│   │   ├── backend_monitor.py     # Server monitor
+│   │   ├── websocket_observer.py  # Game state observer
+│   │   ├── game.html              # Main game interface
+│   │   ├── start_server.sh        # Server launcher
+│   │   └── start_server_robust.sh # Robust launcher with monitor
 │   │
 │   ├── domain/                    # Domain logic
 │   │   └── knowledge.py           # Opening book management (644 sequences)
@@ -748,25 +740,25 @@ Reversi42/
 ├── build/                         # Build scripts
 │   └── build_macos_app.sh        # macOS app builder
 │
-├── reversi42-splash.png          # Splash screen ⭐ MOVED to root
-├── reversi42                      # Executable wrapper
-├── README.md                      # This file ⭐ UPDATED
-├── CHANGELOG.md                   # Version history ⭐ UPDATED
+├── reversi42-splash.png          # Splash screen
+├── reversi42                      # Game launcher (symlink to start_server_robust.sh) ⭐ NEW
+├── README.md                      # This file ⭐ UPDATED v5.0.0
+├── CHANGELOG.md                   # Version history
 ├── CONTRIBUTING.md                # Contribution guidelines
 ├── LICENSE                        # GPL v3.0 license
-└── requirements.txt               # Python dependencies
+└── requirements.txt               # Python dependencies ⭐ UPDATED (removed pygame)
 ```
 
-### 📊 Statistics (v4.2.0)
+### 📊 Statistics (v5.0.0)
 
-- **Total Files**: 300+
-- **Lines of Code**: ~15,000
+- **Total Files**: 250+ (reduced from 300+ after cleanup)
+- **Lines of Code**: ~12,000 (removed ~15,000 lines of pygame/terminal code)
 - **AI Players**: 12 (2 standard + 10 Epic Gladiators)
 - **Search Strategies**: 3 (Iterative Deepening, Fixed Depth, Adaptive)
 - **Tests**: 220+ (100% pass rate)
 - **Documentation**: 40+ files (~200KB)
 - **Opening Book**: 644 sequences
-- **Supported Views**: 3 (Pygame, Terminal, Headless)
+- **Interfaces**: Web UI + Tournament Mode + Python Library
 
 ---
 

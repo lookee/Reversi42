@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reversi42"
-version = "4.1.16"
+version = "5.0.0"
 description = "Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -28,9 +28,8 @@ classifiers = [
     "Topic :: Games/Entertainment :: Turn Based Strategy",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-dependencies = [
-    "pygame>=2.0.0",
-]
+# Pygame dependency removed - pygame/terminal views deprecated
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
@@ -56,8 +55,9 @@ Repository = "https://github.com/lucaamore/reversi42"
 "Bug Tracker" = "https://github.com/lucaamore/reversi42/issues"
 Changelog = "https://github.com/lucaamore/reversi42/blob/main/CHANGELOG.md"
 
-[project.scripts]
-reversi42 = "reversi42:main"
+# Entry points removed - pygame/terminal views deprecated
+# [project.scripts]
+# reversi42 = "reversi42:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -98,7 +98,7 @@ ensure_newline_before_comments = true
 skip_gitignore = true
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "5.0.0"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -111,12 +111,13 @@ warn_no_return = true
 warn_unreachable = true
 strict_equality = true
 
-[[tool.mypy.overrides]]
-module = "pygame.*"
-ignore_missing_imports = true
+# Pygame mypy override removed - pygame/terminal views deprecated
+# [[tool.mypy.overrides]]
+# module = "pygame.*"
+# ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "5.0.0"
 addopts = "-ra -q --strict-markers"
 testpaths = [
     "tests",

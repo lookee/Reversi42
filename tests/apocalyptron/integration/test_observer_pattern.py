@@ -5,9 +5,6 @@ Verifica che l'Observer Pattern funzioni correttamente.
 """
 
 import os
-
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-
 import sys
 
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))

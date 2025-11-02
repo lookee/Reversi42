@@ -19,7 +19,7 @@
 PlayerHuman - Human player (UI-agnostic!)
 
 Clean Architecture Implementation:
-- NO pygame dependencies
+- No UI framework dependencies
 - Depends on InputProvider abstraction (Dependency Inversion)
 - UI-specific logic delegated to InputProvider implementations
 - Fully testable with MockInputProvider
@@ -42,20 +42,12 @@ class PlayerHuman(Player):
     All UI-specific input handling is delegated to the InputProvider.
 
     Benefits:
-    - No pygame/UI dependencies
+    - No UI framework dependencies
     - Fully testable with mock InputProvider
-    - Works with ANY UI (pygame, terminal, web, network)
+    - Works with ANY UI (web, network, etc.)
     - Follows Dependency Inversion Principle
 
     Example:
-        # Pygame UI
-        provider = PygameInputProvider(board_control)
-        player = PlayerHuman(provider, name="Alice")
-
-        # Terminal UI
-        provider = TerminalInputProvider()
-        player = PlayerHuman(provider, name="Bob")
-
         # Testing
         provider = MockInputProvider([Move(3,3), Move(4,4)])
         player = PlayerHuman(provider, name="TestPlayer")

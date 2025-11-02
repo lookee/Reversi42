@@ -39,41 +39,27 @@ See [Getting Started](getting-started.md) for detailed instructions.
 
 Python 3.9 or higher. Python 3.11 is recommended for best performance.
 
-### Do I need Pygame?
+### What dependencies do I need?
 
-Yes, for the graphical interface. Install with `pip install pygame`. Terminal mode works without Pygame.
+FastAPI and Uvicorn for the web interface. Install with `pip install -r requirements.txt`.
 
-### Can I run it without graphics?
+### Can I run it without a browser?
 
-Yes! Use terminal mode (`./reversi42 --view terminal`) or headless mode (`./reversi42 --view headless`).
+Yes! Use tournament mode for AI vs AI battles, or use Reversi42 as a Python library in your own code.
 
 ## Gameplay Questions
 
 ### How do I make a move?
 
-**Pygame mode:** Click on any highlighted (valid) square.
-
-**Terminal mode:** Type the coordinates (e.g., `D3`) or the move number (e.g., `1`).
+Click on any highlighted (valid) square in the web interface.
 
 ### Why can't I move to certain squares?
 
 You can only move to squares that will flip at least one opponent piece. Valid moves are highlighted.
 
-### What are the golden highlighted moves?
-
-When "Show Opening" is enabled, moves that appear in professional opening theory glow gold. Hover over them to see the opening name and how many openings that move leads to.
-
-### Can I undo a move?
-
-Yes! Press `ESC` to open the pause menu, then select "Undo Move".
-
 ### Can I save my game?
 
-Yes! Press `ESC` and select "Save Game". Games are saved in XOT format in the `saves/` directory.
-
-### How do I load a saved game?
-
-From the pause menu (press `ESC`), select "Load Game" and choose your saved game file.
+Game saving features are available through the web interface. Games can be saved in XOT format.
 
 ### Why did a player pass their turn?
 
@@ -227,7 +213,7 @@ Yes! Parallel AIs automatically use multiple cores. The Apocalyptron and Paralle
 
 ### Does it work over SSH?
 
-Yes! Use terminal mode:
+Yes! You can:
 ```bash
 ./reversi42 --view terminal
 ```
@@ -247,10 +233,10 @@ pip install -r requirements.txt
 python3 src/reversi42.py
 ```
 
-### "pygame not found" error
+### "ModuleNotFoundError: No module named 'fastapi'" error
 
 ```bash
-pip install pygame
+pip install -r requirements.txt
 ```
 
 ### The game is laggy
@@ -263,7 +249,7 @@ pip install pygame
 ### Moves aren't registering
 
 - Ensure you're clicking valid (highlighted) moves
-- Try terminal mode to rule out mouse issues
+- Check browser console for errors
 - Check that it's your turn
 
 ### AI is taking forever
@@ -276,7 +262,7 @@ pip install pygame
 
 - Try different view modes
 - Update SDL2 libraries (Linux)
-- Check terminal color support (terminal mode)
+- Verify WebSocket connection in browser
 
 ### Can't save/load games
 
@@ -353,7 +339,7 @@ Yes, under the terms of the GPL-3.0 license. See [COPYING](../../COPYING) for de
 ### How do I cite Reversi42?
 
 ```
-Reversi42 v3.1.0 (2025)
+Reversi42 v5.0.0 (2025)
 Luca Amore
 https://github.com/lucaamore/reversi42
 ```

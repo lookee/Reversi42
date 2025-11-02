@@ -59,6 +59,7 @@ class Game(object):
 
         self.turn_cnt = 0
         self.board_position_stack = []
+        self.redo_stack = []  # stores forward states for redo: (board_str, turn, turn_cnt, history)
 
         # Game history for opening book (case-sensitive: uppercase=black, lowercase=white)
         self.history = ""
@@ -298,6 +299,8 @@ class Game(object):
 
         # store previus move (board + turn + turn_cnt for correct undo)
         self.board_position_stack.append((self.export_str(), self.turn, self.turn_cnt))
+        # any forward history becomes invalid
+        self.redo_stack.clear()
 
         # fix destination
         self.matrix[y][x] = self.turn
@@ -366,6 +369,8 @@ class Game(object):
         self.board_position_stack.append((self.export_str(), self.turn, self.turn_cnt))
         self.switch_player()
         self.turn_cnt += 1
+        # invalidate redo on new timeline
+        self.redo_stack.clear()
 
     def switch_player(self):
         """switch the next move player"""
@@ -377,6 +382,8 @@ class Game(object):
 
     def undo_move(self):
         """undo previus move"""
+        # Save current state to redo stack before undoing
+        cur_state = (self.export_str(), self.turn, self.turn_cnt, self.history)
         # Pop saved state (board, turn, turn_cnt)
         saved_state = self.board_position_stack.pop()
         
@@ -396,6 +403,22 @@ class Game(object):
         # Remove last move from history (2 characters: letter+digit)
         if len(self.history) >= 2:
             self.history = self.history[:-2]
+        # Push current (pre-undo) snapshot to redo stack with full history
+        self.redo_stack.append(cur_state)
+
+    def redo_move(self):
+        """redo a previously undone move (if available)."""
+        if not self.redo_stack:
+            raise NameError("no move to redo")
+        # Save current state for potential further undo
+        self.board_position_stack.append((self.export_str(), self.turn, self.turn_cnt))
+        # Restore next state
+        board_str, t, tcnt, hist = self.redo_stack.pop()
+        self.import_str(board_str)
+        self.turn = t
+        self.turn_cnt = tcnt
+        # restore exact history of that state
+        self.history = hist
 
     def get_current_player(self):
         """get the player of the current move"""

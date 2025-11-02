@@ -2,10 +2,9 @@
 AbstractBoardView - Interface for Board Visualization
 
 This abstract class defines the interface that all board view implementations
-must follow. It enables multiple UI implementations (Pygame, Terminal, Web, etc.)
-without changing the core game logic.
+must follow. It enables multiple UI implementations without changing the core game logic.
 
-Version: 3.1.0
+Version: 3.2.0 - Cleaned up, removed pygame and terminal views
 """
 
 from abc import ABC, abstractmethod
@@ -20,8 +19,6 @@ class AbstractBoardView(ABC):
     with the Reversi42 game system.
 
     This allows for multiple UI implementations:
-    - PygameBoardView: Graphical UI with Pygame
-    - TerminalBoardView: ASCII art in terminal
     - HeadlessBoardView: No rendering (for tournaments)
     - WebBoardView: HTML/WebSocket for web apps
     """
