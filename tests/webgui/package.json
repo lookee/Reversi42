@@ -1,0 +1,42 @@
+{
+  "name": "reversi42-webgui-tests",
+  "version": "1.0.0",
+  "description": "Frontend tests for Reversi42 WebGUI",
+  "main": "test_frontend.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose"
+  },
+  "keywords": [
+    "reversi",
+    "testing",
+    "jest",
+    "frontend"
+  ],
+  "author": "Luca Amore",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "@types/jest": "^29.5.5"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "**/test_frontend.js"
+    ],
+    "collectCoverageFrom": [
+      "test_frontend.js"
+    ],
+    "coverageDirectory": "./coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "verbose": true
+  }
+}
+

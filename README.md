@@ -13,52 +13,9 @@ Website: https://www.lucaamore.com
 
 ---
 
-## 📖 Overview
+## 📖 Description
 
-Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring:
-
-- **Ultra-fast bitboard engine** using 64-bit integers for optimal performance (50-100x faster than traditional implementations)
-- **12 AI opponents** with distinct personalities and difficulty levels (ELO 1250-1880)
-- **644 professional opening sequences** in an interactive opening book
-- **Modern web interface** with real-time WebSocket communication
-- **Tournament system** for AI competitions and benchmarking
-- **Developed through human-AI collaboration** as an experiment in modern software development
-
-### Key Technical Features
-
-- Bitboard representation for efficient board operations
-- FastAPI backend with WebSocket support for real-time gameplay
-- Modular AI architecture with configurable search strategies
-- XOT (eXtended Othello Transcript) save format for human-readable game storage
-- Clean MVC architecture with dependency injection
-- Comprehensive test suite (220+ tests, 100% pass rate)
-
-### Design Principles
-
-The project follows several core architectural principles:
-- Favor bitwise operations for performance-critical code
-- Use async/await for I/O-bound operations
-- Maintain clean separation of concerns (MVC pattern)
-- Keep the codebase maintainable and well-documented
-
-### 🎯 Use Cases
-
-**For Players:**
-- Progressive difficulty levels from beginner (ELO 1250) to expert (ELO 1880)
-- Interactive opening book with visual highlighting of professional moves
-- Web-based interface accessible from any modern browser
-
-**For Developers:**
-- Example of clean architecture with MVC, dependency injection, and observer patterns
-- Well-documented bitboard implementation
-- Real-world async Python application with WebSocket communication
-- Case study in human-AI collaborative software development
-
-**For AI Researchers:**
-- 12 different AI configurations demonstrating various search strategies
-- Modular evaluation functions that can be combined and customized
-- Integration of opening book knowledge with AI search
-- Example of AI-assisted software architecture and development
+Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ultra-fast bitboard AI, interactive opening book learning, and comprehensive competitive features. The **3.2.0 release** modernizes the interface with a web-based UI while removing legacy pygame and terminal views.
 
 ### 🌟 What's New in 5.0.0
 
@@ -467,6 +424,25 @@ The bitboard implementation uses:
 3. **AdvancedEvaluator** - Position tables with game phase awareness
 4. **GreedyEvaluator** - Immediate piece maximization
 
+### Machine Learning & Future Directions
+
+**Current Implementation:**  
+Reversi42's AI players are based on **classical algorithms** such as:
+- Alpha-Beta Pruning with advanced optimizations
+- Heuristic evaluation functions
+- Rule-based strategies and opening books
+
+**No Deep Learning:** This project currently **does not use neural networks or deep learning algorithms**. All AI decision-making is based on traditional search algorithms and hand-crafted evaluation functions.
+
+**Future Possibilities:**  
+A potential future extension could involve developing a **Reinforcement Learning (RL) agent** trained through self-play, similar to modern game-playing systems like AlphaZero. Such a project would:
+- Learn optimal strategies through self-play
+- Develop emergent patterns and novel tactics
+- Combine deep neural networks with Monte Carlo Tree Search (MCTS)
+- Potentially discover strategies beyond traditional human knowledge
+
+This would represent a separate research direction, complementing the current classical AI implementation.
+
 ---
 
 ## 📚 Opening Book System (Enhanced in 3.0.0)
@@ -864,60 +840,25 @@ You should have received a copy of the GNU General Public License along with thi
 
 ---
 
-## 🤖 AI-Human Collaborative Development
+## 🤖 AI-Human Collaboration
 
-### Development Methodology
+**Experimental Development Notice:**
 
-This project was developed as an experiment in human-AI collaborative software development, exploring how Large Language Models can contribute to complex software architecture beyond simple code completion.
+This software has been developed as an **experimental project** in strong collaboration between a human developer and multiple generative AI systems. This collaborative approach represents a novel paradigm in software development, combining:
 
-### Collaboration Approach
+- **Human Vision & Direction**: Architectural decisions, design philosophy, and strategic direction
+- **AI Assistance**: Code generation, optimization suggestions, documentation, and iterative refinement
+- **Collaborative Innovation**: Synergistic problem-solving leveraging both human creativity and AI capabilities
 
-**Human Responsibilities:**
-- Overall vision and architectural decisions
-- Design of game mechanics and player personalities
-- Real-world testing and validation
-- Final decision-making on implementation choices
+This project serves as a demonstration of how human expertise and artificial intelligence can work together to create sophisticated software systems. The Epic Gladiators system (v4.2.0), comprehensive documentation, and advanced AI configurations are products of this unique collaborative development process.
 
-**AI Contributions:**
-- Code generation and initial implementations
-- Refactoring suggestions and code improvements
-- Documentation drafts and technical writing
-- Debugging assistance and pattern suggestions
-- Architecture recommendations based on established patterns
+**Technologies Used in Development:**
+- Multiple Large Language Models for code generation and refinement
+- AI-assisted documentation and technical writing
+- Collaborative debugging and optimization
+- Iterative design through human-AI dialogue
 
-### Key Collaborative Achievements
-
-**v4.2.0 - Epic Gladiators System:**
-- Designed 10 unique AI player configurations with distinct characteristics
-- Implemented modular search strategies and evaluation functions
-- Developed the `ApocalyptronFactory` pattern for flexible AI configuration
-- Created comprehensive documentation for each AI personality
-
-**v5.0.0 - Web-First Architecture:**
-- Removed ~15,000 lines of legacy UI code (Pygame/Terminal)
-- Designed XOT format for human-readable, version-control-friendly game saves
-- Implemented WebSocket-based real-time communication architecture
-- Created ~40 documentation files covering all aspects of the system
-
-### Development Insights
-
-This collaborative approach demonstrated:
-
-1. **Architecture Co-Design**: AI systems can understand complex requirements and suggest appropriate design patterns
-2. **Iterative Refinement**: Back-and-forth dialogue enables progressive improvement of both code and documentation
-3. **Knowledge Transfer**: AI brings patterns and techniques from adjacent domains (chess engines, game theory)
-4. **Documentation Quality**: Collaborative documentation writing produces comprehensive yet readable results
-5. **Practical Application**: The approach scales to real production systems (12K+ lines of code)
-
-### Implications for Software Development
-
-The project demonstrates that modern AI can be a valuable collaborative partner in software development, augmenting human capabilities in:
-- Rapid prototyping and code generation
-- Exploration of design alternatives
-- Documentation and explanation generation
-- Pattern recognition and code review
-
-The human developer maintains creative control, architectural vision, and final decision-making authority, while AI accelerates implementation and provides alternative perspectives.
+We believe this collaborative approach represents an exciting direction for future software development, where human creativity and AI capabilities complement each other to achieve results neither could accomplish alone.
 
 ---
 
