@@ -43,6 +43,9 @@ class WebSocketSearchObserver(SearchObserver):
         }
         self.loop = None
         self.search_start_time = None
+        self.player_name = None
+        self.aspiration_hits = 0
+        self.aspiration_fails = 0
 
     def _send_async(self, message: dict):
         """Send message via WebSocket in an async-safe way"""
@@ -91,6 +94,9 @@ class WebSocketSearchObserver(SearchObserver):
     ):
         """Search started"""
         self.search_start_time = datetime.now()
+        self.player_name = player_name  # Store for statistics summary
+        self.aspiration_hits = 0  # Reset counters
+        self.aspiration_fails = 0
         self.current_stats = {
             "depth": 0,
             "nodes_searched": 0,
@@ -211,6 +217,12 @@ class WebSocketSearchObserver(SearchObserver):
         """Iteration completed"""
         self.current_stats["search_time"] += iteration_time
         
+        # Track aspiration window success/failure
+        if aspiration_success:
+            self.aspiration_hits += 1
+        else:
+            self.aspiration_fails += 1
+        
         coord = None
         if best_move:
             coord = f"{chr(64+best_move.x)}{best_move.y}"
@@ -283,6 +295,97 @@ class WebSocketSearchObserver(SearchObserver):
                 "statistics": statistics
             }
         )
+        
+        # Send comprehensive AI statistics for data science dashboard
+        self._send_ai_statistics_summary(
+            best_move=coord,
+            value=value,
+            statistics=statistics,
+            total_time=total_time,
+            opening_book=opening_book,
+            game_history=game_history
+        )
+    
+    def _send_ai_statistics_summary(self, best_move, value, statistics, total_time, opening_book, game_history):
+        """Send comprehensive statistics summary for data science dashboard"""
+        nodes = statistics.get("nodes_searched", 0)
+        pruned = statistics.get("nodes_pruned", 0)
+        pruning_ratio = (pruned / nodes * 100) if nodes > 0 else 0
+        nps = (nodes / (total_time / 1000.0)) if total_time > 0 else 0
+        
+        summary = {
+            "type": "ai_statistics_summary",
+            "data": {
+                "timestamp": datetime.now().strftime("%H:%M:%S"),
+                "player_name": self.player_name or 'AI',
+                
+                # Move info
+                "best_move": best_move,
+                "evaluation": value,
+                
+                # Performance metrics
+                "total_time_ms": round(total_time, 2),
+                "total_time_s": round(total_time / 1000.0, 3),
+                "nodes_per_second": int(nps),
+                
+                # Search depth
+                "depth_reached": statistics.get("depth_reached", 0),
+                "target_depth": statistics.get("target_depth", 0),
+                
+                # Node statistics
+                "nodes_searched": nodes,
+                "nodes_pruned": pruned,
+                "nodes_evaluated": nodes - pruned,
+                "pruning_efficiency": round(pruning_ratio, 2),
+                
+                # Optimizations breakdown
+                "null_move_cuts": statistics.get("null_move_cuts", 0),
+                "futility_cuts": statistics.get("futility_cuts", 0),
+                "lmr_reductions": statistics.get("lmr_reductions", 0),
+                "multi_cut_prunes": statistics.get("multi_cut_prunes", 0),
+                
+                # Aspiration windows
+                "aspiration_hits": getattr(self, 'aspiration_hits', 0),
+                "aspiration_fails": getattr(self, 'aspiration_fails', 0),
+                "aspiration_success_rate": self._calculate_aspiration_rate(),
+                
+                # Iterative deepening info
+                "iterations_completed": statistics.get("depth_reached", 0),
+                "avg_iteration_time": round(total_time / max(1, statistics.get("depth_reached", 1)), 2),
+                
+                # Move ordering effectiveness
+                "pv_move_hits": statistics.get("pv_hits", 0),
+                "killer_move_hits": statistics.get("killer_hits", 0),
+                "history_heuristic_score": statistics.get("history_score", 0),
+                
+                # Transposition table
+                "tt_hits": statistics.get("tt_hits", 0),
+                "tt_size": statistics.get("tt_size", 0),
+                "tt_hit_rate": self._calculate_tt_rate(statistics),
+                
+                # Full statistics object
+                "raw_statistics": statistics
+            }
+        }
+        
+        # Store for aspiration tracking
+        if hasattr(self, 'search_stats'):
+            self.search_stats = summary['data']
+        
+        self._send_async(summary)
+    
+    def _calculate_aspiration_rate(self):
+        """Calculate aspiration window success rate"""
+        hits = getattr(self, 'aspiration_hits', 0)
+        fails = getattr(self, 'aspiration_fails', 0)
+        total = hits + fails
+        return round((hits / total * 100), 1) if total > 0 else 0
+    
+    def _calculate_tt_rate(self, statistics):
+        """Calculate transposition table hit rate"""
+        tt_hits = statistics.get("tt_hits", 0)
+        nodes = statistics.get("nodes_searched", 1)
+        return round((tt_hits / nodes * 100), 2) if nodes > 0 else 0
 
     def on_parallel_phase_start(self, depth: int, num_workers: int):
         """Parallel phase started"""

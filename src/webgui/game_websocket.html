@@ -437,13 +437,15 @@
       flex-shrink:0
     }
     #aiLogsContainer{
-      flex:1;
+      flex:0 1 auto;
+      max-height:40vh;
       overflow:auto;
       position:relative;
-      min-height:0;
+      min-height:120px;
       background:#0f1419;
       color:#e5e5e5;
-      font-family:'Courier New',monospace
+      font-family:'Courier New',monospace;
+      border-bottom:1px solid rgba(99,179,237,0.15)
     }
     #aiLogsContent{
       padding:16px;
@@ -479,6 +481,310 @@
       color:#e5e5e5;
       font-family:'Courier New',monospace;
       font-size:12px
+    }
+    
+    /* AI Statistics Dashboard - Integrated in AI Insight Panel */
+    .stats-dashboard-section{
+      flex:1;
+      overflow-y:auto;
+      border-top:2px solid rgba(99,179,237,0.3);
+      background:rgba(0,0,0,0.2);
+      animation:slideDown 0.3s ease
+    }
+    .stats-dashboard-header{
+      padding:16px 20px;
+      border-bottom:1px solid rgba(99,179,237,0.15);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:linear-gradient(135deg,rgba(99,179,237,0.12) 0%,rgba(99,179,237,0.06) 100%);
+      backdrop-filter:blur(10px)
+    }
+    .stats-player-avatar-sm{
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      font-size:14px;
+      color:#fff;
+      border:2px solid rgba(99,179,237,0.4);
+      box-shadow:0 0 12px rgba(99,179,237,0.3)
+    }
+    .stats-player-name-sm{
+      font-size:16px;
+      font-weight:700;
+      color:#63b3ed;
+      letter-spacing:0.3px
+    }
+    .stats-timestamp-sm{
+      font-size:11px;
+      color:rgba(99,179,237,0.6);
+      font-family:'Courier New',monospace;
+      margin-top:2px
+    }
+    .stats-move-badge{
+      text-align:center;
+      padding:8px 16px;
+      background:rgba(99,179,237,0.15);
+      border:1px solid rgba(99,179,237,0.3);
+      border-radius:8px
+    }
+    .stats-dashboard-body{
+      padding:16px 20px;
+      overflow-y:auto
+    }
+    .stats-player-avatar{
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      font-size:18px;
+      color:#fff;
+      border:2px solid rgba(255,255,255,0.2)
+    }
+    .stats-player-name{
+      font-size:20px;
+      font-weight:700;
+      color:#63b3ed
+    }
+    .stats-timestamp{
+      font-size:12px;
+      color:rgba(255,255,255,0.5);
+      font-family:'Courier New',monospace
+    }
+    .stats-modal-body{
+      padding:24px;
+      overflow-y:auto;
+      flex:1
+    }
+    .stats-section{
+      margin-bottom:18px
+    }
+    .stats-section-title{
+      font-size:13px;
+      font-weight:700;
+      color:#63b3ed;
+      margin-bottom:10px;
+      padding-bottom:5px;
+      border-bottom:1px solid rgba(99,179,237,0.25);
+      letter-spacing:0.3px;
+      text-shadow:0 0 8px rgba(99,179,237,0.4)
+    }
+    .stats-grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px
+    }
+    .stats-grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px
+    }
+    .stats-grid-4{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px
+    }
+    .stat-card{
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:6px;
+      padding:12px 14px;
+      transition:all 0.15s ease;
+      backdrop-filter:blur(5px)
+    }
+    .stat-card:hover{
+      background:rgba(99,179,237,0.12);
+      border-color:rgba(99,179,237,0.4);
+      transform:translateY(-1px);
+      box-shadow:0 4px 12px rgba(99,179,237,0.2)
+    }
+    .stat-card-primary{
+      background:rgba(99,179,237,0.1);
+      border-color:rgba(99,179,237,0.3)
+    }
+    .stat-card-success{
+      background:rgba(16,185,129,0.1);
+      border-color:rgba(16,185,129,0.3)
+    }
+    .stat-card-accent{
+      background:rgba(251,191,36,0.1);
+      border-color:rgba(251,191,36,0.3)
+    }
+    .stat-card-sm{
+      padding:10px 12px
+    }
+    .stat-label{
+      font-size:10px;
+      color:rgba(255,255,255,0.55);
+      margin-bottom:6px;
+      text-transform:uppercase;
+      letter-spacing:0.8px;
+      font-weight:600
+    }
+    .stat-label-sm{
+      font-size:9px;
+      color:rgba(255,255,255,0.5);
+      margin-bottom:5px;
+      text-transform:uppercase;
+      letter-spacing:0.6px
+    }
+    .stat-value{
+      font-size:20px;
+      font-weight:700;
+      color:#e5e5e5;
+      font-family:'Courier New',monospace;
+      letter-spacing:-0.5px
+    }
+    .stat-value-large{
+      font-size:28px;
+      font-weight:700;
+      color:#63b3ed;
+      font-family:'Courier New',monospace;
+      letter-spacing:-0.5px;
+      text-shadow:0 0 10px rgba(99,179,237,0.3)
+    }
+    .stat-value-sm{
+      font-size:18px;
+      font-weight:600;
+      color:#e5e5e5;
+      font-family:'Courier New',monospace
+    }
+    .stat-sublabel{
+      font-size:11px;
+      color:rgba(255,255,255,0.4);
+      margin-top:4px;
+      font-family:'Courier New',monospace
+    }
+    
+    /* Compact Statistics Styles */
+    .stats-compact-header{
+      padding:12px 16px;
+      border-bottom:1px solid rgba(99,179,237,0.2);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:linear-gradient(135deg,rgba(99,179,237,0.15) 0%,rgba(99,179,237,0.08) 100%);
+      backdrop-filter:blur(10px)
+    }
+    .stats-compact-body{
+      padding:12px 16px;
+      background:rgba(0,0,0,0.15);
+      max-height:500px;
+      overflow-y:auto;
+      transition:all 0.3s ease
+    }
+    .stats-compact-body.collapsed{
+      max-height:0;
+      padding:0 16px;
+      overflow:hidden
+    }
+    .stat-card-compact{
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.15);
+      border-radius:4px;
+      padding:8px 10px;
+      transition:all 0.15s ease;
+      text-align:center
+    }
+    .stat-card-compact:hover{
+      background:rgba(99,179,237,0.1);
+      border-color:rgba(99,179,237,0.35);
+      transform:scale(1.02)
+    }
+    .stat-card-compact.stat-highlight{
+      background:rgba(251,191,36,0.12);
+      border-color:rgba(251,191,36,0.35)
+    }
+    .stat-label-compact{
+      font-size:9px;
+      color:rgba(255,255,255,0.5);
+      margin-bottom:4px;
+      text-transform:uppercase;
+      letter-spacing:0.7px;
+      font-weight:600
+    }
+    .stat-value-compact{
+      font-size:18px;
+      font-weight:700;
+      color:#e5e5e5;
+      font-family:'Courier New',monospace;
+      letter-spacing:-0.3px
+    }
+    .stat-value-compact-sm{
+      font-size:14px;
+      font-weight:600;
+      color:#e5e5e5;
+      font-family:'Courier New',monospace
+    }
+    .stat-progress-bar{
+      width:100%;
+      height:8px;
+      background:rgba(255,255,255,0.1);
+      border-radius:4px;
+      overflow:hidden;
+      margin-top:12px
+    }
+    .stat-progress-bar-slim{
+      width:100%;
+      height:5px;
+      background:rgba(255,255,255,0.12);
+      border-radius:3px;
+      overflow:hidden
+    }
+    .stat-progress-fill{
+      height:100%;
+      background:linear-gradient(90deg,#10b981 0%,#34d399 100%);
+      transition:width 0.5s ease;
+      border-radius:4px;
+      box-shadow:0 0 8px rgba(16,185,129,0.4)
+    }
+    @keyframes fadeIn{
+      from{opacity:0}
+      to{opacity:1}
+    }
+    @keyframes slideDown{
+      from{
+        opacity:0;
+        transform:translateY(-20px)
+      }
+      to{
+        opacity:1;
+        transform:translateY(0)
+      }
+    }
+    
+    /* AI Insight Button - Thinking Animation */
+    #toggleAiInsight.ai-thinking{
+      background:rgba(99,179,237,0.15);
+      border-color:rgba(99,179,237,0.5);
+      box-shadow:0 0 15px rgba(99,179,237,0.4);
+      animation:aiPulse 1.5s ease-in-out infinite
+    }
+    #toggleAiInsight.ai-thinking #aiInsightIcon{
+      animation:aiIconSpin 2s linear infinite
+    }
+    @keyframes aiPulse{
+      0%, 100%{
+        box-shadow:0 0 15px rgba(99,179,237,0.4);
+        border-color:rgba(99,179,237,0.5)
+      }
+      50%{
+        box-shadow:0 0 25px rgba(99,179,237,0.7);
+        border-color:rgba(99,179,237,0.8)
+      }
+    }
+    @keyframes aiIconSpin{
+      0%{transform:rotate(0deg)}
+      100%{transform:rotate(360deg)}
     }
   </style>
 </head>
@@ -601,8 +907,22 @@
               <div class="flex items-center justify-between mb-2">
                 <div class="text-sm font-semibold">Move History <span id="histBadge" class="historyBadge hidden">· 50 simulated positions</span></div>
                 <div class="flex items-center gap-2">
-                  <button id="undoBtn" class="btn text-xs" title="Undo" data-tip="Undo" disabled>⟲</button>
-                  <button id="redoBtn" class="btn text-xs" title="Redo" data-tip="Redo" disabled>⟳</button>
+                  <button id="undoBtn" class="btn text-xs" title="Undo" data-tip="Undo" disabled>
+                    <span class="icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M3 7v6h6"/>
+                        <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+                      </svg>
+                    </span>
+                  </button>
+                  <button id="redoBtn" class="btn text-xs" title="Redo" data-tip="Redo" disabled>
+                    <span class="icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M21 7v6h-6"/>
+                        <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
+                      </svg>
+                    </span>
+                  </button>
                   <button id="aiPlayPauseBtn" class="btn text-xs" title="Pause AI" data-tip="Pause AI" style="background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.35)">
                     <span class="icon" aria-hidden="true">
                       <svg id="aiPlayPauseIcon" viewBox="0 0 24 24">
@@ -624,8 +944,13 @@
               </div>
             </div>
             <div>
-              <div class="flex items-center gap-2 mb-2">
+              <div class="flex items-center justify-between mb-2">
                 <div class="text-sm font-semibold">Opening Tree</div>
+                <button id="toggleOpeningBtn" class="btn text-xs" title="Toggle opening hints" data-tip="Toggle opening hints" style="background:rgba(245,158,11,.18); border-color:rgba(245,158,11,.45); color:#fbbf24">
+                  <span class="icon" aria-hidden="true" style="width:14px;height:14px">
+                    <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8"/><path d="M8 11h8"/></svg>
+                  </span>
+                </button>
               </div>
               <div class="card" style="max-height:300px;overflow:auto">
                 <div id="openingTree" class="opening-tree p-3 text-[14px]"></div>
@@ -658,7 +983,7 @@
           </div>
           <!-- AI Insight Button -->
           <button class="json-editor-toggle" id="toggleAiInsight" style="position:relative;bottom:0;right:0">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="aiInsightIcon">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
             </svg>
             <span>AI Insight</span>
@@ -706,6 +1031,7 @@
     let gameOverInfo = null; // { winner, black_count, white_count }
     let pendingSelectedAI = null; // confirm selected AI after init
     let aiAutoPaused = false; // AI auto-play paused
+    let showOpeningHints = true; // Show opening book hints on board
     
     // WebSocket configuration
     const WS_URL = 'ws://localhost:8000/ws';
@@ -1019,6 +1345,12 @@
           const aiPlayerName = aiMoveSide === 'B' ? data.players?.black?.name : data.players?.white?.name;
           console.log(`${aiPlayerName} played:`, message.data.move);
           
+          // Deactivate AI Insight button animation
+          const aiInsightBtnMove = document.getElementById('toggleAiInsight');
+          if(aiInsightBtnMove){
+            aiInsightBtnMove.classList.remove('ai-thinking');
+          }
+          
           // Remove thinking icon from BOTH sides to prevent stale icons
           removeThinkingIconFromPlayerName('B');
           removeThinkingIconFromPlayerName('W');
@@ -1043,6 +1375,13 @@
           
         case 'ai_thinking':
           console.log(message.message);
+          
+          // Activate AI Insight button animation
+          const aiInsightBtn = document.getElementById('toggleAiInsight');
+          if(aiInsightBtn){
+            aiInsightBtn.classList.add('ai-thinking');
+          }
+          
           // Add thinking icon to AI player name (determine side from current turn)
           const thinkingSide = data?.status?.turn_by_ply?.[0] || 'W';
           
@@ -1124,6 +1463,19 @@
             appendAILog(message.data);
           }
           break;
+        
+        case 'ai_statistics_summary':
+          // Handle comprehensive AI statistics for data science dashboard
+          if(message.data){
+            showAIStatisticsDashboard(message.data);
+          }
+          
+          // Deactivate AI Insight button animation (search complete)
+          const aiInsightBtnStats = document.getElementById('toggleAiInsight');
+          if(aiInsightBtnStats){
+            aiInsightBtnStats.classList.remove('ai-thinking');
+          }
+          break;
           
         case 'error':
           console.error('Server error:', message.message);
@@ -1177,6 +1529,32 @@
           }
         }
       }
+    }
+    
+    function toggleOpeningHints(){
+      showOpeningHints = !showOpeningHints;
+      const btn = qs('toggleOpeningBtn');
+      
+      if(showOpeningHints){
+        // Active - gold style
+        btn.style.background = 'rgba(245,158,11,.18)';
+        btn.style.borderColor = 'rgba(245,158,11,.45)';
+        btn.style.color = '#fbbf24';
+        btn.title = 'Hide opening hints';
+        btn.setAttribute('data-tip', 'Hide opening hints');
+        showToast('📚 Opening hints enabled');
+      } else {
+        // Inactive - normal style
+        btn.style.background = 'rgba(255,255,255,.05)';
+        btn.style.borderColor = 'rgba(255,255,255,.14)';
+        btn.style.color = 'var(--txt)';
+        btn.title = 'Show opening hints';
+        btn.setAttribute('data-tip', 'Show opening hints');
+        showToast('Opening hints disabled');
+      }
+      
+      // Re-render board to apply changes
+      render();
     }
     
     function submitMove(move){
@@ -1429,9 +1807,11 @@
       const newBtn  = qs('newGameBtn');
       const fsBtn   = qs('fsBtn');
       const aiPlayPauseBtn = qs('aiPlayPauseBtn');
+      const toggleOpeningBtn = qs('toggleOpeningBtn');
       // Don't access data here - it might not be loaded yet
 
       if (aiPlayPauseBtn) aiPlayPauseBtn.addEventListener('click', toggleAIPlayPause);
+      if (toggleOpeningBtn) toggleOpeningBtn.addEventListener('click', toggleOpeningHints);
       if (undoBtn) undoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'undo' }); } });
       if (redoBtn) redoBtn.addEventListener('click', ()=>{ if(wsConnection && wsConnection.readyState === WebSocket.OPEN){ wsSend({ type: 'redo' }); } });
       if (copyBtn) copyBtn.addEventListener('click', async ()=>{ 
@@ -1811,10 +2191,10 @@
       elBoard.querySelectorAll('.book-move-badge').forEach(el=>el.remove());
       elBoard.querySelectorAll('.hint[data-__om="1"]').forEach(el=>el.remove());
 
-      // Opening book moves with variant count (draw only if also valid now)
+      // Opening book moves with variant count (draw only if also valid now AND showOpeningHints is true)
       const openingMoves = (data.opening_by_ply || []);
       const validSetNow = new Set(vm.map(String));
-      if(Array.isArray(openingMoves) && openingMoves.length > 0) {
+      if(showOpeningHints && Array.isArray(openingMoves) && openingMoves.length > 0) {
         openingMoves.forEach(obj => {
           if(obj && obj.move) {
             const idx = coordToIdx(obj.move);
@@ -2463,7 +2843,7 @@
     </div>
   </noscript>
 
-  <!-- AI Insight Panel: Real-time AI Reasoning -->
+  <!-- AI Insight Panel: Real-time AI Reasoning + Statistics -->
   <div id="aiInsightWrapper" style="display:none">
     <div class="ai-insight-header">
       <div class="flex items-center gap-2">
@@ -2478,7 +2858,15 @@
               <path d="M9 6l1-2h4l1 2"/>
             </svg>
           </span>
-          Clear
+          Clear Logs
+        </button>
+        <button class="btn text-xs" id="toggleAiStatsBtn" style="display:none">
+          <span class="icon" aria-hidden="true" id="toggleAiStatsIcon">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 15l-6-6-6 6"/>
+            </svg>
+          </span>
+          <span id="toggleAiStatsText">Hide Stats</span>
         </button>
       </div>
       <div class="flex gap-2">
@@ -2493,6 +2881,110 @@
         </button>
       </div>
     </div>
+    
+    <!-- Statistics Dashboard Section (inside AI Insight) - IN ALTO -->
+    <div id="aiStatsDashboard" class="stats-dashboard-section" style="display:none">
+      <div class="stats-compact-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="stats-player-avatar-sm" id="statsPlayerAvatar">AI</div>
+          <div>
+            <div class="stats-player-name-sm" id="statsPlayerName">AI Player</div>
+            <div class="stats-timestamp-sm" id="statsTimestamp">--:--:--</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="stats-move-badge">
+            <div style="font-size:9px;opacity:0.6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Move</div>
+            <div style="font-size:22px;font-weight:700;font-family:'Courier New',monospace;color:#63b3ed" id="statMoveBadge">--</div>
+          </div>
+          <button class="btn text-xs" id="toggleStatsCollapse" title="Hide statistics">▲</button>
+        </div>
+      </div>
+      <div id="statsCollapsibleBody" class="stats-compact-body">
+        <!-- Compact: Performance & Evaluation (1 row) -->
+        <div class="stats-grid-4" style="margin-bottom:10px">
+          <div class="stat-card stat-card-primary">
+            <div class="stat-label">Move</div>
+            <div class="stat-value" id="statMove">--</div>
+          </div>
+          <div class="stat-card stat-card-success">
+            <div class="stat-label">Eval</div>
+            <div class="stat-value" id="statEval">--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Time</div>
+            <div class="stat-value" style="font-size:16px" id="statTime">--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Depth</div>
+            <div class="stat-value" style="font-size:16px" id="statDepth">--</div>
+          </div>
+        </div>
+
+        <!-- Compact: Node Statistics with Progress Bar -->
+        <div style="margin-bottom:10px">
+          <div class="stats-grid-3" style="margin-bottom:6px">
+            <div class="stat-card-compact">
+              <div class="stat-label-compact">Nodes</div>
+              <div class="stat-value-compact" id="statNodesSearched">--</div>
+            </div>
+            <div class="stat-card-compact">
+              <div class="stat-label-compact">Pruned</div>
+              <div class="stat-value-compact" id="statNodesPruned">--</div>
+            </div>
+            <div class="stat-card-compact stat-highlight">
+              <div class="stat-label-compact">Efficiency</div>
+              <div class="stat-value-compact" id="statPruningEff">--%</div>
+            </div>
+          </div>
+          <div class="stat-progress-bar-slim">
+            <div class="stat-progress-fill" id="pruningBar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Compact: Optimizations (1 row) -->
+        <div class="stats-grid-4" style="margin-bottom:10px">
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">Null</div>
+            <div class="stat-value-compact-sm" id="statNullMove">--</div>
+          </div>
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">Fut.</div>
+            <div class="stat-value-compact-sm" id="statFutility">--</div>
+          </div>
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">LMR</div>
+            <div class="stat-value-compact-sm" id="statLMR">--</div>
+          </div>
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">M-Cut</div>
+            <div class="stat-value-compact-sm" id="statMultiCut">--</div>
+          </div>
+        </div>
+
+        <!-- Compact: Advanced Metrics (1 row) -->
+        <div class="stats-grid-4">
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">NPS</div>
+            <div class="stat-value-compact-sm" id="statNPS">--</div>
+          </div>
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">Iters</div>
+            <div class="stat-value-compact-sm" id="statIterations">--</div>
+          </div>
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">Aspir.</div>
+            <div class="stat-value-compact-sm" id="statAspirationRate">--%</div>
+          </div>
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">TT Hit</div>
+            <div class="stat-value-compact-sm" id="statTTRate">--%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Logs Section - SOTTO le statistiche -->
     <div id="aiLogsContainer">
       <div id="aiLogsContent">
         <div style="color:#63b3ed;padding:20px;text-align:center;opacity:0.6">
@@ -2702,6 +3194,193 @@
     
     // Make appendAILog available globally
     window.appendAILog = appendAILog;
+  </script>
+
+  <!-- AI Statistics Dashboard JavaScript -->
+  <script>
+    // Statistics Dashboard Management
+    const statsDashboard = document.getElementById('aiStatsDashboard');
+    const statsCollapsibleBody = document.getElementById('statsCollapsibleBody');
+    const toggleStatsCollapseBtn = document.getElementById('toggleStatsCollapse');
+    const toggleAiStatsBtn = document.getElementById('toggleAiStatsBtn');
+    const toggleAiStatsText = document.getElementById('toggleAiStatsText');
+    const toggleAiStatsIcon = document.getElementById('toggleAiStatsIcon');
+    
+    let statsCollapsed = false;
+    let statsVisible = false;
+    
+    // Toggle collapse/expand statistics (▲/▼ button in stats header)
+    if(toggleStatsCollapseBtn){
+      toggleStatsCollapseBtn.addEventListener('click', () => {
+        statsCollapsed = !statsCollapsed;
+        if(statsCollapsibleBody){
+          if(statsCollapsed){
+            statsCollapsibleBody.classList.add('collapsed');
+            toggleStatsCollapseBtn.textContent = '▼';
+            toggleStatsCollapseBtn.title = 'Show statistics';
+          } else {
+            statsCollapsibleBody.classList.remove('collapsed');
+            toggleStatsCollapseBtn.textContent = '▲';
+            toggleStatsCollapseBtn.title = 'Hide statistics';
+          }
+        }
+      });
+    }
+    
+    // Toggle Hide/Show statistics section (button in main header)
+    if(toggleAiStatsBtn){
+      toggleAiStatsBtn.addEventListener('click', () => {
+        statsVisible = !statsVisible;
+        if(statsDashboard){
+          if(statsVisible){
+            // Show stats
+            statsDashboard.style.display = 'block';
+            if(toggleAiStatsText) toggleAiStatsText.textContent = 'Hide Stats';
+            if(toggleAiStatsIcon){
+              toggleAiStatsIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>';
+            }
+          } else {
+            // Hide stats
+            statsDashboard.style.display = 'none';
+            if(toggleAiStatsText) toggleAiStatsText.textContent = 'Show Stats';
+            if(toggleAiStatsIcon){
+              toggleAiStatsIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+            }
+          }
+        }
+      });
+    }
+    
+    // Show AI Statistics Dashboard (inside AI Insight panel)
+    function showAIStatisticsDashboard(stats){
+      if(!statsDashboard) return;
+      
+      console.log('📊 Showing AI Statistics Dashboard:', stats);
+      
+      // NO auto-apertura! Il pannello si apre SOLO quando l'utente clicca il bottone
+      // Ma popola comunque i dati per quando verrà aperto
+      
+      // Reset collapsed state (show stats expanded when new data arrives)
+      statsCollapsed = false;
+      if(statsCollapsibleBody){
+        statsCollapsibleBody.classList.remove('collapsed');
+      }
+      if(toggleStatsCollapseBtn){
+        toggleStatsCollapseBtn.textContent = '▲';
+        toggleStatsCollapseBtn.title = 'Hide statistics';
+      }
+      
+      // Player info
+      const playerName = stats.player_name || 'AI Player';
+      document.getElementById('statsPlayerName').textContent = playerName;
+      document.getElementById('statsPlayerAvatar').textContent = playerName.substring(0, 2).toUpperCase();
+      document.getElementById('statsTimestamp').textContent = stats.timestamp;
+      
+      // Move badge (prominent display in header)
+      const moveBadge = document.getElementById('statMoveBadge');
+      if(moveBadge){
+        moveBadge.textContent = stats.best_move || '--';
+        const evalValue = stats.evaluation !== undefined ? stats.evaluation : null;
+        if(evalValue !== null){
+          moveBadge.style.color = evalValue >= 0 ? '#34d399' : '#ff6b6b';
+          moveBadge.title = `Evaluation: ${evalValue >= 0 ? '+' : ''}${evalValue}`;
+        }
+      }
+      
+      // Move info (in body)
+      const moveElem = document.getElementById('statMove');
+      if(moveElem) moveElem.textContent = stats.best_move || '--';
+      
+      const evalElem = document.getElementById('statEval');
+      if(evalElem && stats.evaluation !== undefined){
+        const evalText = (stats.evaluation >= 0 ? '+' : '') + stats.evaluation;
+        evalElem.textContent = evalText;
+        evalElem.style.color = stats.evaluation >= 0 ? '#34d399' : '#ff6b6b';
+      }
+      
+      // Performance metrics
+      const timeElem = document.getElementById('statTime');
+      if(timeElem) timeElem.textContent = stats.total_time_ms ? stats.total_time_ms.toFixed(0) + 'ms' : '--';
+      
+      const depthElem = document.getElementById('statDepth');
+      if(depthElem) depthElem.textContent = stats.depth_reached ? stats.depth_reached + '' : '--';
+      
+      // Node statistics
+      const nodesElem = document.getElementById('statNodesSearched');
+      if(nodesElem) nodesElem.textContent = stats.nodes_searched ? 
+        (stats.nodes_searched >= 1000 ? (stats.nodes_searched/1000).toFixed(1) + 'K' : stats.nodes_searched) : '--';
+      
+      const prunedElem = document.getElementById('statNodesPruned');
+      if(prunedElem) prunedElem.textContent = stats.nodes_pruned ? 
+        (stats.nodes_pruned >= 1000 ? (stats.nodes_pruned/1000).toFixed(1) + 'K' : stats.nodes_pruned) : '--';
+      
+      const effElem = document.getElementById('statPruningEff');
+      if(effElem) effElem.textContent = stats.pruning_efficiency !== undefined ? 
+        stats.pruning_efficiency.toFixed(1) + '%' : '--%';
+      
+      // Pruning efficiency bar (animated)
+      const pruningBar = document.getElementById('pruningBar');
+      if(pruningBar && stats.pruning_efficiency !== undefined){
+        setTimeout(() => {
+          pruningBar.style.width = Math.min(100, stats.pruning_efficiency) + '%';
+        }, 100);
+      }
+      
+      // Optimizations (compact display)
+      const nullElem = document.getElementById('statNullMove');
+      if(nullElem) nullElem.textContent = formatCompactNumber(stats.null_move_cuts);
+      
+      const futElem = document.getElementById('statFutility');
+      if(futElem) futElem.textContent = formatCompactNumber(stats.futility_cuts);
+      
+      const lmrElem = document.getElementById('statLMR');
+      if(lmrElem) lmrElem.textContent = formatCompactNumber(stats.lmr_reductions);
+      
+      const mcElem = document.getElementById('statMultiCut');
+      if(mcElem) mcElem.textContent = formatCompactNumber(stats.multi_cut_prunes);
+      
+      // NPS (nodes per second)
+      const npsElem = document.getElementById('statNPS');
+      if(npsElem) npsElem.textContent = stats.nodes_per_second ? 
+        (stats.nodes_per_second / 1000).toFixed(0) + 'K' : '--';
+      
+      // Iterations
+      const iterElem = document.getElementById('statIterations');
+      if(iterElem) iterElem.textContent = stats.iterations_completed || '--';
+      
+      // Aspiration windows
+      const aspElem = document.getElementById('statAspirationRate');
+      if(aspElem) aspElem.textContent = stats.aspiration_success_rate !== undefined ? 
+        stats.aspiration_success_rate.toFixed(0) + '%' : '--%';
+      
+      // Transposition table
+      const ttElem = document.getElementById('statTTRate');
+      if(ttElem) ttElem.textContent = stats.tt_hit_rate !== undefined ? 
+        stats.tt_hit_rate.toFixed(1) + '%' : '--%';
+      
+      // Show stats section
+      statsDashboard.style.display = 'block';
+      statsVisible = true;
+      
+      // Show and update "Hide Stats" button in header
+      if(toggleAiStatsBtn){
+        toggleAiStatsBtn.style.display = 'inline-flex';
+        if(toggleAiStatsText) toggleAiStatsText.textContent = 'Hide Stats';
+        if(toggleAiStatsIcon){
+          toggleAiStatsIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>';
+        }
+      }
+    }
+    
+    // Helper: Format number compactly
+    function formatCompactNumber(num){
+      if(num === undefined || num === null) return '0';
+      if(num >= 1000) return (num/1000).toFixed(1) + 'K';
+      return num.toString();
+    }
+    
+    // Make function globally available
+    window.showAIStatisticsDashboard = showAIStatisticsDashboard;
   </script>
 </body>
 </html>

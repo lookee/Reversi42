@@ -31,6 +31,7 @@ Then open your browser at: **http://localhost:8000**
 1. **Choose your AI opponent** from the web interface
 2. **Click on valid squares** to make your move
 3. **Objective:** Capture as many opponent pieces as possible
+4. **Opening hints** (golden badges) can be toggled on/off with the book button 📚
 
 ### Basic Rules
 
