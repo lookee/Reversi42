@@ -1377,10 +1377,11 @@ function setupPlayersUI(){
         tag: p.tag,
         icon: p.icon,
         category: p.category,
+        directory: p.directory,  // NEW: Directory tag from file location
         elo: p.elo,
         stats: p.stats,  // null for human players
         avatar_url: p.avatar_url,
-        config_tags: p.config_tags || []
+        config_tags: p.config_tags || []  // Already includes directory tag as first element
       }));
       
       playersLoaded = true;

@@ -736,6 +736,7 @@ async def get_all_players():
                 metadata = player_info.get('metadata', {})
                 config = player_info.get('config', {})
                 stats = metadata.get('stats', {})
+                directory_category = player_info.get('directory_category')  # NEW: From PlayerDiscovery
                 
                 # Construct avatar URL if avatar field exists
                 avatar_url = None
@@ -765,9 +766,16 @@ async def get_all_players():
                 category = metadata.get('category', 'unknown')
                 is_human = (category == 'human')
                 
-                # Build detailed tags list (only for AI players)
+                # Build detailed tags list
                 tags = []
                 
+                # Add directory category as first tag (if available)
+                if directory_category:
+                    # Capitalize and format nicely (e.g., "gladiators" -> "Gladiators")
+                    formatted_dir = directory_category.replace('_', ' ').title()
+                    tags.append(formatted_dir)
+                
+                # Add AI-specific tags only for AI players
                 if not is_human:
                     # Depth strategy tag
                     strategy = depth_config.get('strategy', 'unknown')
@@ -852,10 +860,11 @@ async def get_all_players():
                     "tag": player_tag,
                     "icon": metadata.get('icon', '🤖'),
                     "category": metadata.get('category', 'unknown'),
+                    "directory": directory_category,  # NEW: Directory tag from file location
                     "elo": metadata.get('estimated_elo'),
                     "stats": player_stats,  # None for human players
                     "avatar_url": avatar_url,
-                    "config_tags": tags  # Empty for human players
+                    "config_tags": tags  # Includes directory tag + config tags
                 })
                 
             except Exception as e:

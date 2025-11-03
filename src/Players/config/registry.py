@@ -139,11 +139,12 @@ class PlayerRegistry:
             metadata = config.get('metadata', {})
             player_name = metadata.get('name', config_file.name)
             
-            # Store player info
+            # Store player info (include directory category from discovery)
             self._players[player_name] = {
                 'config': config,
                 'config_file': config_file,
                 'metadata': metadata,
+                'directory_category': config_file.category,  # NEW: Directory tag (e.g., "gladiators")
                 'loaded_at': self._get_timestamp()
             }
             
