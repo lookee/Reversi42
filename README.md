@@ -15,7 +15,7 @@ Website: https://www.lucaamore.com
 
 ## 📖 Description
 
-Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ultra-fast bitboard AI, interactive opening book learning, and comprehensive competitive features. The **3.2.0 release** modernizes the interface with a web-based UI while removing legacy pygame and terminal views.
+Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ultra-fast bitboard AI, interactive opening book learning, and comprehensive competitive features. The modern release modernizes the interface with a web-based UI while removing legacy pygame and terminal views.
 
 ### 🌟 What's New in 5.0.0
 
@@ -55,15 +55,17 @@ Reversi42 is a tournament-grade implementation of Reversi (Othello) featuring ul
 - 🌐 **Web Interface** - Modern browser-based UI with real-time updates (NEW in 3.2.0)
 - ⚡ **Ultra-Fast Bitboard AI** - 50-100x faster than standard implementation
 - 🤖 **11 AI Gladiators** - Epic opponents with unique personalities and strategies
-- 🎛️ **No-Code AI Creation** - Create custom AIs via YAML (no programming required!)
-- 📝 **200+ Configuration Parameters** - Fine-tune every aspect of AI behavior
-- 🔧 **Extreme Configurability** - Depth, strategy, evaluators, pruning, and more
+- 🎛️ **No-Code AI Creation** - Build players via YAML configuration (zero programming!)
+- 📝 **200+ Configuration Parameters** - Each player configurable through ~200 YAML parameters
+- 🔧 **Complete AI Customization** - Depth (4-16), 3 strategies, 4 evaluator presets, pruning, parallelization
+- 🎨 **4 Evaluation Presets** - Balanced, Aggressive, Defensive, Endgame Specialist
+- 🧠 **AI Reasoning Insights** - Verbose logging shows thinking process, search statistics, and evaluation scores
 - 📚 **Opening Book System** - 644 professional opening sequences
 - 🏆 **Tournament System** - Run AI competitions and benchmarks
 - 💾 **Save/Load** - XOT (eXtended Othello Transcript) format
 - 🎯 **Clean Architecture** - SOLID principles, metadata-driven player system
 - 📊 **Real-time Statistics** - Move history, timing, book usage
-- 🔌 **WebSocket Communication** - Instant game state synchronization
+- 🔌 **WebSocket Communication** - Bi-directional real-time game state and AI insights via WebSocket
 - 💻 **Python Library** - Use as library for custom integrations
 - 🚀 **Easy Deployment** - Single command to start server
 
