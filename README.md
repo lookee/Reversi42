@@ -482,15 +482,28 @@ behavior:
     max_time_ms: 3000         # Hard time limit
   
   logging:
-    level: "verbose"          # quiet | normal | verbose
-    show_statistics: true     # Display search stats
-    show_thinking: true       # Show search progress
-    show_evaluation: true     # Show position scores
+    level: "verbose"          # quiet | normal | verbose | debug
+    show_statistics: true     # Display search stats (nodes, depth, time)
+    show_thinking: true       # Show search progress in real-time
+    show_evaluation: true     # Show position evaluation scores
   
   randomization:
     enabled: false
     temperature: 0.0          # 0.0 = deterministic, >0 = varied
 ```
+
+**AI Reasoning Insights**: Enable verbose logging to see:
+- 🔍 **Search Progress** - Real-time depth and node counts
+- 📊 **Evaluation Scores** - Position values for each move considered
+- 🎯 **Best Move Analysis** - Why the AI chose specific moves
+- ⏱️ **Performance Metrics** - Nodes per second, cache hit rates
+- 📈 **Search Statistics** - Alpha-beta cutoffs, pruning effectiveness
+
+**WebSocket Integration**: All AI insights stream in real-time via WebSocket:
+- Bi-directional communication with web interface
+- Live updates during AI thinking
+- Interactive game state synchronization
+- Move-by-move analysis available to frontend
 
 ### 🚀 Creating Your Own AI (3 Simple Steps)
 
@@ -544,6 +557,14 @@ python start_game.py --list-players
 - **Evaluators**: Parity ×2.0, Stability ×1.5
 - **Preset**: Endgame Specialist
 - **Result**: Varies, ELO ~1850
+
+#### Learning/Analysis Mode (Educational)
+- **Depth**: 7 (iterative)
+- **Logging**: Verbose (all insights enabled)
+- **Display**: show_statistics, show_thinking, show_evaluation all TRUE
+- **Opening Book**: show_options enabled
+- **Result**: Perfect for understanding AI decision-making
+- **WebSocket**: Real-time AI reasoning streamed to web interface
 
 ### 🎓 Configuration Resources
 
