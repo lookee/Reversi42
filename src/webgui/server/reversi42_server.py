@@ -720,6 +720,149 @@ async def get_player_config(player_name: str):
             "player_name": player_name
         }
 
+@app.get("/api/players")
+async def get_all_players():
+    """Get list of all available players with their metadata - ALL from YAML configs"""
+    try:
+        from Players.config import PlayerRegistry
+        registry = PlayerRegistry()
+        
+        players = []
+        
+        # Get ALL players from registry (including Human Player if it has a YAML file)
+        for player_name in registry.list_players():
+            try:
+                player_info = registry.get_player_info(player_name)
+                metadata = player_info.get('metadata', {})
+                config = player_info.get('config', {})
+                stats = metadata.get('stats', {})
+                
+                # Construct avatar URL if avatar field exists
+                avatar_url = None
+                if 'avatar' in metadata:
+                    avatar_path = metadata['avatar']
+                    # Convert relative path to API endpoint
+                    # Path is relative to project root, e.g., "avatars/default.png"
+                    # We need to serve it from /api/avatar/{player_name}
+                    if avatar_path:
+                        avatar_url = f"/api/avatar/{player_name}"
+                
+                # Extract detailed configuration info for tags
+                engine_config = config.get('engine', {})
+                depth_config = engine_config.get('depth', {})
+                eval_config = config.get('evaluation', {})
+                pruning_config = config.get('pruning', {})
+                parallel_config = engine_config.get('parallel', {})
+                book_config = config.get('opening_book', {})
+                behavior_config = config.get('behavior', {})
+                
+                # Determine if this is Human or AI from category
+                category = metadata.get('category', 'unknown')
+                is_human = (category == 'human')
+                
+                # Build detailed tags list (only for AI players)
+                tags = []
+                
+                if not is_human:
+                    # Depth strategy tag
+                    strategy = depth_config.get('strategy', 'unknown')
+                    base_depth = depth_config.get('base', 5)
+                    if strategy == 'iterative':
+                        tags.append(f"Iterative Depth {base_depth}")
+                    elif strategy == 'adaptive':
+                        adaptive = depth_config.get('adaptive', {})
+                        tags.append(f"Adaptive {adaptive.get('opening', 6)}-{adaptive.get('endgame', 12)}")
+                    elif strategy == 'fixed':
+                        tags.append(f"Fixed Depth {base_depth}")
+                    elif strategy != 'human':
+                        tags.append(f"Depth {base_depth}")
+                    
+                    # Parallelization tag
+                    if parallel_config.get('enabled', False):
+                        workers = parallel_config.get('num_workers', 'auto')
+                        tags.append(f"Parallel {workers} cores" if workers != 'auto' else "Multi-threaded")
+                    else:
+                        tags.append("Single-threaded")
+                    
+                    # Evaluation preset tag
+                    preset = eval_config.get('preset')
+                    if preset:
+                        tags.append(f"{preset.capitalize()} Eval")
+                    
+                    # Opening book strategy
+                    if book_config.get('enabled', False):
+                        book_strategy = book_config.get('strategy', 'instant')
+                        if book_strategy == 'instant':
+                            tags.append("Book Instant")
+                        elif book_strategy == 'evaluated':
+                            tags.append("Book Evaluated")
+                        else:
+                            tags.append("Book Enabled")
+                    
+                    # Pruning techniques count
+                    pruning_count = sum([
+                        1 for key in ['null_move', 'futility', 'late_move_reduction', 'multi_cut']
+                        if pruning_config.get(key, {}).get('enabled', False)
+                    ])
+                    if pruning_count > 0:
+                        tags.append(f"{pruning_count} Pruning")
+                    
+                    # Transposition table
+                    tt_config = engine_config.get('transposition_table', {})
+                    if tt_config.get('enabled', False):
+                        tt_size = tt_config.get('size_mb', 128)
+                        tags.append(f"TT {tt_size}MB")
+                    
+                    # Speed indicator from think time
+                    time_config = behavior_config.get('time', {})
+                    think_time = time_config.get('think_time_ms', 0)
+                    if think_time == 0:
+                        tags.append("Instant")
+                    elif think_time < 100:
+                        tags.append("Very Fast")
+                    elif think_time < 1000:
+                        tags.append("Fast")
+                    else:
+                        tags.append("Contemplative")
+                
+                # Determine tag based on category
+                player_tag = "HUMAN" if is_human else "AI"
+                
+                # Build stats only if they exist (not for human players)
+                player_stats = None
+                if stats and not is_human:
+                    player_stats = {
+                        "power": stats.get('power', 5),
+                        "speed": stats.get('speed', 5),
+                        "accuracy": stats.get('accuracy', 5),
+                        "depth": stats.get('depth', 5),
+                        "lethality": stats.get('lethality', 5)
+                    }
+                
+                players.append({
+                    "name": player_name,
+                    "display_name": metadata.get('display_name', player_name),
+                    "description": metadata.get('description', ''),
+                    "headline": metadata.get('headline', ''),
+                    "tag": player_tag,
+                    "icon": metadata.get('icon', '🤖'),
+                    "category": metadata.get('category', 'unknown'),
+                    "elo": metadata.get('estimated_elo'),
+                    "stats": player_stats,  # None for human players
+                    "avatar_url": avatar_url,
+                    "config_tags": tags  # Empty for human players
+                })
+                
+            except Exception as e:
+                logger.error(f"Error loading player {player_name}: {e}")
+                continue
+        
+        return {"players": players}
+        
+    except Exception as e:
+        logger.error(f"Error loading players list: {e}")
+        return {"error": str(e), "players": []}
+
 @app.get("/api/game-config")
 async def get_game_config():
     """Get game configuration from config/game.yaml"""

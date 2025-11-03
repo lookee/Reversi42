@@ -1,0 +1,101 @@
+# ============================================================================
+# HUMAN PLAYER - Local Human Control
+# ============================================================================
+# Local human player configuration
+# 
+# Strategy: Manual control by local player
+# Target: Any level (human skill)
+# Speed: Depends on human decision time
+# Best for: Learning, practicing, casual play, tournament play
+# ============================================================================
+
+metadata:
+  name: "Human Player"
+  display_name: "Human Player"
+  description: "Local human player - Take control yourself"
+  headline: "THE ULTIMATE CHALLENGE"
+  enabled: true
+  icon: "👤"
+  
+  # Avatar: Human player icon
+  # Path is relative to config/players/enabled/
+  avatar: "../avatar/human.png"
+  
+  category: "human"
+  estimated_elo: null  # Human skill varies (not applicable)
+  
+  # Note: Human players don't have AI stats - skill is unknown/variable
+  # stats section intentionally omitted
+
+# Note: Human player doesn't use AI configs, but validator requires them
+# All AI-specific fields are set to minimal/disabled values
+engine:
+  depth:
+    base: 1  # Minimum value accepted by validator (not used)
+    strategy: "fixed"
+  
+  parallel:
+    enabled: false
+    num_workers: 1
+  
+  transposition_table:
+    enabled: false
+  
+  aspiration_windows:
+    enabled: false
+
+evaluation:
+  preset: "balanced"  # Not used for human, but validator requires it
+
+move_ordering:
+  strategies: []
+
+pruning:
+  null_move:
+    enabled: false
+  
+  futility:
+    enabled: false
+  
+  late_move_reduction:
+    enabled: false
+  
+  multi_cut:
+    enabled: false
+
+opening_book:
+  enabled: false
+
+behavior:
+  time:
+    think_time_ms: 0
+    max_time_ms: null
+  
+  logging:
+    level: "quiet"
+    show_statistics: false
+    show_thinking: false
+    show_evaluation: false
+  
+  randomization:
+    enabled: false
+    temperature: 0.0
+
+advanced:
+  quiescence:
+    enabled: false
+  
+  singular_extension:
+    enabled: false
+  
+  razoring:
+    enabled: false
+  
+  iid:
+    enabled: false
+  
+  debug:
+    validate_moves: false
+    track_nodes: false
+    export_search_tree: false
+

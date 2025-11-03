@@ -326,22 +326,492 @@ html,body{
   padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
 .modalTitle{font-weight:800; letter-spacing:.02em}
 .modalBody{padding:18px; color:var(--muted); font-size:14px; max-height:70vh; overflow:auto}
-/* Players grid */
-.playersGrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px}
-.playerCard{border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); border-radius:12px; padding:12px; cursor:pointer; transition:all .2s ease}
-.playerCard:hover{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18)}
-.playerCard.ai{background:linear-gradient(135deg, rgba(59,130,246,.08), rgba(139,92,246,.08)); border-color:rgba(96,165,250,.25)}
-.playerCard.ai:hover{background:linear-gradient(135deg, rgba(59,130,246,.12), rgba(139,92,246,.12)); border-color:rgba(96,165,250,.35)}
-.playerCard.human{background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.45); box-shadow:0 0 0 1px rgba(16,185,129,.25) inset}
-.playerCard.human .playerName{color:#e8f2eb}
-.playerCard.ai .playerName{color:#bfdbfe}
-.playerHead{display:flex; align-items:center; justify-content:space-between; gap:10px}
-.playerName{font-weight:800; color:var(--txt); letter-spacing:.02em}
-.playerTag{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--muted); font-size:11px; padding:2px 6px; border-radius:999px}
-.playerTag.human{color:#34d399; background:rgba(16,185,129,.16); border-color:rgba(16,185,129,.45)}
-.playerTag.ai{color:#93c5fd; background:rgba(59,130,246,.16); border-color:rgba(59,130,246,.45)}
-.playerDesc{margin-top:8px; font-size:12px; color:var(--muted)}
-.playerMeta{margin-top:6px; font-size:11px; color:#a7f3d0}
+
+/* ========================================
+   EPIC PLAYERS MODAL - Enhanced Player Selection
+   ======================================== */
+#playersModal .modalCard{
+  width:min(1200px,95vw);
+  max-height:90vh;
+  display:flex;
+  flex-direction:column
+}
+#playersModal .modalBody{
+  max-height:calc(90vh - 80px);
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:24px
+}
+
+/* Players grid - Responsive with larger cards */
+.playersGrid{
+  display:grid; 
+  grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); 
+  gap:20px;
+  padding:4px
+}
+
+/* Epic Player Card */
+.playerCard{
+  border:1px solid rgba(255,255,255,.12); 
+  background:linear-gradient(145deg, rgba(16,24,32,.95), rgba(10,15,20,.98));
+  border-radius:16px; 
+  padding:20px; 
+  cursor:pointer; 
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 4px 12px rgba(0,0,0,.3)
+}
+
+/* Animated glow effect on hover */
+.playerCard::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:100%;
+  height:100%;
+  background:linear-gradient(90deg, transparent, rgba(139,92,246,.1), transparent);
+  transition:left 0.6s ease;
+  pointer-events:none
+}
+.playerCard:hover::before{
+  left:100%
+}
+
+.playerCard:hover{
+  transform:translateY(-4px) scale(1.02);
+  box-shadow:0 12px 32px rgba(139,92,246,.4), 
+             0 0 0 1px rgba(139,92,246,.3) inset;
+  border-color:rgba(139,92,246,.6)
+}
+
+/* Human player styling */
+.playerCard.human{
+  background:linear-gradient(145deg, rgba(16,50,40,.95), rgba(10,30,25,.98));
+  border-color:rgba(16,185,129,.35)
+}
+.playerCard.human:hover{
+  box-shadow:0 12px 32px rgba(16,185,129,.4),
+             0 0 0 1px rgba(16,185,129,.3) inset;
+  border-color:rgba(16,185,129,.7)
+}
+
+/* AI player styling - Category-based */
+.playerCard.ai.champion{
+  background:linear-gradient(145deg, rgba(50,10,30,.95), rgba(30,5,20,.98));
+  border-color:rgba(236,72,153,.35)
+}
+.playerCard.ai.champion:hover{
+  box-shadow:0 12px 32px rgba(236,72,153,.5),
+             0 0 0 1px rgba(236,72,153,.4) inset;
+  border-color:rgba(236,72,153,.8)
+}
+
+.playerCard.ai.premium{
+  background:linear-gradient(145deg, rgba(30,20,50,.95), rgba(20,10,35,.98));
+  border-color:rgba(139,92,246,.35)
+}
+.playerCard.ai.premium:hover{
+  box-shadow:0 12px 32px rgba(139,92,246,.5),
+             0 0 0 1px rgba(139,92,246,.4) inset;
+  border-color:rgba(139,92,246,.8)
+}
+
+.playerCard.ai.specialist{
+  background:linear-gradient(145deg, rgba(20,30,50,.95), rgba(10,20,35,.98));
+  border-color:rgba(59,130,246,.35)
+}
+.playerCard.ai.specialist:hover{
+  box-shadow:0 12px 32px rgba(59,130,246,.5),
+             0 0 0 1px rgba(59,130,246,.4) inset;
+  border-color:rgba(59,130,246,.8)
+}
+
+.playerCard.ai.intermediate{
+  background:linear-gradient(145deg, rgba(40,35,15,.95), rgba(25,20,10,.98));
+  border-color:rgba(251,191,36,.35)
+}
+.playerCard.ai.intermediate:hover{
+  box-shadow:0 12px 32px rgba(251,191,36,.5),
+             0 0 0 1px rgba(251,191,36,.4) inset;
+  border-color:rgba(251,191,36,.8)
+}
+
+/* Player card header with avatar */
+.playerCardHeader{
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  margin-bottom:16px
+}
+
+/* Player avatar - board style */
+.playerAvatar{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-weight:900;
+  font-size:26px;
+  letter-spacing:.5px;
+  color:#e6f6ec;
+  border:3px solid rgba(255,255,255,.2);
+  box-shadow:0 6px 20px rgba(0,0,0,.4), 
+             0 3px 10px rgba(0,0,0,.3);
+  overflow:hidden;
+  position:relative;
+  flex-shrink:0;
+  transition:all .3s ease
+}
+
+.playerCard:hover .playerAvatar{
+  transform:rotate(360deg) scale(1.05);
+  box-shadow:0 8px 28px rgba(139,92,246,.6),
+             0 0 0 3px rgba(139,92,246,.4)
+}
+
+.playerAvatar.human{
+  background:radial-gradient(circle at 35% 35%, #10b981, #059669)
+}
+.playerAvatar.ai{
+  background:radial-gradient(circle at 35% 35%, #8b5cf6, #6d28d9)
+}
+.playerAvatar.champion{
+  background:radial-gradient(circle at 35% 35%, #ec4899, #be185d)
+}
+.playerAvatar.premium{
+  background:radial-gradient(circle at 35% 35%, #8b5cf6, #6d28d9)
+}
+.playerAvatar.specialist{
+  background:radial-gradient(circle at 35% 35%, #3b82f6, #1d4ed8)
+}
+.playerAvatar.intermediate{
+  background:radial-gradient(circle at 35% 35%, #fbbf24, #d97706)
+}
+
+.playerAvatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+/* Player info section */
+.playerInfo{
+  flex:1;
+  min-width:0
+}
+
+.playerName{
+  font-weight:900;
+  font-size:18px;
+  color:var(--txt);
+  letter-spacing:.03em;
+  line-height:1.2;
+  margin-bottom:4px;
+  text-shadow:0 2px 8px rgba(139,92,246,.3)
+}
+
+.playerHeadline{
+  font-size:11px;
+  font-weight:700;
+  color:rgba(139,92,246,.9);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-bottom:8px;
+  text-shadow:0 0 12px rgba(139,92,246,.5)
+}
+
+.playerCard.human .playerHeadline{
+  color:rgba(16,185,129,.9);
+  text-shadow:0 0 12px rgba(16,185,129,.5)
+}
+
+.playerCard.champion .playerHeadline{
+  color:rgba(236,72,153,.9);
+  text-shadow:0 0 12px rgba(236,72,153,.5)
+}
+
+.playerCard.intermediate .playerHeadline{
+  color:rgba(251,191,36,.9);
+  text-shadow:0 0 12px rgba(251,191,36,.5)
+}
+
+.playerTags{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap
+}
+
+.playerTag{
+  border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08);
+  color:var(--muted);
+  font-size:10px;
+  font-weight:700;
+  padding:3px 8px;
+  border-radius:999px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  white-space:nowrap
+}
+
+.playerTag.human{
+  color:#34d399;
+  background:rgba(16,185,129,.2);
+  border-color:rgba(16,185,129,.5)
+}
+
+.playerTag.ai{
+  color:#a78bfa;
+  background:rgba(139,92,246,.2);
+  border-color:rgba(139,92,246,.5)
+}
+
+.playerTag.champion{
+  color:#f9a8d4;
+  background:rgba(236,72,153,.2);
+  border-color:rgba(236,72,153,.5)
+}
+
+.playerTag.premium{
+  color:#c4b5fd;
+  background:rgba(139,92,246,.2);
+  border-color:rgba(139,92,246,.5)
+}
+
+.playerTag.specialist{
+  color:#93c5fd;
+  background:rgba(59,130,246,.2);
+  border-color:rgba(59,130,246,.5)
+}
+
+.playerTag.intermediate{
+  color:#fcd34d;
+  background:rgba(251,191,36,.2);
+  border-color:rgba(251,191,36,.5)
+}
+
+.playerDesc{
+  margin-top:12px;
+  font-size:13px;
+  line-height:1.5;
+  color:rgba(255,255,255,.65)
+}
+
+/* Player config tags - Technical details from YAML */
+.playerConfigTags{
+  margin-top:12px;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  padding:10px 0;
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06)
+}
+
+.configTag{
+  font-size:9px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  padding:4px 8px;
+  border-radius:4px;
+  background:rgba(59,130,246,.12);
+  color:rgba(147,197,253,.9);
+  border:1px solid rgba(59,130,246,.3);
+  white-space:nowrap;
+  transition:all .2s ease
+}
+
+.configTag:hover{
+  background:rgba(59,130,246,.2);
+  border-color:rgba(59,130,246,.5);
+  transform:translateY(-1px);
+  box-shadow:0 2px 6px rgba(59,130,246,.3)
+}
+
+/* Special colors for specific tag types */
+.configTag:nth-child(1){
+  background:rgba(236,72,153,.12);
+  color:rgba(249,168,212,.9);
+  border-color:rgba(236,72,153,.3)
+}
+.configTag:nth-child(1):hover{
+  background:rgba(236,72,153,.2);
+  border-color:rgba(236,72,153,.5);
+  box-shadow:0 2px 6px rgba(236,72,153,.3)
+}
+
+.configTag:nth-child(2){
+  background:rgba(251,191,36,.12);
+  color:rgba(252,211,77,.9);
+  border-color:rgba(251,191,36,.3)
+}
+.configTag:nth-child(2):hover{
+  background:rgba(251,191,36,.2);
+  border-color:rgba(251,191,36,.5);
+  box-shadow:0 2px 6px rgba(251,191,36,.3)
+}
+
+.configTag:nth-child(3){
+  background:rgba(16,185,129,.12);
+  color:rgba(52,211,153,.9);
+  border-color:rgba(16,185,129,.3)
+}
+.configTag:nth-child(3):hover{
+  background:rgba(16,185,129,.2);
+  border-color:rgba(16,185,129,.5);
+  box-shadow:0 2px 6px rgba(16,185,129,.3)
+}
+
+/* Player stats - Visual bars */
+.playerStats{
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.08)
+}
+
+.statRow{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px
+}
+
+.statRow:last-child{
+  margin-bottom:0
+}
+
+.statLabel{
+  font-size:11px;
+  font-weight:700;
+  color:rgba(255,255,255,.5);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  width:70px;
+  flex-shrink:0
+}
+
+.statBarContainer{
+  flex:1;
+  height:6px;
+  background:rgba(255,255,255,.08);
+  border-radius:3px;
+  overflow:hidden;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.3)
+}
+
+.statBar{
+  height:100%;
+  background:linear-gradient(90deg, rgba(139,92,246,.8), rgba(139,92,246,1));
+  border-radius:3px;
+  transition:width .6s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 0 8px rgba(139,92,246,.6)
+}
+
+.statValue{
+  font-size:12px;
+  font-weight:900;
+  color:rgba(255,255,255,.9);
+  min-width:24px;
+  text-align:right;
+  font-variant-numeric:tabular-nums
+}
+
+/* Color variations for different stat types */
+.statBar.power{background:linear-gradient(90deg, rgba(236,72,153,.8), rgba(236,72,153,1)); box-shadow:0 0 8px rgba(236,72,153,.6)}
+.statBar.speed{background:linear-gradient(90deg, rgba(251,191,36,.8), rgba(251,191,36,1)); box-shadow:0 0 8px rgba(251,191,36,.6)}
+.statBar.accuracy{background:linear-gradient(90deg, rgba(16,185,129,.8), rgba(16,185,129,1)); box-shadow:0 0 8px rgba(16,185,129,.6)}
+.statBar.depth{background:linear-gradient(90deg, rgba(59,130,246,.8), rgba(59,130,246,1)); box-shadow:0 0 8px rgba(59,130,246,.6)}
+.statBar.lethality{background:linear-gradient(90deg, rgba(239,68,68,.8), rgba(239,68,68,1)); box-shadow:0 0 8px rgba(239,68,68,.6)}
+
+/* Player meta info - ELO and category */
+.playerMeta{
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:11px;
+  color:rgba(255,255,255,.5);
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.06)
+}
+
+.playerElo{
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  color:rgba(251,191,36,.9);
+  text-shadow:0 0 8px rgba(251,191,36,.5);
+  font-size:14px
+}
+
+.playerCategory{
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.08em
+}
+
+/* Scroll styling */
+#playersModal .modalBody::-webkit-scrollbar{width:10px}
+#playersModal .modalBody::-webkit-scrollbar-track{background:rgba(0,0,0,.3); border-radius:5px}
+#playersModal .modalBody::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg, rgba(139,92,246,.6), rgba(139,92,246,.8));
+  border-radius:5px;
+  border:2px solid rgba(0,0,0,.3)
+}
+#playersModal .modalBody::-webkit-scrollbar-thumb:hover{
+  background:linear-gradient(180deg, rgba(139,92,246,.8), rgba(139,92,246,1))
+}
+
+/* Icon in player card */
+.playerIcon{
+  position:absolute;
+  top:16px;
+  right:16px;
+  font-size:32px;
+  opacity:.15;
+  pointer-events:none;
+  transition:all .3s ease
+}
+
+.playerCard:hover .playerIcon{
+  opacity:.3;
+  transform:rotate(15deg) scale(1.1)
+}
+
+/* Epic fade-in animation for player cards */
+@keyframes playerCardFadeIn{
+  from{
+    opacity:0;
+    transform:translateY(20px) scale(0.95)
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1)
+  }
+}
+
+.playerCard{
+  animation:playerCardFadeIn 0.4s cubic-bezier(.4,0,.2,1) backwards
+}
+
+/* Stagger animation delays */
+.playerCard:nth-child(1){animation-delay:0ms}
+.playerCard:nth-child(2){animation-delay:50ms}
+.playerCard:nth-child(3){animation-delay:100ms}
+.playerCard:nth-child(4){animation-delay:150ms}
+.playerCard:nth-child(5){animation-delay:200ms}
+.playerCard:nth-child(6){animation-delay:250ms}
+.playerCard:nth-child(7){animation-delay:300ms}
+.playerCard:nth-child(8){animation-delay:350ms}
+.playerCard:nth-child(9){animation-delay:400ms}
+.playerCard:nth-child(10){animation-delay:450ms}
+.playerCard:nth-child(11){animation-delay:500ms}
+.playerCard:nth-child(12){animation-delay:550ms}
+.playerCard:nth-child(n+13){animation-delay:600ms}
 
 /* ========================================
    CODE EDITOR - CodeMirror

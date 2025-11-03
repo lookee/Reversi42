@@ -1258,40 +1258,202 @@ function setupPlayersUI(){
   const btnW = document.getElementById('changeWhiteBtn');
   const list = document.getElementById('playersList');
   const title = document.getElementById('playersTitle');
+  const subtitle = document.getElementById('playersSubtitle');
   let currentSide = 'W';
 
-  const AVAILABLE_PLAYERS = [
-    { name:'Human Player', desc:'Giocatore umano locale', tag:'HUMAN' },
-    { name:'Apocalyptron', desc:'Ultimate AI - All optimizations', tag:'AI', meta:'Depth 9 (default)' },
-    { name:'DIVZERO.EXE', desc:'Ultimate Singularity - The Perfect Player', tag:'AI', meta:'Adaptive depth · 8 cores' },
-    { name:'LIGHTNING STRIKE', desc:'Blitz Master - Speed Above All', tag:'AI', meta:'<100ms · Depth 4' },
-    { name:'THE STRANGLER', desc:'Mobility Assassin', tag:'AI', meta:'Aggressive mobility control' },
-    { name:'FORTRESS ETERNAL', desc:'Defensive Master', tag:'AI', meta:'Stability and structure' },
-    { name:'CORNER REAPER', desc:'Corner Specialist', tag:'AI', meta:'Corner-first strategy' },
-    { name:'THE ORACLE', desc:'Endgame Prophet', tag:'AI', meta:'Endgame precision' },
-    { name:'BLITZ DEMON', desc:'Speed Incarnate', tag:'AI', meta:'Ultra-fast responses' },
-    { name:'THE EXECUTIONER', desc:'Ruthless Destroyer', tag:'AI', meta:'Decisive tactics' },
-    { name:'GLITCH_LORD', desc:'Chaotic Anomaly', tag:'AI', meta:'Unorthodox play' },
-    { name:'ZEN MASTER', desc:'Enlightened One', tag:'AI', meta:'Balanced harmony' },
-  ];
+  // Players loaded ONLY from API - NO hardcoded data
+  let AVAILABLE_PLAYERS = [];
+  let playersLoaded = false;
+  
+  // Load players from API - ONLY source of truth
+  async function loadPlayersFromAPI(){
+    if(playersLoaded) return;
+    
+    try{
+      console.log('📡 Loading players from API (YAML configs)...');
+      const response = await fetch('http://localhost:8000/api/players');
+      
+      if(!response.ok){
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if(data.error){
+        throw new Error(data.error);
+      }
+      
+      if(!data.players || !Array.isArray(data.players)){
+        throw new Error('Invalid API response format');
+      }
+      
+      AVAILABLE_PLAYERS = data.players.map(p => ({
+        name: p.name,
+        desc: p.description,
+        headline: p.headline,
+        tag: p.tag,
+        icon: p.icon,
+        category: p.category,
+        elo: p.elo,
+        stats: p.stats,  // null for human players
+        avatar_url: p.avatar_url,
+        config_tags: p.config_tags || []
+      }));
+      
+      playersLoaded = true;
+      console.log(`✅ Loaded ${AVAILABLE_PLAYERS.length} players from YAML configs`);
+      
+    } catch(error){
+      console.error('❌ Failed to load players from API:', error);
+      console.error('Please ensure the server is running on http://localhost:8000');
+      
+      // Show user-friendly error
+      showToast('Failed to load players. Check server connection.');
+      
+      // Re-throw to prevent showing empty list
+      throw error;
+    }
+  }
 
-  function renderPlayers(side){
+  async function renderPlayers(side){
     if(!list) return;
+    
+    // Load players if not yet loaded
+    try{
+      await loadPlayersFromAPI();
+    } catch(error){
+      // Show error message in list
+      list.innerHTML = `
+        <div style="grid-column:1/-1; text-align:center; padding:40px; color:rgba(255,255,255,.6)">
+          <div style="font-size:48px; margin-bottom:16px">⚠️</div>
+          <div style="font-size:18px; font-weight:700; margin-bottom:8px; color:var(--txt)">Failed to Load Players</div>
+          <div style="font-size:13px; margin-bottom:16px">Please ensure the server is running on port 8000</div>
+          <div style="font-size:12px; font-family:monospace; color:rgba(255,68,68,.8)">${error.message}</div>
+        </div>
+      `;
+      return;
+    }
+    
     list.innerHTML = '';
+    
+    // Check if we have players
+    if(AVAILABLE_PLAYERS.length === 0){
+      list.innerHTML = `
+        <div style="grid-column:1/-1; text-align:center; padding:40px; color:rgba(255,255,255,.6)">
+          <div style="font-size:48px; margin-bottom:16px">🎮</div>
+          <div style="font-size:18px; font-weight:700; margin-bottom:8px; color:var(--txt)">No Players Found</div>
+          <div style="font-size:13px">Check your YAML configuration files</div>
+        </div>
+      `;
+      return;
+    }
+    
+    // Update subtitle based on side
+    if(subtitle){
+      subtitle.textContent = side === 'B' ? 'Choose Black Player · Dark Side' : 'Choose White Player · Light Side';
+    }
+    
+    // Sort players: Human first, then AI by ELO descending
+    const sortedPlayers = [...AVAILABLE_PLAYERS].sort((a, b) => {
+      // Human always first
+      if(a.tag === 'HUMAN') return -1;
+      if(b.tag === 'HUMAN') return 1;
+      // Then by ELO descending
+      return (b.elo || 0) - (a.elo || 0);
+    });
+    
     const frag = document.createDocumentFragment();
-    AVAILABLE_PLAYERS.forEach(p=>{
+    sortedPlayers.forEach(p=>{
       const card = document.createElement('div');
       card.className = 'playerCard';
+      
+      // Add type and category classes
       if(p.tag === 'HUMAN') card.classList.add('human');
       if(p.tag === 'AI') card.classList.add('ai');
+      if(p.category) card.classList.add(p.category);
+      
+      // Generate avatar content (image or initials)
+      const initials = p.name.split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase();
+      let avatarContent = initials;
+      if(p.avatar_url){
+        avatarContent = `<img src="${p.avatar_url}" alt="${p.name}" onerror="this.style.display='none'; this.parentElement.textContent='${initials}'">`;
+      }
+      
+      // Build stats HTML (only for AI players with stats)
+      const statsHTML = (p.stats && p.tag !== 'HUMAN') ? `
+        <div class="playerStats">
+          <div class="statRow">
+            <div class="statLabel">Power</div>
+            <div class="statBarContainer">
+              <div class="statBar power" style="width:${p.stats.power * 10}%"></div>
+            </div>
+            <div class="statValue">${p.stats.power}</div>
+          </div>
+          <div class="statRow">
+            <div class="statLabel">Speed</div>
+            <div class="statBarContainer">
+              <div class="statBar speed" style="width:${p.stats.speed * 10}%"></div>
+            </div>
+            <div class="statValue">${p.stats.speed}</div>
+          </div>
+          <div class="statRow">
+            <div class="statLabel">Accuracy</div>
+            <div class="statBarContainer">
+              <div class="statBar accuracy" style="width:${p.stats.accuracy * 10}%"></div>
+            </div>
+            <div class="statValue">${p.stats.accuracy}</div>
+          </div>
+          <div class="statRow">
+            <div class="statLabel">Depth</div>
+            <div class="statBarContainer">
+              <div class="statBar depth" style="width:${p.stats.depth * 10}%"></div>
+            </div>
+            <div class="statValue">${p.stats.depth}</div>
+          </div>
+          <div class="statRow">
+            <div class="statLabel">Lethality</div>
+            <div class="statBarContainer">
+              <div class="statBar lethality" style="width:${p.stats.lethality * 10}%"></div>
+            </div>
+            <div class="statValue">${p.stats.lethality}</div>
+          </div>
+        </div>
+      ` : '';
+      
+      // Build meta HTML
+      const metaHTML = `
+        <div class="playerMeta">
+          ${p.elo ? `<div class="playerElo">ELO ${p.elo}</div>` : '<div style="color:rgba(255,255,255,.4); font-style:italic; font-size:11px">Human Player</div>'}
+          <div class="playerCategory">${p.category || 'Unknown'}</div>
+        </div>
+      `;
+      
+      // Build config tags HTML
+      const configTagsHTML = (p.config_tags && p.config_tags.length > 0) ? `
+        <div class="playerConfigTags">
+          ${p.config_tags.map(tag => `<div class="configTag">${tag}</div>`).join('')}
+        </div>
+      ` : '';
+      
       card.innerHTML = `
-        <div class="playerHead">
-          <div class="playerName">${p.name}</div>
-          <div class="playerTag${p.tag==='HUMAN' ? ' human' : (p.tag==='AI' ? ' ai' : '')}">${p.tag}</div>
+        ${p.icon ? `<div class="playerIcon">${p.icon}</div>` : ''}
+        <div class="playerCardHeader">
+          <div class="playerAvatar ${p.tag === 'HUMAN' ? 'human' : (p.category || 'ai')}">${avatarContent}</div>
+          <div class="playerInfo">
+            <div class="playerName">${p.name}</div>
+            ${p.headline ? `<div class="playerHeadline">${p.headline}</div>` : ''}
+            <div class="playerTags">
+              <div class="playerTag ${p.tag === 'HUMAN' ? 'human' : 'ai'}">${p.tag}</div>
+              ${p.category ? `<div class="playerTag ${p.category}">${p.category}</div>` : ''}
+            </div>
+          </div>
         </div>
         <div class="playerDesc">${p.desc}</div>
-        ${p.meta ? `<div class="playerMeta">${p.meta}</div>` : ''}
+        ${configTagsHTML}
+        ${statsHTML}
+        ${metaHTML}
       `;
+      
       card.addEventListener('click', ()=> applySelection(side, p));
       frag.appendChild(card);
     });
@@ -1300,7 +1462,9 @@ function setupPlayersUI(){
 
   function open(side){
     currentSide = side || 'W';
-    if(title){ title.textContent = `Players · ${currentSide==='B'?'Black':'White'}`; }
+    if(title){ 
+      title.textContent = currentSide === 'B' ? 'Select Black Player' : 'Select White Player';
+    }
     renderPlayers(currentSide);
     if(overlay){ overlay.style.display = 'flex'; }
   }
