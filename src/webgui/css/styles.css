@@ -343,6 +343,77 @@ html,body{
   padding:24px
 }
 
+/* Filter counter and controls */
+.filterControls{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:linear-gradient(180deg, rgba(11,18,16,.98), rgba(11,18,16,.95));
+  backdrop-filter:blur(8px);
+  padding:12px 16px;
+  margin:-24px -24px 16px -24px;
+  border-bottom:1px solid rgba(139,92,246,.3);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,.3)
+}
+
+.filterInfo{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:rgba(255,255,255,.7)
+}
+
+.filterCount{
+  font-weight:700;
+  color:rgba(59,130,246,.9);
+  font-size:14px
+}
+
+.clearFiltersBtn{
+  border:1px solid rgba(239,68,68,.4);
+  background:rgba(239,68,68,.12);
+  color:rgba(248,113,113,.9);
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  padding:6px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:all .2s ease;
+  white-space:nowrap
+}
+
+.clearFiltersBtn:hover{
+  background:rgba(239,68,68,.25);
+  border-color:rgba(239,68,68,.7);
+  color:#fff;
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(239,68,68,.4)
+}
+
+.clearFiltersBtn:active{
+  transform:scale(0.95)
+}
+
+.clearFiltersBtn:disabled{
+  opacity:0.3;
+  cursor:not-allowed;
+  transform:none
+}
+
+.clearFiltersBtn:disabled:hover{
+  background:rgba(239,68,68,.12);
+  border-color:rgba(239,68,68,.4);
+  transform:none;
+  box-shadow:none
+}
+
 /* Players grid - Responsive with larger cards */
 .playersGrid{
   display:grid; 
@@ -362,6 +433,14 @@ html,body{
   position:relative;
   overflow:hidden;
   box-shadow:0 4px 12px rgba(0,0,0,.3)
+}
+
+/* Filtered out cards */
+.playerCard.filtered-out{
+  opacity:0.3;
+  pointer-events:none;
+  transform:scale(0.95);
+  filter:grayscale(0.5)
 }
 
 /* Animated glow effect on hover */
@@ -495,7 +574,9 @@ html,body{
 .playerAvatar img{
   width:100%;
   height:100%;
-  object-fit:cover
+  object-fit:cover;
+  display:block;
+  border-radius:50%
 }
 
 /* Player info section */
@@ -555,7 +636,19 @@ html,body{
   border-radius:999px;
   text-transform:uppercase;
   letter-spacing:.05em;
-  white-space:nowrap
+  white-space:nowrap;
+  cursor:pointer;
+  transition:all .2s ease;
+  user-select:none
+}
+
+.playerTag:hover{
+  transform:scale(1.05);
+  box-shadow:0 2px 8px rgba(139,92,246,.3)
+}
+
+.playerTag:active{
+  transform:scale(0.95)
 }
 
 .playerTag.human{
@@ -563,11 +656,23 @@ html,body{
   background:rgba(16,185,129,.2);
   border-color:rgba(16,185,129,.5)
 }
+.playerTag.human.active{
+  background:rgba(16,185,129,.45);
+  border-color:rgba(16,185,129,.9);
+  color:#fff;
+  box-shadow:0 0 16px rgba(16,185,129,.7)
+}
 
 .playerTag.ai{
   color:#a78bfa;
   background:rgba(139,92,246,.2);
   border-color:rgba(139,92,246,.5)
+}
+.playerTag.ai.active{
+  background:rgba(139,92,246,.45);
+  border-color:rgba(139,92,246,.9);
+  color:#fff;
+  box-shadow:0 0 16px rgba(139,92,246,.7)
 }
 
 .playerTag.champion{
@@ -575,11 +680,23 @@ html,body{
   background:rgba(236,72,153,.2);
   border-color:rgba(236,72,153,.5)
 }
+.playerTag.champion.active{
+  background:rgba(236,72,153,.45);
+  border-color:rgba(236,72,153,.9);
+  color:#fff;
+  box-shadow:0 0 16px rgba(236,72,153,.7)
+}
 
 .playerTag.premium{
   color:#c4b5fd;
   background:rgba(139,92,246,.2);
   border-color:rgba(139,92,246,.5)
+}
+.playerTag.premium.active{
+  background:rgba(139,92,246,.45);
+  border-color:rgba(139,92,246,.9);
+  color:#fff;
+  box-shadow:0 0 16px rgba(139,92,246,.7)
 }
 
 .playerTag.specialist{
@@ -587,11 +704,47 @@ html,body{
   background:rgba(59,130,246,.2);
   border-color:rgba(59,130,246,.5)
 }
+.playerTag.specialist.active{
+  background:rgba(59,130,246,.45);
+  border-color:rgba(59,130,246,.9);
+  color:#fff;
+  box-shadow:0 0 16px rgba(59,130,246,.7)
+}
 
 .playerTag.intermediate{
   color:#fcd34d;
   background:rgba(251,191,36,.2);
   border-color:rgba(251,191,36,.5)
+}
+.playerTag.intermediate.active{
+  background:rgba(251,191,36,.45);
+  border-color:rgba(251,191,36,.9);
+  color:#fff;
+  box-shadow:0 0 16px rgba(251,191,36,.7)
+}
+
+.playerTag.beginner{
+  color:#fcd34d;
+  background:rgba(251,191,36,.2);
+  border-color:rgba(251,191,36,.5)
+}
+.playerTag.beginner.active{
+  background:rgba(251,191,36,.45);
+  border-color:rgba(251,191,36,.9);
+  color:#fff;
+  box-shadow:0 0 16px rgba(251,191,36,.7)
+}
+
+.playerTag.advanced{
+  color:#93c5fd;
+  background:rgba(59,130,246,.2);
+  border-color:rgba(59,130,246,.5)
+}
+.playerTag.advanced.active{
+  background:rgba(59,130,246,.45);
+  border-color:rgba(59,130,246,.9);
+  color:#fff;
+  box-shadow:0 0 16px rgba(59,130,246,.7)
 }
 
 .playerDesc{
@@ -623,7 +776,9 @@ html,body{
   color:rgba(147,197,253,.9);
   border:1px solid rgba(59,130,246,.3);
   white-space:nowrap;
-  transition:all .2s ease
+  transition:all .2s ease;
+  cursor:pointer;
+  user-select:none
 }
 
 .configTag:hover{
@@ -631,6 +786,18 @@ html,body{
   border-color:rgba(59,130,246,.5);
   transform:translateY(-1px);
   box-shadow:0 2px 6px rgba(59,130,246,.3)
+}
+
+.configTag.active{
+  background:rgba(59,130,246,.35);
+  border-color:rgba(59,130,246,.8);
+  color:#fff;
+  box-shadow:0 0 12px rgba(59,130,246,.6), 0 2px 8px rgba(59,130,246,.4);
+  transform:scale(1.05)
+}
+
+.configTag:active{
+  transform:scale(0.95)
 }
 
 /* Special colors for specific tag types */
@@ -644,6 +811,11 @@ html,body{
   border-color:rgba(236,72,153,.5);
   box-shadow:0 2px 6px rgba(236,72,153,.3)
 }
+.configTag:nth-child(1).active{
+  background:rgba(236,72,153,.45);
+  border-color:rgba(236,72,153,.9);
+  box-shadow:0 0 16px rgba(236,72,153,.7)
+}
 
 .configTag:nth-child(2){
   background:rgba(251,191,36,.12);
@@ -655,6 +827,11 @@ html,body{
   border-color:rgba(251,191,36,.5);
   box-shadow:0 2px 6px rgba(251,191,36,.3)
 }
+.configTag:nth-child(2).active{
+  background:rgba(251,191,36,.45);
+  border-color:rgba(251,191,36,.9);
+  box-shadow:0 0 16px rgba(251,191,36,.7)
+}
 
 .configTag:nth-child(3){
   background:rgba(16,185,129,.12);
@@ -665,6 +842,11 @@ html,body{
   background:rgba(16,185,129,.2);
   border-color:rgba(16,185,129,.5);
   box-shadow:0 2px 6px rgba(16,185,129,.3)
+}
+.configTag:nth-child(3).active{
+  background:rgba(16,185,129,.45);
+  border-color:rgba(16,185,129,.9);
+  box-shadow:0 0 16px rgba(16,185,129,.7)
 }
 
 /* Player stats - Visual bars */

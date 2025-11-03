@@ -741,11 +741,16 @@ async def get_all_players():
                 avatar_url = None
                 if 'avatar' in metadata:
                     avatar_path = metadata['avatar']
-                    # Convert relative path to API endpoint
-                    # Path is relative to project root, e.g., "avatars/default.png"
-                    # We need to serve it from /api/avatar/{player_name}
+                    # avatar_path is relative to config/players/enabled/ or config/players/enabled/gladiators/
+                    # Examples: 
+                    #   - "../avatar/human.png" (from human_player.yaml)
+                    #   - "avatars/default.png" (from gladiators/*.yaml)
                     if avatar_path:
-                        avatar_url = f"/api/avatar/{player_name}"
+                        # Extract just the filename
+                        import os
+                        filename = os.path.basename(avatar_path)
+                        # Use /avatars/ endpoint which serves from multiple locations
+                        avatar_url = f"/avatars/{filename}"
                 
                 # Extract detailed configuration info for tags
                 engine_config = config.get('engine', {})

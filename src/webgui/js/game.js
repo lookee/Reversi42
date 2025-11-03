@@ -1265,6 +1265,89 @@ function setupPlayersUI(){
   let AVAILABLE_PLAYERS = [];
   let playersLoaded = false;
   
+  // Active filters for tags
+  let activeTagFilters = new Set();
+  
+  // Toggle tag filter
+  function toggleTagFilter(tagName){
+    if(activeTagFilters.has(tagName)){
+      activeTagFilters.delete(tagName);
+    } else {
+      activeTagFilters.add(tagName);
+    }
+    updateFilters();
+  }
+  
+  // Update filtered cards based on active tags
+  function updateFilters(){
+    const cards = list.querySelectorAll('.playerCard');
+    let visibleCount = 0;
+    
+    cards.forEach(card => {
+      if(activeTagFilters.size === 0){
+        // No filters active - show all
+        card.classList.remove('filtered-out');
+        visibleCount++;
+      } else {
+        // Check if card has any of the active tags
+        const cardTags = card.dataset.tags ? card.dataset.tags.split('|') : [];
+        const hasActiveTag = cardTags.some(tag => activeTagFilters.has(tag));
+        
+        if(hasActiveTag){
+          card.classList.remove('filtered-out');
+          visibleCount++;
+        } else {
+          card.classList.add('filtered-out');
+        }
+      }
+    });
+    
+    // Update filter controls
+    updateFilterControls(visibleCount, cards.length);
+    
+    // Update active state on ALL tags (configTag and playerTag)
+    document.querySelectorAll('.configTag, .playerTag').forEach(tagEl => {
+      const tagName = tagEl.dataset.tag;
+      if(tagName && activeTagFilters.has(tagName)){
+        tagEl.classList.add('active');
+      } else {
+        tagEl.classList.remove('active');
+      }
+    });
+  }
+  
+  // Update filter controls UI
+  function updateFilterControls(visibleCount, totalCount){
+    let controlsDiv = document.getElementById('filterControls');
+    if(!controlsDiv){
+      controlsDiv = document.createElement('div');
+      controlsDiv.id = 'filterControls';
+      controlsDiv.className = 'filterControls';
+      list.parentElement.insertBefore(controlsDiv, list);
+    }
+    
+    const hasFilters = activeTagFilters.size > 0;
+    const filterNames = Array.from(activeTagFilters).join(', ');
+    
+    controlsDiv.innerHTML = `
+      <div class="filterInfo">
+        <span>Showing <span class="filterCount">${visibleCount}</span> of ${totalCount} players</span>
+        ${hasFilters ? `<span style="color:rgba(59,130,246,.8)">• Filters: ${filterNames}</span>` : ''}
+      </div>
+      <button class="clearFiltersBtn" onclick="clearAllFilters()" ${!hasFilters ? 'disabled' : ''}>
+        ✕ Clear Filters
+      </button>
+    `;
+    
+    controlsDiv.style.display = hasFilters || visibleCount !== totalCount ? 'flex' : 'none';
+  }
+  
+  // Clear all filters
+  window.clearAllFilters = function(){
+    activeTagFilters.clear();
+    updateFilters();
+  };
+  
   // Load players from API - ONLY source of truth
   async function loadPlayersFromAPI(){
     if(playersLoaded) return;
@@ -1302,6 +1385,7 @@ function setupPlayersUI(){
       
       playersLoaded = true;
       console.log(`✅ Loaded ${AVAILABLE_PLAYERS.length} players from YAML configs`);
+      console.log('Players with avatars:', AVAILABLE_PLAYERS.filter(p => p.avatar_url).map(p => `${p.name}: ${p.avatar_url}`));
       
     } catch(error){
       console.error('❌ Failed to load players from API:', error);
@@ -1376,7 +1460,8 @@ function setupPlayersUI(){
       const initials = p.name.split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase();
       let avatarContent = initials;
       if(p.avatar_url){
-        avatarContent = `<img src="${p.avatar_url}" alt="${p.name}" onerror="this.style.display='none'; this.parentElement.textContent='${initials}'">`;
+        console.log(`Loading avatar for ${p.name}: ${p.avatar_url}`);
+        avatarContent = `<img src="${p.avatar_url}" alt="${p.name}" style="display:block" onerror="console.error('Avatar failed for ${p.name}:', this.src); this.style.display='none'; this.parentElement.innerHTML='${initials}';">`;
       }
       
       // Build stats HTML (only for AI players with stats)
@@ -1428,12 +1513,19 @@ function setupPlayersUI(){
         </div>
       `;
       
-      // Build config tags HTML
+      // Build config tags HTML with click handlers
       const configTagsHTML = (p.config_tags && p.config_tags.length > 0) ? `
         <div class="playerConfigTags">
-          ${p.config_tags.map(tag => `<div class="configTag">${tag}</div>`).join('')}
+          ${p.config_tags.map(tag => `<div class="configTag" data-tag="${tag}">${tag}</div>`).join('')}
         </div>
       ` : '';
+      
+      // Store all tags in data attribute for filtering (include category and config tags)
+      const allTags = [];
+      if(p.category) allTags.push(p.category);
+      if(p.tag) allTags.push(p.tag);
+      if(p.config_tags) allTags.push(...p.config_tags);
+      card.dataset.tags = allTags.join('|');
       
       card.innerHTML = `
         ${p.icon ? `<div class="playerIcon">${p.icon}</div>` : ''}
@@ -1443,8 +1535,8 @@ function setupPlayersUI(){
             <div class="playerName">${p.name}</div>
             ${p.headline ? `<div class="playerHeadline">${p.headline}</div>` : ''}
             <div class="playerTags">
-              <div class="playerTag ${p.tag === 'HUMAN' ? 'human' : 'ai'}">${p.tag}</div>
-              ${p.category ? `<div class="playerTag ${p.category}">${p.category}</div>` : ''}
+              <div class="playerTag ${p.tag === 'HUMAN' ? 'human' : 'ai'}" data-tag="${p.tag}">${p.tag}</div>
+              ${p.category ? `<div class="playerTag ${p.category}" data-tag="${p.category}">${p.category}</div>` : ''}
             </div>
           </div>
         </div>
@@ -1454,10 +1546,26 @@ function setupPlayersUI(){
         ${metaHTML}
       `;
       
-      card.addEventListener('click', ()=> applySelection(side, p));
+      // Add click handler for player selection (not on tags)
+      card.addEventListener('click', (e)=> {
+        // If clicking on any tag (configTag or playerTag), handle filter instead
+        if(e.target.classList.contains('configTag') || e.target.classList.contains('playerTag')){
+          e.stopPropagation();
+          const tagName = e.target.dataset.tag;
+          if(tagName){
+            toggleTagFilter(tagName);
+          }
+        } else {
+          applySelection(side, p);
+        }
+      });
+      
       frag.appendChild(card);
     });
     list.appendChild(frag);
+    
+    // Initialize filter controls (hidden by default)
+    updateFilterControls(sortedPlayers.length, sortedPlayers.length);
   }
 
   function open(side){
@@ -1465,6 +1573,10 @@ function setupPlayersUI(){
     if(title){ 
       title.textContent = currentSide === 'B' ? 'Select Black Player' : 'Select White Player';
     }
+    
+    // Reset filters when opening modal
+    activeTagFilters.clear();
+    
     renderPlayers(currentSide);
     if(overlay){ overlay.style.display = 'flex'; }
   }
