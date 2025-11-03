@@ -59,7 +59,7 @@ html,body{
   background: rgba(0, 0, 0, 0.88);
   -webkit-backdrop-filter: blur(4px);  /* Safari */
   backdrop-filter: blur(4px);
-  z-index: 2000;
+  z-index: 100000;  /* Above player menu (99998) */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -523,7 +523,58 @@ html,body{
   display:flex;
   align-items:flex-start;
   gap:16px;
-  margin-bottom:16px
+  margin-bottom:16px;
+  position:relative
+}
+
+/* Config button in player card - Bottom center */
+.playerConfigBtn{
+  margin-top:16px;
+  padding:8px 16px;
+  border-radius:8px;
+  background:rgba(139,92,246,.15);
+  border:1px solid rgba(139,92,246,.4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  cursor:pointer;
+  transition:all .2s ease;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  color:rgba(196,181,253,.9)
+}
+
+.playerConfigBtn:hover{
+  background:rgba(139,92,246,.3);
+  border-color:rgba(139,92,246,.7);
+  transform:translateY(-2px);
+  box-shadow:0 4px 16px rgba(139,92,246,.5);
+  color:#fff
+}
+
+.playerConfigBtn:active{
+  transform:translateY(0);
+  box-shadow:0 2px 8px rgba(139,92,246,.4)
+}
+
+.playerConfigBtn svg{
+  width:16px;
+  height:16px;
+  stroke:currentColor;
+  stroke-width:2;
+  fill:none;
+  transition:transform .2s ease
+}
+
+.playerConfigBtn:hover svg{
+  transform:rotate(180deg)
+}
+
+.playerCard.human .playerConfigBtn{
+  display:none  /* Hide config button for human players */
 }
 
 /* Player avatar - board style */

@@ -1528,6 +1528,24 @@ function setupPlayersUI(){
       if(p.config_tags) allTags.push(...p.config_tags);
       card.dataset.tags = allTags.join('|');
       
+      // Config button (only for AI players) - placed at bottom
+      const configButtonHTML = p.tag !== 'HUMAN' ? `
+        <div class="playerConfigBtn" data-player="${p.name}" title="View Configuration">
+          <svg viewBox="0 0 24 24">
+            <path d="M7 4 Q5 12 7 20"/>
+            <path d="M17 4 Q19 12 17 20"/>
+            <line x1="7" y1="7" x2="17" y2="7" stroke-width="2.5"/>
+            <line x1="7" y1="12" x2="17" y2="12" stroke-width="2.5"/>
+            <line x1="7" y1="17" x2="17" y2="17" stroke-width="2.5"/>
+            <circle cx="7" cy="4" r="1.8" fill="currentColor"/>
+            <circle cx="17" cy="4" r="1.8" fill="currentColor"/>
+            <circle cx="7" cy="20" r="1.8" fill="currentColor"/>
+            <circle cx="17" cy="20" r="1.8" fill="currentColor"/>
+          </svg>
+          <span>View Config</span>
+        </div>
+      ` : '';
+      
       card.innerHTML = `
         ${p.icon ? `<div class="playerIcon">${p.icon}</div>` : ''}
         <div class="playerCardHeader">
@@ -1545,10 +1563,23 @@ function setupPlayersUI(){
         ${configTagsHTML}
         ${statsHTML}
         ${metaHTML}
+        ${configButtonHTML}
       `;
       
-      // Add click handler for player selection (not on tags)
+      // Add click handler for player selection (not on tags or config button)
       card.addEventListener('click', (e)=> {
+        // If clicking on config button, open config viewer
+        if(e.target.closest('.playerConfigBtn')){
+          e.stopPropagation();
+          const configBtn = e.target.closest('.playerConfigBtn');
+          const playerName = configBtn.dataset.player;
+          if(playerName && typeof openAIConfig === 'function'){
+            console.log(`Opening config for ${playerName}`);
+            openAIConfig(playerName);
+          }
+          return;
+        }
+        
         // If clicking on any tag (configTag or playerTag), handle filter instead
         if(e.target.classList.contains('configTag') || e.target.classList.contains('playerTag')){
           e.stopPropagation();
