@@ -17,9 +17,10 @@ from datetime import datetime
 from typing import Dict, Optional, Tuple
 
 # Add src to path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.dirname(current_dir)
-project_root = os.path.dirname(src_dir)
+current_dir = os.path.dirname(os.path.abspath(__file__))  # src/webgui/server
+webgui_dir = os.path.dirname(current_dir)  # src/webgui
+src_dir = os.path.dirname(webgui_dir)  # src
+project_root = os.path.dirname(src_dir)  # project root
 sys.path.insert(0, src_dir)
 sys.path.insert(0, project_root)
 
@@ -317,6 +318,20 @@ class GameSession:
             logger.warning(f"Could not build opening tree: {e}")
             return None
         
+    def _get_player_icon_and_avatar(self, player_name: str) -> tuple:
+        """Get player icon and avatar path from registry, or defaults"""
+        try:
+            from Players.config import PlayerRegistry
+            registry = PlayerRegistry()
+            player_info = registry.get_player_info(player_name)
+            metadata = player_info.get('metadata', {})
+            icon = metadata.get('icon', '🤖')  # Default AI icon emoji
+            avatar = metadata.get('avatar', None)  # Avatar image path
+            return icon, avatar
+        except Exception as e:
+            logger.debug(f"Could not get icon/avatar for {player_name}: {e}")
+            return '🤖', None  # Default AI icon, no avatar image
+    
     def get_state(self) -> dict:
         """Get current game state as dictionary in the format expected by the frontend"""
         game = self.game
@@ -413,6 +428,23 @@ class GameSession:
         except Exception as e:
             logger.warning(f"Opening tree error: {e}")
         
+        # Get player icons and avatars
+        if self.ai_black_name:
+            black_icon, black_avatar = self._get_player_icon_and_avatar(self.ai_black_name)
+            black_avatar_url = f"/avatars/{black_avatar.split('/')[-1]}" if black_avatar else None
+        else:
+            # Human player - use human.png from config/players/avatar/
+            black_icon = "👤"
+            black_avatar_url = "/avatars/human.png"
+            
+        if self.ai_white_name:
+            white_icon, white_avatar = self._get_player_icon_and_avatar(self.ai_white_name)
+            white_avatar_url = f"/avatars/{white_avatar.split('/')[-1]}" if white_avatar else None
+        else:
+            # Human player - use human.png from config/players/avatar/
+            white_icon = "👤"
+            white_avatar_url = "/avatars/human.png"
+        
         return {
             "meta": {
                 "variant": "Reversi/Othello",
@@ -422,12 +454,16 @@ class GameSession:
                 "black": {
                     "name": (self.ai_black_name or "Human"),
                     "avatar": (self.ai_black_name[:2].upper() if self.ai_black_name else "HM"),
+                    "icon": black_icon,
+                    "avatar_url": black_avatar_url,
                     "player_type": "ai" if self.ai_black_name else "human",
                     "ai_name": self.ai_black_name
                 },
                 "white": {
                     "name": (self.ai_white_name or "Human"),
                     "avatar": (self.ai_white_name[:2].upper() if self.ai_white_name else "HM"),
+                    "icon": white_icon,
+                    "avatar_url": white_avatar_url,
                     "player_type": "ai" if self.ai_white_name else "human",
                     "ai_name": self.ai_white_name
                 }
@@ -621,6 +657,40 @@ async def get_template(filename: str):
     if os.path.exists(template_file):
         return FileResponse(template_file, media_type="text/html")
     return HTMLResponse("Template not found", status_code=404)
+
+@app.get("/avatars/{filename}")
+async def get_avatar(filename: str):
+    """Serve player avatar images"""
+    # Try multiple locations for avatar files
+    avatar_locations = [
+        # First check config/players/avatar/ (for human.png)
+        os.path.join(project_root, "config", "players", "avatar", filename),
+        # Then check config/players/enabled/gladiators/avatars/ (for AI avatars)
+        os.path.join(project_root, "config", "players", "enabled", "gladiators", "avatars", filename)
+    ]
+    
+    avatar_file = None
+    for location in avatar_locations:
+        if os.path.exists(location):
+            avatar_file = location
+            break
+    
+    if avatar_file:
+        # Determine media type based on extension
+        if filename.endswith('.png'):
+            media_type = "image/png"
+        elif filename.endswith('.jpg') or filename.endswith('.jpeg'):
+            media_type = "image/jpeg"
+        elif filename.endswith('.gif'):
+            media_type = "image/gif"
+        elif filename.endswith('.webp'):
+            media_type = "image/webp"
+        else:
+            media_type = "application/octet-stream"
+        
+        return FileResponse(avatar_file, media_type=media_type)
+    
+    return HTMLResponse("Avatar not found", status_code=404)
 
 @app.get("/api/player-config/{player_name}")
 async def get_player_config(player_name: str):

@@ -159,9 +159,13 @@ html,body{
 /* ========================================
    UI COMPONENTS - Avatars
    ======================================== */
-.avatar{width:72px;height:72px;border-radius:14px;display:grid;place-items:center;font-weight:900;
+.avatar{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-weight:900;
         font-size:22px; letter-spacing:.5px;
-        color:#e6f6ec;border:1px solid rgba(255,255,255,.14);box-shadow:0 6px 18px rgba(16,185,129,.18)}
+        color:#e6f6ec;
+        border:2px solid rgba(255,255,255,.15);
+        box-shadow:0 4px 16px rgba(0,0,0,.3), 
+                   0 2px 8px rgba(0,0,0,.2);
+        overflow:hidden;position:relative}
 .avatar.b{background:radial-gradient(circle at 35% 35%, #0b9b70, #0a6c4f)}
 .avatar.w{background:radial-gradient(circle at 35% 35%, #9ba7a0, #636f69)}
 

@@ -6,8 +6,10 @@ This directory contains avatar images for all Gladiator AI players.
 
 ```
 avatars/
-├── default.png          # Default avatar (used by all players)
-└── README.md           # This file
+├── default.png          # Default avatar (used by AI players)
+├── human.png            # Human player avatar
+├── README.md            # This file
+└── HUMAN_AVATAR.md      # Human avatar customization guide
 ```
 
 ## 🎨 Avatar Specifications
@@ -17,6 +19,13 @@ avatars/
 - **Size:** 512×512 pixels (recommended)
 - **Format:** PNG with transparency
 - **Usage:** All Gladiators use this default avatar
+
+### Human Player Avatar
+- **File:** `human.png`
+- **Size:** 512×512 pixels (recommended)
+- **Format:** PNG with transparency
+- **Usage:** Displayed for human players in the game
+- **See:** `HUMAN_AVATAR.md` for customization guide
 
 ### Creating Custom Avatars
 

@@ -14,7 +14,7 @@ Architecture:
 import yaml
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from .validator import ConfigValidator
 from .exceptions import InvalidConfigError
 
@@ -121,7 +121,7 @@ class ConfigLoader:
         
         return config
     
-    def load_multiple(self, config_paths: list[Path], validate: bool = True) -> Dict[Path, Dict[str, Any]]:
+    def load_multiple(self, config_paths: List[Path], validate: bool = True) -> Dict[Path, Dict[str, Any]]:
         """
         Load multiple configuration files.
         

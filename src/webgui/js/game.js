@@ -216,14 +216,54 @@ function flashWebSocketActivity(){
 /* ========================================
    GAME STATE - Data Loading & Management
    ======================================== */
+
+function updatePlayerAvatar(elementId, playerData) {
+  /**
+   * Update player avatar - use image if available, otherwise icon/initials
+   * @param {string} elementId - ID of avatar element
+   * @param {object} playerData - Player data with avatar_url, icon, avatar, name
+   */
+  const avatarEl = qs(elementId);
+  if (!avatarEl) return;
+  
+  // Clear existing content
+  avatarEl.innerHTML = '';
+  
+  // Priority: avatar_url (image) > icon (emoji) > avatar (initials)
+  if (playerData?.avatar_url) {
+    // Use image
+    const img = document.createElement('img');
+    img.src = playerData.avatar_url;
+    img.alt = playerData.name || 'Player';
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'cover';
+    img.style.borderRadius = '50%';
+    // Fallback to icon if image fails to load
+    img.onerror = () => {
+      avatarEl.innerHTML = '';
+      avatarEl.textContent = playerData.icon || playerData.avatar || initials(playerData.name);
+    };
+    avatarEl.appendChild(img);
+  } else if (playerData?.icon) {
+    // Use icon emoji
+    avatarEl.textContent = playerData.icon;
+  } else {
+    // Use initials
+    avatarEl.textContent = playerData?.avatar || initials(playerData?.name);
+  }
+}
+
 function loadGameData(gameData){
   data = gameData;
 
   // Update header
   qs('p1Name').textContent   = data.players?.black?.name || '—';
   qs('p2Name').textContent   = data.players?.white?.name || '—';
-  qs('p1Avatar').textContent = data.players?.black?.avatar || initials(data.players?.black?.name);
-  qs('p2Avatar').textContent = data.players?.white?.avatar || initials(data.players?.white?.name);
+  
+  // Update avatars - use image if available, otherwise icon/initials
+  updatePlayerAvatar('p1Avatar', data.players?.black);
+  updatePlayerAvatar('p2Avatar', data.players?.white);
   
   // Show/hide AI config button for White player (if AI)
   const whitePlayerType = data.players?.white?.player_type;
@@ -464,8 +504,8 @@ function handleServerMessage(message){
       if(data.players?.white?.name){
         const p2Name = qs('p2Name');
         if(p2Name) p2Name.textContent = data.players.white.name;
-        const p2Avatar = qs('p2Avatar');
-        if(p2Avatar) p2Avatar.textContent = data.players.white.avatar || 'AI';
+        // Update avatar with image support
+        updatePlayerAvatar('p2Avatar', data.players.white);
         if(pendingSelectedAI && data.players.white.name === pendingSelectedAI){
           showToast(`AI set to ${pendingSelectedAI}`);
           pendingSelectedAI = null;

@@ -1,16 +1,208 @@
 # 🎓 Tutorial: Create Your Custom AI Player
 
-**Complete step-by-step guide to creating custom Reversi AI players using the Apocalyptron engine**
+**Complete step-by-step guide to creating custom Reversi AI players**
 
-**Difficulty**: Intermediate  
-**Time**: 30-60 minutes  
-**Prerequisites**: Basic Python knowledge
+**Two Methods Available:**
+1. **YAML Configuration** (RECOMMENDED) - No coding required! ✨
+2. **Python Programming** - For advanced customization
 
 ---
 
-## 📋 Table of Contents
+## 🎯 Method 1: YAML Configuration (RECOMMENDED)
 
-1. [Quick Start - Your First Custom Player](#quick-start)
+**Difficulty**: Beginner  
+**Time**: 15-30 minutes  
+**Prerequisites**: Basic text editor skills
+
+### ⚡ Why YAML?
+
+- ✅ **No coding required** - Just edit simple text values
+- ✅ **200+ parameters** - Complete control over AI behavior
+- ✅ **Auto-discovery** - Drop file in folder, instantly available
+- ✅ **Production-ready** - Same system used for all 11 built-in AIs
+- ✅ **Hot-reload** - Changes take effect on next game
+- ✅ **1,587-line template** - Every parameter documented
+
+### 🚀 Quick Start - YAML Method
+
+#### Step 1: Copy the Template
+
+```bash
+cp config/players/00_AI_CONFIG_TEMPLATE.yaml \
+   config/players/enabled/gladiators/my_custom_ai.yaml
+```
+
+#### Step 2: Edit Basic Metadata
+
+Open `my_custom_ai.yaml` and customize:
+
+```yaml
+metadata:
+  name: "MY AWESOME AI"
+  display_name: "My Awesome AI"
+  description: "My custom AI fighter"
+  headline: "AWESOME MODE ACTIVATED"
+  enabled: true
+  icon: "🤖"
+  category: "custom"
+  estimated_elo: 1600
+```
+
+#### Step 3: Configure Engine Settings
+
+```yaml
+engine:
+  depth:
+    base: 9                    # Search depth (4-16)
+    strategy: "iterative"      # fixed | iterative | adaptive
+  
+  parallel:
+    enabled: true
+    num_workers: 4             # Number of CPU cores to use
+  
+  transposition_table:
+    enabled: true
+    size_mb: 128               # Cache size
+```
+
+#### Step 4: Choose Playing Style
+
+**Option A: Use a Preset** (Easiest)
+```yaml
+evaluation:
+  preset: "balanced"           # balanced | aggressive | defensive | endgame_specialist
+```
+
+**Option B: Custom Weights** (Advanced)
+```yaml
+evaluation:
+  preset: null
+  evaluators:
+    - name: "mobility"
+      weight: 2.0              # 2x mobility = aggressive
+    - name: "positional"
+      weight: 1.5
+    - name: "stability"
+      weight: 1.0
+    - name: "parity"
+      weight: 1.0
+```
+
+#### Step 5: Enable Optimizations
+
+```yaml
+pruning:
+  null_move:
+    enabled: true              # 30-60% speedup
+  futility:
+    enabled: true              # 15-30% speedup
+  late_move_reduction:
+    enabled: true              # 40-80% speedup
+  multi_cut:
+    enabled: true              # 15-25% speedup
+```
+
+#### Step 6: Test Your AI
+
+```bash
+python start_game.py --list-players
+# You should see your AI in the list!
+
+# Play against it
+python start_game.py  # Then select your AI from the web interface
+```
+
+### 🎨 Configuration Examples
+
+#### Example 1: Speed Demon
+```yaml
+metadata:
+  name: "SPEED DEMON"
+  estimated_elo: 1400
+
+engine:
+  depth:
+    base: 5
+    strategy: "fixed"
+  parallel:
+    enabled: false
+
+evaluation:
+  preset: null
+  evaluators:
+    - name: "positional"
+      enabled: true
+      weight: 1.0
+    # All others disabled
+
+pruning:
+  # All disabled for simplicity
+```
+
+#### Example 2: Defensive Wall
+```yaml
+metadata:
+  name: "DEFENSIVE WALL"
+  estimated_elo: 1750
+
+engine:
+  depth:
+    base: 10
+    strategy: "iterative"
+
+evaluation:
+  preset: "defensive"
+
+pruning:
+  # All enabled
+```
+
+#### Example 3: Endgame Specialist
+```yaml
+metadata:
+  name: "ENDGAME MASTER"
+  estimated_elo: 1850
+
+engine:
+  depth:
+    base: 9
+    strategy: "adaptive"
+    adaptive:
+      opening: 7
+      midgame: 9
+      endgame: 14
+
+evaluation:
+  preset: "endgame_specialist"
+```
+
+### 📚 Complete Resources
+
+- **Full Template**: `config/players/00_AI_CONFIG_TEMPLATE.yaml` (1,587 lines)
+- **Configuration Guide**: `config/players/README.md`
+- **Player Directory**: `config/players/INDEX.md`
+- **11 Working Examples**: `config/players/enabled/gladiators/*.yaml`
+
+---
+
+## 🐍 Method 2: Python Programming (Advanced)
+
+**Difficulty**: Intermediate-Advanced  
+**Time**: 30-60 minutes  
+**Prerequisites**: Python programming knowledge
+
+### When to Use Python Method?
+
+- Need dynamic behavior based on game state
+- Want to implement custom evaluation functions
+- Require special move selection logic
+- Advanced research/experimentation
+
+---
+
+## 📋 Table of Contents (Python Method)
+
+1. [Quick Start - Python](#quick-start-python)
 2. [Understanding the Architecture](#architecture)
 3. [Configuration Options](#configuration-options)
 4. [Complete Examples](#complete-examples)
@@ -19,7 +211,7 @@
 
 ---
 
-## 🚀 Quick Start - Your First Custom Player
+## 🚀 Quick Start - Python Method {#quick-start-python}
 
 ### Step 1: Create the Player File
 

@@ -1,6 +1,61 @@
-# ⚔️ EPIC GLADIATORS - The 10 Legendary Fighters
+# ⚔️ EPIC GLADIATORS - The 11 Legendary Fighters
 
-Welcome to the Arena of Champions, where 10 legendary AI combatants await your challenge. Each gladiator possesses unique fighting styles, strengths, and weaknesses. Choose your opponent wisely...
+Welcome to the Arena of Champions, where 11 legendary AI combatants await your challenge. Each gladiator possesses unique fighting styles, strengths, and weaknesses. Choose your opponent wisely...
+
+## 🎛️ The Power of Configuration
+
+**What makes these gladiators truly special?** Every single one is defined by a YAML configuration file—**no Python code required!**
+
+### ⚡ Key Innovation
+
+- ✨ **Zero-Code Creation** - Each gladiator is a ~200-line YAML file
+- 🎨 **200+ Parameters** - Fine-tune every aspect of behavior  
+- 🔧 **Complete Customization** - Depth, evaluators, pruning, strategy
+- 📦 **Auto-Discovery** - Drop YAML in folder, instantly available
+- 🎯 **Production-Ready** - 11 fully-tuned configurations included
+
+### 📁 Configuration Location
+
+All gladiator configurations are in:
+```
+config/players/enabled/gladiators/
+├── divzero.yaml           # 💀 DIVZERO.EXE
+├── the_oracle.yaml        # 🔮 THE ORACLE
+├── fortress_eternal.yaml  # 🛡️ FORTRESS ETERNAL
+├── the_executioner.yaml   # ⚔️ THE EXECUTIONER
+├── the_strangler.yaml     # 🎯 THE STRANGLER
+├── corner_reaper.yaml     # 👑 CORNER REAPER
+├── glitch_lord.yaml       # 👾 GLITCH_LORD
+├── lightning_strike.yaml  # ⚡ LIGHTNING STRIKE
+├── blitz_demon.yaml       # 🔥 BLITZ DEMON
+├── zen_master.yaml        # 🧘 ZEN MASTER
+└── apocalyptron.yaml      # ⚡ APOCALYPTRON
+```
+
+### 🎓 Create Your Own Gladiator
+
+Want to create your own legendary fighter? It's incredibly simple:
+
+```bash
+# 1. Copy the comprehensive template
+cp config/players/00_AI_CONFIG_TEMPLATE.yaml \
+   config/players/enabled/gladiators/my_gladiator.yaml
+
+# 2. Edit the configuration (1,587 lines of documentation guide you!)
+vim config/players/enabled/gladiators/my_gladiator.yaml
+
+# 3. Your gladiator is auto-discovered on next startup!
+python start_game.py --list-players
+```
+
+**No coding knowledge required. Just edit simple YAML values!**
+
+### 📚 Configuration Resources
+
+- **Complete Template**: `config/players/00_AI_CONFIG_TEMPLATE.yaml` (1,587 lines)
+- **Configuration Guide**: `config/players/README.md`
+- **Player Directory**: `config/players/INDEX.md`
+- **System Architecture**: `docs/AI_CONFIGURATION_SYSTEM.md`
 
 ---
 

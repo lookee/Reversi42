@@ -76,11 +76,30 @@ Games are automatically saved in the `saves/` folder in XOT format (human-readab
 
 ---
 
+## 🎛️ Create Your Own AI (No Coding!)
+
+Want to create a custom AI? It's incredibly simple with our YAML configuration system:
+
+```bash
+# 1. Copy the template
+cp config/players/00_AI_CONFIG_TEMPLATE.yaml config/players/enabled/gladiators/my_ai.yaml
+
+# 2. Edit the YAML file with any text editor
+# 3. Your AI is auto-discovered on next startup!
+```
+
+**200+ parameters** to customize: depth, strategy, evaluators, speed, and more!
+
+See: [config/players/README.md](config/players/README.md) for the complete guide.
+
+---
+
 ## 📚 Want to Learn More?
 
 - **Complete README:** [README.md](README.md) - All features and documentation
 - **Documentation:** [docs/](docs/) - Detailed guides
 - **AI Gladiators:** [docs/EPIC_GLADIATORS.md](docs/EPIC_GLADIATORS.md) - Epic descriptions of all AIs
+- **AI Configuration:** [docs/AI_CONFIGURATION_SYSTEM.md](docs/AI_CONFIGURATION_SYSTEM.md) - Configuration system guide
 
 ---
 
