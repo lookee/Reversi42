@@ -1,14 +1,14 @@
-# Multi-stage Dockerfile for Reversi42
+# Multi-stage Dockerfile for Reversi42 WebGUI
 # Optimized for size and security
 
-# Build argument for version (passed during docker build)
-ARG VERSION=5.0.0
+# Build argument for version
+ARG VERSION=6.0.0
 
 # Stage 1: Builder
 FROM python:3.11-slim as builder
 
 LABEL maintainer="Luca Amore <luca.amore@gmail.com>"
-LABEL description="Reversi42 - Ultra-Fast Reversi/Othello with AI"
+LABEL description="Reversi42 - Ultra-Fast Reversi/Othello Web Game with AI"
 LABEL version="${VERSION}"
 
 WORKDIR /build
@@ -32,33 +32,34 @@ COPY --from=builder /root/.local /root/.local
 
 # Copy application code
 COPY src/ ./src/
-COPY reversi42 ./reversi42
-
-# Create directories for data
-RUN mkdir -p /app/saves /app/tournament/reports
+COPY config/ ./config/
 
 # Make sure scripts are in PATH
 ENV PATH=/root/.local/bin:$PATH
 
-# Set headless by default (no GUI in container)
-ENV REVERSI42_VIEW=headless
+# Python settings
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
 # Non-root user for security
 RUN useradd -m -u 1000 reversi && \
     chown -R reversi:reversi /app
 USER reversi
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD python -c "import src.Reversi.BitboardGame" || exit 1
+# Expose web server port
+EXPOSE 8000
 
-# Default command
-ENTRYPOINT ["python", "src/reversi42.py"]
-CMD ["--view", "headless"]
+# Health check - verify web server is responding
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000', timeout=2)" || exit 1
+
+# Default command - start web server
+ENTRYPOINT ["python", "-m", "src.webgui.server.reversi42_server"]
+CMD ["--port", "8000", "--host", "0.0.0.0", "--player", "DIVZERO.EXE"]
 
 # Metadata
-LABEL org.opencontainers.image.source="https://github.com/lucaamore/reversi42"
-LABEL org.opencontainers.image.description="Tournament-grade Reversi/Othello with ultra-fast AI"
+LABEL org.opencontainers.image.source="https://github.com/lookee/reversi42"
+LABEL org.opencontainers.image.description="Tournament-grade Reversi/Othello web game with ultra-fast AI"
 LABEL org.opencontainers.image.licenses="GPL-3.0"
-
+LABEL org.opencontainers.image.url="https://github.com/lookee/reversi42"
+LABEL org.opencontainers.image.documentation="https://github.com/lookee/reversi42/blob/main/README.md"
