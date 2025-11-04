@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.0] - 2025-11-04
+
+### 🎉 Major Release - Production-Ready Distribution
+
+This release makes Reversi42 fully distributable via PyPI and Docker, with professional packaging and deployment infrastructure.
+
+### Added
+
+- **🚀 CLI Entry Points** - Professional command-line interface
+  - `reversi42` - Start game with auto-open browser
+  - `reversi42-server` - Server-only mode (no browser)
+  - Full argument support: `--port`, `--host`, `--player`, `--list-players`, `--reload`, `--log-level`
+  - Graceful shutdown handling (SIGINT/SIGTERM)
+  - Version and help commands
+  - File: `src/webgui/cli.py`
+
+- **📦 Complete Package Configuration** - PyPI-ready
+  - All dependencies declared in `pyproject.toml`
+  - Entry points properly configured
+  - Package data includes all WebGUI assets (HTML, CSS, JS)
+  - Config files included as data files
+  - sdist and wheel build successfully
+
+- **🐳 Docker Support** - Container distribution
+  - GitHub Container Registry (GHCR) integration
+  - Multi-stage optimized build
+  - Automated image publishing on release
+
+- **🔄 GitHub Actions Release Workflow** - Automated releases
+  - Build Python packages (sdist + wheel)
+  - Build and push Docker images
+  - Create GitHub Releases with artifacts
+  - Publish to PyPI automatically on tag push
+  - Support for both `X.Y.Z` and `vX.Y.Z` tag formats
+
+### Changed
+
+- **📝 Updated pyproject.toml** - Modern Python packaging
+  - Dependencies moved from `requirements.txt` to `dependencies`
+  - Package data configuration for all assets
+  - Data files configuration for config YAMLs
+  - Entry points for CLI commands
+
+- **🔧 Fixed MANIFEST.in** - Complete asset inclusion
+  - WebGUI templates, CSS, JS included
+  - Player configuration YAMLs included
+  - Opening book data included
+
+### Fixed
+
+- **🐛 WebGUI Package Not Included** - Added `__init__.py` to webgui module
+- **🔗 Broken Symlink** - Removed broken `reversi42` symlink from root
+- **⚙️ Release Workflow** - Removed inappropriate PyInstaller build for web app
+- **📋 Entry Points** - Uncommented and properly configured CLI entry points
+
+### Removed
+
+- **❌ PyInstaller Build** - Removed from release workflow (not suitable for web apps)
+- **❌ DMG/AppImage/MSI** - Removed inappropriate desktop packaging
+
+### Installation (NEW)
+
+```bash
+# Option 1: PyPI (Recommended)
+pip install reversi42
+reversi42
+
+# Option 2: Docker
+docker run -p 8000:8000 ghcr.io/lucaamore/reversi42:6.0.0
+
+# Option 3: From source
+git clone https://github.com/lucaamore/reversi42
+cd reversi42
+pip install -e .
+reversi42
+```
+
+### Distribution Channels
+
+- 📦 **PyPI**: `pip install reversi42`
+- 🐳 **Docker**: `ghcr.io/lucaamore/reversi42:6.0.0`
+- 🐙 **GitHub**: Release artifacts with wheel and sdist
+
+### Breaking Changes
+
+None. This release is fully backward compatible with 5.0.0.
+
+---
+
+## [5.0.0] - 2025-11-03
+
 ### Added
 
 - **EnhancedOpeningBook - Advanced Opening Book System** 📚✨

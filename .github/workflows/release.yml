@@ -3,11 +3,12 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - '[0-9]+.[0-9]+.[0-9]+'  # Match: 5.0.0, 4.1.16, etc.
+      - 'v[0-9]+.[0-9]+.[0-9]+' # Match: v5.0.0 (supporto opzionale)
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., 3.1.0)'
+        description: 'Release version (e.g., 5.0.0)'
         required: true
         type: string
 
@@ -17,7 +18,7 @@ permissions:
 
 jobs:
   build-python-package:
-    name: Build Python Package
+    name: Build Python Package (sdist + wheels)
     runs-on: ubuntu-latest
     
     steps:
@@ -27,7 +28,7 @@ jobs:
         fetch-depth: 0
     
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     
@@ -36,13 +37,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install build twine wheel
     
-    - name: Build package
+    - name: Build sdist and wheel
       run: |
         python -m build
     
     - name: Check package
       run: |
         twine check dist/*
+        
+    - name: List built artifacts
+      run: |
+        echo "📦 Built packages:"
+        ls -lh dist/
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -51,87 +57,60 @@ jobs:
         path: dist/
         retention-days: 30
 
-  build-executables:
-    name: Build Executables - ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            artifact_name: reversi42-macos
-            asset_name: reversi42-macos.dmg
-          - os: windows-latest
-            artifact_name: reversi42-windows
-            asset_name: reversi42-windows.exe
-          - os: ubuntu-latest
-            artifact_name: reversi42-linux
-            asset_name: reversi42-linux.AppImage
+  build-docker-image:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: build-python-package
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v6
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
       with:
-        python-version: '3.11'
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Install dependencies
+    - name: Extract version
+      id: version
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          # Estrai versione dal tag (con o senza 'v' prefix)
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}  # Rimuovi 'v' se presente
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
     
-    - name: Build with PyInstaller (Unix)
-      if: runner.os != 'Windows'
-      run: |
-        pyinstaller --name reversi42 \
-          --onefile \
-          --windowed \
-          --add-data "src/Images:Images" \
-          --add-data "src/domain/knowledge/data:domain/knowledge/data" \
-          src/reversi42.py
-    
-    - name: Build with PyInstaller (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        pyinstaller --name reversi42 ^
-          --onefile ^
-          --windowed ^
-          --add-data "src/Images;Images" ^
-          --add-data "src/domain/knowledge/data;domain/knowledge/data" ^
-          src/reversi42.py
-    
-    - name: Create DMG (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        # Create DMG installer (simplified version)
-        mkdir -p dist/dmg
-        cp dist/reversi42 dist/dmg/
-        hdiutil create -volname "Reversi42" -srcfolder dist/dmg -ov -format UDZO dist/${{ matrix.asset_name }}
-    
-    - name: Create AppImage (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        # Simplified - would use appimagetool in production
-        mv dist/reversi42 dist/${{ matrix.asset_name }}
-        chmod +x dist/${{ matrix.asset_name }}
-    
-    - name: Rename executable (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        move dist\reversi42.exe dist\${{ matrix.asset_name }}
-    
-    - name: Upload executable
-      uses: actions/upload-artifact@v4
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
       with:
-        name: ${{ matrix.artifact_name }}
-        path: dist/${{ matrix.asset_name }}
-        retention-days: 30
+        context: .
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}:latest
+          ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+        labels: |
+          org.opencontainers.image.title=Reversi42
+          org.opencontainers.image.description=AI-Powered Reversi/Othello Web Game
+          org.opencontainers.image.url=https://github.com/${{ github.repository }}
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          org.opencontainers.image.version=${{ steps.version.outputs.version }}
+          org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+          org.opencontainers.image.revision=${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
   create-release:
     name: Create GitHub Release
-    needs: [build-python-package, build-executables]
+    needs: [build-python-package, build-docker-image]
     runs-on: ubuntu-latest
     
     steps:
@@ -140,36 +119,77 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Download all artifacts
-      uses: actions/download-artifact@v5
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
       with:
-        path: artifacts/
+        name: python-package
+        path: dist/
+    
+    - name: Extract version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          # Estrai versione dal tag (con o senza 'v' prefix)
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}  # Rimuovi 'v' se presente
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
     
     - name: Generate release notes
       id: release_notes
       run: |
-        # Extract version from tag or input
-        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          VERSION="${{ github.event.inputs.version }}"
+        VERSION="${{ steps.version.outputs.version }}"
+        
+        # Extract changelog section
+        if [ -f CHANGELOG.md ]; then
+          sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | head -n -1 > release_notes.md
         else
-          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Release $VERSION" > release_notes.md
         fi
         
-        # Extract relevant section from CHANGELOG
-        sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | head -n -1 > release_notes.md
+        # Add installation instructions
+        cat >> release_notes.md << 'EOF'
+        
+        ## 📦 Installation
+        
+        ### Option 1: Python Package (Recommended)
+        ```bash
+        pip install reversi42
+        reversi42
+        ```
+        
+        ### Option 2: Docker
+        ```bash
+        docker run -p 8000:8000 ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+        ```
+        Then open: http://localhost:8000
+        
+        ### Option 3: From Source
+        ```bash
+        pip install dist/reversi42-${{ steps.version.outputs.version }}-py3-none-any.whl
+        reversi42
+        ```
+        
+        ## 🎮 Quick Start
+        ```bash
+        reversi42                      # Start with defaults
+        reversi42 --port 3000         # Custom port
+        reversi42 --list-players      # List AI opponents
+        reversi42 --help              # Show all options
+        ```
+        EOF
     
-    - name: Create Release
+    - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        files: |
-          artifacts/python-package/*
-          artifacts/reversi42-macos/*
-          artifacts/reversi42-windows/*
-          artifacts/reversi42-linux/*
+        files: dist/*
         body_path: release_notes.md
         draft: false
         prerelease: false
         generate_release_notes: true
+        name: Release ${{ steps.version.outputs.version }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -178,13 +198,21 @@ jobs:
     needs: create-release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: pypi
+      url: https://pypi.org/project/reversi42/
     
     steps:
     - name: Download package
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v4
       with:
         name: python-package
         path: dist/
+    
+    - name: List files to publish
+      run: |
+        echo "📦 Publishing to PyPI:"
+        ls -lh dist/
     
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
@@ -192,4 +220,26 @@ jobs:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
         skip_existing: true
+        verbose: true
 
+  publish-test-pypi:
+    name: Publish to Test PyPI
+    needs: build-python-package
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Download package
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package
+        path: dist/
+    
+    - name: Publish to Test PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository-url: https://test.pypi.org/legacy/
+        skip_existing: true
+        verbose: true

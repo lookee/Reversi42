@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reversi42"
-version = "5.0.0"
+version = "6.0.0"
 description = "Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -28,8 +28,14 @@ classifiers = [
     "Topic :: Games/Entertainment :: Turn Based Strategy",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-# Pygame dependency removed - pygame/terminal views deprecated
-dependencies = []
+# Core dependencies for web-based gameplay
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "websockets>=12.0",
+    "PyYAML>=6.0.0",
+    "python-multipart>=0.0.6",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -55,9 +61,9 @@ Repository = "https://github.com/lucaamore/reversi42"
 "Bug Tracker" = "https://github.com/lucaamore/reversi42/issues"
 Changelog = "https://github.com/lucaamore/reversi42/blob/main/CHANGELOG.md"
 
-# Entry points removed - pygame/terminal views deprecated
-# [project.scripts]
-# reversi42 = "reversi42:main"
+[project.scripts]
+reversi42 = "webgui.cli:main"
+reversi42-server = "webgui.cli:serve"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -67,6 +73,41 @@ include-package-data = true
 where = ["src"]
 include = ["*"]
 namespaces = false
+
+[tool.setuptools.package-data]
+"*" = [
+    "*.yaml",
+    "*.yml", 
+    "*.txt",
+    "*.png",
+    "*.jpg",
+    "*.jpeg",
+    "*.json",
+    "*.html",
+    "*.css",
+    "*.js",
+]
+
+# Explicitly include critical paths
+webgui = [
+    "templates/*.html",
+    "css/*.css",
+    "js/*.js",
+]
+domain = [
+    "knowledge/data/*.txt",
+    "knowledge/data/*.json",
+]
+
+[tool.setuptools.data-files]
+# Config files outside src/ - installed to share/reversi42/
+"share/reversi42/config" = ["config/*.yaml"]
+"share/reversi42/config/players" = ["config/players/*.yaml"]
+"share/reversi42/config/players/enabled" = ["config/players/enabled/*.yaml"]
+"share/reversi42/config/players/enabled/gladiators" = [
+    "config/players/enabled/gladiators/*.yaml",
+    "config/players/enabled/gladiators/*.png"
+]
 
 [tool.black]
 line-length = 100

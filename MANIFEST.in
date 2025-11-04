@@ -20,7 +20,16 @@ include .editorconfig
 recursive-include src/Images *.png
 
 # Opening book data
-recursive-include src/domain/knowledge/data *.txt
+recursive-include src/domain/knowledge/data *.txt *.json
+
+# WebGUI assets (critical!)
+recursive-include src/webgui/templates *.html
+recursive-include src/webgui/css *.css
+recursive-include src/webgui/js *.js
+
+# Player configuration files
+include config/game.yaml
+recursive-include config/players *.yaml *.yml *.png *.jpg
 
 # Saves directory structure (not the files)
 include saves/README.md
