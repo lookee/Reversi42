@@ -138,6 +138,10 @@ tournament/reports/*.txt
 *.prof
 *.log
 
+# Logs directory
+logs/*.log
+!logs/README.md
+
 # Config files (user-specific)
 .reversi42/
 *.local.json
