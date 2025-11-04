@@ -21,7 +21,7 @@ metadata:
   # Suggested: Peaceful monk, lotus position, soft glow, calm colors
   # Path is relative to project root
   # Example image: Meditating figure, peaceful expression, gentle glow
-  avatar: "avatars/default.png"
+  avatar: "avatars/zen_master.png"
   
   category: "beginner"
   estimated_elo: 1250

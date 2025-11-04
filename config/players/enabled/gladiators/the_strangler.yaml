@@ -21,7 +21,7 @@ metadata:
   # Suggested: Tentacles wrapping around pieces, dark purple/black
   # Path is relative to project root
   # Example image: Octopus tentacles, constricting motion, ominous
-  avatar: "avatars/default.png"
+  avatar: "avatars/the_strangler.png"
   
   category: "advanced"
   estimated_elo: 1750

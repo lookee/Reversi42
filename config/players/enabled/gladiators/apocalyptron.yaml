@@ -21,7 +21,7 @@ metadata:
   # Suggested: Glowing core, energy rings, apocalyptic power, red/gold
   # Path is relative to project root
   # Example image: Energy core with power rings, dramatic lighting
-  avatar: "avatars/default.png"
+  avatar: "avatars/apocalyptron.png"
   
   category: "premium"
   estimated_elo: 1750  # At default depth 9

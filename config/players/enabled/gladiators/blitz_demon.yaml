@@ -21,7 +21,7 @@ metadata:
   # Suggested: Red devil with motion effects, speed blur, fire trail
   # Path is relative to project root
   # Example image: Demonic figure racing, motion blur, fiery trail
-  avatar: "avatars/default.png"
+  avatar: "avatars/blitz_demon.png"
   
   category: "beginner"
   estimated_elo: 1350

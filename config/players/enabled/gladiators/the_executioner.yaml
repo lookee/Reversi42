@@ -21,7 +21,7 @@ metadata:
   # Suggested: Dark figure, executioner's axe, red glow, menacing
   # Path is relative to project root
   # Example image: Dark hooded figure, glowing weapon, intimidating
-  avatar: "avatars/default.png"
+  avatar: "avatars/the_executioner.png"
   
   category: "advanced"
   estimated_elo: 1770

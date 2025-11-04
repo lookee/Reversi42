@@ -21,7 +21,7 @@ metadata:
   # Suggested: Red demon, collecting glowing corner squares, menacing grin
   # Path is relative to project root
   # Example image: Demon with glowing corner pieces, possessive stance
-  avatar: "avatars/default.png"
+  avatar: "avatars/corner_reaper.png"
   
   category: "advanced"
   estimated_elo: 1720

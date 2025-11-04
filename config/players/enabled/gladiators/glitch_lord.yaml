@@ -21,7 +21,7 @@ metadata:
   # Suggested: Retro game sprite with glitch effects, neon colors
   # Path is relative to project root
   # Example image: Pixelated character with corruption, neon green/pink
-  avatar: "avatars/default.png"
+  avatar: "avatars/glitch_lord.png"
   
   category: "intermediate"
   estimated_elo: 1500

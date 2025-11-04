@@ -21,7 +21,7 @@ metadata:
   # Suggested: Crystal ball with swirling galaxies, purple/blue mystical aura
   # Path is relative to project root
   # Example image: Glowing crystal orb with stars/nebula inside, mystical symbols
-  avatar: "avatars/default.png"  # Create 512x512 PNG with mystical theme
+  avatar: "avatars/the_oracle.png"  # Create 512x512 PNG with mystical theme
   
   category: "advanced"
   estimated_elo: 1850

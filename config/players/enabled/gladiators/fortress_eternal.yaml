@@ -21,7 +21,7 @@ metadata:
   # Suggested: Medieval fortress, blue/gray stone, magical shields
   # Path is relative to project root
   # Example image: Stone castle with energy barriers, defensive aura
-  avatar: "avatars/default.png"
+  avatar: "avatars/fortress_eternal.png"
   
   category: "champion"
   estimated_elo: 1800

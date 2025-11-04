@@ -21,7 +21,7 @@ metadata:
   # Suggested: Electric blue/yellow lightning, motion blur, speed lines
   # Path is relative to project root
   # Example image: Stylized lightning bolt with energy particles, bright colors
-  avatar: "avatars/default.png"  # Create 512x512 PNG with electric theme
+  avatar: "avatars/lighting_strike.png"  # Create 512x512 PNG with electric theme
   
   category: "intermediate"
   estimated_elo: 1400

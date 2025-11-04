@@ -21,7 +21,7 @@ metadata:
   # Suggested: Black hole/singularity visualization, glowing red/purple accents
   # Path is relative to project root
   # Example image: Dark metallic skull with circuit patterns, glowing eyes
-  avatar: "avatars/default.png"  # Create 512x512 PNG with dark/ominous theme
+  avatar: "avatars/divzero.png"  # Create 512x512 PNG with dark/ominous theme
   
   category: "champion"
   estimated_elo: 1880
