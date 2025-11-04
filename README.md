@@ -1,5 +1,9 @@
 # Reversi42
 
+<p align="center">
+  <img src="Images/apocalyptron.png" alt="Reversi42 Logo" width="400">
+</p>
+
 **Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning**
 
 Version: **5.0.0** 🚀  
@@ -25,23 +29,53 @@ Tournament-grade Reversi (Othello) implementation featuring ultra-fast bitboard 
 
 ---
 
+## 📸 Screenshots
+
+### Modern Web Interface
+
+<p align="center">
+  <img src="screen/reversi42-screen-1.png" alt="Reversi42 Game Interface" width="800">
+  <br>
+  <em>Main game interface with AI gladiator selection</em>
+</p>
+
+<p align="center">
+  <img src="screen/reversi42-screen-2.png" alt="Reversi42 AI Players" width="800">
+  <br>
+  <em>Epic Gladiators selection screen</em>
+</p>
+
+<p align="center">
+  <img src="screen/reversi42-screen-4.png" alt="Reversi42 Gameplay" width="800">
+  <br>
+  <em>Live gameplay with real-time AI analysis</em>
+</p>
+
+
+
+---
+
 ## 🎮 AI Players
 
-### Quick Comparison
+### Epic Gladiators Gallery
 
-| Player | ELO | Speed | Strategy | Best For |
-|--------|-----|-------|----------|----------|
-| 💀 **DIVZERO.EXE** | 1880 | ~5s | Adaptive 8/12/16, 8 cores | Final Boss |
-| 🔮 **THE ORACLE** | 1850 | ~3s | Adaptive 7/9/14, Endgame | Expert Challenge |
-| 🏆 **Apocalyptron** | 1850 | ~1s | Standard Strong | Balanced AI |
-| 🛡️ **FORTRESS ETERNAL** | 1800 | ~6s | Defensive, Stability ×2 | Defense Master |
-| ⚔️ **THE EXECUTIONER** | 1770 | ~4s | Aggressive, Mobility ×2 | Aggressive Play |
-| 🎯 **THE STRANGLER** | 1750 | ~12s | Mobility ×3 | Mobility Control |
-| 👑 **CORNER REAPER** | 1720 | ~2s | Positional, Corners ×2.5 | Corner Strategy |
-| 👾 **GLITCH_LORD** | 1500± | ~0.2s | Chaotic, Unpredictable | Fun/Chaos |
-| ⚡ **LIGHTNING STRIKE** | 1400 | <0.1s | Fixed Depth 4 | Speed Games |
-| 🔥 **BLITZ DEMON** | 1350 | <0.05s | Fixed Depth 5 | Quick Matches |
-| 🧘 **ZEN MASTER** | 1250 | ~0.03s | Fixed Depth 3, Balanced | Beginners |
+
+
+### Players Roster
+
+| Avatar | Player & ELO | Description | Stats |
+|:------:|:------------|:------------|:------|
+| <img src="config/players/enabled/gladiators/avatars/divzero.png" width="70"> | **💀 DIVZERO.EXE**<br>ELO: **1880** | The Ultimate Singularity - Adaptive depth 8/12/16 with 8 parallel cores. Master of all evaluation functions. | **Speed:** ~5s<br>**Strategy:** Adaptive<br>**Best For:** Final Boss |
+| <img src="config/players/enabled/gladiators/avatars/the_oracle.png" width="70"> | **🔮 THE ORACLE**<br>ELO: **1850** | Seer of Fates - Prophetic vision with adaptive depth 7/9/14. Endgame specialist with parity mastery. | **Speed:** ~3s<br>**Strategy:** Endgame Focus<br>**Best For:** Expert Challenge |
+| <img src="config/players/enabled/gladiators/avatars/apocalyptron.png" width="70"> | **🏆 Apocalyptron**<br>ELO: **1850** | The Omni-Engine - Standard strong AI with infinite configuration possibilities. Balanced and reliable. | **Speed:** ~1s<br>**Strategy:** Balanced<br>**Best For:** Standard Play |
+| <img src="config/players/enabled/gladiators/avatars/fortress_eternal.png" width="70"> | **🛡️ FORTRESS ETERNAL**<br>ELO: **1800** | The Impenetrable - Defensive master with stability ×2. Builds unbreakable positions that never fall. | **Speed:** ~6s<br>**Strategy:** Defensive<br>**Best For:** Defense Play |
+| <img src="config/players/enabled/gladiators/avatars/the_executioner.png" width="70"> | **⚔️ THE EXECUTIONER**<br>ELO: **1770** | Ruthless Destroyer - Aggressive hybrid with mobility ×2. Shows no mercy in tactical destruction. | **Speed:** ~4s<br>**Strategy:** Aggressive<br>**Best For:** Attack Play |
+| <img src="config/players/enabled/gladiators/avatars/the_strangler.png" width="70"> | **🎯 THE STRANGLER**<br>ELO: **1750** | The Suffocator - Mobility destroyer with ×3 focus. Watches your options disappear completely. | **Speed:** ~12s<br>**Strategy:** Mobility Kill<br>**Best For:** Control Play |
+| <img src="config/players/enabled/gladiators/avatars/corner_reaper.png" width="70"> | **👑 CORNER REAPER**<br>ELO: **1720** | Lord of Corners - Positional master with corner weight ×2.5. The corners are his, the board follows. | **Speed:** ~2s<br>**Strategy:** Positional<br>**Best For:** Corner Strategy |
+| <img src="config/players/enabled/gladiators/avatars/glitch_lord.png" width="70"> | **👾 GLITCH_LORD**<br>ELO: **1500±200** | Chaotic Anomaly - Unpredictable and chaotic. ERROR 404: Sanity not found. Proceeding anyway. | **Speed:** ~0.2s<br>**Strategy:** Chaos<br>**Best For:** Fun/Unpredictable |
+| <img src="config/players/enabled/gladiators/avatars/lighting_strike.png" width="70"> | **⚡ LIGHTNING STRIKE**<br>ELO: **1400** | The Blitz Master - Speed mode activated with fixed depth 4. Faster than thought, quicker than death. | **Speed:** <0.1s<br>**Strategy:** Speed<br>**Best For:** Fast Games |
+| <img src="config/players/enabled/gladiators/avatars/blitz_demon.png" width="70"> | **🔥 BLITZ DEMON**<br>ELO: **1350** | Chaos Incarnate - Pure speed with depth 5. Speed without wisdom, beautiful destruction incarnate. | **Speed:** <0.05s<br>**Strategy:** Rapid Fire<br>**Best For:** Quick Matches |
+| <img src="config/players/enabled/gladiators/avatars/zen_master.png" width="70"> | **🧘 ZEN MASTER**<br>ELO: **1250** | The Enlightened - Balanced harmony with depth 3. The best move is no thought. Just... be. | **Speed:** ~0.03s<br>**Strategy:** Zen Balance<br>**Best For:** Beginners |
 
 ### Recommended Progression
 
