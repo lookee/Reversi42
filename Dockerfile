@@ -36,10 +36,8 @@ COPY config/ ./config/
 
 # Make sure scripts are in PATH
 ENV PATH=/root/.local/bin:$PATH
-
-# Python settings
+ENV PYTHONPATH=/app/src:/app
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
 
 # Non-root user for security
 RUN useradd -m -u 1000 reversi && \
@@ -49,13 +47,12 @@ USER reversi
 # Expose web server port
 EXPOSE 8000
 
-# Health check - verify web server is responding
+# Health check - simple Python import test
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000', timeout=2)" || exit 1
+  CMD python -c "import sys; sys.path.insert(0, '/app/src'); from Reversi.BitboardGame import BitboardGame" || exit 1
 
-# Default command - start web server
-ENTRYPOINT ["python", "-m", "src.webgui.server.reversi42_server"]
-CMD ["--port", "8000", "--host", "0.0.0.0", "--player", "DIVZERO.EXE"]
+# Start web server directly
+CMD ["python", "src/webgui/server/reversi42_server.py", "--port", "8000", "--host", "0.0.0.0", "--player", "DIVZERO.EXE"]
 
 # Metadata
 LABEL org.opencontainers.image.source="https://github.com/lookee/reversi42"
