@@ -1,100 +1,22 @@
 #!/usr/bin/env python3
 """
-Setup script for Reversi42.
+Minimal setup.py for backward compatibility with older tools.
 
-This file provides backward compatibility for older tools.
-Modern configuration is in pyproject.toml.
+All project configuration is defined in pyproject.toml (PEP 518 standard).
+This file exists only for compatibility with tools that don't yet support
+pyproject.toml as the sole configuration source.
+
+Modern installation commands (recommended):
+    pip install .
+    pip install -e .
+    python -m build
+
+For more information, see:
+    https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
 """
 
-from setuptools import setup, find_packages
-from pathlib import Path
+from setuptools import setup
 
-# Read README for long description
-readme_file = Path(__file__).parent / "README.md"
-long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists() else ""
-
-# Read requirements
-requirements_file = Path(__file__).parent / "requirements.txt"
-requirements = []
-if requirements_file.exists():
-    requirements = [
-        line.strip() 
-        for line in requirements_file.read_text(encoding="utf-8").splitlines()
-        if line.strip() and not line.startswith("#")
-    ]
-
-from pathlib import Path
-
-# Read version from pyproject.toml
-def get_version():
-    """Read version from pyproject.toml"""
-    pyproject = Path(__file__).parent / "pyproject.toml"
-    if pyproject.exists():
-        with open(pyproject, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip().startswith("version"):
-                    parts = line.split("=")
-                    if len(parts) == 2:
-                        return parts[1].strip().strip('"').strip("'")
-    return "6.0.0"  # Fallback (must match pyproject.toml)
-
-setup(
-    name="reversi42",
-    version=get_version(),
-    author="Luca Amore",
-    author_email="luca.amore@gmail.com",
-    description="Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/lucaamore/reversi42",
-    project_urls={
-        "Bug Tracker": "https://github.com/lucaamore/reversi42/issues",
-        "Documentation": "https://github.com/lucaamore/reversi42/tree/main/docs",
-        "Source Code": "https://github.com/lucaamore/reversi42",
-        "Changelog": "https://github.com/lucaamore/reversi42/blob/main/CHANGELOG.md",
-    },
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
-    package_data={
-        "": [
-            "Images/*.png",
-            "domain/knowledge/data/*.txt",
-        ],
-    },
-    include_package_data=True,
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: End Users/Desktop",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
-        "Topic :: Games/Entertainment :: Board Games",
-        "Topic :: Games/Entertainment :: Turn Based Strategy",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    ],
-    python_requires=">=3.9",
-    install_requires=requirements,
-    extras_require={
-        "dev": [
-            "pytest>=7.4.0",
-            "pytest-cov>=4.1.0",
-            "mypy>=1.5.0",
-            "pylint>=2.17.0",
-            "black>=23.7.0",
-            "isort>=5.12.0",
-        ],
-    },
-    # Entry points removed - pygame/terminal views deprecated
-    # entry_points={
-    #     "console_scripts": [
-    #         "reversi42=reversi42:main",
-    #     ],
-    # },
-    zip_safe=False,
-)
-
+# All configuration is in pyproject.toml
+# This minimal setup.py delegates everything to pyproject.toml
+setup()
