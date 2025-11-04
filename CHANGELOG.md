@@ -75,11 +75,11 @@ pip install reversi42
 reversi42
 
 # Option 2: Docker
-docker run -p 8000:8000 ghcr.io/lucaamore/reversi42:6.0.0
+docker run -p 8000:8000 ghcr.io/lookee/reversi42:6.0.0
 
 # Option 3: From source
-git clone https://github.com/lucaamore/reversi42
-cd reversi42
+git clone https://github.com/lookee/Reversi42
+cd Reversi42
 pip install -e .
 reversi42
 ```
@@ -87,7 +87,7 @@ reversi42
 ### Distribution Channels
 
 - 📦 **PyPI**: `pip install reversi42`
-- 🐳 **Docker**: `ghcr.io/lucaamore/reversi42:6.0.0`
+- 🐳 **Docker**: `ghcr.io/lookee/reversi42:6.0.0`
 - 🐙 **GitHub**: Release artifacts with wheel and sdist
 
 ### Breaking Changes

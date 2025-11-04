@@ -89,14 +89,22 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Version: $VERSION"
     
+    - name: Prepare Docker metadata
+      id: meta
+      run: |
+        # Convert repository name to lowercase (Docker requirement)
+        REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+        echo "repository=$REPO_LOWER" >> $GITHUB_OUTPUT
+        echo "Repository (lowercase): $REPO_LOWER"
+    
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
         tags: |
-          ghcr.io/${{ github.repository }}:latest
-          ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+          ghcr.io/${{ steps.meta.outputs.repository }}:latest
+          ghcr.io/${{ steps.meta.outputs.repository }}:${{ steps.version.outputs.version }}
         labels: |
           org.opencontainers.image.title=Reversi42
           org.opencontainers.image.description=AI-Powered Reversi/Othello Web Game
@@ -162,7 +170,7 @@ jobs:
         
         ### Option 2: Docker
         ```bash
-        docker run -p 8000:8000 ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+        docker run -p 8000:8000 ghcr.io/lookee/reversi42:${{ steps.version.outputs.version }}
         ```
         Then open: http://localhost:8000
         
