@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.1.1] - 2025-11-09
+
+### Added
+
+- **🎨 Initial Setup Screen** - Elegant player selection interface
+  - Beautiful splash screen with player cards showing avatars, descriptions, and tags
+  - Default setup: Human Player vs Lightning Strike
+  - Click on cards or "Change Player" buttons to open full player picker
+  - Swap button (🔄) in center to instantly swap Black ↔ White
+  - Cancel button and ESC key support to return to current game
+  - Fully responsive design for all screen sizes
+
+- **🔄 Swap Colors Button** - Quick color inversion during game
+  - New button in game controls to swap Black/White and restart
+  - Golden/orange theme with rotation animation on hover
+  - Instantly restarts game with colors inverted
+
+- **👥 Setup Players Button** - Reconfigure players during game
+  - Purple button to reopen player selection screen mid-game
+  - Preserves current players as defaults
+  - Full player picker integration
+
+- **📦 Version Display System** - Centralized version management
+  - Version badge in game footer (⚡ v6.1.1)
+  - Version in initial setup screen
+  - Loaded from `/api/version` endpoint
+  - Single source of truth in `pyproject.toml`
+
+### Improved
+
+- **✨ WebGUI Visual Enhancements**
+  - Responsive layout with viewport units and flexbox
+  - Board always visible without scrolling
+  - Smooth disc rendering with multiple shadow layers for depth
+  - White title "Reversi42" with elegant green glow shadows
+  - Avatar hover effects: scale, rotate, and glow on both game and initial screens
+  
+- **🏷️ Opening Book Display**
+  - Real variant count shown instead of "+5" notation
+  - Advantage indicators hidden when null or unknown (?)
+  - Cleaner, more informative tree view
+
+- **🐛 Bug Fixes**
+  - Fixed Lightning Strike blocking after second game when using Game Over dialog
+  - Proper state reset when starting new games
+  - Player avatar caching system for reliable PNG loading
+  - Copy/Paste buttons moved to history controls row for better organization
+
+- **🎯 Player Data Management**
+  - Player cache preloaded at startup for fast avatar lookups
+  - Avatar URLs properly copied when changing players from game
+  - Support for "Human" and "Human Player" name normalization
+  - Complete player data (avatar, icon, description, tags) in all contexts
+
 ## [6.1.0] - 2025-11-09
 
 ### Fixed

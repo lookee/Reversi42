@@ -932,7 +932,7 @@ async def get_version():
     except Exception as e:
         logger.error(f"Error loading version: {e}")
         return {
-            "version": "6.1.0",
+            "version": "6.1.1",
             "author": "Luca Amore",
             "url": "https://github.com/lucaamore/reversi42",
             "name": "Reversi42"

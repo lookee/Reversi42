@@ -75,7 +75,7 @@ let initialWhitePlayer = 'LIGHTNING STRIKE'; // Default White (must match YAML n
 let initialSelectingFor = null; // 'black' or 'white'
 
 /* Version Information */
-let gameVersion = '6.1.0'; // Fallback version
+let gameVersion = '6.1.1'; // Fallback version
 
 /* Player Cache - for avatar lookups */
 let playersCache = null;
