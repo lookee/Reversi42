@@ -770,6 +770,43 @@ html,body{
   padding:8px 12px;border-radius:8px;font-size:12px;backdrop-filter:blur(4px)}
 
 /* ========================================
+   VERSION BADGE
+   ======================================== */
+.version-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  background:rgba(16,185,129,.08);
+  border:1px solid rgba(16,185,129,.25);
+  border-radius:8px;
+  font-size:11px;
+  font-weight:600;
+  color:rgba(16,185,129,.9);
+  font-family:'Courier New', monospace;
+  letter-spacing:0.05em;
+  transition:all 0.3s ease;
+  cursor:help;
+}
+
+.version-badge:hover{
+  background:rgba(16,185,129,.15);
+  border-color:rgba(16,185,129,.5);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(16,185,129,0.3);
+}
+
+.version-icon{
+  font-size:14px;
+  filter:drop-shadow(0 0 4px rgba(16,185,129,0.6));
+}
+
+.version-text{
+  color:#34d399;
+  text-shadow:0 0 8px rgba(16,185,129,0.4);
+}
+
+/* ========================================
    MODALS & DIALOGS
    ======================================== */
 .modalOverlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:99998;
@@ -2394,6 +2431,16 @@ code.language-json{font-size:13px}
   50%{
     filter:brightness(1.2);
   }
+}
+
+.initial-setup-version{
+  font-size:clamp(0.9rem, 1.8vw, 1.1rem);
+  color:rgba(16,185,129,0.8);
+  margin:8px 0 4px 0;
+  font-weight:600;
+  letter-spacing:0.15em;
+  font-family:'Courier New', monospace;
+  text-shadow:0 0 12px rgba(16,185,129,0.4);
 }
 
 .initial-setup-subtitle{

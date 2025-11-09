@@ -74,6 +74,12 @@ let initialBlackPlayer = 'Human Player'; // Default Black (must match YAML name 
 let initialWhitePlayer = 'LIGHTNING STRIKE'; // Default White (must match YAML name exactly - all caps!)
 let initialSelectingFor = null; // 'black' or 'white'
 
+/* Version Information */
+let gameVersion = '6.1.0'; // Fallback version
+
+/* Player Cache - for avatar lookups */
+let playersCache = null;
+
 /* AI Quick Stats - Throttled Updates */
 let lastQuickStatsUpdate = 0;
 const QUICK_STATS_THROTTLE_MS = 1000; // Update max every 1 second for readability
@@ -232,7 +238,7 @@ function flashWebSocketActivity(){
 
 function updatePlayerAvatar(elementId, playerData) {
   /**
-   * Update player avatar - use image if available, otherwise icon/initials
+   * Update player avatar - use image if available, otherwise lookup from cache
    * @param {string} elementId - ID of avatar element
    * @param {object} playerData - Player data with avatar_url, icon, avatar, name
    */
@@ -251,6 +257,26 @@ function updatePlayerAvatar(elementId, playerData) {
   
   // Clear existing content
   avatarEl.innerHTML = '';
+  
+  // If avatar_url is missing but we have a player name, lookup from cache
+  if (!playerData?.avatar_url && playerData?.name && playersCache) {
+    console.log(`   ⚠️  No avatar_url provided - looking up in cache for: ${playerData.name}`);
+    const cachedPlayer = getPlayerFromCache(playerData.name);
+    
+    if (cachedPlayer) {
+      console.log(`   ✅ Found in cache:`, cachedPlayer.name, cachedPlayer.avatar_url);
+      // Update playerData with cached info
+      playerData = {
+        ...playerData,
+        avatar_url: cachedPlayer.avatar_url,
+        icon: cachedPlayer.icon || playerData.icon,
+        description: cachedPlayer.description
+      };
+    } else {
+      console.warn(`   ⚠️  Player ${playerData.name} not found in cache`);
+      console.warn(`   Cache contains:`, playersCache?.map(p => p.name));
+    }
+  }
   
   // Priority: avatar_url (image) > icon (emoji) > avatar (initials)
   if (playerData?.avatar_url) {
@@ -888,6 +914,71 @@ function checkAndRequestAIMove(){
 }
 
 /* ========================================
+   PLAYER CACHE - Preload player data for fast avatar lookups
+   ======================================== */
+async function loadPlayersCache(){
+  try {
+    console.log('👥 Loading players cache from API...');
+    const response = await fetch('http://localhost:8000/api/players');
+    if(response.ok){
+      const data = await response.json();
+      playersCache = data.players || [];
+      console.log(`✅ Players cache loaded: ${playersCache.length} players`);
+      return playersCache;
+    }
+  } catch(error){
+    console.warn('⚠️  Could not load players cache:', error);
+  }
+  return [];
+}
+
+function getPlayerFromCache(playerName){
+  if(!playersCache || !playerName) return null;
+  return playersCache.find(p => 
+    p.name === playerName || 
+    p.name.toUpperCase() === playerName.toUpperCase()
+  );
+}
+
+/* ========================================
+   VERSION LOADING - Load from centralized source
+   ======================================== */
+async function loadVersion(){
+  try {
+    console.log('📦 Loading version from API...');
+    const response = await fetch('http://localhost:8000/api/version');
+    if(response.ok){
+      const versionData = await response.json();
+      gameVersion = versionData.version || '6.1.0';
+      console.log(`✅ Version loaded: ${gameVersion}`);
+      
+      // Update initial setup screen
+      const initialVersionEl = document.getElementById('initialSetupVersion');
+      if(initialVersionEl){
+        initialVersionEl.textContent = `v${gameVersion}`;
+      }
+      
+      // Update game screen
+      const gameVersionEl = document.getElementById('versionText');
+      if(gameVersionEl){
+        gameVersionEl.textContent = `v${gameVersion}`;
+      }
+      
+      // Update version badge title with full info
+      const versionBadge = document.getElementById('versionBadge');
+      if(versionBadge && versionData.author){
+        versionBadge.title = `Reversi42 v${gameVersion}\nby ${versionData.author}`;
+      }
+      
+      return gameVersion;
+    }
+  } catch(error){
+    console.warn('⚠️  Could not load version from API, using fallback:', gameVersion);
+  }
+  return gameVersion;
+}
+
+/* ========================================
    INITIAL SETUP SCREEN - Player Selection
    ======================================== */
 function setupInitialScreen(){
@@ -1352,8 +1443,14 @@ function startGameWithPlayers(blackPlayer, whitePlayer){
 }
 
 // Initialize on page load
-function init(){
+async function init(){
   console.log('🚀 init() called');
+  
+  // Load version and players cache (parallel)
+  await Promise.all([
+    loadVersion(),
+    loadPlayersCache()
+  ]);
   
   // Test WebSocket indicator visibility
   const indicator = document.getElementById('wsStatusIndicator');
@@ -2175,9 +2272,13 @@ function setupPlayersUI(){
       if(side==='B'){
         data.players.black.name = player.name;
         data.players.black.avatar = initials(player.name);
+        data.players.black.avatar_url = player.avatar_url;  // FIX: Copy avatar_url
+        data.players.black.icon = player.icon;  // FIX: Copy icon
       } else {
         data.players.white.name = player.name;
         data.players.white.avatar = initials(player.name);
+        data.players.white.avatar_url = player.avatar_url;  // FIX: Copy avatar_url
+        data.players.white.icon = player.icon;  // FIX: Copy icon
       }
       render();
 

@@ -918,6 +918,26 @@ async def get_game_config():
             }
         }
 
+@app.get("/api/version")
+async def get_version():
+    """Get Reversi42 version from centralized source"""
+    try:
+        from __version__ import __version__, __author__, __url__
+        return {
+            "version": __version__,
+            "author": __author__,
+            "url": __url__,
+            "name": "Reversi42"
+        }
+    except Exception as e:
+        logger.error(f"Error loading version: {e}")
+        return {
+            "version": "6.1.0",
+            "author": "Luca Amore",
+            "url": "https://github.com/lucaamore/reversi42",
+            "name": "Reversi42"
+        }
+
 @app.get("/stats")
 async def get_stats():
     """Get server statistics"""
