@@ -491,10 +491,11 @@ function handleServerMessage(message){
       data = message.data;
       // Clear any previous game-over banner on fresh state
       gameOverInfo = null;
+      console.log('🔄 Board update received - gameOverInfo reset to null');
       // Reset AI pause if it's a fresh game (ply < 3)
       if(data.status && data.status.ply !== undefined && data.status.ply < 3){
         aiAutoPaused = false;
-        console.log('Fresh game detected - AI auto-play enabled');
+        console.log('Fresh game detected (ply < 3) - AI auto-play enabled');
       }
       console.log('Board data:', data);
       console.log('Positions:', data.positions);
@@ -657,7 +658,11 @@ function handleServerMessage(message){
         
         // Show a non-blocking notification instead of alert
         if (confirm(`🎮 GAME OVER\n\nWinner: ${winner}\n\nBlack: ${blackCount} pieces\nWhite: ${whiteCount} pieces\n\nStart a new game?`)) {
-          // User clicked OK - start new game
+          // User clicked OK - Reset state IMMEDIATELY before starting new game
+          console.log('🔄 User confirmed new game - resetting state immediately');
+          gameOverInfo = null;
+          aiAutoPaused = false;
+          // Now start new game
           document.getElementById('newGameBtn')?.click();
         }
       }, 100);
@@ -818,25 +823,28 @@ function submitMove(move){
 }
 
 function checkAndRequestAIMove(){
+  console.log('🤖 checkAndRequestAIMove called - gameOverInfo:', gameOverInfo, 'aiAutoPaused:', aiAutoPaused);
+  
   if(!data || !wsConnection || wsConnection.readyState !== WebSocket.OPEN){
+    console.log('❌ Cannot request AI move - missing data or connection');
     return;
   }
   
   // Don't request if game is over
   if(gameOverInfo){
-    console.log('Game is over - not requesting AI move');
+    console.log('❌ Game is over - not requesting AI move. gameOverInfo:', gameOverInfo);
     return;
   }
   
   // Don't request if board is full (64 pieces)
   if(data.status && (data.status.black_count + data.status.white_count) >= 64){
-    console.log('Board is full - game over, not requesting AI move');
+    console.log('❌ Board is full - game over, not requesting AI move');
     return;
   }
   
   // Don't request if paused
   if(aiAutoPaused){
-    console.log('AI auto-play paused - not requesting move');
+    console.log('⏸️  AI auto-play paused - not requesting move');
     return;
   }
   
@@ -852,10 +860,12 @@ function checkAndRequestAIMove(){
   const isCurrentSideAI = (currentTurn === 'B' && isBlackAI) || (currentTurn === 'W' && isWhiteAI);
   
   if(isCurrentSideAI){
-    console.log('Current turn is AI:', currentTurn, '- requesting AI move');
+    console.log('✅ Current turn is AI:', currentTurn, '- requesting AI move');
     setTimeout(() => {
       wsSend({ type: 'ai_move_request', side: currentTurn });
     }, 100);
+  } else {
+    console.log('👤 Current turn is human:', currentTurn, '- waiting for user input');
   }
 }
 
@@ -1226,6 +1236,9 @@ function setupToolbar(){
   });
   if (newBtn) newBtn.addEventListener('click', ()=>{
     if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+      // Reset game over state immediately to prevent AI blocking
+      gameOverInfo = null;
+      aiAutoPaused = false;
       wsConnection.send(JSON.stringify({ type: 'reset_game' }));
     }
   });
@@ -2561,11 +2574,14 @@ function renderNotes(notes){
     moveEl.textContent = (n.move || '').toUpperCase();
     content.appendChild(moveEl);
 
-    // Advantage indicator
-    const advEl = document.createElement('div');
-    advEl.className = advClass(n.advantage);
-    advEl.textContent = advLabel(n.advantage);
-    content.appendChild(advEl);
+    // Advantage indicator (only show if not null/undefined/?)
+    const advLabelText = advLabel(n.advantage);
+    if(advLabelText && advLabelText !== '?'){
+      const advEl = document.createElement('div');
+      advEl.className = advClass(n.advantage);
+      advEl.textContent = advLabelText;
+      content.appendChild(advEl);
+    }
 
     // Opening names
     const namesFull = Array.isArray(n.names) && n.names.length
@@ -2579,14 +2595,6 @@ function renderNotes(notes){
       namesEl.textContent = namesShort;
       namesEl.title = namesFull.join('\n');
       content.appendChild(namesEl);
-
-      // Count badge if there are more variants
-      if(namesFull.length > 3){
-        const countEl = document.createElement('div');
-        countEl.className = 'opening-tree-count';
-        countEl.textContent = `+${namesFull.length - 3}`;
-        content.appendChild(countEl);
-      }
     } else {
       // Spacer when no names
       const spacer = document.createElement('div');

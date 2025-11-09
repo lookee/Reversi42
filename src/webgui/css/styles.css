@@ -2191,3 +2191,46 @@ code.language-json{font-size:13px}
   color:rgba(255,255,255,0.65);
   line-height:1.5
 }
+
+/* ========================================
+   RESPONSIVE IMPROVEMENTS - CONSERVATIVE
+   ======================================== */
+/* Make board responsive while keeping layout intact */
+@media (max-width: 1400px) {
+  .board{
+    max-width: 600px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .board{
+    max-width: 500px;
+  }
+  .container{
+    max-width: 100%;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .board{
+    max-width: 450px;
+  }
+  .container{
+    padding: 12px;
+  }
+  .avatar{
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  .board{
+    max-width: 90vw;
+  }
+  aside .card{
+    max-height: 250px;
+  }
+}
