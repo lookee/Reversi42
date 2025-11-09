@@ -28,7 +28,7 @@ class TestEpicGladiators:
         'THE ORACLE',
         'BLITZ DEMON',
         'THE EXECUTIONER',
-        'GLITCH_LORD',
+        'GLITCH LORD',
         'ZEN MASTER',
     ]
     

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.1.0] - 2025-11-09
+
+### Fixed
+
+- **🔧 WebGUI Test Suite** - Corrected module imports
+  - Fixed test imports to use `reversi42_server` instead of deprecated `backend_server`
+  - Updated `tests/webgui/test_backend_server.py` import statements
+  - Updated `tests/webgui/conftest.py` import statements
+  - All WebGUI tests now properly discover and execute
+
+### Dependencies
+
+- Added `playwright` and `pytest-playwright` for E2E testing support
+- Added `pytest-asyncio` for async test support
+
 ## [6.0.0] - 2025-11-04
 
 ### 🎉 Major Release - Production-Ready Distribution
