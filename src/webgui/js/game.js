@@ -68,6 +68,12 @@ let pendingSelectedAI = null; // confirm selected AI after init
 let aiAutoPaused = false; // AI auto-play paused
 let showOpeningHints = true; // Show opening book hints on board
 
+/* Initial Setup Screen */
+let initialSetupComplete = false;
+let initialBlackPlayer = 'Human Player'; // Default Black (must match YAML name exactly)
+let initialWhitePlayer = 'LIGHTNING STRIKE'; // Default White (must match YAML name exactly - all caps!)
+let initialSelectingFor = null; // 'black' or 'white'
+
 /* AI Quick Stats - Throttled Updates */
 let lastQuickStatsUpdate = 0;
 const QUICK_STATS_THROTTLE_MS = 1000; // Update max every 1 second for readability
@@ -231,7 +237,17 @@ function updatePlayerAvatar(elementId, playerData) {
    * @param {object} playerData - Player data with avatar_url, icon, avatar, name
    */
   const avatarEl = qs(elementId);
-  if (!avatarEl) return;
+  if (!avatarEl) {
+    console.error(`❌ Avatar element not found: ${elementId}`);
+    return;
+  }
+  
+  console.log(`🎨 updatePlayerAvatar(${elementId}):`, {
+    name: playerData?.name,
+    avatar_url: playerData?.avatar_url,
+    icon: playerData?.icon,
+    avatar: playerData?.avatar
+  });
   
   // Clear existing content
   avatarEl.innerHTML = '';
@@ -239,6 +255,7 @@ function updatePlayerAvatar(elementId, playerData) {
   // Priority: avatar_url (image) > icon (emoji) > avatar (initials)
   if (playerData?.avatar_url) {
     // Use image
+    console.log(`   🖼️  Loading image: ${playerData.avatar_url}`);
     const img = document.createElement('img');
     img.src = playerData.avatar_url;
     img.alt = playerData.name || 'Player';
@@ -248,16 +265,23 @@ function updatePlayerAvatar(elementId, playerData) {
     img.style.borderRadius = '50%';
     // Fallback to icon if image fails to load
     img.onerror = () => {
+      console.error(`   ❌ Image failed to load: ${playerData.avatar_url}`);
       avatarEl.innerHTML = '';
       avatarEl.textContent = playerData.icon || playerData.avatar || initials(playerData.name);
+    };
+    img.onload = () => {
+      console.log(`   ✅ Image loaded successfully: ${playerData.avatar_url}`);
     };
     avatarEl.appendChild(img);
   } else if (playerData?.icon) {
     // Use icon emoji
+    console.log(`   😀 Using icon: ${playerData.icon}`);
     avatarEl.textContent = playerData.icon;
   } else {
     // Use initials
-    avatarEl.textContent = playerData?.avatar || initials(playerData?.name);
+    const ini = playerData?.avatar || initials(playerData?.name);
+    console.log(`   🔤 Using initials: ${ini}`);
+    avatarEl.textContent = ini;
   }
 }
 
@@ -267,6 +291,21 @@ function loadGameData(gameData){
   // Update header
   qs('p1Name').textContent   = data.players?.black?.name || '—';
   qs('p2Name').textContent   = data.players?.white?.name || '—';
+  
+  console.log('👥 loadGameData - Player data received:', {
+    black: {
+      name: data.players?.black?.name,
+      avatar_url: data.players?.black?.avatar_url,
+      icon: data.players?.black?.icon,
+      avatar: data.players?.black?.avatar
+    },
+    white: {
+      name: data.players?.white?.name,
+      avatar_url: data.players?.white?.avatar_url,
+      icon: data.players?.white?.icon,
+      avatar: data.players?.white?.avatar
+    }
+  });
   
   // Update avatars - use image if available, otherwise icon/initials
   updatePlayerAvatar('p1Avatar', data.players?.black);
@@ -427,29 +466,8 @@ function initWebSocket(){
     console.log('WebSocket connected successfully');
     updateWSStatus('connected', 'Connected');
     
-    // Load game configuration from server
-    let aiPlayer = 'LIGHTNING STRIKE';  // Fallback
-    try {
-      const response = await fetch('http://localhost:8000/api/game-config');
-      const config = await response.json();
-      console.log('Game configuration loaded:', config);
-      
-      if (config.white_player && config.white_player.ai_player) {
-        aiPlayer = config.white_player.ai_player;
-        console.log(`Using AI from config: ${aiPlayer}`);
-      }
-    } catch (error) {
-      console.warn('Could not load game config, using default:', error);
-    }
-    
-    // Send init message with configured AI
-    const initMsg = {
-      type: 'init',
-      session_id: SESSION_ID,
-      ai_player: aiPlayer
-    };
-    console.log('Sending init message:', initMsg);
-    wsSend(initMsg);
+    // Don't auto-init - wait for initial setup screen
+    console.log('⏸️  WebSocket ready - waiting for player selection from initial screen');
   };
   
   wsConnection.onmessage = (event) => {
@@ -869,8 +887,474 @@ function checkAndRequestAIMove(){
   }
 }
 
+/* ========================================
+   INITIAL SETUP SCREEN - Player Selection
+   ======================================== */
+function setupInitialScreen(){
+  console.log('🔧 setupInitialScreen called');
+  console.log('   DOM ready:', document.readyState);
+  
+  // Add class to body so modal can have higher z-index
+  document.body.classList.add('initial-setup-active');
+  console.log('✅ Added initial-setup-active class to body');
+  
+  const initialSelectBlackBtn = document.getElementById('initialSelectBlackBtn');
+  const initialSelectWhiteBtn = document.getElementById('initialSelectWhiteBtn');
+  const initialStartGameBtn = document.getElementById('initialStartGameBtn');
+  const initialBlackCard = document.getElementById('initialBlackCard');
+  const initialWhiteCard = document.getElementById('initialWhiteCard');
+  
+  console.log('   Elements found:', {
+    blackBtn: !!initialSelectBlackBtn,
+    whiteBtn: !!initialSelectWhiteBtn,
+    startBtn: !!initialStartGameBtn,
+    blackCard: !!initialBlackCard,
+    whiteCard: !!initialWhiteCard
+  });
+  console.log('   window.openPlayersModal:', typeof window.openPlayersModal);
+  
+  // Verify modal exists
+  const playersModal = document.getElementById('playersModal');
+  console.log('   playersModal element:', !!playersModal);
+  if(playersModal){
+    console.log('   playersModal display:', window.getComputedStyle(playersModal).display);
+  }
+  
+  // Load default avatars
+  console.log('🎨 Loading default avatars for initial screen...');
+  updateInitialPlayerDisplay('black', initialBlackPlayer);
+  updateInitialPlayerDisplay('white', initialWhitePlayer);
+  
+  // Handler for opening black player picker
+  const openBlackPicker = (e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    console.log('🎯 BLACK PICKER REQUESTED!');
+    console.log('   initialSetupComplete:', initialSetupComplete);
+    console.log('   window.openPlayersModal:', typeof window.openPlayersModal);
+    
+    initialSelectingFor = 'black';
+    
+    if(typeof window.openPlayersModal === 'function'){
+      console.log('   ✅ Calling window.openPlayersModal("B")');
+      try {
+        window.openPlayersModal('B');
+        console.log('   ✅ Modal opened');
+      } catch(err) {
+        console.error('   ❌ Error:', err);
+      }
+    } else {
+      console.error('❌ window.openPlayersModal not available!');
+    }
+  };
+  
+  // Handler for opening white player picker
+  const openWhitePicker = (e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    console.log('🎯 WHITE PICKER REQUESTED!');
+    console.log('   initialSetupComplete:', initialSetupComplete);
+    console.log('   window.openPlayersModal:', typeof window.openPlayersModal);
+    
+    initialSelectingFor = 'white';
+    
+    if(typeof window.openPlayersModal === 'function'){
+      console.log('   ✅ Calling window.openPlayersModal("W")');
+      try {
+        window.openPlayersModal('W');
+        console.log('   ✅ Modal opened');
+      } catch(err) {
+        console.error('   ❌ Error:', err);
+      }
+    } else {
+      console.error('❌ window.openPlayersModal not available!');
+    }
+  };
+  
+  // TEST: Add a basic test click handler to see if ANY click works
+  if(initialSelectBlackBtn){
+    console.log('🧪 TEST: Adding test click handler to Black button');
+    initialSelectBlackBtn.onclick = function(e) {
+      console.log('🧪 TEST CLICK DETECTED ON BLACK BUTTON!');
+      console.log('   Event:', e);
+      console.log('   Target:', e.target);
+      console.log('   CurrentTarget:', e.currentTarget);
+      openBlackPicker(e);
+    };
+    console.log('   ✅ Test handler attached via onclick');
+  } else {
+    console.error('❌ initialSelectBlackBtn not found in DOM!');
+  }
+  
+  // Make entire Black card clickable
+  if(initialBlackCard){
+    console.log('✅ Making Black card clickable');
+    initialBlackCard.onclick = function(e) {
+      // Don't trigger if clicking on the button (will handle separately)
+      if(e.target.closest('#initialSelectBlackBtn')) {
+        console.log('   Click on button, ignoring card handler');
+        return;
+      }
+      console.log('🎯 BLACK CARD CLICKED!');
+      openBlackPicker(e);
+    };
+  }
+  
+  if(initialSelectWhiteBtn){
+    console.log('🧪 TEST: Adding test click handler to White button');
+    initialSelectWhiteBtn.onclick = function(e) {
+      console.log('🧪 TEST CLICK DETECTED ON WHITE BUTTON!');
+      console.log('   Event:', e);
+      console.log('   Target:', e.target);
+      console.log('   CurrentTarget:', e.currentTarget);
+      openWhitePicker(e);
+    };
+    console.log('   ✅ Test handler attached via onclick');
+  } else {
+    console.error('❌ initialSelectWhiteBtn not found in DOM!');
+  }
+  
+  // Make entire White card clickable
+  if(initialWhiteCard){
+    console.log('✅ Making White card clickable');
+    initialWhiteCard.onclick = function(e) {
+      // Don't trigger if clicking on the button (will handle separately)
+      if(e.target.closest('#initialSelectWhiteBtn')) {
+        console.log('   Click on button, ignoring card handler');
+        return;
+      }
+      console.log('🎯 WHITE CARD CLICKED!');
+      openWhitePicker(e);
+    };
+  }
+  
+  if(initialStartGameBtn){
+    console.log('✅ Attaching to Start button');
+    initialStartGameBtn.addEventListener('click', () => {
+      console.log('🎮 Starting game with:', initialBlackPlayer, 'vs', initialWhitePlayer);
+      startGameWithPlayers(initialBlackPlayer, initialWhitePlayer);
+    });
+    console.log('   ✅ Attached');
+  } else {
+    console.error('❌ initialStartGameBtn not found in DOM!');
+  }
+  
+  // Cancel button
+  const initialCancelBtn = document.getElementById('initialCancelBtn');
+  if(initialCancelBtn){
+    console.log('✅ Attaching to Cancel button');
+    initialCancelBtn.addEventListener('click', () => {
+      console.log('❌ Cancel clicked - returning to current game');
+      cancelInitialSetup();
+    });
+    
+    // Hide cancel button if this is the first load (no game to return to)
+    if(!data || !data.status){
+      console.log('   No current game - hiding Cancel button');
+      initialCancelBtn.style.display = 'none';
+    }
+  }
+  
+  // Intercept ESC key to cancel setup
+  console.log('✅ Adding ESC key handler for initial screen');
+  const escHandler = (e) => {
+    if(e.key === 'Escape'){
+      const setupScreen = document.getElementById('initialSetupScreen');
+      if(setupScreen && !setupScreen.classList.contains('hidden')){
+        console.log('⌨️  ESC pressed - canceling initial setup');
+        e.preventDefault();
+        e.stopPropagation();
+        cancelInitialSetup();
+      }
+    }
+  };
+  document.addEventListener('keydown', escHandler, true);
+  
+  // Global click test
+  console.log('🧪 Adding global click listener for debugging...');
+  document.addEventListener('click', function(e) {
+    console.log('🖱️  GLOBAL CLICK:', e.target.id, e.target.className);
+  }, true);
+  
+  console.log('🏁 setupInitialScreen completed');
+}
+
+async function updateInitialPlayerDisplay(side, playerName){
+  const avatarEl = document.getElementById(side === 'black' ? 'initialBlackAvatar' : 'initialWhiteAvatar');
+  const nameEl = document.getElementById(side === 'black' ? 'initialBlackName' : 'initialWhiteName');
+  const descEl = document.getElementById(side === 'black' ? 'initialBlackDesc' : 'initialWhiteDesc');
+  const tagsEl = document.getElementById(side === 'black' ? 'initialBlackTags' : 'initialWhiteTags');
+  
+  console.log(`🎨 updateInitialPlayerDisplay called: side=${side}, playerName=${playerName}`);
+  
+  if(!avatarEl || !nameEl){
+    console.error('❌ Avatar or name element not found:', side);
+    return;
+  }
+  
+  // Update stored selection
+  if(side === 'black'){
+    initialBlackPlayer = playerName;
+  } else {
+    initialWhitePlayer = playerName;
+  }
+  
+  // Update display
+  nameEl.textContent = playerName;
+  
+  // Clear avatar content
+  avatarEl.innerHTML = '';
+  avatarEl.style.fontSize = '3rem'; // Reset font size for emoji
+  
+  // Get player data from API to get full info
+  try{
+    console.log(`📡 Fetching players from API for ${playerName}...`);
+    const response = await fetch('http://localhost:8000/api/players');
+    if(!response.ok){
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    console.log(`✅ API response received, total players: ${data.players?.length}`);
+    
+    const player = data.players?.find(p => p.name === playerName || p.name.toUpperCase() === playerName.toUpperCase());
+    console.log(`🔍 Searching for: "${playerName}"`);
+    console.log(`   Available players:`, data.players?.map(p => p.name));
+    console.log(`   Found player:`, player ? `${player.name} (avatar_url: ${player.avatar_url})` : 'NOT FOUND');
+    
+    if(player){
+      // Update description
+      if(descEl && player.description){
+        descEl.textContent = player.description;
+        console.log(`📝 Description updated: ${player.description}`);
+      }
+      
+      // Update tags
+      if(tagsEl){
+        tagsEl.innerHTML = '';
+        const tags = [];
+        
+        // Add main tag (HUMAN/AI)
+        if(player.tag){
+          tags.push({ name: player.tag, class: player.tag.toLowerCase() });
+        }
+        
+        // Add category (champion/premium/specialist/intermediate/beginner)
+        if(player.category){
+          tags.push({ name: player.category.toUpperCase(), class: player.category.toLowerCase() });
+        }
+        
+        // Add config tags (Gladiators, depth, etc.)
+        if(player.config_tags && Array.isArray(player.config_tags)){
+          player.config_tags.slice(0, 3).forEach(tag => {
+            tags.push({ name: tag.toUpperCase(), class: 'config' });
+          });
+        }
+        
+        console.log(`🏷️  Tags:`, tags);
+        
+        // Render tags
+        tags.forEach(tag => {
+          const tagEl = document.createElement('span');
+          tagEl.className = `initial-tag ${tag.class}`;
+          tagEl.textContent = tag.name;
+          tagsEl.appendChild(tagEl);
+        });
+      }
+      
+      // Update avatar
+      if(player.avatar_url){
+        // Use PNG avatar
+        console.log(`🖼️  Loading avatar image: ${player.avatar_url}`);
+        const img = document.createElement('img');
+        img.src = player.avatar_url;
+        img.alt = playerName;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.onerror = (e) => {
+          console.error(`❌ Avatar image failed to load: ${player.avatar_url}`, e);
+          // Fallback to icon/emoji if image fails
+          avatarEl.innerHTML = '';
+          avatarEl.textContent = player.icon || '🤖';
+        };
+        img.onload = () => {
+          console.log(`✅ Avatar image loaded successfully: ${player.avatar_url}`);
+        };
+        avatarEl.appendChild(img);
+      } else if(player.icon){
+        // Use emoji icon
+        console.log(`😀 Using emoji icon: ${player.icon}`);
+        avatarEl.textContent = player.icon;
+      } else {
+        // Fallback to generic emoji
+        const isHuman = playerName === 'Human' || playerName === 'Human Player';
+        avatarEl.textContent = isHuman ? '👤' : '🤖';
+        console.log(`⚠️  Using fallback emoji: ${isHuman ? '👤' : '🤖'}`);
+      }
+    } else {
+      console.warn(`⚠️  Player ${playerName} not found in API response`);
+      // Use fallback values
+      if(descEl) descEl.textContent = 'Player description not available';
+      if(tagsEl) tagsEl.innerHTML = '<span class="initial-tag">UNKNOWN</span>';
+    }
+  } catch(error){
+    console.error('❌ Failed to load player data:', error);
+    // Fallback
+    const isHuman = playerName === 'Human' || playerName === 'Human Player';
+    avatarEl.textContent = isHuman ? '👤' : '🤖';
+    if(descEl) descEl.textContent = 'Error loading player data';
+    if(tagsEl) tagsEl.innerHTML = '';
+  }
+}
+
+function swapPlayersAndRestart(){
+  console.log('🔄 Swapping players and restarting game');
+  
+  if(!data || !data.players){
+    console.error('❌ No player data available to swap');
+    showToast('No players to swap');
+    return;
+  }
+  
+  // Get current players
+  const currentBlack = data.players.black?.name || 'Human Player';
+  const currentWhite = data.players.white?.name || 'LIGHTNING STRIKE';
+  
+  console.log('🔀 Swapping:', { 
+    before: { black: currentBlack, white: currentWhite },
+    after: { black: currentWhite, white: currentBlack }
+  });
+  
+  // Reset game state
+  gameOverInfo = null;
+  aiAutoPaused = false;
+  
+  if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+    // Send set_players with SWAPPED positions
+    console.log('📤 Sending set_players with swapped colors');
+    wsSend({
+      type: 'set_players',
+      white: currentBlack,  // Old Black becomes new White
+      black: currentWhite   // Old White becomes new Black
+    });
+    
+    // Then reset game
+    setTimeout(() => {
+      console.log('📤 Sending reset_game');
+      wsSend({ type: 'reset_game' });
+      showToast(`Colors swapped: ${currentWhite} vs ${currentBlack}`);
+    }, 150);
+  }
+}
+
+function cancelInitialSetup(){
+  console.log('❌ Canceling initial setup - returning to current game');
+  
+  // Hide initial setup screen
+  const setupScreen = document.getElementById('initialSetupScreen');
+  if(setupScreen){
+    setupScreen.classList.add('hidden');
+    console.log('✅ Initial setup screen hidden');
+  }
+  
+  // Remove class from body
+  document.body.classList.remove('initial-setup-active');
+  
+  // Restore setup state (if there was a game)
+  if(data && data.status){
+    initialSetupComplete = true;
+    console.log('✅ Returned to current game');
+    showToast('Setup canceled');
+  } else {
+    // No game to return to - this should not happen if Cancel is properly hidden
+    console.warn('⚠️  No current game to return to');
+  }
+  
+  // Clear selection state
+  initialSelectingFor = null;
+}
+
+function reopenInitialSetup(){
+  console.log('🔄 Reopening initial setup screen');
+  
+  // Update default players with current players
+  if(data && data.players){
+    const currentBlack = data.players.black?.name || 'Human Player';
+    const currentWhite = data.players.white?.name || 'LIGHTNING STRIKE';
+    
+    console.log('📝 Updating defaults with current players:', { currentBlack, currentWhite });
+    initialBlackPlayer = currentBlack;
+    initialWhitePlayer = currentWhite;
+    
+    // Update display
+    updateInitialPlayerDisplay('black', currentBlack);
+    updateInitialPlayerDisplay('white', currentWhite);
+  }
+  
+  // Show initial setup screen
+  const setupScreen = document.getElementById('initialSetupScreen');
+  if(setupScreen){
+    setupScreen.classList.remove('hidden');
+    console.log('✅ Initial setup screen shown');
+  }
+  
+  // Show Cancel button (since there's a game to return to)
+  const cancelBtn = document.getElementById('initialCancelBtn');
+  if(cancelBtn){
+    cancelBtn.style.display = 'flex';
+    console.log('✅ Cancel button shown');
+  }
+  
+  // Add class to body for z-index
+  document.body.classList.add('initial-setup-active');
+  
+  // Reset setup state
+  initialSetupComplete = false;
+  initialSelectingFor = null;
+  
+  console.log('✅ Ready to select new players');
+}
+
+function startGameWithPlayers(blackPlayer, whitePlayer){
+  console.log('🚀 Starting game:', blackPlayer, 'vs', whitePlayer);
+  
+  // Hide initial setup screen
+  const setupScreen = document.getElementById('initialSetupScreen');
+  if(setupScreen){
+    setupScreen.classList.add('hidden');
+  }
+  
+  // Remove initial-setup-active class from body
+  document.body.classList.remove('initial-setup-active');
+  console.log('✅ Removed initial-setup-active class from body');
+  
+  initialSetupComplete = true;
+  
+  // CORRECT ORDER: First init to create session, THEN set_players
+  if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
+    // First send init to CREATE the session
+    console.log('📤 Step 1: Sending init to create session');
+    wsSend({
+      type: 'init',
+      session_id: SESSION_ID
+    });
+    
+    // Then set players (after session exists)
+    setTimeout(() => {
+      console.log('📤 Step 2: Sending set_players:', { white: whitePlayer, black: blackPlayer });
+      wsSend({
+        type: 'set_players',
+        white: whitePlayer,
+        black: blackPlayer
+      });
+    }, 200);
+  }
+}
+
 // Initialize on page load
 function init(){
+  console.log('🚀 init() called');
+  
   // Test WebSocket indicator visibility
   const indicator = document.getElementById('wsStatusIndicator');
   if (indicator) {
@@ -886,10 +1370,17 @@ function init(){
   // Setup WebSocket
   initWebSocket();
   
-  // Toolbar setup
+  // Toolbar setup (must be before initial screen)
   setupToolbar();
   setupTooltips();
   setupPlayersUI();
+  
+  // Initial setup screen - MUST wait for DOM to be fully ready
+  console.log('⏰ Scheduling setupInitialScreen() for next tick...');
+  setTimeout(() => {
+    console.log('⏰ Now calling setupInitialScreen()...');
+    setupInitialScreen();
+  }, 100);
   
   // History grid setup
   setupHistoryDemo();
@@ -1069,6 +1560,8 @@ function setupToolbar(){
   const saveBtn = qs('saveBtn');
   const loadBtn = qs('loadBtn');
   const newBtn  = qs('newGameBtn');
+  const swapPlayersBtn = qs('swapPlayersBtn');
+  const setupPlayersBtn = qs('setupPlayersBtn');
   const fsBtn   = qs('fsBtn');
   const aiPlayPauseBtn = qs('aiPlayPauseBtn');
   const toggleOpeningBtn = qs('toggleOpeningBtn');
@@ -1242,6 +1735,17 @@ function setupToolbar(){
       wsConnection.send(JSON.stringify({ type: 'reset_game' }));
     }
   });
+  
+  if (swapPlayersBtn) swapPlayersBtn.addEventListener('click', ()=>{
+    console.log('🔄 Swap Players button clicked - inverting colors');
+    swapPlayersAndRestart();
+  });
+  
+  if (setupPlayersBtn) setupPlayersBtn.addEventListener('click', ()=>{
+    console.log('🔄 Setup Players button clicked - reopening initial screen');
+    reopenInitialSetup();
+  });
+  
   if (fsBtn) fsBtn.addEventListener('click', ()=>{ if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); } else { document.exitFullscreen?.(); } });
 }
 
@@ -1646,6 +2150,25 @@ function setupPlayersUI(){
 
   async function applySelection(side, player){
     try{
+      console.log('🎯 applySelection called:', {
+        side, 
+        playerName: player.name,
+        initialSetupComplete,
+        initialSelectingFor
+      });
+      
+      // If we're in initial setup phase, update the initial screen instead
+      if(!initialSetupComplete){
+        console.log('✅ In initial setup phase - updating initial screen');
+        // Convert side 'B'/'W' to 'black'/'white'
+        const sideForInitial = (side === 'B') ? 'black' : 'white';
+        console.log(`   Converting side ${side} to ${sideForInitial}`);
+        await updateInitialPlayerDisplay(sideForInitial, player.name);
+        close();
+        initialSelectingFor = null;
+        return;
+      }
+      
       // Update UI immediately
       if(!data) data = {};
       if(!data.players) data.players = { black:{}, white:{} };
@@ -1673,6 +2196,9 @@ function setupPlayersUI(){
   closeBtn?.addEventListener('click', close);
   overlay?.addEventListener('click', (e)=>{ if(e.target === overlay) close(); });
   window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') close(); });
+  
+  // Expose open function globally for initial setup screen
+  window.openPlayersModal = open;
 }
 
 function showToast(msg){

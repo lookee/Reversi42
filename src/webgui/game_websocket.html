@@ -17,6 +17,87 @@
 </head>
 <body>
   <!-- ========================================
+       INITIAL SETUP SCREEN
+       ======================================== -->
+  <div id="initialSetupScreen" class="initial-setup-screen">
+    <div class="initial-setup-container">
+      <!-- Title -->
+      <div class="initial-setup-header">
+        <h1 class="initial-setup-title">⚫ Reversi42 ⚪</h1>
+        <p class="initial-setup-subtitle">Choose your players to begin</p>
+      </div>
+      
+      <!-- Player Selection Cards -->
+      <div class="initial-setup-players">
+        <!-- Black Player -->
+        <div class="initial-player-card" id="initialBlackCard">
+          <div class="initial-player-icon">⚫</div>
+          <h2 class="initial-player-title">Black Player</h2>
+          <div class="initial-player-selected" id="initialBlackSelected">
+            <div class="initial-player-avatar" id="initialBlackAvatar"></div>
+            <div class="initial-player-name" id="initialBlackName">Human Player</div>
+            <div class="initial-player-description" id="initialBlackDesc">Local human player - Take control yourself</div>
+            <div class="initial-player-tags" id="initialBlackTags">
+              <span class="initial-tag human">HUMAN</span>
+            </div>
+          </div>
+          <button type="button" class="initial-player-button" id="initialSelectBlackBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
+              <path d="M3 21a9 9 0 0 1 18 0"/>
+            </svg>
+            Change Player
+          </button>
+        </div>
+        
+        <!-- VS Divider -->
+        <div class="initial-vs-divider">
+          <div class="initial-vs-text">VS</div>
+        </div>
+        
+        <!-- White Player -->
+        <div class="initial-player-card" id="initialWhiteCard">
+          <div class="initial-player-icon">⚪</div>
+          <h2 class="initial-player-title">White Player</h2>
+          <div class="initial-player-selected" id="initialWhiteSelected">
+            <div class="initial-player-avatar" id="initialWhiteAvatar"></div>
+            <div class="initial-player-name" id="initialWhiteName">LIGHTNING STRIKE</div>
+            <div class="initial-player-description" id="initialWhiteDesc">Blitz Master - Speed Above All</div>
+            <div class="initial-player-tags" id="initialWhiteTags">
+              <span class="initial-tag ai">AI</span>
+              <span class="initial-tag intermediate">INTERMEDIATE</span>
+            </div>
+          </div>
+          <button type="button" class="initial-player-button" id="initialSelectWhiteBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4"/>
+              <path d="M3 21a9 9 0 0 1 18 0"/>
+            </svg>
+            Change Player
+          </button>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="initial-action-buttons">
+        <button type="button" class="initial-cancel-button" id="initialCancelBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18"/>
+            <path d="M6 6l12 12"/>
+          </svg>
+          Cancel
+        </button>
+        <button type="button" class="initial-start-button" id="initialStartGameBtn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Start Game
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
        HEADER - Player Information
        ======================================== -->
   <header class="container" style="padding-bottom:0">
@@ -126,14 +207,22 @@
                     <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                   </span>
                 </button>
-                <button id="copyBtn" class="btn" title="Copy compact history" data-tip="Copy compact history" aria-label="Copy compact history">
+                <button id="swapPlayersBtn" class="btn" title="Swap Colors" data-tip="Swap Black ↔ White" aria-label="Swap colors">
                   <span class="icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <svg viewBox="0 0 24 24">
+                      <path d="M7 16V4M7 4L3 8M7 4l4 4"/>
+                      <path d="M17 8v12M17 20l4-4M17 20l-4-4"/>
+                    </svg>
                   </span>
                 </button>
-                <button id="pasteBtn" class="btn" title="Paste compact history" data-tip="Paste compact history" aria-label="Paste compact history">
+                <button id="setupPlayersBtn" class="btn" title="Setup Players" data-tip="Choose players" aria-label="Setup players">
                   <span class="icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                    <svg viewBox="0 0 24 24">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
                   </span>
                 </button>
                 <button id="saveBtn" class="btn" title="Save game" data-tip="Save game" disabled>
@@ -155,6 +244,16 @@
               <div class="flex items-center justify-between mb-2">
                 <div class="text-sm font-semibold">Move History <span id="histBadge" class="historyBadge hidden">· 50 simulated positions</span></div>
                 <div class="flex items-center gap-2">
+                  <button id="copyBtn" class="btn text-xs" title="Copy compact history" data-tip="Copy compact history" aria-label="Copy compact history">
+                    <span class="icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </span>
+                  </button>
+                  <button id="pasteBtn" class="btn text-xs" title="Paste compact history" data-tip="Paste compact history" aria-label="Paste compact history">
+                    <span class="icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                    </span>
+                  </button>
                   <button id="undoBtn" class="btn text-xs" title="Undo" data-tip="Undo" disabled>
                     <span class="icon" aria-hidden="true">
                       <svg viewBox="0 0 24 24">
