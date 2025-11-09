@@ -29,7 +29,7 @@ async def cleanup_sessions():
     
     # Clean up any remaining sessions
     try:
-        from webgui.server.backend_server import sessions, active_connections
+        from webgui.server.reversi42_server import sessions, active_connections
         sessions.clear()
         active_connections.clear()
     except ImportError:
