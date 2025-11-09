@@ -315,26 +315,284 @@ html,body{
 .bestMove .pill{border:1px solid rgba(255,255,255,.14);background:rgba(16,185,129,.12);color:#34d399;border-radius:999px;padding:.25rem .6rem;font-weight:800;letter-spacing:.03em}
 
 /* ========================================
-   OPENING TREE
+   OPENING TREE - Modern Hierarchical Design
    ======================================== */
-.opening-tree{--pad:8px}
-.opening-tree .node-row{display:flex;align-items:center;gap:10px;padding:6px var(--pad);border-radius:10px;transition:background .15s ease}
-.opening-tree .node-row:hover{background:rgba(255,255,255,.04)}
-.opening-tree .move-pill{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);border-radius:999px;padding:.15rem .55rem;font-weight:800;letter-spacing:.02em}
-.opening-tree .meta{color:var(--muted);font-size:12px}
-.opening-tree .names{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.opening-tree details{padding-left:12px}
-.opening-tree summary{cursor:pointer;color:var(--muted);font-size:12px;padding:2px var(--pad);list-style:none}
-.opening-tree summary::-webkit-details-marker{display:none}
-.opening-tree .adv{border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:.05rem .4rem;font-weight:800;font-size:11px;margin-right:6px}
-.opening-tree .adv-eq{background:rgba(255,255,255,.05);color:var(--muted)}
-.opening-tree .adv-unk{background:rgba(255,255,255,.08);color:var(--muted);border-style:dashed}
-.opening-tree .adv-w{background:rgba(16,185,129,.14);color:#34d399}
-.opening-tree .adv-wp{background:rgba(16,185,129,.22);color:#34d399}
-.opening-tree .adv-wpp{background:rgba(16,185,129,.30);color:#34d399}
-.opening-tree .adv-b{background:rgba(239,68,68,.18);color:#ff8a8a}
-.opening-tree .adv-bp{background:rgba(239,68,68,.26);color:#ff9e9e}
-.opening-tree .adv-bpp{background:rgba(239,68,68,.34);color:#ffb3b3}
+.opening-tree{
+  font-size:13px;
+  position:relative;
+  padding:0
+}
+
+/* Current Opening Header */
+.opening-tree-current{
+  background:linear-gradient(135deg, rgba(245,158,11,.18), rgba(245,158,11,.08));
+  border:1px solid rgba(245,158,11,.35);
+  border-radius:8px;
+  padding:8px 12px;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  animation:fadeIn 0.3s ease
+}
+.opening-tree-current-icon{
+  font-size:16px;
+  opacity:0.9
+}
+.opening-tree-current-text{
+  flex:1;
+  font-weight:700;
+  color:#fbbf24;
+  font-size:12px;
+  letter-spacing:0.3px;
+  text-shadow:0 0 8px rgba(251,191,36,0.3)
+}
+
+/* Tree Container */
+.opening-tree-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+  position:relative
+}
+
+/* Tree Node */
+.opening-tree-node{
+  position:relative;
+  margin-bottom:8px
+}
+
+/* Node Content */
+.opening-tree-node-content{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  background:linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;
+  transition:all 0.2s ease;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden
+}
+
+.opening-tree-node-content::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:3px;
+  background:linear-gradient(180deg, rgba(16,185,129,.8), rgba(16,185,129,.4));
+  opacity:0;
+  transition:opacity 0.2s ease
+}
+
+.opening-tree-node-content:hover{
+  background:linear-gradient(135deg, rgba(16,185,129,.12), rgba(16,185,129,.06));
+  border-color:rgba(16,185,129,.35);
+  transform:translateX(4px);
+  box-shadow:0 4px 12px rgba(16,185,129,.2)
+}
+
+.opening-tree-node-content:hover::before{
+  opacity:1
+}
+
+/* Move Badge */
+.opening-tree-move{
+  font-weight:900;
+  font-size:14px;
+  letter-spacing:0.5px;
+  min-width:32px;
+  text-align:center;
+  padding:4px 8px;
+  background:linear-gradient(135deg, rgba(16,185,129,.25), rgba(16,185,129,.15));
+  border:1px solid rgba(16,185,129,.4);
+  border-radius:6px;
+  color:#34d399;
+  text-shadow:0 0 8px rgba(52,211,153,0.4);
+  flex-shrink:0;
+  transition:all 0.2s ease
+}
+
+.opening-tree-node-content:hover .opening-tree-move{
+  background:linear-gradient(135deg, rgba(16,185,129,.4), rgba(16,185,129,.25));
+  border-color:rgba(16,185,129,.6);
+  transform:scale(1.05)
+}
+
+/* Advantage Indicator */
+.opening-tree-adv{
+  font-size:10px;
+  font-weight:800;
+  padding:3px 7px;
+  border-radius:5px;
+  letter-spacing:0.4px;
+  text-transform:uppercase;
+  border:1px solid;
+  flex-shrink:0;
+  text-shadow:0 0 6px currentColor;
+  transition:all 0.2s ease
+}
+
+.opening-tree-adv-eq{
+  background:rgba(255,255,255,.08);
+  color:var(--muted);
+  border-color:rgba(255,255,255,.15)
+}
+.opening-tree-adv-unk{
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.4);
+  border-color:rgba(255,255,255,.1);
+  border-style:dashed
+}
+.opening-tree-adv-w{
+  background:rgba(16,185,129,.2);
+  color:#34d399;
+  border-color:rgba(16,185,129,.5)
+}
+.opening-tree-adv-wp{
+  background:rgba(16,185,129,.3);
+  color:#10b981;
+  border-color:rgba(16,185,129,.7)
+}
+.opening-tree-adv-wpp{
+  background:rgba(16,185,129,.4);
+  color:#059669;
+  border-color:rgba(16,185,129,.9)
+}
+.opening-tree-adv-b{
+  background:rgba(239,68,68,.2);
+  color:#ff8a8a;
+  border-color:rgba(239,68,68,.5)
+}
+.opening-tree-adv-bp{
+  background:rgba(239,68,68,.3);
+  color:#ff6b6b;
+  border-color:rgba(239,68,68,.7)
+}
+.opening-tree-adv-bpp{
+  background:rgba(239,68,68,.4);
+  color:#ff5252;
+  border-color:rgba(239,68,68,.9)
+}
+
+/* Opening Names */
+.opening-tree-names{
+  flex:1;
+  font-size:11px;
+  color:rgba(255,255,255,.6);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  line-height:1.4;
+  transition:color 0.2s ease
+}
+
+.opening-tree-node-content:hover .opening-tree-names{
+  color:rgba(255,255,255,.85)
+}
+
+/* Variants Count Badge */
+.opening-tree-count{
+  font-size:9px;
+  font-weight:700;
+  padding:3px 6px;
+  background:rgba(245,158,11,.15);
+  border:1px solid rgba(245,158,11,.35);
+  border-radius:4px;
+  color:#fbbf24;
+  flex-shrink:0;
+  letter-spacing:0.3px
+}
+
+/* Children Container */
+.opening-tree-children{
+  margin-top:4px;
+  margin-left:20px;
+  padding-left:12px;
+  border-left:2px solid rgba(16,185,129,.15);
+  position:relative
+}
+
+.opening-tree-children::before{
+  content:'';
+  position:absolute;
+  left:-2px;
+  top:0;
+  bottom:0;
+  width:2px;
+  background:linear-gradient(180deg, rgba(16,185,129,.25), transparent);
+  opacity:0;
+  transition:opacity 0.3s ease
+}
+
+.opening-tree-children:hover::before{
+  opacity:1
+}
+
+/* Empty State */
+.opening-tree-empty{
+  color:var(--muted);
+  font-size:12px;
+  padding:12px 8px;
+  text-align:center;
+  font-style:italic;
+  opacity:0.7
+}
+
+/* Nested Level Indicators */
+.opening-tree-node[data-depth="0"] .opening-tree-node-content{
+  border-width:1.5px;
+  border-color:rgba(16,185,129,.25)
+}
+
+.opening-tree-node[data-depth="1"] .opening-tree-move{
+  background:linear-gradient(135deg, rgba(59,130,246,.25), rgba(59,130,246,.15));
+  border-color:rgba(59,130,246,.4);
+  color:#60a5fa
+}
+
+.opening-tree-node[data-depth="1"] .opening-tree-node-content:hover .opening-tree-move{
+  background:linear-gradient(135deg, rgba(59,130,246,.4), rgba(59,130,246,.25));
+  border-color:rgba(59,130,246,.6)
+}
+
+.opening-tree-node[data-depth="2"] .opening-tree-move{
+  background:linear-gradient(135deg, rgba(139,92,246,.25), rgba(139,92,246,.15));
+  border-color:rgba(139,92,246,.4);
+  color:#a78bfa
+}
+
+.opening-tree-node[data-depth="2"] .opening-tree-node-content:hover .opening-tree-move{
+  background:linear-gradient(135deg, rgba(139,92,246,.4), rgba(139,92,246,.25));
+  border-color:rgba(139,92,246,.6)
+}
+
+/* Animation */
+@keyframes treeNodeFadeIn{
+  from{
+    opacity:0;
+    transform:translateX(-10px)
+  }
+  to{
+    opacity:1;
+    transform:translateX(0)
+  }
+}
+
+.opening-tree-node{
+  animation:treeNodeFadeIn 0.3s ease backwards
+}
+
+.opening-tree-node:nth-child(1){animation-delay:0ms}
+.opening-tree-node:nth-child(2){animation-delay:50ms}
+.opening-tree-node:nth-child(3){animation-delay:100ms}
+.opening-tree-node:nth-child(4){animation-delay:150ms}
+.opening-tree-node:nth-child(5){animation-delay:200ms}
+.opening-tree-node:nth-child(n+6){animation-delay:250ms}
 
 /* ========================================
    WEBSOCKET - Traffic Viewer & Status

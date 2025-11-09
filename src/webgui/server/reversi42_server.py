@@ -388,7 +388,6 @@ class GameSession:
                         # Only include if move is valid now (coordinate-based to avoid equality issues)
                         coord = f"{chr(64+move_obj.x)}{move_obj.y}"
                         if coord not in valid_coords:
-                            logger.info(f"Skipping book move not valid now: {coord}; valid={sorted(valid_coords)}")
                             continue
                         # Extra safety: confirm with engine validator
                         try:
@@ -492,8 +491,6 @@ class GameSession:
             col = ord(move_coord[0]) - ord('A') + 1  # A=1, B=2, etc.
             row = int(move_coord[1])  # 1-8
             
-            logger.info(f"Converting move {move_coord} to col={col}, row={row}")
-            
             if not (1 <= col <= 8 and 1 <= row <= 8):
                 return False, "Move out of bounds"
             
@@ -505,15 +502,12 @@ class GameSession:
             
             # Check if move is valid
             valid_moves = self.game.get_move_list()
-            logger.info(f"Valid moves (y,x): {[(m.y, m.x) for m in valid_moves]}")
-            logger.info(f"Attempted move {move_coord}: Move(col={col}, row={row}) = Move(y={col}, x={row})")
             
             if move not in valid_moves:
                 return False, "Invalid move"
             
             # Make the move
             self.game.move(move)
-            logger.info(f"Move {move_coord} executed successfully")
             return True, None
             
         except Exception as e:
@@ -536,25 +530,17 @@ class GameSession:
             # Create observer for AI insights if websocket is provided
             observer = None
             if websocket:
-                logger.info("[AI_INSIGHT] Creating WebSocketSearchObserver for AI insights")
                 observer = WebSocketSearchObserver(websocket, self.session_id)
                 # Set the event loop for async operations
                 try:
                     observer.loop = asyncio.get_running_loop()
-                    logger.info(f"[AI_INSIGHT] Observer loop set: {observer.loop}")
                 except RuntimeError:
                     observer.loop = None
-                    logger.warning("[AI_INSIGHT] No running event loop found for observer")
-            else:
-                logger.info("[AI_INSIGHT] No websocket provided, observer not created")
-            
-            logger.info(f"[AI_INSIGHT] Calling AI.get_move with observer={observer} in separate thread")
             # Run AI search in separate thread to avoid blocking event loop
             # This allows WebSocket messages to be sent in real-time
             # Use run_in_executor for Python 3.8 compatibility (asyncio.to_thread requires 3.9+)
             loop = asyncio.get_event_loop()
             ai_move = await loop.run_in_executor(None, ai.get_move, self.game, move_list, observer)
-            logger.info(f"[AI_INSIGHT] AI.get_move completed, move={ai_move}")
             return ai_move
             
         except Exception as e:
@@ -981,9 +967,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # Receive message
             data = await websocket.receive_text()
-            logger.info(f"Received WebSocket message: {data}")
             message = json.loads(data)
-            logger.info(f"Parsed message: {message}")
             
             # Handle message
             await handle_message(websocket, session_id, message)
@@ -1163,7 +1147,6 @@ async def handle_human_move(websocket: WebSocket, session: GameSession, data: di
         
         # DON'T auto-trigger AI move here!
         # Frontend will request AI move via checkAndRequestAIMove() after receiving board_update
-        logger.info(f"Human move complete. Next turn: {session.game.turn}. Frontend will request AI move if needed.")
             
     except Exception as e:
         logger.error(f"Error in handle_human_move: {e}")
@@ -1291,7 +1274,6 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
         
         # Check if game is already over (board full)
         if session.game.white_cnt + session.game.black_cnt == 64:
-            logger.info("Game already over (board full), ignoring AI move request")
             await handle_game_over(websocket, session, "Board full")
             return
         
@@ -1352,16 +1334,13 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
             ai_move = await session.get_ai_move(side, websocket)
             end_ts = time.perf_counter()
             last_search_time_ms = max(0.0, (end_ts - start_ts) * 1000.0)
-            logger.info(f"AI move received: {ai_move}")
             
             if ai_move:
                 # Convert Move coordinates to algebraic notation (A1-H8)
                 coord = f"{chr(64+ai_move.x)}{ai_move.y}"
-                logger.info(f"Playing AI move: {coord} (x={ai_move.x}, y={ai_move.y})")
                 
                 try:
                     session.game.move(ai_move)
-                    logger.info(f"AI move {coord} executed successfully")
                 except Exception as e:
                     logger.error(f"Error executing AI move: {e}")
                     logger.error(traceback.format_exc())
@@ -1542,7 +1521,6 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
         
         # Send updated state
         state_data = session.get_state()
-        logger.info(f"Sending state - Black: {state_data['players']['black']['name']}, White: {state_data['players']['white']['name']}, Turn: {state_data['status']['turn_by_ply'][0]}")
         
         await send_to_connection(websocket, {"type": "board_update", "data": state_data})
         
@@ -1590,9 +1568,7 @@ async def send_to_connection(websocket: WebSocket, message: dict):
     """Send message to WebSocket connection"""
     try:
         message_str = json.dumps(message)
-        logger.info(f"Sending message: {message_str[:100]}...")
         await websocket.send_text(message_str)
-        logger.info("Message sent successfully")
     except Exception as e:
         logger.error(f"Error sending message: {e}")
 

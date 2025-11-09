@@ -98,17 +98,6 @@ class ApocalyptronEngine:
         self.searches_performed = 0
         self.total_time = 0.0
 
-        print(f"[ApocalyptronEngine] Initialized with modular components (NO GrandmasterEngine)!")
-        print(f"  • Evaluators: {self.evaluator.get_evaluator_count()}")
-        print(f"  • Orderers: {self.orderer.get_orderer_count()}")
-        print(f"  • Search strategy: {self.config.search_strategy}")  # NEW
-        print(f"  • Null move: {self.config.enable_null_move_pruning}")
-        print(f"  • Futility: {self.config.enable_futility_pruning}")
-        print(f"  • LMR: {self.config.enable_late_move_reduction}")
-        print(f"  • Multi-cut: {self.config.enable_multi_cut_pruning}")
-        print(f"  • Iterative deepening: {self.config.use_iterative_deepening}")
-        print(f"  • Parallel: {self.config.use_parallel}")
-
     def _build_evaluator(self) -> CompositeEvaluator:
         """
         Build composite evaluator from configuration.

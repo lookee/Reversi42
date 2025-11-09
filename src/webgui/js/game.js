@@ -2473,44 +2473,59 @@ function renderNotes(notes){
   const hasNames = !!(tree && Array.isArray(tree.names_at_position) && tree.names_at_position.length>0);
   const hasCurrent = !!(tree && tree.current_opening);
   if(!hasChildren && !hasNames && !hasCurrent){
-    box.innerHTML = '<div style="color:var(--muted);padding:6px 4px">Nessuna linea di libro dalla posizione corrente</div>';
+    box.innerHTML = '<div class="opening-tree-empty">Nessuna linea di libro dalla posizione corrente</div>';
     return;
   }
 
   // Clear
   box.innerHTML = '';
 
-    // Build set of valid moves for current position to avoid highlighting invalid variants
-    const validSet = new Set(((data && data.valid_by_ply && data.valid_by_ply[0]) || []).map(String));
+  // Build set of valid moves for current position to avoid highlighting invalid variants
+  const validSet = new Set(((data && data.valid_by_ply && data.valid_by_ply[0]) || []).map(String));
 
-  // Path removed per request (compact view)
-
-  // Current opening (if any) - always show a compact header
+  // Current opening header
   if(tree.current_opening){
-    const playing = document.createElement('div');
-    playing.style.cssText = 'color:var(--muted);font-size:12px;padding:0 8px 6px 8px';
-    playing.textContent = `Playing: ${tree.current_opening}`;
-    box.appendChild(playing);
+    const currentHeader = document.createElement('div');
+    currentHeader.className = 'opening-tree-current';
+    
+    const icon = document.createElement('div');
+    icon.className = 'opening-tree-current-icon';
+    icon.textContent = '📖';
+    
+    const text = document.createElement('div');
+    text.className = 'opening-tree-current-text';
+    text.textContent = tree.current_opening;
+    
+    currentHeader.appendChild(icon);
+    currentHeader.appendChild(text);
+    box.appendChild(currentHeader);
   }
 
-  // If we have children, render them as a compact list; otherwise show variant names
-  if(hasChildren){
-    const ul = document.createElement('ul');
-    ul.style.listStyle = 'none';
-    ul.style.paddingLeft = '0';
-    box.appendChild(ul);
-
+  // Helper functions
   function advClass(adv){
-    if(adv === undefined || adv === null) return 'adv adv-unk';
-    if(adv === '=') return 'adv adv-eq';
+    if(adv === undefined || adv === null) return 'opening-tree-adv opening-tree-adv-unk';
+    if(adv === '=') return 'opening-tree-adv opening-tree-adv-eq';
     const a = String(adv).toLowerCase();
-    if(a==='w') return 'adv adv-w';
-    if(a==='w+') return 'adv adv-wp';
-    if(a==='w++') return 'adv adv-wpp';
-    if(a==='b') return 'adv adv-b';
-    if(a==='b+') return 'adv adv-bp';
-    if(a==='b++') return 'adv adv-bpp';
-    return 'adv adv-eq';
+    if(a==='w') return 'opening-tree-adv opening-tree-adv-w';
+    if(a==='w+') return 'opening-tree-adv opening-tree-adv-wp';
+    if(a==='w++') return 'opening-tree-adv opening-tree-adv-wpp';
+    if(a==='b') return 'opening-tree-adv opening-tree-adv-b';
+    if(a==='b+') return 'opening-tree-adv opening-tree-adv-bp';
+    if(a==='b++') return 'opening-tree-adv opening-tree-adv-bpp';
+    return 'opening-tree-adv opening-tree-adv-eq';
+  }
+
+  function advLabel(adv){
+    if(adv === undefined || adv === null) return '?';
+    if(adv === '=') return '=';
+    const a = String(adv).toLowerCase();
+    if(a==='w') return 'W';
+    if(a==='w+') return 'W+';
+    if(a==='w++') return 'W++';
+    if(a==='b') return 'B';
+    if(a==='b+') return 'B+';
+    if(a==='b++') return 'B++';
+    return '=';
   }
 
   function highlightCell(move){
@@ -2530,56 +2545,121 @@ function renderNotes(notes){
     document.querySelectorAll('.hint[data-__ot="1"]').forEach(e=>e.remove());
   }
 
-  function nodeRow(n){
-    const wrap = document.createElement('div');
-    wrap.className = 'node-row';
-    const move = document.createElement('span');
-    move.className = 'move-pill';
-    move.textContent = n.move;
+  function createTreeNode(n, depth=0){
+    // Node container
+    const node = document.createElement('div');
+    node.className = 'opening-tree-node';
+    node.dataset.depth = depth;
+
+    // Node content
+    const content = document.createElement('div');
+    content.className = 'opening-tree-node-content';
+
+    // Move badge
+    const moveEl = document.createElement('div');
+    moveEl.className = 'opening-tree-move';
+    moveEl.textContent = (n.move || '').toUpperCase();
+    content.appendChild(moveEl);
+
+    // Advantage indicator
+    const advEl = document.createElement('div');
+    advEl.className = advClass(n.advantage);
+    advEl.textContent = advLabel(n.advantage);
+    content.appendChild(advEl);
+
+    // Opening names
     const namesFull = Array.isArray(n.names) && n.names.length
       ? n.names
       : (Array.isArray(n.openings) ? n.openings.map(o=>o && o.name ? String(o.name) : '').filter(Boolean) : []);
-    const namesShort = namesFull.slice(0, 5).join(', ');
-    const namesSpan = document.createElement('span');
-    namesSpan.className = 'names';
-    namesSpan.textContent = namesShort || '';
-    if(namesFull.length){ namesSpan.title = namesFull.join(', '); }
-    wrap.appendChild(move);
-    wrap.appendChild(namesSpan);
+    
+    if(namesFull.length > 0){
+      const namesEl = document.createElement('div');
+      namesEl.className = 'opening-tree-names';
+      const namesShort = namesFull.slice(0, 3).join(' • ');
+      namesEl.textContent = namesShort;
+      namesEl.title = namesFull.join('\n');
+      content.appendChild(namesEl);
 
-    wrap.onmouseenter = ()=>{ 
+      // Count badge if there are more variants
+      if(namesFull.length > 3){
+        const countEl = document.createElement('div');
+        countEl.className = 'opening-tree-count';
+        countEl.textContent = `+${namesFull.length - 3}`;
+        content.appendChild(countEl);
+      }
+    } else {
+      // Spacer when no names
+      const spacer = document.createElement('div');
+      spacer.style.flex = '1';
+      content.appendChild(spacer);
+    }
+
+    // Interaction handlers
+    content.onmouseenter = ()=>{ 
       clearHighlights(); 
       if(validSet.has(String(n.move).toUpperCase())){ highlightCell(n.move); }
     };
-    wrap.onmouseleave = ()=>{ clearHighlights(); };
-    wrap.onclick = ()=>{
+    content.onmouseleave = ()=>{ clearHighlights(); };
+    content.onclick = ()=>{
       try{
-        const i = coordToIdx(n.move); const cell = document.getElementById('board')?.children[i];
+        const i = coordToIdx(n.move); 
+        const cell = document.getElementById('board')?.children[i];
         cell?.scrollIntoView({block:'nearest', inline:'nearest'});
       }catch(_){/* noop */}
     };
-    return wrap;
+
+    node.appendChild(content);
+
+    // Render children if available (for hierarchical tree)
+    if(Array.isArray(n.children) && n.children.length > 0 && depth < 2){
+      const childrenContainer = document.createElement('div');
+      childrenContainer.className = 'opening-tree-children';
+      n.children.forEach(child => {
+        const childNode = createTreeNode(child, depth + 1);
+        childrenContainer.appendChild(childNode);
+      });
+      node.appendChild(childrenContainer);
+    }
+
+    return node;
   }
 
-  function build(list, nodes, depth=0){
-    nodes.forEach(n=>{
-      const li = document.createElement('li');
-      li.style.marginLeft = (depth*8)+'px';
-      li.appendChild(nodeRow(n));
-      // Compact mode: no nested details; names are shown inline
-      list.appendChild(li);
+  // If we have children, render them as a tree
+  if(hasChildren){
+    const treeList = document.createElement('div');
+    treeList.className = 'opening-tree-list';
+    box.appendChild(treeList);
+
+    // Filter only valid moves
+    const filteredChildren = (tree.children || []).filter(n => validSet.has(String(n.move).toUpperCase()));
+    
+    // Limit to top 8 moves for better readability
+    const topMoves = filteredChildren.slice(0, 8);
+    
+    topMoves.forEach(child => {
+      const node = createTreeNode(child, 0);
+      treeList.appendChild(node);
     });
-  }
-  const filteredChildren = (tree.children || []).filter(n => validSet.has(String(n.move).toUpperCase()));
-  build(ul, filteredChildren, 0);
+
+    // Show count if there are more moves
+    if(filteredChildren.length > 8){
+      const moreInfo = document.createElement('div');
+      moreInfo.className = 'opening-tree-empty';
+      moreInfo.textContent = `+${filteredChildren.length - 8} more variations`;
+      moreInfo.style.opacity = '0.5';
+      moreInfo.style.fontSize = '11px';
+      moreInfo.style.padding = '4px 8px';
+      moreInfo.style.marginTop = '4px';
+      box.appendChild(moreInfo);
+    }
   } else {
-    // No children: compact names-only list (header shown above already)
+    // No children: show variant names only
     if(hasNames){
-      const names = Array.from(new Set(tree.names_at_position)).slice(0,24);
-      const p = document.createElement('div');
-      p.className = 'names';
-      p.textContent = names.join(', ');
-      box.appendChild(p);
+      const namesContainer = document.createElement('div');
+      namesContainer.style.cssText = 'padding:8px 10px;font-size:11px;color:rgba(255,255,255,.6);line-height:1.6';
+      const names = Array.from(new Set(tree.names_at_position)).slice(0, 12);
+      namesContainer.textContent = names.join(' • ');
+      box.appendChild(namesContainer);
     }
   }
 }

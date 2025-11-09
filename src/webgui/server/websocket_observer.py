@@ -82,13 +82,10 @@ class WebSocketSearchObserver(SearchObserver):
                 try:
                     loop = asyncio.get_running_loop()
                     future = asyncio.run_coroutine_threadsafe(self._send(message), loop)
-                except Exception as ex:
-                    print(f"[WS_ERROR] No event loop available: {ex}")
-                    print(f"[WS_ERROR] Message type: {message.get('type')}")
-        except Exception as e:
-            print(f"[WS_ERROR] Error sending WebSocket update: {e}")
-            import traceback
-            traceback.print_exc()
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     async def _send(self, message: dict):
         """Send message via WebSocket using custom encoder for Move objects"""
@@ -96,10 +93,8 @@ class WebSocketSearchObserver(SearchObserver):
             # Use custom encoder that handles Move objects automatically
             json_text = json.dumps(message, cls=MoveEncoder)
             await self.websocket.send_text(json_text)
-        except Exception as e:
-            print(f"[WS_ERROR] Error in WebSocket send ({message.get('type')}): {e}")
-            import traceback
-            traceback.print_exc()
+        except Exception:
+            pass
     
     def _send_ai_log(self, log_type: str, message: str, data: dict = None):
         """Send AI reasoning log to frontend"""

@@ -108,8 +108,8 @@ class HeadlessBoardView(AbstractBoardView):
         self.current_turn = current_turn
 
     def show_message(self, message: str, duration: float = 2.0):
-        """Show message (print to console for headless)"""
-        print(f"[MESSAGE] {message}")
+        """Show message (no-op for headless)"""
+        pass
 
     def resize(self, width: int, height: int):
         """Resize (no-op for headless)"""

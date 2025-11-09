@@ -277,10 +277,6 @@ class ParallelSearch:
 
             is_best = value > best_value or best_move is None
 
-            # Debug: Log each parallel result
-            coord = f"{chr(64+move.x)}{move.y}" if move and hasattr(move, 'x') else 'N/A'
-            print(f"[PARALLEL_RESULT] Move {move_count}/{len(work_items)}: {coord} = {value:+d}, nodes={total_nodes:,}, pruned={total_pruning:,}")
-
             # Notify: Parallel result IMMEDIATELY as it arrives
             for observer in self.observers:
                 observer.on_parallel_result(move, value, is_best, total_nodes, total_pruning)
