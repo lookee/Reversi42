@@ -2763,9 +2763,67 @@ code.language-json{font-size:13px}
 
 .initial-vs-divider{
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
   position:relative;
+  gap:16px;
+}
+
+.initial-swap-button{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.1));
+  border:2px solid rgba(245,158,11,0.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+  overflow:hidden;
+  z-index:2;
+}
+
+.initial-swap-button::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle, rgba(245,158,11,0.3) 0%, transparent 70%);
+  opacity:0;
+  transition:opacity 0.4s ease;
+}
+
+.initial-swap-button:hover{
+  transform:scale(1.1) rotate(180deg);
+  background:linear-gradient(135deg, rgba(245,158,11,0.4), rgba(245,158,11,0.2));
+  border-color:rgba(245,158,11,0.8);
+  box-shadow:
+    0 8px 32px rgba(245,158,11,0.6),
+    0 0 40px rgba(245,158,11,0.4),
+    0 0 0 4px rgba(245,158,11,0.2);
+}
+
+.initial-swap-button:hover::before{
+  opacity:1;
+}
+
+.initial-swap-button:active{
+  transform:scale(1) rotate(180deg);
+}
+
+.initial-swap-button svg{
+  width:28px;
+  height:28px;
+  stroke:#fbbf24;
+  filter:drop-shadow(0 0 8px rgba(251,191,36,0.6));
+  transition:all 0.4s ease;
+}
+
+.initial-swap-button:hover svg{
+  stroke:#fcd34d;
+  filter:drop-shadow(0 0 16px rgba(251,191,36,0.9));
 }
 
 .initial-vs-text{
@@ -2913,11 +2971,23 @@ code.language-json{font-size:13px}
   
   .initial-vs-divider{
     order:2;
+    flex-direction:row;
+    gap:16px;
   }
   
   .initial-vs-text::before,
   .initial-vs-text::after{
     display:none;
+  }
+  
+  .initial-swap-button{
+    width:48px;
+    height:48px;
+  }
+  
+  .initial-swap-button svg{
+    width:24px;
+    height:24px;
   }
   
   .initial-player-card:nth-child(1){

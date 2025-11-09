@@ -1130,6 +1130,18 @@ function setupInitialScreen(){
     console.error('❌ initialStartGameBtn not found in DOM!');
   }
   
+  // Swap button in initial screen
+  const initialSwapPlayersBtn = document.getElementById('initialSwapPlayersBtn');
+  if(initialSwapPlayersBtn){
+    console.log('✅ Attaching to Swap button in initial screen');
+    initialSwapPlayersBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🔄 Swap button clicked in initial screen');
+      swapInitialPlayers();
+    });
+  }
+  
   // Cancel button
   const initialCancelBtn = document.getElementById('initialCancelBtn');
   if(initialCancelBtn){
@@ -1207,8 +1219,14 @@ async function updateInitialPlayerDisplay(side, playerName){
     const data = await response.json();
     console.log(`✅ API response received, total players: ${data.players?.length}`);
     
-    const player = data.players?.find(p => p.name === playerName || p.name.toUpperCase() === playerName.toUpperCase());
-    console.log(`🔍 Searching for: "${playerName}"`);
+    // Normalize "Human" to "Human Player" for search
+    const searchName = (playerName && playerName.toLowerCase() === 'human') ? 'Human Player' : playerName;
+    
+    const player = data.players?.find(p => 
+      p.name === searchName || 
+      p.name.toUpperCase() === searchName.toUpperCase()
+    );
+    console.log(`🔍 Searching for: "${playerName}" (normalized to: "${searchName}")`);
     console.log(`   Available players:`, data.players?.map(p => p.name));
     console.log(`   Found player:`, player ? `${player.name} (avatar_url: ${player.avatar_url})` : 'NOT FOUND');
     
@@ -1336,6 +1354,24 @@ function swapPlayersAndRestart(){
       showToast(`Colors swapped: ${currentWhite} vs ${currentBlack}`);
     }, 150);
   }
+}
+
+function swapInitialPlayers(){
+  console.log('🔀 Swapping players in initial screen');
+  console.log('   Before:', { black: initialBlackPlayer, white: initialWhitePlayer });
+  
+  // Swap the stored values
+  const tempBlack = initialBlackPlayer;
+  initialBlackPlayer = initialWhitePlayer;
+  initialWhitePlayer = tempBlack;
+  
+  console.log('   After:', { black: initialBlackPlayer, white: initialWhitePlayer });
+  
+  // Update displays with animation
+  updateInitialPlayerDisplay('black', initialBlackPlayer);
+  updateInitialPlayerDisplay('white', initialWhitePlayer);
+  
+  showToast('Players swapped! ⚫↔⚪');
 }
 
 function cancelInitialSetup(){
