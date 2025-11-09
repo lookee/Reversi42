@@ -40,7 +40,7 @@ engine:
   
   parallel:
     enabled: false        # Single-threaded only
-    num_workers: 1
+    num_workers: null
   
   transposition_table:
     enabled: false        # No cache (overhead)

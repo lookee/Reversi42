@@ -51,7 +51,7 @@ engine:
   # Moderate parallelization (4 cores balanced for depth 7-14)
   parallel:
     enabled: true
-    num_workers: 4  # Balanced for laptop/desktop CPUs
+    num_workers: null  # Auto-detect CPU cores
   
   # Standard transposition table
   transposition_table:
@@ -241,7 +241,7 @@ advanced:
 # - For stronger endgame: Increase endgame to 15-16 (slower)
 # - For faster play: Reduce endgame to 12 (still very strong)
 # - For better midgame: Increase midgame to 10
-# - For more cores: Set num_workers to 6-8
+# - num_workers: null auto-detects CPU cores
 # - For less RAM: Reduce size_mb to 64
 # 
 # Advanced Endgame Notes:

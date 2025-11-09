@@ -41,7 +41,7 @@ engine:
   # Moderate parallelization
   parallel:
     enabled: true
-    num_workers: 4
+    num_workers: null
   
   # Large transposition table for position caching
   transposition_table:

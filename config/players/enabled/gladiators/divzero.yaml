@@ -47,7 +47,7 @@ engine:
   # Maximum parallelization (8 cores)
   parallel:
     enabled: true
-    num_workers: 8  # Maximum workers for extreme performance
+    num_workers: null  # Auto-detect CPU cores
   
   # Large transposition table (256 MB)
   transposition_table:
@@ -189,6 +189,6 @@ advanced:
 # - For faster play: Reduce base depth to 10 (still very strong)
 # - For slower/stronger: Increase endgame depth to 18
 # - For less RAM: Reduce size_mb to 128
-# - For fewer cores: Set num_workers to 4
+# - num_workers: null auto-detects CPU cores
 # ============================================================================
 

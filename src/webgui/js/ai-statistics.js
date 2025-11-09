@@ -69,9 +69,16 @@ if(toggleAiStatsBtn){
 
 // Show AI Statistics Dashboard (inside AI Insight panel)
 function showAIStatisticsDashboard(stats){
-  if(!statsDashboard) return;
+  if(!statsDashboard){
+    console.warn('[AI_STATS] statsDashboard element not found!');
+    return;
+  }
   
-  console.log('📊 Showing AI Statistics Dashboard:', stats);
+  console.log('📊 [AI_STATS] Showing AI Statistics Dashboard');
+  console.log('   Nodes:', stats.nodes_searched || stats.nodes);
+  console.log('   Depth:', stats.depth_reached || stats.depth);
+  console.log('   Time:', stats.total_time_ms);
+  console.log('   Parallel:', stats.parallel_enabled, 'Workers:', stats.parallel_threads);
   
   // NO auto-apertura! Il pannello si apre SOLO quando l'utente clicca il bottone
   // Ma popola comunque i dati per quando verrà aperto
@@ -116,7 +123,7 @@ function showAIStatisticsDashboard(stats){
   
   // Performance metrics
   const timeElem = document.getElementById('statTime');
-  if(timeElem) timeElem.textContent = stats.total_time_ms ? stats.total_time_ms.toFixed(0) + 'ms' : '--';
+  if(timeElem) timeElem.textContent = formatTime(stats.total_time_ms);
   
   const depthElem = document.getElementById('statDepth');
   if(depthElem) depthElem.textContent = stats.depth_reached ? stats.depth_reached + '' : '--';
@@ -128,12 +135,10 @@ function showAIStatisticsDashboard(stats){
   
   // Node statistics
   const nodesElem = document.getElementById('statNodesSearched');
-  if(nodesElem) nodesElem.textContent = stats.nodes_searched ? 
-    (stats.nodes_searched >= 1000 ? (stats.nodes_searched/1000).toFixed(1) + 'K' : stats.nodes_searched) : '--';
+  if(nodesElem) nodesElem.textContent = formatCompactNumber(stats.nodes_searched);
   
   const prunedElem = document.getElementById('statNodesPruned');
-  if(prunedElem) prunedElem.textContent = stats.nodes_pruned ? 
-    (stats.nodes_pruned >= 1000 ? (stats.nodes_pruned/1000).toFixed(1) + 'K' : stats.nodes_pruned) : '--';
+  if(prunedElem) prunedElem.textContent = formatCompactNumber(stats.nodes_pruned);
   
   const effElem = document.getElementById('statPruningEff');
   if(effElem) effElem.textContent = stats.pruning_efficiency !== undefined ? 
@@ -207,8 +212,17 @@ function showAIStatisticsDashboard(stats){
   
   // NPS (nodes per second)
   const npsElem = document.getElementById('statNPS');
-  if(npsElem) npsElem.textContent = stats.nodes_per_second ? 
-    (stats.nodes_per_second / 1000).toFixed(0) + 'K' : '--';
+  if(npsElem){
+    if(stats.nodes_per_second){
+      const nps = stats.nodes_per_second;
+      if(nps >= 1000000000) npsElem.textContent = (nps/1000000000).toFixed(2) + 'G/s';
+      else if(nps >= 1000000) npsElem.textContent = (nps/1000000).toFixed(1) + 'M/s';
+      else if(nps >= 1000) npsElem.textContent = (nps/1000).toFixed(1) + 'K/s';
+      else npsElem.textContent = nps.toFixed(0) + '/s';
+    } else {
+      npsElem.textContent = '--';
+    }
+  }
   
   // Iterations
   const iterElem = document.getElementById('statIterations');
@@ -425,9 +439,26 @@ function buildIterationTimeline(depthHistory){
    ======================================== */
 function formatCompactNumber(num){
   if(num === undefined || num === null) return '0';
-  if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';
-  if(num >= 1000) return (num/1000).toFixed(1) + 'K';
+  if(num >= 1000000000) return (num/1000000000).toFixed(2) + 'G';  // Billions
+  if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';        // Millions
+  if(num >= 1000) return (num/1000).toFixed(1) + 'K';              // Thousands
   return num.toString();
+}
+
+function formatTime(ms){
+  if(ms === undefined || ms === null) return '--';
+  if(ms < 1000) return Math.round(ms) + 'ms';                      // Milliseconds
+  const s = ms / 1000;
+  if(s < 60) return s.toFixed(1) + 's';                            // Seconds
+  const m = Math.floor(s / 60);
+  const remS = Math.round(s % 60);
+  if(m < 60) return `${m}m ${remS}s`;                              // Minutes
+  const h = Math.floor(m / 60);
+  const remM = m % 60;
+  if(h < 24) return `${h}h ${remM}m`;                              // Hours
+  const d = Math.floor(h / 24);
+  const remH = h % 24;
+  return `${d}d ${remH}h`;                                         // Days
 }
 
 /* ========================================
@@ -457,6 +488,7 @@ function toggleSection(contentId, buttonId){
    ======================================== */
 window.showAIStatisticsDashboard = showAIStatisticsDashboard;
 window.formatCompactNumber = formatCompactNumber;
+window.formatTime = formatTime;
 window.toggleSection = toggleSection;
 }
 

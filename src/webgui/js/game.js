@@ -68,6 +68,13 @@ let pendingSelectedAI = null; // confirm selected AI after init
 let aiAutoPaused = false; // AI auto-play paused
 let showOpeningHints = true; // Show opening book hints on board
 
+/* AI Quick Stats - Throttled Updates */
+let lastQuickStatsUpdate = 0;
+const QUICK_STATS_THROTTLE_MS = 1000; // Update max every 1 second for readability
+let pendingQuickStats = null;
+let statsUpdateTimer = null;
+let statsCurrentlyVisible = false; // Track if stats panel is visible
+
 /* WebSocket configuration */
 const WS_URL = 'ws://localhost:8000/ws';
 const SESSION_ID = 'default';
@@ -311,11 +318,9 @@ function loadGameData(gameData){
   if(ply > newMaxPly) ply = newMaxPly;
   render();
   
-  // Update notes - ONLY show AI statistics, NEVER Human
-  const notesTitle = qs('deepeningSummaryTitle');
-  const notesSummary = qs('deepeningSummary');
-  
-  if(notesTitle) {
+  // Update AI Stats title
+  const aiStatsTitle = qs('aiQuickStatsTitle');
+  if(aiStatsTitle) {
     // Determine which player is AI
     const blackName = data.players?.black?.name;
     const whiteName = data.players?.white?.name;
@@ -324,26 +329,20 @@ function loadGameData(gameData){
     
     // Set title to AI player name
     if (isBlackAI && !isWhiteAI) {
-      notesTitle.textContent = blackName;
+      aiStatsTitle.textContent = `${blackName} Stats`;
+      showAIQuickStatsPanel(); // Show panel for AI
     } else if (isWhiteAI && !isBlackAI) {
-      notesTitle.textContent = whiteName;
+      aiStatsTitle.textContent = `${whiteName} Stats`;
+      showAIQuickStatsPanel(); // Show panel for AI
     } else if (isBlackAI && isWhiteAI) {
-      // Both AI - use the one from notes, or default
-      notesTitle.textContent = (data.notes?.title && data.notes.title !== 'Human' && data.notes.title !== 'Human Player') 
-        ? data.notes.title 
-        : (whiteName || 'AI');
+      // Both AI - prefer White for stats display
+      aiStatsTitle.textContent = `${whiteName} Stats`;
+      showAIQuickStatsPanel(); // Show panel for AI
     } else {
       // No AI players
-      notesTitle.textContent = 'AI Statistics';
+      aiStatsTitle.textContent = 'AI Statistics';
+      hideAIQuickStats();
     }
-  }
-  
-  // Render notes ONLY if they belong to an AI player (not Human)
-  if(data.notes && data.notes.title && data.notes.title !== 'Human' && data.notes.title !== 'Human Player'){
-    renderNotes(data.notes);
-  } else if(notesSummary && (!data.notes || !data.notes.title || data.notes.title === 'Human' || data.notes.title === 'Human Player')){
-    // Clear notes if they're for Human or no data
-    notesSummary.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;padding:12px">Waiting for AI move...</div>';
   }
   
   // Rebuild history
@@ -454,10 +453,8 @@ function initWebSocket(){
   };
   
   wsConnection.onmessage = (event) => {
-    console.log('Raw message received:', event.data);
     try{ appendWsMessage('← recv', JSON.parse(event.data)); }catch(_){ appendWsMessage('← recv', event.data); }
     const message = JSON.parse(event.data);
-    console.log('Parsed message:', message);
     flashWebSocketActivity(); // Flash on receive
     handleServerMessage(message);
   };
@@ -482,7 +479,10 @@ function initWebSocket(){
 }
 
 function handleServerMessage(message){
-  console.log('Received:', message.type, message);
+  // Process AI statistics from any message type that contains them
+  if(message.data && (message.data.nodes_searched || message.data.nodes || message.data.depth_reached)){
+    scheduleStatsUpdate(message.data, message.type === 'ai_statistics_summary');
+  }
   
   try {
   switch(message.type){
@@ -534,6 +534,9 @@ function handleServerMessage(message){
       const aiPlayerName = aiMoveSide === 'B' ? data.players?.black?.name : data.players?.white?.name;
       console.log(`${aiPlayerName} played:`, message.data.move);
       
+      // Reset stats visibility flag (search is complete)
+      statsCurrentlyVisible = false;
+      
       // Deactivate AI Insight button animation
       const aiInsightBtnMove = document.getElementById('toggleAiInsight');
       if(aiInsightBtnMove){
@@ -563,7 +566,11 @@ function handleServerMessage(message){
       break;
       
     case 'ai_thinking':
-      console.log(message.message);
+      // Show "Searching..." state ONLY on first message (no stats yet AND panel not visible)
+      const hasStats = message.data && ((message.data.nodes_searched || message.data.nodes || 0) > 0);
+      if(!hasStats && !statsCurrentlyVisible){
+        showAISearchingState();
+      }
       
       // Activate AI Insight button animation
       const aiInsightBtn = document.getElementById('toggleAiInsight');
@@ -599,6 +606,7 @@ function handleServerMessage(message){
       const thinkingAIName = thinkingSide === 'B' ? data.players?.black?.name : data.players?.white?.name;
       if(message.data){
         updateAIAnalysis({...message.data, title: thinkingAIName});
+        // Stats already updated by universal handler
       } else {
         // If no data yet, show thinking status
         const aiAnalysis = {
@@ -657,15 +665,24 @@ function handleServerMessage(message){
     
     case 'ai_log':
       // Handle AI reasoning logs
+      console.log('📝 [AI_LOG] Received:', message.data.log_type, '-', message.data.message);
       if(message.data){
-        appendAILog(message.data);
+        if(typeof appendAILog === 'function'){
+          appendAILog(message.data);
+        } else {
+          console.error('❌ appendAILog function not available! Template may not be loaded.');
+        }
+        // Stats already updated by universal handler
       }
       break;
     
     case 'ai_statistics_summary':
       // Handle comprehensive AI statistics for data science dashboard
+      console.log('📊 ai_statistics_summary received:', message.data);
       if(message.data){
         showAIStatisticsDashboard(message.data);
+        
+        // Stats already updated by universal handler (as final)
         
         // Also update the Notes box with comprehensive statistics
         updateAIAnalysis({
@@ -2141,14 +2158,8 @@ function updateAIAnalysis(aiData){
     multi_cut_pruned: (aiData.multi_cut_pruned ?? aiData.multi_cut_prunes ?? 0).toLocaleString()
   };
   
-  // Update title
-  const notesTitle = qs('deepeningSummaryTitle');
-  if(notesTitle) {
-    notesTitle.textContent = aiName;
-  }
-  
-  // Re-render notes with AI analysis
-  renderNotes(aiAnalysis);
+  // NOTE: Old notes panel removed - now using updateAIQuickStats() instead
+  // This function still exists for backward compatibility with data storage
   
   // Store for reference
   data.notes = aiAnalysis;
@@ -2182,6 +2193,160 @@ function removeThinkingIconFromPlayerName(side = 'W'){
       icon.remove();
     }
   }
+}
+
+/* ========================================
+   AI QUICK STATS - Sidebar Panel
+   ======================================== */
+// Reset cumulative stats for new move
+/**
+ * Schedule AI stats update with throttling (max 1 update per second)
+ * Works for both sequential and parallel search modes
+ */
+function scheduleStatsUpdate(stats, isFinal = false){
+  if(!stats) return;
+  
+  // Store latest stats
+  pendingQuickStats = stats;
+  
+  // If final, update immediately
+  if(isFinal){
+    if(statsUpdateTimer) clearTimeout(statsUpdateTimer);
+    updateAIQuickStats(stats, true);
+    return;
+  }
+  
+  // Check throttling
+  const now = Date.now();
+  const timeSinceLastUpdate = now - lastQuickStatsUpdate;
+  
+  if(timeSinceLastUpdate >= QUICK_STATS_THROTTLE_MS){
+    // Enough time passed, update now
+    updateAIQuickStats(stats, false);
+  } else if(!statsUpdateTimer){
+    // Schedule update for later
+    const delay = QUICK_STATS_THROTTLE_MS - timeSinceLastUpdate;
+    statsUpdateTimer = setTimeout(() => {
+      statsUpdateTimer = null;
+      if(pendingQuickStats){
+        updateAIQuickStats(pendingQuickStats, false);
+      }
+    }, delay);
+  }
+}
+
+/**
+ * Update AI Quick Stats panel with latest statistics
+ * Unified handler for both sequential and parallel modes
+ */
+function updateAIQuickStats(stats, isFinal = false){
+  if(!stats) return;
+  
+  const quickStatsPanel = document.getElementById('aiQuickStats');
+  const emptyState = document.getElementById('aiQuickStatsEmpty');
+  const progressPanel = document.getElementById('aiQuickStatsProgress');
+  
+  if(!quickStatsPanel || !emptyState) return;
+  
+  // Extract values (support multiple key names for compatibility)
+  const nodes = stats.nodes_searched || stats.nodes || 0;
+  const pruned = stats.nodes_pruned || stats.pruning || 0;
+  const depth = stats.depth_reached || (typeof stats.depth === 'number' ? stats.depth : 0);
+  const timeMs = stats.search_time_ms || stats.time_ms || stats.total_time_ms || 0;
+  const nps = stats.nodes_per_second || (timeMs > 0 ? Math.floor((nodes * 1000) / timeMs) : 0);
+  
+  // Skip ONLY if absolutely no data (initial message)
+  if(nodes === 0 && depth === 0 && !isFinal) return;
+  
+  // Update timestamp
+  lastQuickStatsUpdate = Date.now();
+  pendingQuickStats = null;
+  
+  // Show stats panel, hide others
+  quickStatsPanel.style.display = 'flex';
+  emptyState.style.display = 'none';
+  if(progressPanel) progressPanel.style.display = 'none';
+  statsCurrentlyVisible = true; // Mark as visible
+  
+  // Calculate pruning percentage
+  const totalNodes = nodes + pruned;
+  const prunePercent = totalNodes > 0 ? ((pruned / totalNodes) * 100) : 0;
+  
+  // Format helper functions
+  const formatNumber = (n) => {
+    if(n >= 1e9) return `${(n/1e9).toFixed(2)}G`;
+    if(n >= 1e6) return `${(n/1e6).toFixed(1)}M`;
+    if(n >= 1e3) return `${(n/1e3).toFixed(1)}K`;
+    return n.toString();
+  };
+  
+  const formatNPS = (n) => {
+    if(n >= 1e9) return `${(n/1e9).toFixed(2)}G/s`;
+    if(n >= 1e6) return `${(n/1e6).toFixed(1)}M/s`;
+    if(n >= 1e3) return `${(n/1e3).toFixed(1)}K/s`;
+    return `${n}/s`;
+  };
+  
+  const formatTime = (ms) => {
+    if(ms < 1000) return `${Math.round(ms)}ms`;
+    const s = ms / 1000;
+    if(s < 60) return `${s.toFixed(1)}s`;
+    const m = Math.floor(s / 60);
+    const remS = Math.round(s % 60);
+    if(m < 60) return `${m}m ${remS}s`;
+    const h = Math.floor(m / 60);
+    const remM = m % 60;
+    return `${h}h ${remM}m`;
+  };
+  
+  // Update UI elements
+  const depthElem = document.getElementById('aiQuickDepth');
+  const nodesElem = document.getElementById('aiQuickNodes');
+  const npsElem = document.getElementById('aiQuickNPS');
+  const pruneElem = document.getElementById('aiQuickPrune');
+  const timeElem = document.getElementById('aiQuickTime');
+  
+  if(depthElem) depthElem.textContent = depth || '--';
+  if(nodesElem) nodesElem.textContent = formatNumber(nodes);
+  if(npsElem) npsElem.textContent = formatNPS(nps);
+  if(pruneElem) pruneElem.textContent = `${prunePercent.toFixed(1)}%`;
+  if(timeElem) timeElem.textContent = formatTime(timeMs);
+}
+
+// Show "Searching..." state when AI starts thinking
+function showAISearchingState(){
+  const quickStatsPanel = document.getElementById('aiQuickStats');
+  const emptyState = document.getElementById('aiQuickStatsEmpty');
+  const progressPanel = document.getElementById('aiQuickStatsProgress');
+  
+  if(!quickStatsPanel || !emptyState) return;
+  
+  // Show empty state while waiting for stats
+  quickStatsPanel.style.display = 'none';
+  emptyState.style.display = 'block';
+  if(progressPanel) progressPanel.style.display = 'none';
+  statsCurrentlyVisible = false; // Mark as not visible
+  
+  // Reset to placeholders
+  const elements = ['aiQuickDepth', 'aiQuickNodes', 'aiQuickNPS', 'aiQuickPrune', 'aiQuickTime'];
+  elements.forEach(id => {
+    const elem = document.getElementById(id);
+    if(elem) elem.textContent = '--';
+  });
+}
+
+// Show AI stats panel (called when AI player is detected)
+function showAIQuickStatsPanel(){
+  const emptyState = document.getElementById('aiQuickStatsEmpty');
+  if(emptyState) emptyState.style.display = 'block';
+}
+
+// Hide AI stats (called when no AI player)
+function hideAIQuickStats(){
+  const quickStatsPanel = document.getElementById('aiQuickStats');
+  const emptyState = document.getElementById('aiQuickStatsEmpty');
+  if(quickStatsPanel) quickStatsPanel.style.display = 'none';
+  if(emptyState) emptyState.style.display = 'block';
 }
 
 function updatePlayerIcons(){

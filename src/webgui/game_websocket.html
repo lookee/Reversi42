@@ -207,17 +207,54 @@
               </div>
             </div>
             
-            <!-- Notes / AI Summary Panel -->
+            <!-- AI Quick Stats Panel -->
             <div>
-              <div class="text-sm font-semibold mb-2"><span id="deepeningSummaryTitle">Notes</span></div>
+              <div class="text-sm font-semibold mb-2">
+                <span id="aiQuickStatsTitle">AI Statistics</span>
+              </div>
               <div class="card">
-                <div class="p-4 text-[14px] leading-6">
-                  <div id="deepeningSummary" class="grid grid-cols-1 gap-2" style="color:var(--muted)">
-                    <!-- Popolato da JS: chiave, valore, valore2 (in grigio) -->
+                <!-- Progress indicator for parallel search -->
+                <div id="aiQuickStatsProgress" class="ai-quick-stats-progress" style="display:none">
+                  <div style="text-align:center;padding:16px">
+                    <div style="font-size:24px;margin-bottom:8px">🔀</div>
+                    <div style="font-size:13px;font-weight:600;color:#63b3ed;margin-bottom:4px" id="aiProgressText">
+                      Parallel search in progress...
+                    </div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.5)" id="aiProgressDetail">
+                      8 workers evaluating moves
+                    </div>
                   </div>
+                </div>
+                <!-- Stats panel -->
+                <div id="aiQuickStats" class="ai-quick-stats-panel" style="display:none">
+                  <div class="ai-quick-stat-row">
+                    <span class="ai-quick-stat-label">Depth</span>
+                    <span class="ai-quick-stat-value" id="aiQuickDepth">--</span>
+                  </div>
+                  <div class="ai-quick-stat-row">
+                    <span class="ai-quick-stat-label">Nodes</span>
+                    <span class="ai-quick-stat-value" id="aiQuickNodes">--</span>
+                  </div>
+                  <div class="ai-quick-stat-row">
+                    <span class="ai-quick-stat-label">Nodes/sec</span>
+                    <span class="ai-quick-stat-value" id="aiQuickNPS">--</span>
+                  </div>
+                  <div class="ai-quick-stat-row">
+                    <span class="ai-quick-stat-label">Pruning</span>
+                    <span class="ai-quick-stat-value" id="aiQuickPrune">--</span>
+                  </div>
+                  <div class="ai-quick-stat-row">
+                    <span class="ai-quick-stat-label">Time</span>
+                    <span class="ai-quick-stat-value" id="aiQuickTime">--</span>
+                  </div>
+                </div>
+                <!-- Empty state -->
+                <div id="aiQuickStatsEmpty" class="p-4 text-[13px] text-center" style="color:var(--muted);line-height:1.6">
+                  <div style="opacity:0.6">Waiting for AI move...</div>
                 </div>
               </div>
             </div>
+            
           </aside>
         </div>
 

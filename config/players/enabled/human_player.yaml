@@ -36,7 +36,7 @@ engine:
   
   parallel:
     enabled: false
-    num_workers: 1
+    num_workers: null
   
   transposition_table:
     enabled: false

@@ -40,7 +40,7 @@ engine:
   
   parallel:
     enabled: true
-    num_workers: 4
+    num_workers: null
   
   transposition_table:
     enabled: true

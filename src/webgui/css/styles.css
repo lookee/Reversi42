@@ -170,6 +170,67 @@ html,body{
 .avatar.w{background:radial-gradient(circle at 35% 35%, #9ba7a0, #636f69)}
 
 /* ========================================
+   AI QUICK STATS - Sidebar Panel
+   ======================================== */
+.ai-quick-stats-progress{
+  padding:16px;
+  animation:fadeInStats 0.3s ease-out
+}
+.ai-quick-stats-panel{
+  padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  animation:fadeInStats 0.3s ease-out
+}
+.ai-quick-stat-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 12px;
+  background:linear-gradient(135deg, rgba(99,179,237,0.06) 0%, rgba(99,179,237,0.02) 100%);
+  border:1px solid rgba(99,179,237,0.15);
+  border-radius:6px;
+  transition:all 0.2s ease
+}
+.ai-quick-stat-row:hover{
+  background:linear-gradient(135deg, rgba(99,179,237,0.1) 0%, rgba(99,179,237,0.05) 100%);
+  border-color:rgba(99,179,237,0.3);
+  transform:translateX(2px)
+}
+.ai-quick-stat-label{
+  font-size:11px;
+  color:rgba(255,255,255,0.6);
+  text-transform:uppercase;
+  letter-spacing:0.8px;
+  font-weight:600
+}
+.ai-quick-stat-value{
+  font-size:18px;
+  font-weight:700;
+  color:#63b3ed;
+  font-family:'Courier New',monospace;
+  letter-spacing:-0.3px;
+  text-shadow:0 0 10px rgba(99,179,237,0.4);
+  transition:all 0.2s ease
+}
+.ai-quick-stat-value.updating{
+  color:#34d399;
+  text-shadow:0 0 12px rgba(52,211,153,0.5);
+  transform:scale(1.05)
+}
+@keyframes fadeInStats{
+  from{
+    opacity:0;
+    transform:translateY(10px)
+  }
+  to{
+    opacity:1;
+    transform:translateY(0)
+  }
+}
+
+/* ========================================
    BOARD & GAME ELEMENTS
    ======================================== */
 .board{display:grid; grid-template-columns:repeat(8,1fr); gap:4px;

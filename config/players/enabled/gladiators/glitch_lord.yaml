@@ -40,7 +40,7 @@ engine:
   
   parallel:
     enabled: true
-    num_workers: 3            # Odd number (chaotic!)
+    num_workers: null         # Auto-detect CPU cores
   
   transposition_table:
     enabled: true

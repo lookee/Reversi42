@@ -197,6 +197,7 @@ class ParallelSearch:
         phase1_best_move = None
         phase1_best_value = 0
         phase1_time = 0.0
+        phase1_stats = {}  # Initialize outside if block for later access
         move_progression = []  # Track best move at each depth
 
         # Use base search for depths 1 to depth-1 (builds TT, PV, history)
@@ -268,11 +269,17 @@ class ParallelSearch:
         total_nodes = 0
         total_pruning = 0
 
+        move_count = 0
         for move, value, nodes, pruning in pool.imap_unordered(_evaluate_move_worker, work_items):
             total_nodes += nodes
             total_pruning += pruning
+            move_count += 1
 
             is_best = value > best_value or best_move is None
+
+            # Debug: Log each parallel result
+            coord = f"{chr(64+move.x)}{move.y}" if move and hasattr(move, 'x') else 'N/A'
+            print(f"[PARALLEL_RESULT] Move {move_count}/{len(work_items)}: {coord} = {value:+d}, nodes={total_nodes:,}, pruned={total_pruning:,}")
 
             # Notify: Parallel result IMMEDIATELY as it arrives
             for observer in self.observers:
@@ -291,16 +298,27 @@ class ParallelSearch:
             if hasattr(self.base_search, "alphabeta")
             else {}
         )
+        
+        # Get Phase 1 nodes if available (from phase1_stats)
+        phase1_nodes = phase1_stats.get("nodes", 0) if depth > 1 else 0
+        phase1_pruning = phase1_stats.get("pruning", 0) if depth > 1 else 0
+        
+        # IMPORTANT: Combine Phase 1 + Parallel phase nodes for accurate totals
+        total_nodes_combined = phase1_nodes + total_nodes
+        total_pruning_combined = phase1_pruning + total_pruning
+        
         # Use standard keys for compatibility with observers
         stats["depth_reached"] = depth
-        stats["nodes_searched"] = total_nodes
-        stats["nodes_pruned"] = total_pruning
+        stats["nodes_searched"] = total_nodes_combined  # Phase 1 + Parallel
+        stats["nodes_pruned"] = total_pruning_combined  # Phase 1 + Parallel
         stats["parallel_time"] = parallel_time * 1000  # Convert to ms
         stats["total_time"] = time_total * 1000  # Convert to ms
         stats["parallel_workers"] = self.num_workers
         stats["parallel_mode"] = "active"
         stats["parallel_moves_evaluated"] = len(work_items)
         stats["num_workers"] = self.num_workers
+        stats["phase1_nodes"] = phase1_nodes  # For debugging
+        stats["parallel_nodes"] = total_nodes  # For debugging
 
         for observer in self.observers:
             observer.on_search_complete(

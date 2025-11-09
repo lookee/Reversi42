@@ -521,8 +521,8 @@ class GameSession:
             logger.error(traceback.format_exc())
             return False, str(e)
     
-    def get_ai_move(self, side: str, websocket: WebSocket = None) -> Move:
-        """Get AI move for side 'B' or 'W'"""
+    async def get_ai_move(self, side: str, websocket: WebSocket = None) -> Move:
+        """Get AI move for side 'B' or 'W' - runs in separate thread to avoid blocking event loop"""
         try:
             move_list = self.game.get_move_list()
             if not move_list:
@@ -548,8 +548,12 @@ class GameSession:
             else:
                 logger.info("[AI_INSIGHT] No websocket provided, observer not created")
             
-            logger.info(f"[AI_INSIGHT] Calling AI.get_move with observer={observer}")
-            ai_move = ai.get_move(self.game, move_list, observer)
+            logger.info(f"[AI_INSIGHT] Calling AI.get_move with observer={observer} in separate thread")
+            # Run AI search in separate thread to avoid blocking event loop
+            # This allows WebSocket messages to be sent in real-time
+            # Use run_in_executor for Python 3.8 compatibility (asyncio.to_thread requires 3.9+)
+            loop = asyncio.get_event_loop()
+            ai_move = await loop.run_in_executor(None, ai.get_move, self.game, move_list, observer)
             logger.info(f"[AI_INSIGHT] AI.get_move completed, move={ai_move}")
             return ai_move
             
@@ -1344,7 +1348,8 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
             import time
             start_ts = time.perf_counter()
             # Get AI move (with websocket observer for AI insights)
-            ai_move = session.get_ai_move(side, websocket)
+            # Run in separate thread to avoid blocking event loop
+            ai_move = await session.get_ai_move(side, websocket)
             end_ts = time.perf_counter()
             last_search_time_ms = max(0.0, (end_ts - start_ts) * 1000.0)
             logger.info(f"AI move received: {ai_move}")
