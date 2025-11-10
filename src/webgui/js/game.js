@@ -318,7 +318,11 @@ function loadGameData(gameData){
   qs('p1Name').textContent   = data.players?.black?.name || '—';
   qs('p2Name').textContent   = data.players?.white?.name || '—';
   
-  console.log('👥 loadGameData - Player data received:', {
+  console.log('👥 loadGameData - Players assigned from backend:');
+  console.log('   ⚫ Black (plays first, left side):', data.players?.black?.name);
+  console.log('   ⚪ White (plays second, right side):', data.players?.white?.name);
+  console.log('   Current turn:', data.status?.turn_by_ply?.[0] || 'B');
+  console.log('   Full player data:', {
     black: {
       name: data.players?.black?.name,
       avatar_url: data.players?.black?.avatar_url,
@@ -383,7 +387,7 @@ function loadGameData(gameData){
   if(ply > newMaxPly) ply = newMaxPly;
   render();
   
-  // Update AI Stats title
+  // Update AI Stats title based on current turn
   const aiStatsTitle = qs('aiQuickStatsTitle');
   if(aiStatsTitle) {
     // Determine which player is AI
@@ -392,16 +396,24 @@ function loadGameData(gameData){
     const isBlackAI = blackName && blackName !== 'Human' && blackName !== 'Human Player';
     const isWhiteAI = whiteName && whiteName !== 'Human' && whiteName !== 'Human Player';
     
+    // Get current turn
+    const currentTurn = (data.status && data.status.turn_by_ply && data.status.turn_by_ply.length > 0) 
+      ? data.status.turn_by_ply[0] : 'B';
+    
     // Set title to AI player name
     if (isBlackAI && !isWhiteAI) {
-      aiStatsTitle.textContent = `${blackName} Stats`;
+      aiStatsTitle.textContent = `⚫ ${blackName}`;
       showAIQuickStatsPanel(); // Show panel for AI
     } else if (isWhiteAI && !isBlackAI) {
-      aiStatsTitle.textContent = `${whiteName} Stats`;
+      aiStatsTitle.textContent = `⚪ ${whiteName}`;
       showAIQuickStatsPanel(); // Show panel for AI
     } else if (isBlackAI && isWhiteAI) {
-      // Both AI - prefer White for stats display
-      aiStatsTitle.textContent = `${whiteName} Stats`;
+      // Both AI - show stats for the AI that's currently moving
+      if(currentTurn === 'B') {
+        aiStatsTitle.textContent = `⚫ ${blackName}`;
+      } else {
+        aiStatsTitle.textContent = `⚪ ${whiteName}`;
+      }
       showAIQuickStatsPanel(); // Show panel for AI
     } else {
       // No AI players
@@ -1443,7 +1455,9 @@ function reopenInitialSetup(){
 }
 
 function startGameWithPlayers(blackPlayer, whitePlayer){
-  console.log('🚀 Starting game:', blackPlayer, 'vs', whitePlayer);
+  console.log('🚀 Starting game with players:');
+  console.log('   ⚫ Black (left):', blackPlayer);
+  console.log('   ⚪ White (right):', whitePlayer);
   
   // Hide initial setup screen
   const setupScreen = document.getElementById('initialSetupScreen');
@@ -1457,6 +1471,11 @@ function startGameWithPlayers(blackPlayer, whitePlayer){
   
   initialSetupComplete = true;
   
+  // Reset game state variables for new game
+  gameOverInfo = null;
+  aiAutoPaused = false;
+  console.log('🔄 Reset gameOverInfo and aiAutoPaused for new game');
+  
   // CORRECT ORDER: First init to create session, THEN set_players
   if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
     // First send init to CREATE the session
@@ -1468,7 +1487,10 @@ function startGameWithPlayers(blackPlayer, whitePlayer){
     
     // Then set players (after session exists)
     setTimeout(() => {
-      console.log('📤 Step 2: Sending set_players:', { white: whitePlayer, black: blackPlayer });
+      console.log('📤 Step 2: Sending set_players to backend:');
+      console.log('   Backend will assign:');
+      console.log('   - white (plays second) ←', whitePlayer);
+      console.log('   - black (plays first) ←', blackPlayer);
       wsSend({
         type: 'set_players',
         white: whitePlayer,

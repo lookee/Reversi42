@@ -1301,9 +1301,12 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
         ai_name = session.ai_white_name if side == 'W' else session.ai_black_name
         ai_instance = session.ai_white if side == 'W' else session.ai_black
         
+        side_emoji = "⚪" if side == 'W' else "⚫"
+        logger.info(f"🤖 AI move requested for {side_emoji} {side}: {ai_name or 'Unknown'}")
+        
         # Verify AI exists for this side
         if ai_instance is None:
-            logger.warning(f"No AI configured for side {side} (name: {ai_name})")
+            logger.warning(f"❌ No AI configured for side {side} (name: {ai_name})")
             return
         
         # Check if there are any moves available
@@ -1358,6 +1361,7 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
             if ai_move:
                 # Convert Move coordinates to algebraic notation (A1-H8)
                 coord = f"{chr(64+ai_move.x)}{ai_move.y}"
+                logger.info(f"✅ {side_emoji} {ai_name} played: {coord}")
                 
                 try:
                     session.game.move(ai_move)
@@ -1525,13 +1529,17 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
         white = data.get("white")
         black = data.get("black")
         
-        logger.info(f"Setting players - White: {white}, Black: {black}")
+        logger.info(f"📥 Received set_players request:")
+        logger.info(f"   ⚪ White (plays second): {white}")
+        logger.info(f"   ⚫ Black (plays first): {black}")
         
         # Normalize: None or 'Human' or 'Human Player' => human
         session.ai_white_name = None if (white is None or str(white).lower()=="human" or str(white)=="Human Player") else str(white)
         session.ai_black_name = None if (black is None or str(black).lower()=="human" or str(black)=="Human Player") else str(black)
         
-        logger.info(f"Configured - ai_white_name: {session.ai_white_name}, ai_black_name: {session.ai_black_name}")
+        logger.info(f"✅ Configured session:")
+        logger.info(f"   ⚪ ai_white_name: {session.ai_white_name or 'Human'}")
+        logger.info(f"   ⚫ ai_black_name: {session.ai_black_name or 'Human'}")
         
         # Recreate AI instances
         session.reset_session()
