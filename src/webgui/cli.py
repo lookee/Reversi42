@@ -28,7 +28,7 @@ from typing import Optional
 try:
     from __version__ import __version__
 except ImportError:
-    __version__ = "6.0.0"
+    __version__ = "6.1.2"
 
 
 def parse_args() -> argparse.Namespace:

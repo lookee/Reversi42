@@ -281,6 +281,6 @@ ROWNAME = " ABCDEFGH"
 try:
     from __version__ import __version__ as VERSION
 except ImportError:
-    VERSION = "5.0.0"  # Fallback (must match pyproject.toml)
+    VERSION = "6.1.2"  # Fallback (must match pyproject.toml)
 
 VERSION_NAME = "Bitboard Revolution"
