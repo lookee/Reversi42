@@ -117,12 +117,21 @@ class GameSession:
             # Now uses PlayerFactory which delegates to PlayerRegistry for config-based players
             self.ai_white = None
             self.ai_black = None
-            if self.ai_white_name:
-                self.ai_white = PlayerFactory.create_player(self.ai_white_name)
-            if self.ai_black_name:
-                self.ai_black = PlayerFactory.create_player(self.ai_black_name)
             
-            logger.info(f"Created game session {session_id} with AI {ai_player_name}")
+            logger.info(f"🎮 Initializing game session {session_id}")
+            logger.info(f"   Initial config: ⚪ White={self.ai_white_name}, ⚫ Black={self.ai_black_name or 'Human'}")
+            
+            if self.ai_white_name:
+                logger.info(f"   Creating ⚪ White AI: {self.ai_white_name}")
+                self.ai_white = PlayerFactory.create_player(self.ai_white_name)
+                logger.info(f"   ✅ White AI created: {type(self.ai_white).__name__} @ {id(self.ai_white)}")
+            
+            if self.ai_black_name:
+                logger.info(f"   Creating ⚫ Black AI: {self.ai_black_name}")
+                self.ai_black = PlayerFactory.create_player(self.ai_black_name)
+                logger.info(f"   ✅ Black AI created: {type(self.ai_black).__name__} @ {id(self.ai_black)}")
+            
+            logger.info(f"✅ Session {session_id} initialized - White AI: {self.ai_white is not None}, Black AI: {self.ai_black is not None}")
             
         except Exception as e:
             logger.error(f"Failed to create game session {session_id}: {e}")
@@ -153,17 +162,200 @@ class GameSession:
     def reset_session(self):
         """Reset the game session to initial state"""
         try:
+            logger.info(f"🔄 Resetting session {self.session_id}")
+            logger.info(f"   Current config: ⚪ White={self.ai_white_name or 'Human'}, ⚫ Black={self.ai_black_name or 'Human'}")
+            
+            # Reset game board
             self.game = Game(8)
-            # Recreate AI instances based on current config
-            # Now uses PlayerFactory which delegates to PlayerRegistry
+            
+            # Destroy old AI instances (free memory)
+            old_white = self.ai_white
+            old_black = self.ai_black
             self.ai_white = None
             self.ai_black = None
+            
+            if old_white:
+                logger.info(f"   🗑️  Destroying old ⚪ White AI: {type(old_white).__name__} @ {id(old_white)}")
+            if old_black:
+                logger.info(f"   🗑️  Destroying old ⚫ Black AI: {type(old_black).__name__} @ {id(old_black)}")
+            
+            # CRITICAL: Clear PlayerRegistry cache to force fresh instances
+            logger.info(f"   🧹 Clearing PlayerRegistry cache to force fresh AI instances...")
+            try:
+                registry = PlayerFactory._get_registry()
+                
+                # Get ALL cached players before clearing
+                cached_before = list(registry._instances.keys()) if hasattr(registry, '_instances') else []
+                logger.info(f"   Cached players BEFORE clear: {cached_before}")
+                
+                # Clear cache for BOTH players (even if only one is changing)
+                if self.ai_white_name:
+                    logger.info(f"   Clearing cache for: {self.ai_white_name}")
+                    registry.clear_instance_cache(self.ai_white_name)
+                if self.ai_black_name:
+                    logger.info(f"   Clearing cache for: {self.ai_black_name}")
+                    registry.clear_instance_cache(self.ai_black_name)
+                
+                # Clear ALL cache to be absolutely sure
+                logger.info(f"   🗑️  Clearing ALL cached instances to ensure fresh start")
+                registry.clear_instance_cache()  # Clear all
+                
+                # Verify cache is empty
+                cached_after = list(registry._instances.keys()) if hasattr(registry, '_instances') else []
+                logger.info(f"   Cached players AFTER clear: {cached_after}")
+                
+                if cached_after:
+                    logger.error(f"   ❌ CRITICAL: Cache still contains players after clear!")
+                    logger.error(f"      Cached: {cached_after}")
+                else:
+                    logger.info(f"   ✅ Cache is empty - ready for fresh instances")
+                    
+            except Exception as e:
+                logger.error(f"   ❌ ERROR clearing registry cache: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+            
+            # Recreate AI instances based on current config
+            # CRITICAL: Create players ONE AT A TIME with explicit validation
+            logger.info(f"")
+            logger.info(f"╔══════════════════════════════════════════════════════════════╗")
+            logger.info(f"║ 🏭 Creating AI Player Instances                             ║")
+            logger.info(f"╠══════════════════════════════════════════════════════════════╣")
+            
             if self.ai_white_name:
+                logger.info(f"")
+                logger.info(f"   ┌──────────────────────────────────────────────────────────┐")
+                logger.info(f"   │ STEP 1: Creating ⚪ WHITE AI                            │")
+                logger.info(f"   └──────────────────────────────────────────────────────────┘")
+                logger.info(f"   Requested name: {self.ai_white_name!r}")
+                logger.info(f"   Calling PlayerFactory.create_player('{self.ai_white_name}')")
+                logger.info(f"")
+                
                 self.ai_white = PlayerFactory.create_player(self.ai_white_name)
+                
+                logger.info(f"   ✅ White AI created: {type(self.ai_white).__name__} @ {id(self.ai_white)}")
+                
+                # VERIFY player name
+                if hasattr(self.ai_white, 'name'):
+                    actual_name = self.ai_white.name
+                    logger.info(f"   Player.name: {actual_name!r}")
+                    if actual_name != self.ai_white_name:
+                        logger.error(f"   ❌ CRITICAL: Player name mismatch!")
+                        logger.error(f"      Expected: {self.ai_white_name!r}")
+                        logger.error(f"      Got: {actual_name!r}")
+                
+                # IMMEDIATE VERIFICATION for White
+                if hasattr(self.ai_white, 'bitboard_engine') and hasattr(self.ai_white.bitboard_engine, 'config'):
+                    cfg = self.ai_white.bitboard_engine.config
+                    logger.info(f"")
+                    logger.info(f"   🔍 WHITE AI ENGINE CONFIG VERIFICATION:")
+                    logger.info(f"      Depth: {cfg.depth}")
+                    logger.info(f"      Strategy: {cfg.search_strategy}")
+                    logger.info(f"      Transposition Table: {cfg.use_transposition_table}")
+                    logger.info(f"      Parallel: {cfg.use_parallel}")
+                    logger.info(f"      Aspiration: {cfg.use_aspiration_windows}")
+                    
+                    # Expected values for LIGHTNING STRIKE
+                    if self.ai_white_name == "LIGHTNING STRIKE":
+                        if cfg.depth != 4:
+                            logger.error(f"   ❌ CRITICAL: LIGHTNING STRIKE has wrong depth! Expected 4, got {cfg.depth}")
+                        if cfg.search_strategy != 'fixed_depth':
+                            logger.error(f"   ❌ CRITICAL: LIGHTNING STRIKE has wrong strategy! Expected fixed_depth, got {cfg.search_strategy}")
+                        if cfg.use_transposition_table != False:
+                            logger.error(f"   ❌ CRITICAL: LIGHTNING STRIKE has TT enabled! Expected False, got {cfg.use_transposition_table}")
+                        if cfg.use_aspiration_windows != False:
+                            logger.error(f"   ❌ CRITICAL: LIGHTNING STRIKE has Aspiration enabled! Expected False, got {cfg.use_aspiration_windows}")
+                logger.info(f"")
+            else:
+                logger.info(f"   👤 White is Human")
+            
             if self.ai_black_name:
+                logger.info(f"")
+                logger.info(f"   ┌──────────────────────────────────────────────────────────┐")
+                logger.info(f"   │ STEP 2: Creating ⚫ BLACK AI                            │")
+                logger.info(f"   └──────────────────────────────────────────────────────────┘")
+                logger.info(f"   Requested name: {self.ai_black_name!r}")
+                logger.info(f"   Calling PlayerFactory.create_player('{self.ai_black_name}')")
+                logger.info(f"")
+                
                 self.ai_black = PlayerFactory.create_player(self.ai_black_name)
+                
+                logger.info(f"   ✅ Black AI created: {type(self.ai_black).__name__} @ {id(self.ai_black)}")
+                
+                # VERIFY player name
+                if hasattr(self.ai_black, 'name'):
+                    actual_name = self.ai_black.name
+                    logger.info(f"   Player.name: {actual_name!r}")
+                    if actual_name != self.ai_black_name:
+                        logger.error(f"   ❌ CRITICAL: Player name mismatch!")
+                        logger.error(f"      Expected: {self.ai_black_name!r}")
+                        logger.error(f"      Got: {actual_name!r}")
+                
+                # IMMEDIATE VERIFICATION for Black
+                if hasattr(self.ai_black, 'bitboard_engine') and hasattr(self.ai_black.bitboard_engine, 'config'):
+                    cfg = self.ai_black.bitboard_engine.config
+                    logger.info(f"")
+                    logger.info(f"   🔍 BLACK AI ENGINE CONFIG VERIFICATION:")
+                    logger.info(f"      Depth: {cfg.depth}")
+                    logger.info(f"      Strategy: {cfg.search_strategy}")
+                    logger.info(f"      Transposition Table: {cfg.use_transposition_table}")
+                    logger.info(f"      Parallel: {cfg.use_parallel}")
+                    logger.info(f"      Aspiration: {cfg.use_aspiration_windows}")
+                    
+                    # Expected values for DIVZERO.EXE
+                    if self.ai_black_name == "DIVZERO.EXE":
+                        if cfg.depth != 12:
+                            logger.error(f"   ❌ CRITICAL: DIVZERO.EXE has wrong depth! Expected 12, got {cfg.depth}")
+                        if cfg.search_strategy != 'adaptive':
+                            logger.error(f"   ❌ CRITICAL: DIVZERO.EXE has wrong strategy! Expected adaptive, got {cfg.search_strategy}")
+                logger.info(f"")
+            else:
+                logger.info(f"   👤 Black is Human")
+            
+            logger.info(f"╚══════════════════════════════════════════════════════════════╝")
+            logger.info(f"")
+            
+            # Verify no instance collision (both AI should be different objects)
+            if self.ai_white and self.ai_black:
+                if id(self.ai_white) == id(self.ai_black):
+                    logger.error(f"   ❌ CRITICAL: Both AI share the same instance! {id(self.ai_white)}")
+                    raise RuntimeError("AI instance collision detected")
+                else:
+                    logger.info(f"   ✅ AI instances are independent: White@{id(self.ai_white)} != Black@{id(self.ai_black)}")
+                
+                # VERIFICATION: Log actual AI configurations to verify they're different
+                logger.info(f"\n   🔍 CONFIGURATION VERIFICATION:")
+                
+                # White AI config
+                if hasattr(self.ai_white, 'bitboard_engine') and hasattr(self.ai_white.bitboard_engine, 'config'):
+                    white_config = self.ai_white.bitboard_engine.config
+                    logger.info(f"   ⚪ WHITE ({self.ai_white_name}) Config:")
+                    logger.info(f"      - Depth: {white_config.depth}")
+                    logger.info(f"      - Search Strategy: {white_config.search_strategy}")
+                    logger.info(f"      - Use Transposition Table: {white_config.use_transposition_table}")
+                    logger.info(f"      - Use Parallel: {white_config.use_parallel}")
+                    logger.info(f"      - Use Aspiration Windows: {white_config.use_aspiration_windows}")
+                    logger.info(f"      - Iterative Deepening: {white_config.use_iterative_deepening}")
+                else:
+                    logger.warning(f"   ⚪ WHITE: Cannot verify config (no bitboard_engine)")
+                
+                # Black AI config
+                if hasattr(self.ai_black, 'bitboard_engine') and hasattr(self.ai_black.bitboard_engine, 'config'):
+                    black_config = self.ai_black.bitboard_engine.config
+                    logger.info(f"   ⚫ BLACK ({self.ai_black_name}) Config:")
+                    logger.info(f"      - Depth: {black_config.depth}")
+                    logger.info(f"      - Search Strategy: {black_config.search_strategy}")
+                    logger.info(f"      - Use Transposition Table: {black_config.use_transposition_table}")
+                    logger.info(f"      - Use Parallel: {black_config.use_parallel}")
+                    logger.info(f"      - Use Aspiration Windows: {black_config.use_aspiration_windows}")
+                    logger.info(f"      - Iterative Deepening: {black_config.use_iterative_deepening}")
+                else:
+                    logger.warning(f"   ⚫ BLACK: Cannot verify config (no bitboard_engine)")
+                
+                logger.info("")  # Empty line for readability
+            
             self.last_ai_stats = {}
-            logger.info(f"Session {self.session_id} reset to initial state")
+            logger.info(f"✅ Session {self.session_id} reset complete")
         except Exception as e:
             logger.error(f"Failed to reset session {self.session_id}: {e}")
             raise
@@ -524,8 +716,57 @@ class GameSession:
             
             # Select AI by side
             ai = self.ai_white if side == 'W' else self.ai_black
+            ai_name = self.ai_white_name if side == 'W' else self.ai_black_name
+            side_emoji = "⚪" if side == 'W' else "⚫"
+            
+            logger.info(f"")
+            logger.info(f"╔══════════════════════════════════════════════════════════════╗")
+            logger.info(f"║ 🎯 get_ai_move called                                       ║")
+            logger.info(f"╠══════════════════════════════════════════════════════════════╣")
+            logger.info(f"   Side: {side} {side_emoji}")
+            logger.info(f"   Expected AI name: {ai_name}")
+            logger.info(f"   AI instance: {type(ai).__name__ if ai else None} @ {id(ai) if ai else None}")
+            
             if ai is None:
+                logger.error(f"   ❌ No AI instance for side {side} (name: {ai_name})")
+                logger.info(f"╚══════════════════════════════════════════════════════════════╝")
+                logger.info(f"")
                 return None
+            
+            # VERIFY: Check that the AI instance has the correct name
+            if hasattr(ai, 'name'):
+                actual_ai_name = ai.name
+                logger.info(f"   AI instance name: {actual_ai_name!r}")
+                if actual_ai_name != ai_name:
+                    logger.error(f"   ❌ CRITICAL: AI instance name mismatch!")
+                    logger.error(f"      Expected: {ai_name!r}")
+                    logger.error(f"      Got: {actual_ai_name!r}")
+                    logger.error(f"      This means wrong AI instance is being used!")
+                else:
+                    logger.info(f"   ✅ AI instance name matches expected name")
+            
+            # VERIFY: Check engine config matches expected
+            if hasattr(ai, 'bitboard_engine') and hasattr(ai.bitboard_engine, 'config'):
+                cfg = ai.bitboard_engine.config
+                logger.info(f"   Engine config:")
+                logger.info(f"      Depth: {cfg.depth}")
+                logger.info(f"      Strategy: {cfg.search_strategy}")
+                
+                # Verify for known players
+                if ai_name == "LIGHTNING STRIKE":
+                    if cfg.depth != 4:
+                        logger.error(f"   ❌ WRONG CONFIG: LIGHTNING STRIKE has depth {cfg.depth}, expected 4!")
+                    if cfg.search_strategy != 'fixed_depth':
+                        logger.error(f"   ❌ WRONG CONFIG: LIGHTNING STRIKE has strategy {cfg.search_strategy}, expected fixed_depth!")
+                elif ai_name == "DIVZERO.EXE":
+                    if cfg.depth != 12:
+                        logger.error(f"   ❌ WRONG CONFIG: DIVZERO.EXE has depth {cfg.depth}, expected 12!")
+                    if cfg.search_strategy != 'adaptive':
+                        logger.error(f"   ❌ WRONG CONFIG: DIVZERO.EXE has strategy {cfg.search_strategy}, expected adaptive!")
+            
+            logger.info(f"   Available moves: {len(move_list)}")
+            logger.info(f"╚══════════════════════════════════════════════════════════════╝")
+            logger.info(f"")
             
             # Create observer for AI insights if websocket is provided
             observer = None
@@ -541,10 +782,17 @@ class GameSession:
             # Use run_in_executor for Python 3.8 compatibility (asyncio.to_thread requires 3.9+)
             loop = asyncio.get_event_loop()
             ai_move = await loop.run_in_executor(None, ai.get_move, self.game, move_list, observer)
+            
+            if ai_move:
+                coord = f"{chr(64+ai_move.x)}{ai_move.y}"
+                logger.info(f"✅ {side_emoji} {ai_name} selected move: {coord}")
+            else:
+                logger.warning(f"⚠️  {side_emoji} {ai_name} returned no move")
+            
             return ai_move
             
         except Exception as e:
-            logger.error(f"Error getting AI move: {e}")
+            logger.error(f"❌ Error getting AI move for {side_emoji} {ai_name}: {e}")
             logger.error(traceback.format_exc())
             raise
 
@@ -1529,17 +1777,70 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
         white = data.get("white")
         black = data.get("black")
         
-        logger.info(f"📥 Received set_players request:")
-        logger.info(f"   ⚪ White (plays second): {white}")
-        logger.info(f"   ⚫ Black (plays first): {black}")
+        logger.info(f"")
+        logger.info(f"╔══════════════════════════════════════════════════════════════╗")
+        logger.info(f"║ 📥 Received set_players request                             ║")
+        logger.info(f"╠══════════════════════════════════════════════════════════════╣")
+        logger.info(f"   Raw white from frontend: {white!r}")
+        logger.info(f"   Raw black from frontend: {black!r}")
+        
+        # Validate player names exist in registry BEFORE setting
+        registry = PlayerFactory._get_registry()
+        available_players = registry.list_players()
+        
+        logger.info(f"   Available players in registry: {available_players}")
         
         # Normalize: None or 'Human' or 'Human Player' => human
-        session.ai_white_name = None if (white is None or str(white).lower()=="human" or str(white)=="Human Player") else str(white)
-        session.ai_black_name = None if (black is None or str(black).lower()=="human" or str(black)=="Human Player") else str(black)
+        white_normalized = None if (white is None or str(white).lower()=="human" or str(white)=="Human Player") else str(white)
+        black_normalized = None if (black is None or str(black).lower()=="human" or str(black)=="Human Player") else str(black)
         
-        logger.info(f"✅ Configured session:")
-        logger.info(f"   ⚪ ai_white_name: {session.ai_white_name or 'Human'}")
-        logger.info(f"   ⚫ ai_black_name: {session.ai_black_name or 'Human'}")
+        # VALIDATION: Verify AI player names exist in registry
+        if white_normalized:
+            if white_normalized not in available_players:
+                # Try case-insensitive match
+                matched = None
+                for player_name in available_players:
+                    if player_name.upper() == white_normalized.upper():
+                        matched = player_name
+                        break
+                if matched:
+                    logger.warning(f"   ⚠️  Case-insensitive match for White: '{white_normalized}' → '{matched}'")
+                    white_normalized = matched
+                else:
+                    logger.error(f"   ❌ White player '{white_normalized}' NOT FOUND in registry!")
+                    logger.error(f"   Available: {available_players}")
+                    raise ValueError(f"White player '{white_normalized}' not found. Available: {available_players}")
+            else:
+                logger.info(f"   ✅ White player '{white_normalized}' found in registry")
+        
+        if black_normalized:
+            if black_normalized not in available_players:
+                # Try case-insensitive match
+                matched = None
+                for player_name in available_players:
+                    if player_name.upper() == black_normalized.upper():
+                        matched = player_name
+                        break
+                if matched:
+                    logger.warning(f"   ⚠️  Case-insensitive match for Black: '{black_normalized}' → '{matched}'")
+                    black_normalized = matched
+                else:
+                    logger.error(f"   ❌ Black player '{black_normalized}' NOT FOUND in registry!")
+                    logger.error(f"   Available: {available_players}")
+                    raise ValueError(f"Black player '{black_normalized}' not found. Available: {available_players}")
+            else:
+                logger.info(f"   ✅ Black player '{black_normalized}' found in registry")
+        
+        # Set normalized names
+        session.ai_white_name = white_normalized
+        session.ai_black_name = black_normalized
+        
+        logger.info(f"")
+        logger.info(f"   ✅ FINAL Configuration:")
+        logger.info(f"      ⚪ ai_white_name: {session.ai_white_name or 'Human'}")
+        logger.info(f"      ⚫ ai_black_name: {session.ai_black_name or 'Human'}")
+        logger.info(f"╚══════════════════════════════════════════════════════════════╝")
+        logger.info(f"")
         
         # Recreate AI instances
         session.reset_session()

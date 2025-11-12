@@ -111,20 +111,63 @@ class PlayerFactory:
         
         # Try PlayerRegistry for config-based players (Gladiators)
         try:
+            import logging
+            logger = logging.getLogger(__name__)
+            
             registry = cls._get_registry()
+            available_players = registry.list_players()
             
-            # Check if player exists in registry
-            if player_type in registry.list_players():
-                return registry.create_player(player_type, cached=False)
+            logger.info(f"")
+            logger.info(f"╔══════════════════════════════════════════════════════════════╗")
+            logger.info(f"║ 🔍 PlayerFactory.create_player                               ║")
+            logger.info(f"╠══════════════════════════════════════════════════════════════╣")
+            logger.info(f"   REQUESTED player_type: '{player_type}'")
+            logger.info(f"   Available players in registry: {available_players}")
+            logger.info(f"╚══════════════════════════════════════════════════════════════╝")
+            logger.info(f"")
             
-            # Also check by display name variations
-            for registered_name in registry.list_players():
+            # EXACT MATCH FIRST (case-sensitive)
+            if player_type in available_players:
+                logger.info(f"✅ EXACT MATCH found: '{player_type}'")
+                player = registry.create_player(player_type, cached=False)
+                
+                # VALIDATION: Verify the player name matches what we requested
+                player_info = registry.get_player_info(player_type)
+                actual_name = player_info['metadata'].get('name', 'UNKNOWN')
+                if actual_name != player_type:
+                    logger.error(f"❌ CRITICAL: Player name mismatch!")
+                    logger.error(f"   Requested: '{player_type}'")
+                    logger.error(f"   Got: '{actual_name}'")
+                    raise ValueError(f"Player name mismatch: requested '{player_type}', got '{actual_name}'")
+                
+                logger.info(f"✅ Verified: Player '{player_type}' created correctly")
+                return player
+            
+            # CASE-INSENSITIVE MATCH (but log it as a warning)
+            matched_name = None
+            for registered_name in available_players:
                 if registered_name.upper() == player_type.upper():
-                    return registry.create_player(registered_name, cached=False)
+                    matched_name = registered_name
+                    break
+            
+            if matched_name:
+                logger.warning(f"⚠️  CASE-INSENSITIVE MATCH: '{player_type}' → '{matched_name}'")
+                logger.warning(f"   This may cause issues if names don't match exactly!")
+                player = registry.create_player(matched_name, cached=False)
+                
+                # VALIDATION: Verify the matched player
+                player_info = registry.get_player_info(matched_name)
+                actual_name = player_info['metadata'].get('name', 'UNKNOWN')
+                logger.info(f"✅ Created player: '{actual_name}' (matched from '{player_type}')")
+                return player
+            
+            logger.error(f"❌ Player '{player_type}' NOT FOUND in registry!")
             
         except Exception as e:
             import logging
-            logging.getLogger(__name__).debug(f"Registry lookup failed for {player_type}: {e}")
+            logger = logging.getLogger(__name__)
+            logger.error(f"❌ Registry lookup failed for '{player_type}': {e}")
+            logger.exception(e)
         
         # Player not found
         available = list(cls.PLAYER_TYPES.keys())

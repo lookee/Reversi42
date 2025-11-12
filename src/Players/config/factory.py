@@ -12,6 +12,7 @@ Architecture:
 """
 
 import logging
+import copy
 from typing import Dict, Any, Optional
 from pathlib import Path
 from .exceptions import PlayerCreationError
@@ -55,18 +56,86 @@ class PlayerFactory:
         player_name = config.get('metadata', {}).get('name', 'Unknown')
         
         try:
-            logger.debug(f"Creating player: {player_name}")
+            logger.info(f"")
+            logger.info(f"╔══════════════════════════════════════════════════════════════╗")
+            logger.info(f"║ 🏗️  FACTORY: Creating player from config                    ║")
+            logger.info(f"╠══════════════════════════════════════════════════════════════╣")
+            logger.info(f"   Player name from metadata: {player_name}")
+            logger.info(f"   Config file path: {config_path}")
+            
+            # Log key configuration details FROM YAML
+            engine_config_dict = config.get('engine', {})
+            depth_config = engine_config_dict.get('depth', {})
+            logger.info(f"")
+            logger.info(f"   📄 YAML Configuration:")
+            logger.info(f"      Depth base: {depth_config.get('base')} (LIGHTNING=4, DIVZERO=12)")
+            logger.info(f"      Strategy: {depth_config.get('strategy')}")
+            logger.info(f"      Transposition table: {engine_config_dict.get('transposition_table', {}).get('enabled', True)}")
+            logger.info(f"      Parallel: {engine_config_dict.get('parallel', {}).get('enabled', True)}")
+            logger.info(f"      Aspiration windows: {engine_config_dict.get('aspiration_windows', {}).get('enabled', True)}")
+            logger.info(f"╚══════════════════════════════════════════════════════════════╝")
+            logger.info(f"")
             
             # Build engine configuration
             engine_config = self._build_engine_config(config)
             
-            # Create player instance using ApocalyptronEngine
-            player = self._create_apocalyptron_player(config, engine_config)
+            logger.info(f"")
+            logger.info(f"   ⚙️  Engine Config Built:")
+            logger.info(f"      Config ID: {id(engine_config)}")
+            logger.info(f"      Depth: {engine_config.depth} (YAML said: {depth_config.get('base')})")
+            logger.info(f"      Strategy: {engine_config.search_strategy} (YAML said: {depth_config.get('strategy')})")
+            logger.info(f"      Transposition Table: {engine_config.use_transposition_table}")
+            logger.info(f"      Parallel: {engine_config.use_parallel}")
+            logger.info(f"      Aspiration: {engine_config.use_aspiration_windows}")
+            
+            # VALIDATION: Verify config matches YAML
+            expected_depth = depth_config.get('base', 9)
+            if engine_config.depth != expected_depth:
+                logger.error(f"   ❌ CRITICAL: Depth mismatch!")
+                logger.error(f"      YAML: {expected_depth}")
+                logger.error(f"      Config: {engine_config.depth}")
+            
+            expected_strategy = depth_config.get('strategy', 'iterative')
+            if expected_strategy == 'fixed' and engine_config.search_strategy != 'fixed_depth':
+                logger.error(f"   ❌ CRITICAL: Strategy mismatch!")
+                logger.error(f"      YAML: fixed")
+                logger.error(f"      Config: {engine_config.search_strategy}")
+            
+            logger.info(f"")
+            
+            # CRITICAL: Create a deep copy of the config to ensure it's independent
+            # This prevents any accidental sharing between players
+            engine_config_copy = copy.deepcopy(engine_config)
+            logger.info(f"   🔄 Created DEEP COPY of engine config:")
+            logger.info(f"      Original ID: {id(engine_config)}")
+            logger.info(f"      Copy ID: {id(engine_config_copy)}")
+            logger.info(f"      Copy Depth: {engine_config_copy.depth}")
+            logger.info(f"")
+            
+            # Create player instance using ApocalyptronEngine with COPY
+            player = self._create_apocalyptron_player(config, engine_config_copy)
+            
+            # FINAL VALIDATION: Verify player has correct config
+            if hasattr(player, 'bitboard_engine') and hasattr(player.bitboard_engine, 'config'):
+                actual_config = player.bitboard_engine.config
+                logger.info(f"   ✅ FINAL VALIDATION - Player Engine Config:")
+                logger.info(f"      Depth: {actual_config.depth}")
+                logger.info(f"      Strategy: {actual_config.search_strategy}")
+                logger.info(f"      Transposition Table: {actual_config.use_transposition_table}")
+                logger.info(f"      Parallel: {actual_config.use_parallel}")
+                logger.info(f"      Aspiration: {actual_config.use_aspiration_windows}")
+                
+                # Verify it matches what we built
+                if actual_config.depth != engine_config.depth:
+                    logger.error(f"   ❌ CRITICAL: Player config doesn't match built config!")
+                    logger.error(f"      Built: {engine_config.depth}, Player: {actual_config.depth}")
             
             # Update statistics
             self._update_stats(config, success=True)
             
-            logger.debug(f"✅ Successfully created player: {player_name}")
+            logger.info(f"✅ Successfully created player: {player_name} @ {id(player)}")
+            logger.info(f"╚══════════════════════════════════════════════════════════════╝")
+            logger.info(f"")
             return player
             
         except Exception as e:
@@ -127,18 +196,28 @@ class PlayerFactory:
         
         # Configure transposition table
         tt_config = engine_config.get('transposition_table', {})
-        if tt_config.get('enabled', True):
+        tt_enabled = tt_config.get('enabled', True)  # Default True
+        logger.info(f"   TT config from YAML: enabled={tt_enabled}")
+        # Set directly in config (no builder method exists)
+        builder._config.use_transposition_table = tt_enabled
+        if tt_enabled:
             size_mb = tt_config.get('size_mb', 128)
-            # Note: ApocalyptronConfigBuilder would need a method for this
-            # For now, TT is enabled by default
+            logger.info(f"   ✅ Transposition Table ENABLED (size: {size_mb}MB)")
+        else:
+            logger.info(f"   ❌ Transposition Table DISABLED")
         
         # Configure pruning optimizations
         self._configure_pruning(builder, config.get('pruning', {}))
         
         # Configure aspiration windows
         aw_config = engine_config.get('aspiration_windows', {})
-        if aw_config.get('enabled', True):
-            builder.enable_aspiration_windows()
+        aw_enabled = aw_config.get('enabled', True)  # Default True
+        logger.info(f"   Aspiration config from YAML: enabled={aw_enabled}")
+        builder.enable_aspiration_windows(aw_enabled)  # Pass False to disable
+        if aw_enabled:
+            logger.info(f"   ✅ Aspiration Windows ENABLED")
+        else:
+            logger.info(f"   ❌ Aspiration Windows DISABLED")
         
         return builder.build()
     

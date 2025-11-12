@@ -237,9 +237,23 @@ class PlayerRegistry:
         if player_name not in self._players:
             raise PlayerNotFoundError(player_name, self.list_players())
         
+        # Log cache status
+        logger.info(f"")
+        logger.info(f"╔═══════════════════════════════════════════════════════════╗")
+        logger.info(f"║ 🎮 PlayerRegistry.create_player                          ║")
+        logger.info(f"╠═══════════════════════════════════════════════════════════╣")
+        logger.info(f"   REQUESTED Player Name: {player_name}")
+        logger.info(f"   Cached parameter: {cached}")
+        logger.info(f"   Instance already in cache: {player_name in self._instances}")
+        if player_name in self._instances:
+            logger.info(f"   ⚠️  CACHED INSTANCE ID: {id(self._instances[player_name])}")
+        logger.info(f"╚═══════════════════════════════════════════════════════════╝")
+        logger.info(f"")
+        
         # Return cached instance if available and requested
         if cached and player_name in self._instances:
-            logger.debug(f"Returning cached instance of {player_name}")
+            logger.warning(f"⚠️  RETURNING CACHED INSTANCE of {player_name} @ {id(self._instances[player_name])}")
+            logger.warning(f"   THIS MAY CAUSE ISSUES WITH MULTIPLE AI PLAYERS!")
             return self._instances[player_name]
         
         # Create new instance
@@ -247,12 +261,47 @@ class PlayerRegistry:
         config = player_info['config']
         config_file = player_info['config_file']
         
-        logger.info(f"🎮 Creating player instance: {player_name}")
+        logger.info(f"")
+        logger.info(f"🏭 Creating NEW instance (cached={cached})")
+        logger.info(f"   Config for: {player_name}")
+        logger.info(f"   Config file path: {config_file.path}")
+        logger.info(f"   Config metadata.name: {config.get('metadata', {}).get('name', 'UNKNOWN')}")
+        logger.info(f"")
+        
         player = self.factory.create_player(config, config_file.path)
         
-        # Cache instance
+        # VALIDATION: Verify the created player has the correct name
+        # This catches bugs where wrong config is loaded
+        if hasattr(player, 'name'):
+            player_display_name = player.name
+        elif hasattr(player, 'bitboard_engine'):
+            # Try to get name from config metadata
+            try:
+                player_info = self.get_player_info(player_name)
+                player_display_name = player_info['metadata'].get('name', 'UNKNOWN')
+            except:
+                player_display_name = 'UNKNOWN'
+        else:
+            player_display_name = 'UNKNOWN'
+        
+        logger.info(f"   ✅ Player instance created:")
+        logger.info(f"      Requested name: {player_name}")
+        logger.info(f"      Player name: {player_display_name}")
+        logger.info(f"      Instance ID: {id(player)}")
+        
+        if player_display_name != player_name and player_display_name != 'UNKNOWN':
+            logger.error(f"   ❌ CRITICAL: Player name mismatch in instance!")
+            logger.error(f"      Expected: {player_name}")
+            logger.error(f"      Got: {player_display_name}")
+            logger.error(f"      This indicates wrong config was loaded!")
+        
+        # NEVER cache instances for game sessions (always create fresh)
+        # Cache only for non-game uses (like API lookups)
         if cached:
+            logger.info(f"   💾 Caching instance @ {id(player)} (WARNING: may cause issues in multi-player games)")
             self._instances[player_name] = player
+        else:
+            logger.info(f"   🚫 NOT caching instance (cached=False) - FRESH INSTANCE CREATED")
         
         return player
     
@@ -287,6 +336,21 @@ class PlayerRegistry:
             if isinstance(elo, int) and min_elo <= elo <= max_elo:
                 players.append(name)
         return sorted(players)
+    
+    def clear_instance_cache(self, player_name: str = None):
+        """
+        Clear cached player instances.
+        
+        Args:
+            player_name: Specific player to clear (None = clear all)
+        """
+        if player_name:
+            if player_name in self._instances:
+                logger.info(f"🗑️  Clearing cached instance: {player_name} @ {id(self._instances[player_name])}")
+                del self._instances[player_name]
+        else:
+            logger.info(f"🗑️  Clearing ALL cached instances ({len(self._instances)} total)")
+            self._instances.clear()
     
     def reload(self):
         """Reload all player configurations from disk."""
