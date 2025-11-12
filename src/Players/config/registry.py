@@ -250,11 +250,17 @@ class PlayerRegistry:
         logger.info(f"╚═══════════════════════════════════════════════════════════╝")
         logger.info(f"")
         
-        # Return cached instance if available and requested
+        # CRITICAL: NEVER return cached instances for game sessions
+        # Even if cached=True, we should create fresh instances to avoid
+        # configuration sharing between players
+        # Return cached instance ONLY if explicitly requested AND we're sure
+        # it's safe (e.g., for API lookups, not for actual gameplay)
         if cached and player_name in self._instances:
-            logger.warning(f"⚠️  RETURNING CACHED INSTANCE of {player_name} @ {id(self._instances[player_name])}")
-            logger.warning(f"   THIS MAY CAUSE ISSUES WITH MULTIPLE AI PLAYERS!")
-            return self._instances[player_name]
+            logger.warning(f"⚠️  CACHED INSTANCE EXISTS for {player_name} @ {id(self._instances[player_name])}")
+            logger.warning(f"   However, creating FRESH instance to ensure isolation")
+            # Don't return cached - create fresh instead
+            # This ensures no configuration sharing between players
+            # return self._instances[player_name]  # DISABLED for safety
         
         # Create new instance
         player_info = self._players[player_name]

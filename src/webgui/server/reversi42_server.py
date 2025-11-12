@@ -726,6 +726,24 @@ class GameSession:
             logger.info(f"   Side: {side} {side_emoji}")
             logger.info(f"   Expected AI name: {ai_name}")
             logger.info(f"   AI instance: {type(ai).__name__ if ai else None} @ {id(ai) if ai else None}")
+            logger.info(f"   Game turn count: {self.game.turn_cnt}")
+            logger.info(f"   Game history length: {len(self.game.history) if hasattr(self.game, 'history') else 0}")
+            
+            # CRITICAL: Check if this is the same instance as the other AI
+            if side == 'W' and self.ai_black:
+                if id(ai) == id(self.ai_black):
+                    logger.error(f"   ❌ CRITICAL: White and Black AI share the same instance!")
+                    logger.error(f"      White instance ID: {id(ai)}")
+                    logger.error(f"      Black instance ID: {id(self.ai_black)}")
+                else:
+                    logger.info(f"   ✅ AI instances are different (White@{id(ai)} != Black@{id(self.ai_black)})")
+            elif side == 'B' and self.ai_white:
+                if id(ai) == id(self.ai_white):
+                    logger.error(f"   ❌ CRITICAL: Black and White AI share the same instance!")
+                    logger.error(f"      Black instance ID: {id(ai)}")
+                    logger.error(f"      White instance ID: {id(self.ai_white)}")
+                else:
+                    logger.info(f"   ✅ AI instances are different (Black@{id(ai)} != White@{id(self.ai_white)})")
             
             if ai is None:
                 logger.error(f"   ❌ No AI instance for side {side} (name: {ai_name})")
@@ -748,9 +766,36 @@ class GameSession:
             # VERIFY: Check engine config matches expected
             if hasattr(ai, 'bitboard_engine') and hasattr(ai.bitboard_engine, 'config'):
                 cfg = ai.bitboard_engine.config
+                cfg_id = id(cfg)
                 logger.info(f"   Engine config:")
+                logger.info(f"      Config object ID: {cfg_id}")
                 logger.info(f"      Depth: {cfg.depth}")
                 logger.info(f"      Strategy: {cfg.search_strategy}")
+                logger.info(f"      Transposition Table: {cfg.use_transposition_table}")
+                logger.info(f"      Parallel: {cfg.use_parallel}")
+                logger.info(f"      Aspiration: {cfg.use_aspiration_windows}")
+                
+                # CRITICAL: Check if this is the same config object as the other AI
+                if side == 'W' and self.ai_black:
+                    black_cfg = getattr(self.ai_black.bitboard_engine, 'config', None) if hasattr(self.ai_black, 'bitboard_engine') else None
+                    if black_cfg:
+                        black_cfg_id = id(black_cfg)
+                        if cfg_id == black_cfg_id:
+                            logger.error(f"   ❌ CRITICAL: White and Black AI share the same config object!")
+                            logger.error(f"      White config ID: {cfg_id}")
+                            logger.error(f"      Black config ID: {black_cfg_id}")
+                        else:
+                            logger.info(f"   ✅ Config objects are different (White@{cfg_id} != Black@{black_cfg_id})")
+                elif side == 'B' and self.ai_white:
+                    white_cfg = getattr(self.ai_white.bitboard_engine, 'config', None) if hasattr(self.ai_white, 'bitboard_engine') else None
+                    if white_cfg:
+                        white_cfg_id = id(white_cfg)
+                        if cfg_id == white_cfg_id:
+                            logger.error(f"   ❌ CRITICAL: Black and White AI share the same config object!")
+                            logger.error(f"      Black config ID: {cfg_id}")
+                            logger.error(f"      White config ID: {white_cfg_id}")
+                        else:
+                            logger.info(f"   ✅ Config objects are different (Black@{cfg_id} != White@{white_cfg_id})")
                 
                 # Verify for known players
                 if ai_name == "LIGHTNING STRIKE":
@@ -763,6 +808,29 @@ class GameSession:
                         logger.error(f"   ❌ WRONG CONFIG: DIVZERO.EXE has depth {cfg.depth}, expected 12!")
                     if cfg.search_strategy != 'adaptive':
                         logger.error(f"   ❌ WRONG CONFIG: DIVZERO.EXE has strategy {cfg.search_strategy}, expected adaptive!")
+            
+            # CRITICAL: Check if opening book is shared
+            if hasattr(ai, 'opening_book') and ai.opening_book:
+                book_id = id(ai.opening_book)
+                logger.info(f"   Opening book ID: {book_id}")
+                
+                # Check if opening book is shared with other AI
+                if side == 'W' and self.ai_black and hasattr(self.ai_black, 'opening_book') and self.ai_black.opening_book:
+                    black_book_id = id(self.ai_black.opening_book)
+                    if book_id == black_book_id:
+                        logger.error(f"   ❌ CRITICAL: White and Black AI share the same opening book!")
+                        logger.error(f"      White book ID: {book_id}")
+                        logger.error(f"      Black book ID: {black_book_id}")
+                    else:
+                        logger.info(f"   ✅ Opening books are different (White@{book_id} != Black@{black_book_id})")
+                elif side == 'B' and self.ai_white and hasattr(self.ai_white, 'opening_book') and self.ai_white.opening_book:
+                    white_book_id = id(self.ai_white.opening_book)
+                    if book_id == white_book_id:
+                        logger.error(f"   ❌ CRITICAL: Black and White AI share the same opening book!")
+                        logger.error(f"      Black book ID: {book_id}")
+                        logger.error(f"      White book ID: {white_book_id}")
+                    else:
+                        logger.info(f"   ✅ Opening books are different (Black@{book_id} != White@{white_book_id})")
             
             logger.info(f"   Available moves: {len(move_list)}")
             logger.info(f"╚══════════════════════════════════════════════════════════════╝")
