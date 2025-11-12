@@ -714,6 +714,15 @@ class GameSession:
             if not move_list:
                 return None
             
+            # CRITICAL: Verify side matches current game turn
+            current_turn = self.game.turn
+            if side != current_turn:
+                logger.error(f"   ❌ CRITICAL: Side mismatch!")
+                logger.error(f"      Requested side: {side}")
+                logger.error(f"      Current game turn: {current_turn}")
+                logger.error(f"      Using current game turn instead")
+                side = current_turn
+            
             # Select AI by side
             ai = self.ai_white if side == 'W' else self.ai_black
             ai_name = self.ai_white_name if side == 'W' else self.ai_black_name
@@ -724,6 +733,7 @@ class GameSession:
             logger.info(f"║ 🎯 get_ai_move called                                       ║")
             logger.info(f"╠══════════════════════════════════════════════════════════════╣")
             logger.info(f"   Side: {side} {side_emoji}")
+            logger.info(f"   Current game turn: {current_turn}")
             logger.info(f"   Expected AI name: {ai_name}")
             logger.info(f"   AI instance: {type(ai).__name__ if ai else None} @ {id(ai) if ai else None}")
             logger.info(f"   Game turn count: {self.game.turn_cnt}")
@@ -760,6 +770,21 @@ class GameSession:
                     logger.error(f"      Expected: {ai_name!r}")
                     logger.error(f"      Got: {actual_ai_name!r}")
                     logger.error(f"      This means wrong AI instance is being used!")
+                    logger.error(f"      Attempting to recreate correct AI instance...")
+                    # CRITICAL: Recreate the correct AI instance
+                    try:
+                        registry = PlayerFactory._get_registry()
+                        registry.clear_instance_cache(ai_name)
+                        if side == 'W':
+                            self.ai_white = PlayerFactory.create_player(ai_name)
+                            ai = self.ai_white
+                        else:
+                            self.ai_black = PlayerFactory.create_player(ai_name)
+                            ai = self.ai_black
+                        logger.info(f"   ✅ Recreated AI instance: {ai.name!r} @ {id(ai)}")
+                    except Exception as e:
+                        logger.error(f"   ❌ Failed to recreate AI instance: {e}")
+                        raise
                 else:
                     logger.info(f"   ✅ AI instance name matches expected name")
             
@@ -798,16 +823,36 @@ class GameSession:
                             logger.info(f"   ✅ Config objects are different (Black@{cfg_id} != White@{white_cfg_id})")
                 
                 # Verify for known players
+                config_mismatch = False
                 if ai_name == "LIGHTNING STRIKE":
                     if cfg.depth != 4:
                         logger.error(f"   ❌ WRONG CONFIG: LIGHTNING STRIKE has depth {cfg.depth}, expected 4!")
+                        config_mismatch = True
                     if cfg.search_strategy != 'fixed_depth':
                         logger.error(f"   ❌ WRONG CONFIG: LIGHTNING STRIKE has strategy {cfg.search_strategy}, expected fixed_depth!")
+                        config_mismatch = True
                 elif ai_name == "DIVZERO.EXE":
                     if cfg.depth != 12:
                         logger.error(f"   ❌ WRONG CONFIG: DIVZERO.EXE has depth {cfg.depth}, expected 12!")
+                        config_mismatch = True
                     if cfg.search_strategy != 'adaptive':
                         logger.error(f"   ❌ WRONG CONFIG: DIVZERO.EXE has strategy {cfg.search_strategy}, expected adaptive!")
+                        config_mismatch = True
+                
+                # CRITICAL: If config is wrong, log error but DO NOT recreate
+                # Recreating instances during gameplay can cause issues
+                # Instead, log the error and let the user know there's a problem
+                if config_mismatch:
+                    logger.error(f"   ❌ CRITICAL: Engine config mismatch detected!")
+                    logger.error(f"      This indicates a serious bug - player configuration was corrupted!")
+                    logger.error(f"      Player instance ID: {id(ai)}")
+                    logger.error(f"      Config object ID: {id(cfg)}")
+                    logger.error(f"      Expected depth: {4 if ai_name == 'LIGHTNING STRIKE' else 12}")
+                    logger.error(f"      Actual depth: {cfg.depth}")
+                    # DO NOT recreate - this can cause more problems
+                    # The issue should be fixed at the root cause, not by recreating instances
+                    # Raise exception to stop execution and prevent using wrong config
+                    raise RuntimeError(f"Player {ai_name} has wrong configuration! Depth: {cfg.depth}, Strategy: {cfg.search_strategy}")
             
             # CRITICAL: Check if opening book is shared
             if hasattr(ai, 'opening_book') and ai.opening_book:

@@ -188,9 +188,13 @@ class ApocalyptronEngine:
             )
         
         elif self.config.search_strategy == 'adaptive':
+            # CRITICAL: Create a copy of adaptive_depths to avoid sharing
+            # This ensures each engine instance has its own independent depth config
+            import copy
+            adaptive_depths_copy = copy.deepcopy(self.config.adaptive_depths)
             return AdaptiveDepthStrategy(
                 self.alphabeta,
-                depth_config=self.config.adaptive_depths,
+                depth_config=adaptive_depths_copy,
                 observers=self.observers
             )
         

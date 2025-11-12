@@ -218,5 +218,11 @@ class ApocalyptronConfigBuilder:
         return self
 
     def build(self) -> ApocalyptronConfig:
-        """Build and return the configuration"""
-        return self._config
+        """
+        Build and return the configuration.
+        
+        CRITICAL: Returns a deep copy to ensure isolation between instances.
+        This prevents configuration sharing between different player instances.
+        """
+        import copy
+        return copy.deepcopy(self._config)
