@@ -167,7 +167,18 @@ class ParallelSearch:
             and self.num_workers >= 2
         )
 
+        # CRITICAL: Check if sequential search has already completed to target depth
+        # If so, avoid parallel search to prevent re-searching from scratch
         if use_parallel:
+            # Check if base_search has already reached target depth
+            # This prevents parallel search from re-searching if sequential is already complete
+            if hasattr(self.base_search, 'max_depth_reached'):
+                if self.base_search.max_depth_reached >= target_depth:
+                    # Sequential search already complete, use it directly
+                    return self.base_search.get_best_move(
+                        game, target_depth, player_name, opening_book, game_history
+                    )
+            
             return self._get_best_move_parallel(
                 game, target_depth, player_name, move_list, opening_book, game_history
             )
@@ -208,15 +219,35 @@ class ParallelSearch:
             from AI.Apocalyptron.observers.quiet import QuietObserver
 
             original_observers = self.base_search.observers
+            # CRITICAL: Replace observers with QuietObserver to prevent output during Phase 1
             self.base_search.observers = [QuietObserver()]
 
             # Track best moves at each depth for stability analysis
-            for current_depth in range(1, depth):
-                phase1_best_move = self.base_search.get_best_move(
-                    game, current_depth, player_name=None
-                )
-                move_progression.append((current_depth, phase1_best_move))
+            # IMPORTANT: Only run Phase 1 if we haven't already searched up to depth-1
+            # Check if alphabeta has already searched to depth-1 by checking statistics
+            existing_depth = 0
+            if hasattr(self.base_search, 'alphabeta') and hasattr(self.base_search.alphabeta, 'get_statistics'):
+                existing_stats = self.base_search.alphabeta.get_statistics()
+                existing_depth = existing_stats.get('depth_reached', existing_stats.get('depth', 0))
+            
+            # Only run Phase 1 if we haven't already reached depth-1
+            if existing_depth < depth - 1:
+                for current_depth in range(max(1, existing_depth + 1), depth):
+                    phase1_best_move = self.base_search.get_best_move(
+                        game, current_depth, player_name=None
+                    )
+                    move_progression.append((current_depth, phase1_best_move))
+            else:
+                # Already searched to depth-1, skip Phase 1
+                # Get the best move from the last search
+                if hasattr(self.base_search, 'alphabeta') and hasattr(self.base_search.alphabeta, 'orderer'):
+                    # Try to get PV move from orderer
+                    for orderer in self.base_search.alphabeta.orderer.orderers:
+                        if hasattr(orderer, 'pv_move') and orderer.pv_move:
+                            phase1_best_move = orderer.pv_move
+                            break
 
+            # Restore original observers AFTER Phase 1 completes
             self.base_search.observers = original_observers
 
             phase1_time = time.perf_counter() - phase1_start

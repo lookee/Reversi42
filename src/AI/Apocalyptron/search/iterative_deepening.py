@@ -58,6 +58,9 @@ class IterativeDeepeningSearch:
                 self.pv_orderer = orderer
             elif isinstance(orderer, KillerMoveOrderer):
                 self.killer_orderer = orderer
+        
+        # Track maximum depth reached to avoid re-searching
+        self.max_depth_reached = 0
 
     def get_best_move(
         self,
@@ -80,9 +83,19 @@ class IterativeDeepeningSearch:
         Returns:
             Best move found
         """
+        # CRITICAL: Check if we've already searched to target depth BEFORE notifying observers
+        # If so, skip re-searching and return cached result immediately
+        if self.max_depth_reached >= target_depth:
+            # Already searched to target depth, return best move from PV
+            if self.pv_orderer and self.pv_orderer.pv_move:
+                # Return cached result without re-searching or notifying observers
+                return self.pv_orderer.pv_move
+            # If PV move not available but we've already searched, something went wrong
+            # Fall through to normal search (but this shouldn't happen)
+        
         time_start = time.perf_counter()
 
-        # Notify: Search start
+        # Notify: Search start (only if we're actually searching)
         self._notify_search_start(target_depth, player_name, game)
 
         move_list = game.get_move_list()
@@ -98,9 +111,11 @@ class IterativeDeepeningSearch:
         self.aspiration_fails = 0
         aspiration_hits = 0
         aspiration_fails = 0
-
+        
         # Iterative deepening loop
-        for current_depth in range(1, target_depth + 1):
+        # Start from max_depth_reached + 1 if we've already searched some depths
+        start_depth = max(1, self.max_depth_reached + 1) if self.max_depth_reached < target_depth else target_depth
+        for current_depth in range(start_depth, target_depth + 1):
             iter_start = time.perf_counter()
             self.alphabeta.nodes = 0
             self.alphabeta.pruning = 0
@@ -186,6 +201,9 @@ class IterativeDeepeningSearch:
             self._notify_iteration_complete(
                 current_depth, best_move, best_value, iter_time * 1000, not re_search_needed
             )
+            
+            # Update max depth reached
+            self.max_depth_reached = max(self.max_depth_reached, current_depth)
 
         # Prepare final statistics
         time_total = time.perf_counter() - time_start
@@ -235,3 +253,5 @@ class IterativeDeepeningSearch:
     def reset(self):
         """Reset search state"""
         self.alphabeta.reset()
+        # CRITICAL: Don't reset max_depth_reached - it's used to avoid re-searching
+        # self.max_depth_reached = 0  # Keep max_depth_reached to avoid re-searching
