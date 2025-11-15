@@ -70,9 +70,9 @@ class PlayerApocalyptron(Player):
         depth=9,
         show_book_options=True,
         weights=None,
-        search_strategy='iterative_deepening',  # NEW parameter
+        search_strategy="iterative_deepening",  # NEW parameter
         config_builder=None,  # NEW parameter for full control
-        book_instant=False  # NEW: If False, book moves are evaluated (not instant)
+        book_instant=False,  # NEW: If False, book moves are evaluated (not instant)
     ):
         """
         Initialize Apocalyptron AI.
@@ -108,26 +108,24 @@ class PlayerApocalyptron(Player):
         else:
             # Build standard config with search strategy
             builder = ApocalyptronConfigBuilder().with_depth(depth)
-            
+
             # Configure search strategy (NEW!)
-            if search_strategy == 'fixed_depth':
+            if search_strategy == "fixed_depth":
                 builder.with_fixed_depth_search()
-            elif search_strategy == 'adaptive':
+            elif search_strategy == "adaptive":
                 # Use adaptive with sensible defaults
                 builder.with_adaptive_depth(
-                    opening=max(4, depth - 2),
-                    midgame=depth,
-                    endgame=min(15, depth + 2)
+                    opening=max(4, depth - 2), midgame=depth, endgame=min(15, depth + 2)
                 )
             else:  # 'iterative_deepening' (default)
                 builder.enable_iterative_deepening()
-            
+
             builder.enable_all_optimizations()
-            
+
             # Override weights if provided
             if weights:
                 builder.with_weights(weights)
-            
+
             engine_config = builder.build()
 
         self.bitboard_engine = ApocalyptronEngine(config=engine_config)
@@ -276,7 +274,7 @@ class PlayerApocalyptron(Player):
                 if self.show_book_options:
                     print(f"\n⚡ Using book move (instant response)")
                     print(f"{'='*80}\n")
-                
+
                 # Use intelligent selection based on opening evaluation
                 if len(book_moves) > 1:
                     # Evaluate and choose best move
@@ -326,21 +324,21 @@ class PlayerApocalyptron(Player):
                                 print(f"📖 Playing {chosen_move}: {opening_name}\n")
 
                     return chosen_move
-            
+
             else:
                 # NEW MODE: Book moves prioritized but evaluated
                 if self.show_book_options:
                     self._print_book_evaluation_mode(book_moves, game_history, game.turn, moves)
-                
+
                 # Continue to engine evaluation with reordered moves (book moves first)
                 # Fall through to engine code below...
 
         # Apocalyptron engine evaluation
         # If book_instant=False and we have book_moves, they'll be prioritized
-        
+
         # Determine if we're in "out of book" or "evaluating with book priority"
         is_out_of_book = not book_moves or self.book_instant
-        
+
         if is_out_of_book and self.show_book_options:
             print(f"\n📚 Out of opening book - Apocalyptron search (depth {self.deep})\n")
 
@@ -354,19 +352,19 @@ class PlayerApocalyptron(Player):
                 if not self.book_instant and book_moves:
                     # Put book moves at the front of the list for evaluation priority
                     book_set = set(str(m).upper() for m in book_moves)
-                    
+
                     # Separate book and non-book moves
                     bb_book_moves = [m for m in bb_moves if str(m).upper() in book_set]
                     bb_other_moves = [m for m in bb_moves if str(m).upper() not in book_set]
-                    
+
                     # Reorder: book first, then others
                     bb_moves_reordered = bb_book_moves + bb_other_moves
-                    
+
                     # Note: The engine's internal move ordering will still apply,
                     # but book moves get initial priority
                     if self.show_book_options and bb_book_moves:
                         print(f"🎯 Prioritizing {len(bb_book_moves)} book moves for evaluation\n")
-                
+
                 # Pass opening book and game history for summary display
                 move = self.bitboard_engine.get_best_move(
                     bitboard_game,
@@ -377,9 +375,18 @@ class PlayerApocalyptron(Player):
                 )
                 if move and game.valid_move(move):
                     return move
+
+                # Fallback: if engine returns None or invalid move, use first valid move
+                if moves:
+                    print(f"⚠️  Engine returned invalid move, using fallback: {moves[0]}")
+                    return moves[0]
         except Exception as e:
             print(f"❌ Apocalyptron error: {e}")
-            raise  # Re-raise exception instead of falling back
+            # Fallback on exception: return first valid move if available
+            if moves:
+                print(f"⚠️  Exception fallback: using {moves[0]}")
+                return moves[0]
+            raise  # Only raise if no moves available
 
     def _get_game_history(self, game):
         """Extract game move history"""
@@ -425,59 +432,60 @@ class PlayerApocalyptron(Player):
         """
         print(f"\n🔍 BOOK EVALUATION MODE - {self.name}")
         print(f"{'='*80}")
-        
+
         # Calculate scores for all book moves
         book_move_scores = []
         for move in book_moves:
             move_str = str(move).upper()
-            
+
             # Test history after this move
             test_history = (
-                game_history + move_str
-                if current_turn == "B"
-                else game_history + move_str.lower()
+                game_history + move_str if current_turn == "B" else game_history + move_str.lower()
             )
-            
+
             # Get opening info
             opening_name = self.opening_book.get_current_opening_name(test_history)
             advantage = self.opening_book.get_opening_advantage(test_history)
-            
+
             # Calculate score (hybrid: advantage + variety)
             advantage_score = 0.0
             if advantage:
                 _, numeric_value = self.opening_book.interpret_advantage(advantage)
                 # Apply advantage weight (default 0.2)
                 advantage_score = numeric_value * self.opening_book.advantage_weight
-            
+
             # Variety score (number of continuations)
             continuations = self.opening_book.get_book_moves(test_history)
             variety_score = 0.0
             if continuations:
                 import math
+
                 variety_score = math.log(1 + len(continuations)) * self.opening_book.variety_weight
-            
+
             total_score = advantage_score + variety_score
-            
-            book_move_scores.append({
-                'move': move_str,
-                'score': total_score,
-                'advantage': advantage or '?',
-                'opening': opening_name or 'Unknown',
-                'continuations': len(continuations) if continuations else 0
-            })
-        
+
+            book_move_scores.append(
+                {
+                    "move": move_str,
+                    "score": total_score,
+                    "advantage": advantage or "?",
+                    "opening": opening_name or "Unknown",
+                    "continuations": len(continuations) if continuations else 0,
+                }
+            )
+
         # Sort by score (descending)
-        book_move_scores.sort(key=lambda x: x['score'], reverse=True)
-        
+        book_move_scores.sort(key=lambda x: x["score"], reverse=True)
+
         # Calculate average score for threshold
-        scores_only = [m['score'] for m in book_move_scores]
+        scores_only = [m["score"] for m in book_move_scores]
         avg_score = sum(scores_only) / len(scores_only) if scores_only else 0.0
         threshold = max(0.0, avg_score)  # Use average as threshold
-        
+
         # Separate into priority (on top) and filtered out
-        priority_moves = [m for m in book_move_scores if m['score'] >= threshold]
-        filtered_out = [m for m in book_move_scores if m['score'] < threshold]
-        
+        priority_moves = [m for m in book_move_scores if m["score"] >= threshold]
+        filtered_out = [m for m in book_move_scores if m["score"] < threshold]
+
         # Print priority moves (ON TOP for evaluation)
         if priority_moves:
             print(f"\n📊 Book Moves (ON TOP - Priority Evaluation):")
@@ -485,29 +493,31 @@ class PlayerApocalyptron(Player):
             print()
             print(f"   {'Move':<6} {'Score':>8}  {'Advantage':<10} {'Cont':>4}  Opening")
             print(f"   {'-'*70}")
-            
+
             for i, move_info in enumerate(priority_moves, 1):
                 priority_mark = "★" if i == 1 else " "
-                adv_display = move_info['advantage']
-                
-                print(f"   {priority_mark} {move_info['move']:<5} {move_info['score']:>7.3f}  "
-                      f"{adv_display:<10} {move_info['continuations']:>4}  "
-                      f"{move_info['opening'][:35]}")
-        
+                adv_display = move_info["advantage"]
+
+                print(
+                    f"   {priority_mark} {move_info['move']:<5} {move_info['score']:>7.3f}  "
+                    f"{adv_display:<10} {move_info['continuations']:>4}  "
+                    f"{move_info['opening'][:35]}"
+                )
+
         # Print filtered out moves (if any)
         if filtered_out:
             print(f"\n   Filtered out ({len(filtered_out)} moves below threshold):")
             for move_info in filtered_out:
                 print(f"     • {move_info['move']}: {move_info['score']:.3f}")
-        
+
         # Print non-book moves
         book_set = set(str(m).upper() for m in book_moves)
         non_book_moves = [str(m).upper() for m in all_moves if str(m).upper() not in book_set]
-        
+
         if non_book_moves:
             print(f"\n📋 Non-Book Moves (standard evaluation):")
             print(f"   {', '.join(non_book_moves)}")
-        
+
         print(f"\n⚙️  Engine will now evaluate ALL moves")
         print(f"   Priority moves at top → better alpha-beta cutoffs")
         print(f"   Best move selected by ENGINE SCORE (not book score)")
