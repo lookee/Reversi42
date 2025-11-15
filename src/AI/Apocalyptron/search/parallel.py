@@ -17,8 +17,10 @@ from typing import List, Optional
 
 from AI.Apocalyptron.observers.interfaces import SearchObserver
 
-# Set multiprocessing start method for Windows compatibility
-if sys.platform == "win32":
+# Set multiprocessing start method for Windows and macOS compatibility
+# macOS Python 3.9+ can have issues with "fork" when used with pytest-xdist
+# Using "spawn" is more reliable across platforms
+if sys.platform in ("win32", "darwin"):
     try:
         from multiprocessing import set_start_method
 
