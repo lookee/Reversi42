@@ -8,7 +8,7 @@ The version is read from pyproject.toml to maintain a single source of truth.
 import os
 from pathlib import Path
 
-__version__ = "6.1.2"  # Fallback version (must match pyproject.toml)
+__version__ = "6.1.3"  # Fallback version (must match pyproject.toml)
 
 
 def get_version():
