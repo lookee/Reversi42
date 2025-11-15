@@ -49,11 +49,8 @@ except ImportError:
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('/tmp/backend_detailed.log'),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("/tmp/backend_detailed.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -62,11 +59,13 @@ app_instance = None
 active_connections = set()
 shutdown_event = asyncio.Event()
 
+
 def signal_handler(signum, frame):
     """Handle shutdown signals gracefully"""
     logger.info(f"Received signal {signum}, initiating graceful shutdown...")
     logger.info(f"Active connections: {len(active_connections)}, Active sessions: {len(sessions)}")
     shutdown_event.set()
+
 
 def cleanup_on_exit():
     """Cleanup function called on exit"""
@@ -78,6 +77,7 @@ def cleanup_on_exit():
         except Exception as e:
             logger.error(f"Error closing WebSocket: {e}")
 
+
 # Register signal handlers and cleanup
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
@@ -87,6 +87,7 @@ atexit.register(cleanup_on_exit)
 @dataclass
 class GameState:
     """Represents the current game state"""
+
     game: Game
     ai_player: any  # Player instance
     player_name: str
@@ -94,11 +95,11 @@ class GameState:
     current_turn: str  # 'B' or 'W'
     game_over: bool = False
     winner: str = None
-    
+
 
 class GameSession:
     """Manages a single game session"""
-    
+
     def __init__(self, session_id: str, ai_player_name: str = "LIGHTNING STRIKE"):
         try:
             self.session_id = session_id
@@ -112,45 +113,55 @@ class GameSession:
             self.error_count = 0  # Track consecutive errors
             self.max_errors = 5  # Max errors before session reset
             self.last_error_time = None
-            
+
             # Create AI players (only for configured sides)
             # Now uses PlayerFactory which delegates to PlayerRegistry for config-based players
             self.ai_white = None
             self.ai_black = None
-            
+
             logger.info(f"🎮 Initializing game session {session_id}")
-            logger.info(f"   Initial config: ⚪ White={self.ai_white_name}, ⚫ Black={self.ai_black_name or 'Human'}")
-            
+            logger.info(
+                f"   Initial config: ⚪ White={self.ai_white_name}, ⚫ Black={self.ai_black_name or 'Human'}"
+            )
+
             if self.ai_white_name:
                 logger.info(f"   Creating ⚪ White AI: {self.ai_white_name}")
                 self.ai_white = PlayerFactory.create_player(self.ai_white_name)
-                logger.info(f"   ✅ White AI created: {type(self.ai_white).__name__} @ {id(self.ai_white)}")
-            
+                logger.info(
+                    f"   ✅ White AI created: {type(self.ai_white).__name__} @ {id(self.ai_white)}"
+                )
+
             if self.ai_black_name:
                 logger.info(f"   Creating ⚫ Black AI: {self.ai_black_name}")
                 self.ai_black = PlayerFactory.create_player(self.ai_black_name)
-                logger.info(f"   ✅ Black AI created: {type(self.ai_black).__name__} @ {id(self.ai_black)}")
-            
-            logger.info(f"✅ Session {session_id} initialized - White AI: {self.ai_white is not None}, Black AI: {self.ai_black is not None}")
-            
+                logger.info(
+                    f"   ✅ Black AI created: {type(self.ai_black).__name__} @ {id(self.ai_black)}"
+                )
+
+            logger.info(
+                f"✅ Session {session_id} initialized - White AI: {self.ai_white is not None}, Black AI: {self.ai_black is not None}"
+            )
+
         except Exception as e:
             logger.error(f"Failed to create game session {session_id}: {e}")
             logger.error(traceback.format_exc())
             raise
-        
+
         # Player instances do not need explicit color; we check side before moving
-    
+
     def handle_error(self, error: Exception, context: str = ""):
         """Handle errors and potentially reset session if too many occur"""
         self.error_count += 1
         self.last_error_time = datetime.now()
-        
+
         logger.error(f"Error in session {self.session_id} ({context}): {error}")
         logger.error(traceback.format_exc())
-        
+
         # If too many errors, reset the session
         if self.error_count >= self.max_errors:
-            logger.warning(f"Too many errors ({self.error_count}) in session {self.session_id}, resetting...")
+            logger.warning(
+                f"Too many errors ({self.error_count}) in session {self.session_id}, resetting..."
+            )
             try:
                 self.reset_session()
                 self.error_count = 0
@@ -158,40 +169,48 @@ class GameSession:
             except Exception as reset_error:
                 logger.error(f"Failed to reset session {self.session_id}: {reset_error}")
                 raise
-    
+
     def reset_session(self):
         """Reset the game session to initial state"""
         try:
             logger.info(f"🔄 Resetting session {self.session_id}")
-            logger.info(f"   Current config: ⚪ White={self.ai_white_name or 'Human'}, ⚫ Black={self.ai_black_name or 'Human'}")
-            
+            logger.info(
+                f"   Current config: ⚪ White={self.ai_white_name or 'Human'}, ⚫ Black={self.ai_black_name or 'Human'}"
+            )
+
             # Reset game board
             self.game = Game(8)
-            
+
             # Reset game over flag
             self.game_over = False
             self.winner = None
-            
+
             # Destroy old AI instances (free memory)
             old_white = self.ai_white
             old_black = self.ai_black
             self.ai_white = None
             self.ai_black = None
-            
+
             if old_white:
-                logger.info(f"   🗑️  Destroying old ⚪ White AI: {type(old_white).__name__} @ {id(old_white)}")
+                logger.info(
+                    f"   🗑️  Destroying old ⚪ White AI: {type(old_white).__name__} @ {id(old_white)}"
+                )
             if old_black:
-                logger.info(f"   🗑️  Destroying old ⚫ Black AI: {type(old_black).__name__} @ {id(old_black)}")
-            
+                logger.info(
+                    f"   🗑️  Destroying old ⚫ Black AI: {type(old_black).__name__} @ {id(old_black)}"
+                )
+
             # CRITICAL: Clear PlayerRegistry cache to force fresh instances
             logger.info(f"   🧹 Clearing PlayerRegistry cache to force fresh AI instances...")
             try:
                 registry = PlayerFactory._get_registry()
-                
+
                 # Get ALL cached players before clearing
-                cached_before = list(registry._instances.keys()) if hasattr(registry, '_instances') else []
+                cached_before = (
+                    list(registry._instances.keys()) if hasattr(registry, "_instances") else []
+                )
                 logger.info(f"   Cached players BEFORE clear: {cached_before}")
-                
+
                 # Clear cache for BOTH players (even if only one is changing)
                 if self.ai_white_name:
                     logger.info(f"   Clearing cache for: {self.ai_white_name}")
@@ -199,33 +218,36 @@ class GameSession:
                 if self.ai_black_name:
                     logger.info(f"   Clearing cache for: {self.ai_black_name}")
                     registry.clear_instance_cache(self.ai_black_name)
-                
+
                 # Clear ALL cache to be absolutely sure
                 logger.info(f"   🗑️  Clearing ALL cached instances to ensure fresh start")
                 registry.clear_instance_cache()  # Clear all
-                
+
                 # Verify cache is empty
-                cached_after = list(registry._instances.keys()) if hasattr(registry, '_instances') else []
+                cached_after = (
+                    list(registry._instances.keys()) if hasattr(registry, "_instances") else []
+                )
                 logger.info(f"   Cached players AFTER clear: {cached_after}")
-                
+
                 if cached_after:
                     logger.error(f"   ❌ CRITICAL: Cache still contains players after clear!")
                     logger.error(f"      Cached: {cached_after}")
                 else:
                     logger.info(f"   ✅ Cache is empty - ready for fresh instances")
-                    
+
             except Exception as e:
                 logger.error(f"   ❌ ERROR clearing registry cache: {e}")
                 import traceback
+
                 logger.error(traceback.format_exc())
-            
+
             # Recreate AI instances based on current config
             # CRITICAL: Create players ONE AT A TIME with explicit validation
             logger.info(f"")
             logger.info(f"╔══════════════════════════════════════════════════════════════╗")
             logger.info(f"║ 🏭 Creating AI Player Instances                             ║")
             logger.info(f"╠══════════════════════════════════════════════════════════════╣")
-            
+
             if self.ai_white_name:
                 logger.info(f"")
                 logger.info(f"   ┌──────────────────────────────────────────────────────────┐")
@@ -234,22 +256,26 @@ class GameSession:
                 logger.info(f"   Requested name: {self.ai_white_name!r}")
                 logger.info(f"   Calling PlayerFactory.create_player('{self.ai_white_name}')")
                 logger.info(f"")
-                
+
                 self.ai_white = PlayerFactory.create_player(self.ai_white_name)
-                
-                logger.info(f"   ✅ White AI created: {type(self.ai_white).__name__} @ {id(self.ai_white)}")
-                
+
+                logger.info(
+                    f"   ✅ White AI created: {type(self.ai_white).__name__} @ {id(self.ai_white)}"
+                )
+
                 # VERIFY player name
-                if hasattr(self.ai_white, 'name'):
+                if hasattr(self.ai_white, "name"):
                     actual_name = self.ai_white.name
                     logger.info(f"   Player.name: {actual_name!r}")
                     if actual_name != self.ai_white_name:
                         logger.error(f"   ❌ CRITICAL: Player name mismatch!")
                         logger.error(f"      Expected: {self.ai_white_name!r}")
                         logger.error(f"      Got: {actual_name!r}")
-                
+
                 # IMMEDIATE VERIFICATION for White
-                if hasattr(self.ai_white, 'bitboard_engine') and hasattr(self.ai_white.bitboard_engine, 'config'):
+                if hasattr(self.ai_white, "bitboard_engine") and hasattr(
+                    self.ai_white.bitboard_engine, "config"
+                ):
                     cfg = self.ai_white.bitboard_engine.config
                     logger.info(f"")
                     logger.info(f"   🔍 WHITE AI ENGINE CONFIG VERIFICATION:")
@@ -258,21 +284,29 @@ class GameSession:
                     logger.info(f"      Transposition Table: {cfg.use_transposition_table}")
                     logger.info(f"      Parallel: {cfg.use_parallel}")
                     logger.info(f"      Aspiration: {cfg.use_aspiration_windows}")
-                    
+
                     # Expected values for LIGHTNING STRIKE
                     if self.ai_white_name == "LIGHTNING STRIKE":
                         if cfg.depth != 4:
-                            logger.error(f"   ❌ CRITICAL: LIGHTNING STRIKE has wrong depth! Expected 4, got {cfg.depth}")
-                        if cfg.search_strategy != 'fixed_depth':
-                            logger.error(f"   ❌ CRITICAL: LIGHTNING STRIKE has wrong strategy! Expected fixed_depth, got {cfg.search_strategy}")
+                            logger.error(
+                                f"   ❌ CRITICAL: LIGHTNING STRIKE has wrong depth! Expected 4, got {cfg.depth}"
+                            )
+                        if cfg.search_strategy != "fixed_depth":
+                            logger.error(
+                                f"   ❌ CRITICAL: LIGHTNING STRIKE has wrong strategy! Expected fixed_depth, got {cfg.search_strategy}"
+                            )
                         if cfg.use_transposition_table != False:
-                            logger.error(f"   ❌ CRITICAL: LIGHTNING STRIKE has TT enabled! Expected False, got {cfg.use_transposition_table}")
+                            logger.error(
+                                f"   ❌ CRITICAL: LIGHTNING STRIKE has TT enabled! Expected False, got {cfg.use_transposition_table}"
+                            )
                         if cfg.use_aspiration_windows != False:
-                            logger.error(f"   ❌ CRITICAL: LIGHTNING STRIKE has Aspiration enabled! Expected False, got {cfg.use_aspiration_windows}")
+                            logger.error(
+                                f"   ❌ CRITICAL: LIGHTNING STRIKE has Aspiration enabled! Expected False, got {cfg.use_aspiration_windows}"
+                            )
                 logger.info(f"")
             else:
                 logger.info(f"   👤 White is Human")
-            
+
             if self.ai_black_name:
                 logger.info(f"")
                 logger.info(f"   ┌──────────────────────────────────────────────────────────┐")
@@ -281,22 +315,26 @@ class GameSession:
                 logger.info(f"   Requested name: {self.ai_black_name!r}")
                 logger.info(f"   Calling PlayerFactory.create_player('{self.ai_black_name}')")
                 logger.info(f"")
-                
+
                 self.ai_black = PlayerFactory.create_player(self.ai_black_name)
-                
-                logger.info(f"   ✅ Black AI created: {type(self.ai_black).__name__} @ {id(self.ai_black)}")
-                
+
+                logger.info(
+                    f"   ✅ Black AI created: {type(self.ai_black).__name__} @ {id(self.ai_black)}"
+                )
+
                 # VERIFY player name
-                if hasattr(self.ai_black, 'name'):
+                if hasattr(self.ai_black, "name"):
                     actual_name = self.ai_black.name
                     logger.info(f"   Player.name: {actual_name!r}")
                     if actual_name != self.ai_black_name:
                         logger.error(f"   ❌ CRITICAL: Player name mismatch!")
                         logger.error(f"      Expected: {self.ai_black_name!r}")
                         logger.error(f"      Got: {actual_name!r}")
-                
+
                 # IMMEDIATE VERIFICATION for Black
-                if hasattr(self.ai_black, 'bitboard_engine') and hasattr(self.ai_black.bitboard_engine, 'config'):
+                if hasattr(self.ai_black, "bitboard_engine") and hasattr(
+                    self.ai_black.bitboard_engine, "config"
+                ):
                     cfg = self.ai_black.bitboard_engine.config
                     logger.info(f"")
                     logger.info(f"   🔍 BLACK AI ENGINE CONFIG VERIFICATION:")
@@ -305,90 +343,114 @@ class GameSession:
                     logger.info(f"      Transposition Table: {cfg.use_transposition_table}")
                     logger.info(f"      Parallel: {cfg.use_parallel}")
                     logger.info(f"      Aspiration: {cfg.use_aspiration_windows}")
-                    
+
                     # Expected values for DIVZERO.EXE
                     if self.ai_black_name == "DIVZERO.EXE":
                         if cfg.depth != 12:
-                            logger.error(f"   ❌ CRITICAL: DIVZERO.EXE has wrong depth! Expected 12, got {cfg.depth}")
-                        if cfg.search_strategy != 'adaptive':
-                            logger.error(f"   ❌ CRITICAL: DIVZERO.EXE has wrong strategy! Expected adaptive, got {cfg.search_strategy}")
+                            logger.error(
+                                f"   ❌ CRITICAL: DIVZERO.EXE has wrong depth! Expected 12, got {cfg.depth}"
+                            )
+                        if cfg.search_strategy != "adaptive":
+                            logger.error(
+                                f"   ❌ CRITICAL: DIVZERO.EXE has wrong strategy! Expected adaptive, got {cfg.search_strategy}"
+                            )
                 logger.info(f"")
             else:
                 logger.info(f"   👤 Black is Human")
-            
+
             logger.info(f"╚══════════════════════════════════════════════════════════════╝")
             logger.info(f"")
-            
+
             # Verify no instance collision (both AI should be different objects)
             if self.ai_white and self.ai_black:
                 if id(self.ai_white) == id(self.ai_black):
-                    logger.error(f"   ❌ CRITICAL: Both AI share the same instance! {id(self.ai_white)}")
+                    logger.error(
+                        f"   ❌ CRITICAL: Both AI share the same instance! {id(self.ai_white)}"
+                    )
                     raise RuntimeError("AI instance collision detected")
                 else:
-                    logger.info(f"   ✅ AI instances are independent: White@{id(self.ai_white)} != Black@{id(self.ai_black)}")
-                
+                    logger.info(
+                        f"   ✅ AI instances are independent: White@{id(self.ai_white)} != Black@{id(self.ai_black)}"
+                    )
+
                 # VERIFICATION: Log actual AI configurations to verify they're different
                 logger.info(f"\n   🔍 CONFIGURATION VERIFICATION:")
-                
+
                 # White AI config
-                if hasattr(self.ai_white, 'bitboard_engine') and hasattr(self.ai_white.bitboard_engine, 'config'):
+                if hasattr(self.ai_white, "bitboard_engine") and hasattr(
+                    self.ai_white.bitboard_engine, "config"
+                ):
                     white_config = self.ai_white.bitboard_engine.config
                     logger.info(f"   ⚪ WHITE ({self.ai_white_name}) Config:")
                     logger.info(f"      - Depth: {white_config.depth}")
                     logger.info(f"      - Search Strategy: {white_config.search_strategy}")
-                    logger.info(f"      - Use Transposition Table: {white_config.use_transposition_table}")
+                    logger.info(
+                        f"      - Use Transposition Table: {white_config.use_transposition_table}"
+                    )
                     logger.info(f"      - Use Parallel: {white_config.use_parallel}")
-                    logger.info(f"      - Use Aspiration Windows: {white_config.use_aspiration_windows}")
-                    logger.info(f"      - Iterative Deepening: {white_config.use_iterative_deepening}")
+                    logger.info(
+                        f"      - Use Aspiration Windows: {white_config.use_aspiration_windows}"
+                    )
+                    logger.info(
+                        f"      - Iterative Deepening: {white_config.use_iterative_deepening}"
+                    )
                 else:
                     logger.warning(f"   ⚪ WHITE: Cannot verify config (no bitboard_engine)")
-                
+
                 # Black AI config
-                if hasattr(self.ai_black, 'bitboard_engine') and hasattr(self.ai_black.bitboard_engine, 'config'):
+                if hasattr(self.ai_black, "bitboard_engine") and hasattr(
+                    self.ai_black.bitboard_engine, "config"
+                ):
                     black_config = self.ai_black.bitboard_engine.config
                     logger.info(f"   ⚫ BLACK ({self.ai_black_name}) Config:")
                     logger.info(f"      - Depth: {black_config.depth}")
                     logger.info(f"      - Search Strategy: {black_config.search_strategy}")
-                    logger.info(f"      - Use Transposition Table: {black_config.use_transposition_table}")
+                    logger.info(
+                        f"      - Use Transposition Table: {black_config.use_transposition_table}"
+                    )
                     logger.info(f"      - Use Parallel: {black_config.use_parallel}")
-                    logger.info(f"      - Use Aspiration Windows: {black_config.use_aspiration_windows}")
-                    logger.info(f"      - Iterative Deepening: {black_config.use_iterative_deepening}")
+                    logger.info(
+                        f"      - Use Aspiration Windows: {black_config.use_aspiration_windows}"
+                    )
+                    logger.info(
+                        f"      - Iterative Deepening: {black_config.use_iterative_deepening}"
+                    )
                 else:
                     logger.warning(f"   ⚫ BLACK: Cannot verify config (no bitboard_engine)")
-                
+
                 logger.info("")  # Empty line for readability
-            
+
             self.last_ai_stats = {}
             logger.info(f"✅ Session {self.session_id} reset complete")
         except Exception as e:
             logger.error(f"Failed to reset session {self.session_id}: {e}")
             raise
-    
+
     def _count_opening_sequences(self, opening_book, sequence):
         """Count how many opening sequences contain the given sequence"""
         count = 0
         sequence_upper = sequence.upper()
-        
+
         # Check all opening names
         for full_sequence, name in opening_book.opening_names.items():
             full_sequence_upper = full_sequence.upper()
             # If this opening's sequence starts with our sequence
             if full_sequence_upper.startswith(sequence_upper):
                 count += 1
-        
+
         return count
-    
+
     def _get_opening_book(self):
         """Return opening_book from active AI (prefer current turn), if any."""
         try:
             ai = None
-            if self.game.turn == 'W' and self.ai_white and hasattr(self.ai_white, 'opening_book'):
+            if self.game.turn == "W" and self.ai_white and hasattr(self.ai_white, "opening_book"):
                 ai = self.ai_white
-            elif self.game.turn == 'B' and self.ai_black and hasattr(self.ai_black, 'opening_book'):
+            elif self.game.turn == "B" and self.ai_black and hasattr(self.ai_black, "opening_book"):
                 ai = self.ai_black
-            elif self.ai_white and hasattr(self.ai_white, 'opening_book'):
+            elif self.ai_white and hasattr(self.ai_white, "opening_book"):
                 ai = self.ai_white
-            elif self.ai_black and hasattr(self.ai_black, 'opening_book'):
+            elif self.ai_black and hasattr(self.ai_black, "opening_book"):
                 ai = self.ai_black
             return ai.opening_book if ai else None
         except Exception:
@@ -443,16 +505,18 @@ class GameSession:
                     if coord not in valid_coords:
                         continue
                     # Extend sequence respecting turn
-                    move_with_turn = coord if self.game.turn == 'B' else coord.lower()
+                    move_with_turn = coord if self.game.turn == "B" else coord.lower()
                     ext_seq = (history or "") + move_with_turn
                     variants, names, opens = collect_info_for_sequence(ext_seq.upper())
-                    children.append({
-                        "move": coord,
-                        "variants": variants,
-                        "names": names,
-                        "openings": opens,
-                        "children": []
-                    })
+                    children.append(
+                        {
+                            "move": coord,
+                            "variants": variants,
+                            "names": names,
+                            "openings": opens,
+                            "children": [],
+                        }
+                    )
 
             # Compute current opening (flexible): prefer the longest line whose sequence is a prefix of history (token-aware)
             current_opening = None
@@ -507,31 +571,32 @@ class GameSession:
                 "path": [m.upper() for m in history_moves],
                 "children": children,
                 "current_opening": current_opening,
-                "names_at_position": names_at_position
+                "names_at_position": names_at_position,
             }
             return tree
         except Exception as e:
             logger.warning(f"Could not build opening tree: {e}")
             return None
-        
+
     def _get_player_icon_and_avatar(self, player_name: str) -> tuple:
         """Get player icon and avatar path from registry, or defaults"""
         try:
             from Players.config import PlayerRegistry
+
             registry = PlayerRegistry()
             player_info = registry.get_player_info(player_name)
-            metadata = player_info.get('metadata', {})
-            icon = metadata.get('icon', '🤖')  # Default AI icon emoji
-            avatar = metadata.get('avatar', None)  # Avatar image path
+            metadata = player_info.get("metadata", {})
+            icon = metadata.get("icon", "🤖")  # Default AI icon emoji
+            avatar = metadata.get("avatar", None)  # Avatar image path
             return icon, avatar
         except Exception as e:
             logger.debug(f"Could not get icon/avatar for {player_name}: {e}")
-            return '🤖', None  # Default AI icon, no avatar image
-    
+            return "🤖", None  # Default AI icon, no avatar image
+
     def get_state(self) -> dict:
         """Get current game state as dictionary in the format expected by the frontend"""
         game = self.game
-        
+
         # Convert board to coordinate format
         positions = {}
         for y in range(1, 9):  # 1-8 (Game uses 1-indexed with border)
@@ -539,7 +604,7 @@ class GameSession:
                 coord = f"{chr(64+x)}{y}"  # A1-H8
                 pos = game.matrix[y][x]
                 positions[coord] = pos
-        
+
         # Get move history from game.history (string format)
         moves = []
         # game.history is a string with moves like "C4e3D3" (uppercase=black, lowercase=white)
@@ -547,18 +612,19 @@ class GameSession:
         if history:
             # Convert string to individual moves
             import re
+
             # Extract all moves in order (both uppercase and lowercase)
-            all_moves = re.findall(r'[A-Za-z][0-9]', history)
+            all_moves = re.findall(r"[A-Za-z][0-9]", history)
             for move in all_moves:
                 moves.append(move.upper())  # Always uppercase for display
-        
+
         # Get valid moves for current player from the engine
         valid_moves = []
         move_list = game.get_move_list()
         for move in move_list:
             coord = f"{chr(64+move.x)}{move.y}"
             valid_moves.append(coord)
-        
+
         # Get opening book moves with variant count (filtered to VALID moves)
         opening_moves = []
         book = self._get_opening_book()
@@ -574,7 +640,7 @@ class GameSession:
                         if normalized not in node.children:
                             break
                         node = node.children[normalized]
-                    
+
                     # Precompute valid move coordinates based on the list we already exposed to frontend
                     # This guarantees perfect alignment with 'valid_by_ply'
                     valid_coords = set(valid_moves)
@@ -592,37 +658,34 @@ class GameSession:
                         except Exception:
                             continue
                         move_str = coord
-                        
+
                         # Check if this move exists in the book
                         if move_str in node.children:
                             next_node = node.children[move_str]
                             # Build the sequence after this move: history + move
                             # Turns alternate: B plays uppercase, W plays lowercase
-                            move_with_turn = move_str if game.turn == 'B' else move_str.lower()
+                            move_with_turn = move_str if game.turn == "B" else move_str.lower()
                             extended_sequence = history + move_with_turn
-                            
+
                             # Count how many opening names contain this extended sequence
                             variant_count = self._count_opening_sequences(book, extended_sequence)
                         else:
                             variant_count = 0
-                        
-                        opening_moves.append({
-                            "move": coord,
-                            "variants": variant_count
-                        })
+
+                        opening_moves.append({"move": coord, "variants": variant_count})
             except Exception as e:
                 logger.warning(f"Could not get opening book moves: {e}")
-        
+
         # Use last AI stats for notes if available
         notes = self.last_ai_stats if self.last_ai_stats else {"title": "Notes"}
-        
+
         # Opening tree (limited, UI-friendly)
         opening_tree = None
         try:
             opening_tree = self._build_opening_tree(max_depth=3, max_children=6)
         except Exception as e:
             logger.warning(f"Opening tree error: {e}")
-        
+
         # Get player icons and avatars
         if self.ai_black_name:
             black_icon, black_avatar = self._get_player_icon_and_avatar(self.ai_black_name)
@@ -631,7 +694,7 @@ class GameSession:
             # Human player - use human.png from config/players/avatar/
             black_icon = "👤"
             black_avatar_url = "/avatars/human.png"
-            
+
         if self.ai_white_name:
             white_icon, white_avatar = self._get_player_icon_and_avatar(self.ai_white_name)
             white_avatar_url = f"/avatars/{white_avatar.split('/')[-1]}" if white_avatar else None
@@ -639,12 +702,9 @@ class GameSession:
             # Human player - use human.png from config/players/avatar/
             white_icon = "👤"
             white_avatar_url = "/avatars/human.png"
-        
+
         return {
-            "meta": {
-                "variant": "Reversi/Othello",
-                "size": 8
-            },
+            "meta": {"variant": "Reversi/Othello", "size": 8},
             "players": {
                 "black": {
                     "name": (self.ai_black_name or "Human"),
@@ -652,7 +712,7 @@ class GameSession:
                     "icon": black_icon,
                     "avatar_url": black_avatar_url,
                     "player_type": "ai" if self.ai_black_name else "human",
-                    "ai_name": self.ai_black_name
+                    "ai_name": self.ai_black_name,
                 },
                 "white": {
                     "name": (self.ai_white_name or "Human"),
@@ -660,13 +720,13 @@ class GameSession:
                     "icon": white_icon,
                     "avatar_url": white_avatar_url,
                     "player_type": "ai" if self.ai_white_name else "human",
-                    "ai_name": self.ai_white_name
-                }
+                    "ai_name": self.ai_white_name,
+                },
             },
             "status": {
                 "turn_by_ply": [game.turn],
                 "can_undo": len(game.board_position_stack) > 0,
-                "can_redo": len(getattr(game, 'redo_stack', [])) > 0
+                "can_redo": len(getattr(game, "redo_stack", [])) > 0,
             },
             "positions": [positions],
             "moves": moves,
@@ -674,54 +734,54 @@ class GameSession:
             "valid_by_ply": [valid_moves],
             "opening_by_ply": opening_moves,
             "opening_tree": opening_tree,
-            "notes": notes
+            "notes": notes,
         }
-    
+
     def make_move(self, move_coord: str) -> Tuple[bool, str]:
         """Make a move and return (success, error_message)"""
         try:
             # Check if game is over
             if self.game_over:
                 return False, "Game is over"
-            
+
             # Convert algebraic notation (A1-H8) to Move object
             if len(move_coord) != 2:
                 return False, "Invalid move format"
-            
-            col = ord(move_coord[0]) - ord('A') + 1  # A=1, B=2, etc.
+
+            col = ord(move_coord[0]) - ord("A") + 1  # A=1, B=2, etc.
             row = int(move_coord[1])  # 1-8
-            
+
             if not (1 <= col <= 8 and 1 <= row <= 8):
                 return False, "Move out of bounds"
-            
+
             # Move constructor is Move(y, x) where y is row and x is col
             # But in algebraic notation, A1 means col=A, row=1
             # So for C4: col=C(3), row=4 -> Move(row=4, col=3) which is D3!
             # We need to swap them: Move(col=3, row=4) = Move(3, 4)
             move = Move(col, row)
-            
+
             # Check if move is valid
             valid_moves = self.game.get_move_list()
-            
+
             if move not in valid_moves:
                 return False, "Invalid move"
-            
+
             # Make the move
             self.game.move(move)
             return True, None
-            
+
         except Exception as e:
             logger.error(f"Error making move {move_coord}: {e}")
             logger.error(traceback.format_exc())
             return False, str(e)
-    
+
     async def get_ai_move(self, side: str, websocket: WebSocket = None) -> Move:
         """Get AI move for side 'B' or 'W' - runs in separate thread to avoid blocking event loop"""
         try:
             move_list = self.game.get_move_list()
             if not move_list:
                 return None
-            
+
             # CRITICAL: Verify side matches current game turn
             current_turn = self.game.turn
             if side != current_turn:
@@ -730,12 +790,12 @@ class GameSession:
                 logger.error(f"      Current game turn: {current_turn}")
                 logger.error(f"      Using current game turn instead")
                 side = current_turn
-            
+
             # Select AI by side
-            ai = self.ai_white if side == 'W' else self.ai_black
-            ai_name = self.ai_white_name if side == 'W' else self.ai_black_name
-            side_emoji = "⚪" if side == 'W' else "⚫"
-            
+            ai = self.ai_white if side == "W" else self.ai_black
+            ai_name = self.ai_white_name if side == "W" else self.ai_black_name
+            side_emoji = "⚪" if side == "W" else "⚫"
+
             logger.info(f"")
             logger.info(f"╔══════════════════════════════════════════════════════════════╗")
             logger.info(f"║ 🎯 get_ai_move called                                       ║")
@@ -743,34 +803,42 @@ class GameSession:
             logger.info(f"   Side: {side} {side_emoji}")
             logger.info(f"   Current game turn: {current_turn}")
             logger.info(f"   Expected AI name: {ai_name}")
-            logger.info(f"   AI instance: {type(ai).__name__ if ai else None} @ {id(ai) if ai else None}")
+            logger.info(
+                f"   AI instance: {type(ai).__name__ if ai else None} @ {id(ai) if ai else None}"
+            )
             logger.info(f"   Game turn count: {self.game.turn_cnt}")
-            logger.info(f"   Game history length: {len(self.game.history) if hasattr(self.game, 'history') else 0}")
-            
+            logger.info(
+                f"   Game history length: {len(self.game.history) if hasattr(self.game, 'history') else 0}"
+            )
+
             # CRITICAL: Check if this is the same instance as the other AI
-            if side == 'W' and self.ai_black:
+            if side == "W" and self.ai_black:
                 if id(ai) == id(self.ai_black):
                     logger.error(f"   ❌ CRITICAL: White and Black AI share the same instance!")
                     logger.error(f"      White instance ID: {id(ai)}")
                     logger.error(f"      Black instance ID: {id(self.ai_black)}")
                 else:
-                    logger.info(f"   ✅ AI instances are different (White@{id(ai)} != Black@{id(self.ai_black)})")
-            elif side == 'B' and self.ai_white:
+                    logger.info(
+                        f"   ✅ AI instances are different (White@{id(ai)} != Black@{id(self.ai_black)})"
+                    )
+            elif side == "B" and self.ai_white:
                 if id(ai) == id(self.ai_white):
                     logger.error(f"   ❌ CRITICAL: Black and White AI share the same instance!")
                     logger.error(f"      Black instance ID: {id(ai)}")
                     logger.error(f"      White instance ID: {id(self.ai_white)}")
                 else:
-                    logger.info(f"   ✅ AI instances are different (Black@{id(ai)} != White@{id(self.ai_white)})")
-            
+                    logger.info(
+                        f"   ✅ AI instances are different (Black@{id(ai)} != White@{id(self.ai_white)})"
+                    )
+
             if ai is None:
                 logger.error(f"   ❌ No AI instance for side {side} (name: {ai_name})")
                 logger.info(f"╚══════════════════════════════════════════════════════════════╝")
                 logger.info(f"")
                 return None
-            
+
             # VERIFY: Check that the AI instance has the correct name
-            if hasattr(ai, 'name'):
+            if hasattr(ai, "name"):
                 actual_ai_name = ai.name
                 logger.info(f"   AI instance name: {actual_ai_name!r}")
                 if actual_ai_name != ai_name:
@@ -783,7 +851,7 @@ class GameSession:
                     try:
                         registry = PlayerFactory._get_registry()
                         registry.clear_instance_cache(ai_name)
-                        if side == 'W':
+                        if side == "W":
                             self.ai_white = PlayerFactory.create_player(ai_name)
                             ai = self.ai_white
                         else:
@@ -795,9 +863,9 @@ class GameSession:
                         raise
                 else:
                     logger.info(f"   ✅ AI instance name matches expected name")
-            
+
             # VERIFY: Check engine config matches expected
-            if hasattr(ai, 'bitboard_engine') and hasattr(ai.bitboard_engine, 'config'):
+            if hasattr(ai, "bitboard_engine") and hasattr(ai.bitboard_engine, "config"):
                 cfg = ai.bitboard_engine.config
                 cfg_id = id(cfg)
                 logger.info(f"   Engine config:")
@@ -807,88 +875,136 @@ class GameSession:
                 logger.info(f"      Transposition Table: {cfg.use_transposition_table}")
                 logger.info(f"      Parallel: {cfg.use_parallel}")
                 logger.info(f"      Aspiration: {cfg.use_aspiration_windows}")
-                
+
                 # CRITICAL: Check if this is the same config object as the other AI
-                if side == 'W' and self.ai_black:
-                    black_cfg = getattr(self.ai_black.bitboard_engine, 'config', None) if hasattr(self.ai_black, 'bitboard_engine') else None
+                if side == "W" and self.ai_black:
+                    black_cfg = (
+                        getattr(self.ai_black.bitboard_engine, "config", None)
+                        if hasattr(self.ai_black, "bitboard_engine")
+                        else None
+                    )
                     if black_cfg:
                         black_cfg_id = id(black_cfg)
                         if cfg_id == black_cfg_id:
-                            logger.error(f"   ❌ CRITICAL: White and Black AI share the same config object!")
+                            logger.error(
+                                f"   ❌ CRITICAL: White and Black AI share the same config object!"
+                            )
                             logger.error(f"      White config ID: {cfg_id}")
                             logger.error(f"      Black config ID: {black_cfg_id}")
                         else:
-                            logger.info(f"   ✅ Config objects are different (White@{cfg_id} != Black@{black_cfg_id})")
-                elif side == 'B' and self.ai_white:
-                    white_cfg = getattr(self.ai_white.bitboard_engine, 'config', None) if hasattr(self.ai_white, 'bitboard_engine') else None
+                            logger.info(
+                                f"   ✅ Config objects are different (White@{cfg_id} != Black@{black_cfg_id})"
+                            )
+                elif side == "B" and self.ai_white:
+                    white_cfg = (
+                        getattr(self.ai_white.bitboard_engine, "config", None)
+                        if hasattr(self.ai_white, "bitboard_engine")
+                        else None
+                    )
                     if white_cfg:
                         white_cfg_id = id(white_cfg)
                         if cfg_id == white_cfg_id:
-                            logger.error(f"   ❌ CRITICAL: Black and White AI share the same config object!")
+                            logger.error(
+                                f"   ❌ CRITICAL: Black and White AI share the same config object!"
+                            )
                             logger.error(f"      Black config ID: {cfg_id}")
                             logger.error(f"      White config ID: {white_cfg_id}")
                         else:
-                            logger.info(f"   ✅ Config objects are different (Black@{cfg_id} != White@{white_cfg_id})")
-                
+                            logger.info(
+                                f"   ✅ Config objects are different (Black@{cfg_id} != White@{white_cfg_id})"
+                            )
+
                 # Verify for known players
                 config_mismatch = False
                 if ai_name == "LIGHTNING STRIKE":
                     if cfg.depth != 4:
-                        logger.error(f"   ❌ WRONG CONFIG: LIGHTNING STRIKE has depth {cfg.depth}, expected 4!")
+                        logger.error(
+                            f"   ❌ WRONG CONFIG: LIGHTNING STRIKE has depth {cfg.depth}, expected 4!"
+                        )
                         config_mismatch = True
-                    if cfg.search_strategy != 'fixed_depth':
-                        logger.error(f"   ❌ WRONG CONFIG: LIGHTNING STRIKE has strategy {cfg.search_strategy}, expected fixed_depth!")
+                    if cfg.search_strategy != "fixed_depth":
+                        logger.error(
+                            f"   ❌ WRONG CONFIG: LIGHTNING STRIKE has strategy {cfg.search_strategy}, expected fixed_depth!"
+                        )
                         config_mismatch = True
                 elif ai_name == "DIVZERO.EXE":
                     if cfg.depth != 12:
-                        logger.error(f"   ❌ WRONG CONFIG: DIVZERO.EXE has depth {cfg.depth}, expected 12!")
+                        logger.error(
+                            f"   ❌ WRONG CONFIG: DIVZERO.EXE has depth {cfg.depth}, expected 12!"
+                        )
                         config_mismatch = True
-                    if cfg.search_strategy != 'adaptive':
-                        logger.error(f"   ❌ WRONG CONFIG: DIVZERO.EXE has strategy {cfg.search_strategy}, expected adaptive!")
+                    if cfg.search_strategy != "adaptive":
+                        logger.error(
+                            f"   ❌ WRONG CONFIG: DIVZERO.EXE has strategy {cfg.search_strategy}, expected adaptive!"
+                        )
                         config_mismatch = True
-                
+
                 # CRITICAL: If config is wrong, log error but DO NOT recreate
                 # Recreating instances during gameplay can cause issues
                 # Instead, log the error and let the user know there's a problem
                 if config_mismatch:
                     logger.error(f"   ❌ CRITICAL: Engine config mismatch detected!")
-                    logger.error(f"      This indicates a serious bug - player configuration was corrupted!")
+                    logger.error(
+                        f"      This indicates a serious bug - player configuration was corrupted!"
+                    )
                     logger.error(f"      Player instance ID: {id(ai)}")
                     logger.error(f"      Config object ID: {id(cfg)}")
-                    logger.error(f"      Expected depth: {4 if ai_name == 'LIGHTNING STRIKE' else 12}")
+                    logger.error(
+                        f"      Expected depth: {4 if ai_name == 'LIGHTNING STRIKE' else 12}"
+                    )
                     logger.error(f"      Actual depth: {cfg.depth}")
                     # DO NOT recreate - this can cause more problems
                     # The issue should be fixed at the root cause, not by recreating instances
                     # Raise exception to stop execution and prevent using wrong config
-                    raise RuntimeError(f"Player {ai_name} has wrong configuration! Depth: {cfg.depth}, Strategy: {cfg.search_strategy}")
-            
+                    raise RuntimeError(
+                        f"Player {ai_name} has wrong configuration! Depth: {cfg.depth}, Strategy: {cfg.search_strategy}"
+                    )
+
             # CRITICAL: Check if opening book is shared
-            if hasattr(ai, 'opening_book') and ai.opening_book:
+            if hasattr(ai, "opening_book") and ai.opening_book:
                 book_id = id(ai.opening_book)
                 logger.info(f"   Opening book ID: {book_id}")
-                
+
                 # Check if opening book is shared with other AI
-                if side == 'W' and self.ai_black and hasattr(self.ai_black, 'opening_book') and self.ai_black.opening_book:
+                if (
+                    side == "W"
+                    and self.ai_black
+                    and hasattr(self.ai_black, "opening_book")
+                    and self.ai_black.opening_book
+                ):
                     black_book_id = id(self.ai_black.opening_book)
                     if book_id == black_book_id:
-                        logger.error(f"   ❌ CRITICAL: White and Black AI share the same opening book!")
+                        logger.error(
+                            f"   ❌ CRITICAL: White and Black AI share the same opening book!"
+                        )
                         logger.error(f"      White book ID: {book_id}")
                         logger.error(f"      Black book ID: {black_book_id}")
                     else:
-                        logger.info(f"   ✅ Opening books are different (White@{book_id} != Black@{black_book_id})")
-                elif side == 'B' and self.ai_white and hasattr(self.ai_white, 'opening_book') and self.ai_white.opening_book:
+                        logger.info(
+                            f"   ✅ Opening books are different (White@{book_id} != Black@{black_book_id})"
+                        )
+                elif (
+                    side == "B"
+                    and self.ai_white
+                    and hasattr(self.ai_white, "opening_book")
+                    and self.ai_white.opening_book
+                ):
                     white_book_id = id(self.ai_white.opening_book)
                     if book_id == white_book_id:
-                        logger.error(f"   ❌ CRITICAL: Black and White AI share the same opening book!")
+                        logger.error(
+                            f"   ❌ CRITICAL: Black and White AI share the same opening book!"
+                        )
                         logger.error(f"      Black book ID: {book_id}")
                         logger.error(f"      White book ID: {white_book_id}")
                     else:
-                        logger.info(f"   ✅ Opening books are different (Black@{book_id} != White@{white_book_id})")
-            
+                        logger.info(
+                            f"   ✅ Opening books are different (Black@{book_id} != White@{white_book_id})"
+                        )
+
             logger.info(f"   Available moves: {len(move_list)}")
             logger.info(f"╚══════════════════════════════════════════════════════════════╝")
             logger.info(f"")
-            
+
             # Create observer for AI insights if websocket is provided
             observer = None
             if websocket:
@@ -903,15 +1019,15 @@ class GameSession:
             # Use run_in_executor for Python 3.8 compatibility (asyncio.to_thread requires 3.9+)
             loop = asyncio.get_event_loop()
             ai_move = await loop.run_in_executor(None, ai.get_move, self.game, move_list, observer)
-            
+
             if ai_move:
                 coord = f"{chr(64+ai_move.x)}{ai_move.y}"
                 logger.info(f"✅ {side_emoji} {ai_name} selected move: {coord}")
             else:
                 logger.warning(f"⚠️  {side_emoji} {ai_name} returned no move")
-            
+
             return ai_move
-            
+
         except Exception as e:
             logger.error(f"❌ Error getting AI move for {side_emoji} {ai_name}: {e}")
             logger.error(traceback.format_exc())
@@ -930,12 +1046,9 @@ app = FastAPI(
     contact={
         "name": "Luca Amore",
         "url": "https://www.lucaamore.com",
-        "email": "luca.amore@gmail.com"
+        "email": "luca.amore@gmail.com",
     },
-    license_info={
-        "name": "GPL-3.0-or-later",
-        "url": "https://www.gnu.org/licenses/gpl-3.0.html"
-    }
+    license_info={"name": "GPL-3.0-or-later", "url": "https://www.gnu.org/licenses/gpl-3.0.html"},
 )
 
 # CORS middleware
@@ -947,6 +1060,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def get_index():
     """Serve the main game page"""
@@ -954,11 +1068,12 @@ async def get_index():
         # HTML file is in parent directory (webgui/), not server/
         webgui_dir = os.path.dirname(current_dir)
         html_file = os.path.join(webgui_dir, "game_websocket.html")
-        
+
         if os.path.exists(html_file):
             # Disable caching - always serve fresh file
             from fastapi.responses import Response
-            with open(html_file, 'r', encoding='utf-8') as f:
+
+            with open(html_file, "r", encoding="utf-8") as f:
                 content = f.read()
             return Response(
                 content=content,
@@ -966,47 +1081,54 @@ async def get_index():
                 headers={
                     "Cache-Control": "no-cache, no-store, must-revalidate",
                     "Pragma": "no-cache",
-                    "Expires": "0"
-                }
+                    "Expires": "0",
+                },
             )
         else:
             logger.error(f"Game file not found at: {html_file}")
-            return HTMLResponse(f"<h1>Game file not found</h1><p>Expected at: {html_file}</p>", status_code=404)
+            return HTMLResponse(
+                f"<h1>Game file not found</h1><p>Expected at: {html_file}</p>", status_code=404
+            )
     except Exception as e:
         logger.error(f"Error serving index: {e}")
         return HTMLResponse("<h1>Server Error</h1>", status_code=500)
+
 
 @app.get("/css/{filename}")
 async def get_css(filename: str):
     """Serve CSS files"""
     from fastapi.responses import Response
+
     webgui_dir = os.path.dirname(current_dir)
     css_file = os.path.join(webgui_dir, "css", filename)
     if os.path.exists(css_file):
-        with open(css_file, 'r', encoding='utf-8') as f:
+        with open(css_file, "r", encoding="utf-8") as f:
             content = f.read()
         return Response(
             content=content,
             media_type="text/css",
-            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
         )
     return HTMLResponse("CSS not found", status_code=404)
+
 
 @app.get("/js/{filename}")
 async def get_js(filename: str):
     """Serve JavaScript files"""
     from fastapi.responses import Response
+
     webgui_dir = os.path.dirname(current_dir)
     js_file = os.path.join(webgui_dir, "js", filename)
     if os.path.exists(js_file):
-        with open(js_file, 'r', encoding='utf-8') as f:
+        with open(js_file, "r", encoding="utf-8") as f:
             content = f.read()
         return Response(
             content=content,
             media_type="application/javascript",
-            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
         )
     return HTMLResponse("JS not found", status_code=404)
+
 
 @app.get("/templates/{filename}")
 async def get_template(filename: str):
@@ -1017,6 +1139,7 @@ async def get_template(filename: str):
         return FileResponse(template_file, media_type="text/html")
     return HTMLResponse("Template not found", status_code=404)
 
+
 @app.get("/avatars/{filename}")
 async def get_avatar(filename: str):
     """Serve player avatar images"""
@@ -1025,169 +1148,182 @@ async def get_avatar(filename: str):
         # First check config/players/avatar/ (for human.png)
         os.path.join(project_root, "config", "players", "avatar", filename),
         # Then check config/players/enabled/gladiators/avatars/ (for AI avatars)
-        os.path.join(project_root, "config", "players", "enabled", "gladiators", "avatars", filename)
+        os.path.join(
+            project_root, "config", "players", "enabled", "gladiators", "avatars", filename
+        ),
     ]
-    
+
     avatar_file = None
     for location in avatar_locations:
         if os.path.exists(location):
             avatar_file = location
             break
-    
+
     if avatar_file:
         # Determine media type based on extension
-        if filename.endswith('.png'):
+        if filename.endswith(".png"):
             media_type = "image/png"
-        elif filename.endswith('.jpg') or filename.endswith('.jpeg'):
+        elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
             media_type = "image/jpeg"
-        elif filename.endswith('.gif'):
+        elif filename.endswith(".gif"):
             media_type = "image/gif"
-        elif filename.endswith('.webp'):
+        elif filename.endswith(".webp"):
             media_type = "image/webp"
         else:
             media_type = "application/octet-stream"
-        
+
         return FileResponse(avatar_file, media_type=media_type)
-    
+
     return HTMLResponse("Avatar not found", status_code=404)
+
 
 @app.get("/api/player-config/{player_name}")
 async def get_player_config(player_name: str):
     """Get player configuration YAML content"""
     try:
         from Players.config import PlayerRegistry
+
         registry = PlayerRegistry()
-        
+
         # Get player info
         player_info = registry.get_player_info(player_name)
-        config_file = player_info['config_file']
-        
+        config_file = player_info["config_file"]
+
         # Read YAML file
-        with open(config_file.path, 'r', encoding='utf-8') as f:
+        with open(config_file.path, "r", encoding="utf-8") as f:
             yaml_content = f.read()
-        
+
         return {
             "player_name": player_name,
             "config_path": str(config_file.relative_path),
             "yaml_content": yaml_content,
-            "metadata": player_info['metadata']
+            "metadata": player_info["metadata"],
         }
     except Exception as e:
         logger.error(f"Error loading player config for {player_name}: {e}")
-        return {
-            "error": str(e),
-            "player_name": player_name
-        }
+        return {"error": str(e), "player_name": player_name}
+
 
 @app.get("/api/players")
 async def get_all_players():
     """Get list of all available players with their metadata - ALL from YAML configs"""
     try:
         from Players.config import PlayerRegistry
+
         registry = PlayerRegistry()
-        
+
         players = []
-        
+
         # Get ALL players from registry (including Human Player if it has a YAML file)
         for player_name in registry.list_players():
             try:
                 player_info = registry.get_player_info(player_name)
-                metadata = player_info.get('metadata', {})
-                config = player_info.get('config', {})
-                stats = metadata.get('stats', {})
-                directory_category = player_info.get('directory_category')  # NEW: From PlayerDiscovery
-                
+                metadata = player_info.get("metadata", {})
+                config = player_info.get("config", {})
+                stats = metadata.get("stats", {})
+                directory_category = player_info.get(
+                    "directory_category"
+                )  # NEW: From PlayerDiscovery
+
                 # Construct avatar URL if avatar field exists
                 avatar_url = None
-                if 'avatar' in metadata:
-                    avatar_path = metadata['avatar']
+                if "avatar" in metadata:
+                    avatar_path = metadata["avatar"]
                     # avatar_path is relative to config/players/enabled/ or config/players/enabled/gladiators/
-                    # Examples: 
+                    # Examples:
                     #   - "../avatar/human.png" (from human_player.yaml)
                     #   - "avatars/default.png" (from gladiators/*.yaml)
                     if avatar_path:
                         # Extract just the filename
                         import os
+
                         filename = os.path.basename(avatar_path)
                         # Use /avatars/ endpoint which serves from multiple locations
                         avatar_url = f"/avatars/{filename}"
-                
+
                 # Extract detailed configuration info for tags
-                engine_config = config.get('engine', {})
-                depth_config = engine_config.get('depth', {})
-                eval_config = config.get('evaluation', {})
-                pruning_config = config.get('pruning', {})
-                parallel_config = engine_config.get('parallel', {})
-                book_config = config.get('opening_book', {})
-                behavior_config = config.get('behavior', {})
-                
+                engine_config = config.get("engine", {})
+                depth_config = engine_config.get("depth", {})
+                eval_config = config.get("evaluation", {})
+                pruning_config = config.get("pruning", {})
+                parallel_config = engine_config.get("parallel", {})
+                book_config = config.get("opening_book", {})
+                behavior_config = config.get("behavior", {})
+
                 # Determine if this is Human or AI from category
-                category = metadata.get('category', 'unknown')
-                is_human = (category == 'human')
-                
+                category = metadata.get("category", "unknown")
+                is_human = category == "human"
+
                 # Build detailed tags list
                 tags = []
-                
+
                 # Add directory category as first tag (if available)
                 if directory_category:
                     # Capitalize and format nicely (e.g., "gladiators" -> "Gladiators")
-                    formatted_dir = directory_category.replace('_', ' ').title()
+                    formatted_dir = directory_category.replace("_", " ").title()
                     tags.append(formatted_dir)
-                
+
                 # Add AI-specific tags only for AI players
                 if not is_human:
                     # Depth strategy tag
-                    strategy = depth_config.get('strategy', 'unknown')
-                    base_depth = depth_config.get('base', 5)
-                    if strategy == 'iterative':
+                    strategy = depth_config.get("strategy", "unknown")
+                    base_depth = depth_config.get("base", 5)
+                    if strategy == "iterative":
                         tags.append(f"Iterative Depth {base_depth}")
-                    elif strategy == 'adaptive':
-                        adaptive = depth_config.get('adaptive', {})
-                        tags.append(f"Adaptive {adaptive.get('opening', 6)}-{adaptive.get('endgame', 12)}")
-                    elif strategy == 'fixed':
+                    elif strategy == "adaptive":
+                        adaptive = depth_config.get("adaptive", {})
+                        tags.append(
+                            f"Adaptive {adaptive.get('opening', 6)}-{adaptive.get('endgame', 12)}"
+                        )
+                    elif strategy == "fixed":
                         tags.append(f"Fixed Depth {base_depth}")
-                    elif strategy != 'human':
+                    elif strategy != "human":
                         tags.append(f"Depth {base_depth}")
-                    
+
                     # Parallelization tag
-                    if parallel_config.get('enabled', False):
-                        workers = parallel_config.get('num_workers', 'auto')
-                        tags.append(f"Parallel {workers} cores" if workers != 'auto' else "Multi-threaded")
+                    if parallel_config.get("enabled", False):
+                        workers = parallel_config.get("num_workers", "auto")
+                        tags.append(
+                            f"Parallel {workers} cores" if workers != "auto" else "Multi-threaded"
+                        )
                     else:
                         tags.append("Single-threaded")
-                    
+
                     # Evaluation preset tag
-                    preset = eval_config.get('preset')
+                    preset = eval_config.get("preset")
                     if preset:
                         tags.append(f"{preset.capitalize()} Eval")
-                    
+
                     # Opening book strategy
-                    if book_config.get('enabled', False):
-                        book_strategy = book_config.get('strategy', 'instant')
-                        if book_strategy == 'instant':
+                    if book_config.get("enabled", False):
+                        book_strategy = book_config.get("strategy", "instant")
+                        if book_strategy == "instant":
                             tags.append("Book Instant")
-                        elif book_strategy == 'evaluated':
+                        elif book_strategy == "evaluated":
                             tags.append("Book Evaluated")
                         else:
                             tags.append("Book Enabled")
-                    
+
                     # Pruning techniques count
-                    pruning_count = sum([
-                        1 for key in ['null_move', 'futility', 'late_move_reduction', 'multi_cut']
-                        if pruning_config.get(key, {}).get('enabled', False)
-                    ])
+                    pruning_count = sum(
+                        [
+                            1
+                            for key in ["null_move", "futility", "late_move_reduction", "multi_cut"]
+                            if pruning_config.get(key, {}).get("enabled", False)
+                        ]
+                    )
                     if pruning_count > 0:
                         tags.append(f"{pruning_count} Pruning")
-                    
+
                     # Transposition table
-                    tt_config = engine_config.get('transposition_table', {})
-                    if tt_config.get('enabled', False):
-                        tt_size = tt_config.get('size_mb', 128)
+                    tt_config = engine_config.get("transposition_table", {})
+                    if tt_config.get("enabled", False):
+                        tt_size = tt_config.get("size_mb", 128)
                         tags.append(f"TT {tt_size}MB")
-                    
+
                     # Speed indicator from think time
-                    time_config = behavior_config.get('time', {})
-                    think_time = time_config.get('think_time_ms', 0)
+                    time_config = behavior_config.get("time", {})
+                    think_time = time_config.get("think_time_ms", 0)
                     if think_time == 0:
                         tags.append("Instant")
                     elif think_time < 100:
@@ -1196,72 +1332,76 @@ async def get_all_players():
                         tags.append("Fast")
                     else:
                         tags.append("Contemplative")
-                
+
                 # Determine tag based on category
                 player_tag = "HUMAN" if is_human else "AI"
-                
+
                 # Build stats only if they exist (not for human players)
                 player_stats = None
                 if stats and not is_human:
                     player_stats = {
-                        "power": stats.get('power', 5),
-                        "speed": stats.get('speed', 5),
-                        "accuracy": stats.get('accuracy', 5),
-                        "depth": stats.get('depth', 5),
-                        "lethality": stats.get('lethality', 5)
+                        "power": stats.get("power", 5),
+                        "speed": stats.get("speed", 5),
+                        "accuracy": stats.get("accuracy", 5),
+                        "depth": stats.get("depth", 5),
+                        "lethality": stats.get("lethality", 5),
                     }
-                
-                players.append({
-                    "name": player_name,
-                    "display_name": metadata.get('display_name', player_name),
-                    "description": metadata.get('description', ''),
-                    "headline": metadata.get('headline', ''),
-                    "tag": player_tag,
-                    "icon": metadata.get('icon', '🤖'),
-                    "category": metadata.get('category', 'unknown'),
-                    "directory": directory_category,  # NEW: Directory tag from file location
-                    "elo": metadata.get('estimated_elo'),
-                    "stats": player_stats,  # None for human players
-                    "avatar_url": avatar_url,
-                    "config_tags": tags  # Includes directory tag + config tags
-                })
-                
+
+                players.append(
+                    {
+                        "name": player_name,
+                        "display_name": metadata.get("display_name", player_name),
+                        "description": metadata.get("description", ""),
+                        "headline": metadata.get("headline", ""),
+                        "tag": player_tag,
+                        "icon": metadata.get("icon", "🤖"),
+                        "category": metadata.get("category", "unknown"),
+                        "directory": directory_category,  # NEW: Directory tag from file location
+                        "elo": metadata.get("estimated_elo"),
+                        "stats": player_stats,  # None for human players
+                        "avatar_url": avatar_url,
+                        "config_tags": tags,  # Includes directory tag + config tags
+                    }
+                )
+
             except Exception as e:
                 logger.error(f"Error loading player {player_name}: {e}")
                 continue
-        
+
         return {"players": players}
-        
+
     except Exception as e:
         logger.error(f"Error loading players list: {e}")
         return {"error": str(e), "players": []}
+
 
 @app.get("/api/game-config")
 async def get_game_config():
     """Get game configuration from config/game.yaml"""
     try:
         from core.game_config import load_game_config
+
         game_config = load_game_config()
-        
+
         return {
             "black_player": {
                 "type": game_config.black_player.player_type,
                 "name": game_config.black_player.name,
                 "ai_player": game_config.black_player.ai_player,
-                "symbol": game_config.black_player.symbol
+                "symbol": game_config.black_player.symbol,
             },
             "white_player": {
                 "type": game_config.white_player.player_type,
                 "name": game_config.white_player.name,
                 "ai_player": game_config.white_player.ai_player,
-                "symbol": game_config.white_player.symbol
+                "symbol": game_config.white_player.symbol,
             },
             "settings": {
                 "title": game_config.title,
                 "board_size": game_config.board_size,
                 "show_legal_moves": game_config.show_legal_moves,
-                "show_ai_stats": game_config.show_ai_stats
-            }
+                "show_ai_stats": game_config.show_ai_stats,
+            },
         }
     except Exception as e:
         logger.error(f"Error loading game config: {e}")
@@ -1271,41 +1411,39 @@ async def get_game_config():
                 "type": "human",
                 "name": "Human Player",
                 "ai_player": None,
-                "symbol": "⚫"
+                "symbol": "⚫",
             },
             "white_player": {
                 "type": "ai",
                 "name": "Lightning Strike",
                 "ai_player": "LIGHTNING STRIKE",
-                "symbol": "⚪"
+                "symbol": "⚪",
             },
             "settings": {
                 "title": "Reversi42",
                 "board_size": 8,
                 "show_legal_moves": True,
-                "show_ai_stats": True
-            }
+                "show_ai_stats": True,
+            },
         }
+
 
 @app.get("/api/version")
 async def get_version():
     """Get Reversi42 version from centralized source"""
     try:
         from __version__ import __version__, __author__, __url__
-        return {
-            "version": __version__,
-            "author": __author__,
-            "url": __url__,
-            "name": "Reversi42"
-        }
+
+        return {"version": __version__, "author": __author__, "url": __url__, "name": "Reversi42"}
     except Exception as e:
         logger.error(f"Error loading version: {e}")
         return {
             "version": "6.1.3",
             "author": "Luca Amore",
             "url": "https://github.com/lucaamore/reversi42",
-            "name": "Reversi42"
+            "name": "Reversi42",
         }
+
 
 @app.get("/stats")
 async def get_stats():
@@ -1314,8 +1452,9 @@ async def get_stats():
         "version": __version__,
         "active_sessions": len(sessions),
         "active_connections": len(active_connections),
-        "uptime": "N/A"  # Could implement uptime tracking
+        "uptime": "N/A",  # Could implement uptime tracking
     }
+
 
 @app.get("/version")
 async def get_version():
@@ -1323,19 +1462,20 @@ async def get_version():
     return {
         "version": __version__,
         "name": "Reversi42",
-        "description": "Ultra-Fast Reversi (Othello) with Bitboard AI"
+        "description": "Ultra-Fast Reversi (Othello) with Bitboard AI",
     }
+
 
 @app.get("/logs")
 async def get_logs():
     """Get server logs"""
     try:
-        log_file = '/tmp/backend_detailed.log'
+        log_file = "/tmp/backend_detailed.log"
         if os.path.exists(log_file):
             # Return last 500 lines
-            with open(log_file, 'r') as f:
+            with open(log_file, "r") as f:
                 lines = f.readlines()
-                content = '\n'.join(lines[-500:]) if len(lines) > 500 else '\n'.join(lines)
+                content = "\n".join(lines[-500:]) if len(lines) > 500 else "\n".join(lines)
                 return Response(content=content, media_type="text/plain")
         else:
             return Response(content="No logs available yet", media_type="text/plain")
@@ -1343,24 +1483,25 @@ async def get_logs():
         logger.error(f"Error reading logs: {e}")
         return Response(content=f"Error reading logs: {str(e)}", media_type="text/plain")
 
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time communication"""
     await websocket.accept()
     session_id = "default"  # For now, use single session
-    
+
     logger.info(f"WebSocket connection accepted for session {session_id}")
     active_connections[session_id] = websocket
-    
+
     try:
         while True:
             # Receive message
             data = await websocket.receive_text()
             message = json.loads(data)
-            
+
             # Handle message
             await handle_message(websocket, session_id, message)
-            
+
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected from session {session_id} (client closed connection)")
     except Exception as e:
@@ -1381,38 +1522,37 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
     try:
         msg_type = data.get("type")
         session = sessions.get(session_id)
-        
+
         if not session and msg_type != "init":
-            await send_to_connection(websocket, {
-                "type": "error",
-                "message": "Session not found"
-            })
+            await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
             return
-        
+
         logger.info(f"Handling message type '{msg_type}' for session {session_id}")
-        
+
         # Process message based on type
         await process_message_by_type(websocket, session, msg_type, data)
         logger.info(f"Message type '{msg_type}' processed successfully")
-        
+
     except Exception as e:
         logger.error(f"Error handling message for session {session_id}: {e}")
         logger.error(traceback.format_exc())
-        
+
         # Try to handle the error gracefully
         try:
             session = sessions.get(session_id)
             if session:
                 session.handle_error(e, f"handle_message({msg_type})")
-            
-            await send_to_connection(websocket, {
-                "type": "error",
-                "message": f"Internal server error: {str(e)}"
-            })
+
+            await send_to_connection(
+                websocket, {"type": "error", "message": f"Internal server error: {str(e)}"}
+            )
         except Exception as cleanup_error:
             logger.error(f"Error during error handling: {cleanup_error}")
 
-async def process_message_by_type(websocket: WebSocket, session: GameSession, msg_type: str, data: dict):
+
+async def process_message_by_type(
+    websocket: WebSocket, session: GameSession, msg_type: str, data: dict
+):
     """Process message based on type with individual error handling"""
     try:
         logger.info(f"Processing message type: {msg_type}")
@@ -1420,7 +1560,7 @@ async def process_message_by_type(websocket: WebSocket, session: GameSession, ms
             await handle_human_move(websocket, session, data)
         elif msg_type == "ai_move_request":
             # Optional: side parameter for explicit requests
-            await handle_ai_move_request(websocket, session, data.get('side'))
+            await handle_ai_move_request(websocket, session, data.get("side"))
         elif msg_type == "init":
             logger.info("Calling handle_init_message")
             await handle_init_message(websocket, session, data)
@@ -1438,20 +1578,20 @@ async def process_message_by_type(websocket: WebSocket, session: GameSession, ms
         elif msg_type == "load_history":
             await handle_load_history(websocket, session, data)
         else:
-            await send_to_connection(websocket, {
-                "type": "error",
-                "message": f"Unknown message type: {msg_type}"
-            })
+            await send_to_connection(
+                websocket, {"type": "error", "message": f"Unknown message type: {msg_type}"}
+            )
     except Exception as e:
         session.handle_error(e, f"process_message_by_type({msg_type})")
         raise
+
 
 async def handle_game_over(websocket: WebSocket, session: GameSession, reason: str):
     """Handle game over condition"""
     try:
         # Mark game as over
         session.game_over = True
-        
+
         # Calculate winner
         winner = None
         if session.game.white_cnt > session.game.black_cnt:
@@ -1460,26 +1600,27 @@ async def handle_game_over(websocket: WebSocket, session: GameSession, reason: s
             winner = "Black (Human)"
         else:
             winner = "Draw"
-        
+
         logger.info(f"Game over: {reason}. Winner: {winner}")
-        
-        await broadcast(session.session_id, {
-            "type": "board_update",
-            "data": session.get_state()
-        })
-        
-        await send_to_connection(websocket, {
-            "type": "game_over",
-            "data": {
-                "winner": winner,
-                "black_count": session.game.black_cnt,
-                "white_count": session.game.white_cnt,
-                "reason": reason
-            }
-        })
+
+        await broadcast(session.session_id, {"type": "board_update", "data": session.get_state()})
+
+        await send_to_connection(
+            websocket,
+            {
+                "type": "game_over",
+                "data": {
+                    "winner": winner,
+                    "black_count": session.game.black_cnt,
+                    "white_count": session.game.white_cnt,
+                    "reason": reason,
+                },
+            },
+        )
     except Exception as e:
         logger.error(f"Error handling game over: {e}")
         session.handle_error(e, "handle_game_over")
+
 
 async def handle_human_move(websocket: WebSocket, session: GameSession, data: dict):
     """Handle human move with robust error handling"""
@@ -1487,67 +1628,63 @@ async def handle_human_move(websocket: WebSocket, session: GameSession, data: di
         # Handle human move
         move_coord = data.get("move")
         if not move_coord:
-            await send_to_connection(websocket, {
-                "type": "error",
-                "message": "No move provided"
-            })
+            await send_to_connection(websocket, {"type": "error", "message": "No move provided"})
             return
-        
+
         # Make move
         logger.info(f"Making human move: {move_coord}")
         success, error = session.make_move(move_coord)
-        
+
         if not success:
             logger.warning(f"Move failed: {error}")
-            await send_to_connection(websocket, {
-                "type": "error",
-                "message": error or "Invalid move"
-            })
+            await send_to_connection(
+                websocket, {"type": "error", "message": error or "Invalid move"}
+            )
             return
-        
+
         logger.info(f"Human move successful. Current turn: {session.game.turn}")
-        
+
         # Check for game over using is_finish() which checks both board full and no moves
         if session.game.is_finish():
-            reason = "Board full" if session.game.white_cnt + session.game.black_cnt == 64 else "Both players passed"
+            reason = (
+                "Board full"
+                if session.game.white_cnt + session.game.black_cnt == 64
+                else "Both players passed"
+            )
             await handle_game_over(websocket, session, reason)
             return
-        
+
         # Broadcast update
-        await broadcast(session.session_id, {
-            "type": "board_update",
-            "data": session.get_state()
-        })
-        
+        await broadcast(session.session_id, {"type": "board_update", "data": session.get_state()})
+
         # Check if current player has moves
         move_list = session.game.get_move_list()
-        
+
         # If no moves available for current player, pass
         if not move_list:
             logger.info(f"No moves available for {session.game.turn}, passing...")
             session.game.pass_turn()
-            
-            await broadcast(session.session_id, {
-                "type": "board_update",
-                "data": session.get_state()
-            })
-            
+
+            await broadcast(
+                session.session_id, {"type": "board_update", "data": session.get_state()}
+            )
+
             # Check again after pass - if still no moves, game over
             move_list = session.game.get_move_list()
             if not move_list:
                 await handle_game_over(websocket, session, "Both players passed")
                 return
-        
+
         # DON'T auto-trigger AI move here!
         # Frontend will request AI move via checkAndRequestAIMove() after receiving board_update
-            
+
     except Exception as e:
         logger.error(f"Error in handle_human_move: {e}")
         session.handle_error(e, "handle_human_move")
-        await send_to_connection(websocket, {
-            "type": "error",
-            "message": f"Error processing human move: {str(e)}"
-        })
+        await send_to_connection(
+            websocket, {"type": "error", "message": f"Error processing human move: {str(e)}"}
+        )
+
 
 async def handle_undo(websocket: WebSocket, session: GameSession):
     """Undo back to previous move of the current player (same side)."""
@@ -1575,17 +1712,17 @@ async def handle_undo(websocket: WebSocket, session: GameSession):
     except Exception as e:
         logger.error(f"Error in handle_undo: {e}")
         session.handle_error(e, "handle_undo")
-        await send_to_connection(websocket, {
-            "type": "error",
-            "message": f"Error processing undo: {str(e)}"
-        })
+        await send_to_connection(
+            websocket, {"type": "error", "message": f"Error processing undo: {str(e)}"}
+        )
+
 
 async def handle_redo(websocket: WebSocket, session: GameSession):
     """Redo forward to the next move of the same player (if available)."""
     try:
         desired_turn = session.game.turn
         steps = 0
-        while getattr(session.game, 'redo_stack', None):
+        while getattr(session.game, "redo_stack", None):
             try:
                 session.game.redo_move()
                 steps += 1
@@ -1597,28 +1734,28 @@ async def handle_redo(websocket: WebSocket, session: GameSession):
 
         logger.info(f"Redo performed: {steps} step(s). Current turn: {session.game.turn}")
 
-        await broadcast(session.session_id, {
-            "type": "board_update",
-            "data": session.get_state()
-        })
+        await broadcast(session.session_id, {"type": "board_update", "data": session.get_state()})
     except Exception as e:
         logger.error(f"Error in handle_redo: {e}")
         session.handle_error(e, "handle_redo")
-        await send_to_connection(websocket, {
-            "type": "error",
-            "message": f"Error processing redo: {str(e)}"
-        })
+        await send_to_connection(
+            websocket, {"type": "error", "message": f"Error processing redo: {str(e)}"}
+        )
+
 
 async def handle_load_history(websocket: WebSocket, session: GameSession, data: dict):
     """Reset game and load compact history string like 'F5f6E6f4'."""
     try:
         hist = (data.get("history") or "").strip()
         if not isinstance(hist, str):
-            await send_to_connection(websocket, {"type": "error", "message": "Invalid history format"})
+            await send_to_connection(
+                websocket, {"type": "error", "message": "Invalid history format"}
+            )
             return
         # Reset session/game
         session.reset_session()
         import re
+
         tokens = re.findall(r"[A-Ha-h][1-8]", hist)
         if len("".join(tokens)) != len(hist):
             logger.warning("History contains non-move characters; ignoring extraneous chars")
@@ -1627,13 +1764,12 @@ async def handle_load_history(websocket: WebSocket, session: GameSession, data: 
             coord = tok.upper()
             ok, err = session.make_move(coord)
             if not ok:
-                await send_to_connection(websocket, {"type": "error", "message": f"Invalid move in history: {tok}"})
+                await send_to_connection(
+                    websocket, {"type": "error", "message": f"Invalid move in history: {tok}"}
+                )
                 return
         # Broadcast updated state
-        await broadcast(session.session_id, {
-            "type": "board_update",
-            "data": session.get_state()
-        })
+        await broadcast(session.session_id, {"type": "board_update", "data": session.get_state()})
         # After load: if current player has no moves, pass once; if AI to move, proceed
         move_list = session.game.get_move_list()
         if not move_list:
@@ -1646,7 +1782,9 @@ async def handle_load_history(websocket: WebSocket, session: GameSession, data: 
                 await handle_game_over(websocket, session, "Both players passed")
                 return
         side = session.game.turn
-        ai_present = (session.ai_white is not None and side == 'W') or (session.ai_black is not None and side == 'B')
+        ai_present = (session.ai_white is not None and side == "W") or (
+            session.ai_black is not None and side == "B"
+        )
         if ai_present:
             ai_ml = session.game.get_move_list()
             if not ai_ml:
@@ -1659,51 +1797,58 @@ async def handle_load_history(websocket: WebSocket, session: GameSession, data: 
     except Exception as e:
         logger.error(f"Error in handle_load_history: {e}")
         session.handle_error(e, "handle_load_history")
-        await send_to_connection(websocket, {"type": "error", "message": f"Error loading history: {str(e)}"})
+        await send_to_connection(
+            websocket, {"type": "error", "message": f"Error loading history: {str(e)}"}
+        )
+
+
 async def handle_ai_move_request(websocket: WebSocket, session: GameSession, side: str = None):
     """Handle AI move request with robust error handling"""
     try:
         logger.info("AI turn - requesting move...")
-        
+
         # Check if game is already over
         if session.game_over or session.game.is_finish():
-            reason = "Board full" if session.game.white_cnt + session.game.black_cnt == 64 else "Both players passed"
+            reason = (
+                "Board full"
+                if session.game.white_cnt + session.game.black_cnt == 64
+                else "Both players passed"
+            )
             await handle_game_over(websocket, session, reason)
             return
-        
+
         side = side or session.game.turn
-        ai_name = session.ai_white_name if side == 'W' else session.ai_black_name
-        ai_instance = session.ai_white if side == 'W' else session.ai_black
-        
-        side_emoji = "⚪" if side == 'W' else "⚫"
+        ai_name = session.ai_white_name if side == "W" else session.ai_black_name
+        ai_instance = session.ai_white if side == "W" else session.ai_black
+
+        side_emoji = "⚪" if side == "W" else "⚫"
         logger.info(f"🤖 AI move requested for {side_emoji} {side}: {ai_name or 'Unknown'}")
-        
+
         # Verify AI exists for this side
         if ai_instance is None:
             logger.warning(f"❌ No AI configured for side {side} (name: {ai_name})")
             return
-        
+
         # Check if there are any moves available
         move_list = session.game.get_move_list()
         if not move_list:
             logger.info(f"No moves available for AI ({side}), passing...")
             session.game.pass_turn()
-            
-            await broadcast(session.session_id, {
-                "type": "board_update",
-                "data": session.get_state()
-            })
-            
+
+            await broadcast(
+                session.session_id, {"type": "board_update", "data": session.get_state()}
+            )
+
             # Check if opponent has moves
             next_moves = session.game.get_move_list()
             if not next_moves:
                 logger.info("Both players have no moves - game over")
                 await handle_game_over(websocket, session, "Both players passed")
                 return
-            
+
             # Opponent has moves, frontend will continue
             return
-        
+
         # Send ai_thinking with initial stats
         initial_stats = {
             "title": ai_name or "AI",
@@ -1714,152 +1859,163 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
             "nodes_pruned": 0,
             "pruning_ratio": 0,
             "avg_search_time": "0ms",
-            "total_searches": 0
+            "total_searches": 0,
         }
-        
-        await send_to_connection(websocket, {
-            "type": "ai_thinking",
-            "message": f"{(ai_name or 'AI')} is thinking...",
-            "data": initial_stats
-        })
-        
+
+        await send_to_connection(
+            websocket,
+            {
+                "type": "ai_thinking",
+                "message": f"{(ai_name or 'AI')} is thinking...",
+                "data": initial_stats,
+            },
+        )
+
         try:
             import time
+
             start_ts = time.perf_counter()
             # Get AI move (with websocket observer for AI insights)
             # Run in separate thread to avoid blocking event loop
             ai_move = await session.get_ai_move(side, websocket)
             end_ts = time.perf_counter()
             last_search_time_ms = max(0.0, (end_ts - start_ts) * 1000.0)
-            
+
             if ai_move:
                 # Convert Move coordinates to algebraic notation (A1-H8)
                 coord = f"{chr(64+ai_move.x)}{ai_move.y}"
                 logger.info(f"✅ {side_emoji} {ai_name} played: {coord}")
-                
+
                 try:
                     session.game.move(ai_move)
                 except Exception as e:
                     logger.error(f"Error executing AI move: {e}")
                     logger.error(traceback.format_exc())
                     raise
-                
+
                 # Get AI analysis data
-                ai_eval = getattr(ai_move, 'evaluation', None)
-                ai_obj = session.ai_white if side == 'W' else session.ai_black
-                ai_depth = getattr(ai_obj, 'last_depth', None)
-                
+                ai_eval = getattr(ai_move, "evaluation", None)
+                ai_obj = session.ai_white if side == "W" else session.ai_black
+                ai_depth = getattr(ai_obj, "last_depth", None)
+
                 # Get detailed statistics from engine
                 engine_stats = {}
                 try:
-                    if hasattr(ai_obj, 'bitboard_engine'):
+                    if hasattr(ai_obj, "bitboard_engine"):
                         stats = ai_obj.bitboard_engine.get_statistics()
                         if stats:
-                            engine_stats['total_searches'] = stats.get('searches_performed', 0)
-                            avg_time = stats.get('avg_time', 0)
-                            engine_stats['avg_search_time'] = f"{avg_time*1000:.1f}ms" if avg_time > 0 else "0ms"
-                            
-                            search_stats = stats.get('search_stats', {})
+                            engine_stats["total_searches"] = stats.get("searches_performed", 0)
+                            avg_time = stats.get("avg_time", 0)
+                            engine_stats["avg_search_time"] = (
+                                f"{avg_time*1000:.1f}ms" if avg_time > 0 else "0ms"
+                            )
+
+                            search_stats = stats.get("search_stats", {})
                             if isinstance(search_stats, dict):
-                                nodes = search_stats.get('nodes', 0)
-                                pruning = search_stats.get('pruning', 0)
-                                engine_stats['nodes_searched'] = nodes
-                                engine_stats['nodes_pruned'] = pruning
-                                engine_stats['pruning_ratio'] = round(pruning / nodes, 3) if nodes > 0 else 0
+                                nodes = search_stats.get("nodes", 0)
+                                pruning = search_stats.get("pruning", 0)
+                                engine_stats["nodes_searched"] = nodes
+                                engine_stats["nodes_pruned"] = pruning
+                                engine_stats["pruning_ratio"] = (
+                                    round(pruning / nodes, 3) if nodes > 0 else 0
+                                )
                 except Exception as e:
                     logger.warning(f"Could not get engine stats: {e}")
                 # Always include last search time measured for this move (integer ms)
-                engine_stats['last_search_time_ms'] = int(round(last_search_time_ms))
-                
+                engine_stats["last_search_time_ms"] = int(round(last_search_time_ms))
+
                 # Store AI stats for notes
                 session.last_ai_stats = {
                     "title": ai_name or "AI",
                     "selected_move": coord,
                     "selected_value": str(ai_eval) if ai_eval is not None else "N/A",
                     "final_depth": str(ai_depth) if ai_depth is not None else "N/A",
-                    **engine_stats
+                    **engine_stats,
                 }
-                
+
                 # Send ai_move message
-                await send_to_connection(websocket, {
-                    "type": "ai_move",
-                    "data": {
-                        "move": coord,
-                        "evaluation": ai_eval,
-                        "depth": ai_depth,
-                        **engine_stats
-                    }
-                })
-                
+                await send_to_connection(
+                    websocket,
+                    {
+                        "type": "ai_move",
+                        "data": {
+                            "move": coord,
+                            "evaluation": ai_eval,
+                            "depth": ai_depth,
+                            **engine_stats,
+                        },
+                    },
+                )
+
                 # Check for game over after AI move using is_finish()
                 if session.game.is_finish():
-                    reason = "Board full" if session.game.white_cnt + session.game.black_cnt == 64 else "Both players passed"
+                    reason = (
+                        "Board full"
+                        if session.game.white_cnt + session.game.black_cnt == 64
+                        else "Both players passed"
+                    )
                     await handle_game_over(websocket, session, reason)
                     return
-                
+
                 # Broadcast board update
-                await broadcast(session.session_id, {
-                    "type": "board_update",
-                    "data": session.get_state()
-                })
-                
+                await broadcast(
+                    session.session_id, {"type": "board_update", "data": session.get_state()}
+                )
+
                 # Check if current player has moves
                 move_list = session.game.get_move_list()
                 if not move_list:
                     logger.info(f"No moves available for {session.game.turn}, passing...")
                     session.game.pass_turn()
-                    
-                    await broadcast(session.session_id, {
-                        "type": "board_update",
-                        "data": session.get_state()
-                    })
-                    
+
+                    await broadcast(
+                        session.session_id, {"type": "board_update", "data": session.get_state()}
+                    )
+
                     # Check again after pass - if still no moves, game over
                     next_moves = session.game.get_move_list()
                     if not next_moves:
                         logger.info("Both players have no moves - game over")
                         await handle_game_over(websocket, session, "Both players passed")
                         return
-                    
+
                     # Next player has moves - frontend will request if AI and not paused
                     return
-                
+
                 # Don't auto-trigger next AI move - let frontend control via pause/play
                 # Frontend will send ai_move_request when ready
             else:
                 # AI has no moves, pass
                 logger.info("AI has no valid moves, passing...")
                 session.game.pass_turn()
-                
-                await broadcast(session.session_id, {
-                    "type": "board_update",
-                    "data": session.get_state()
-                })
-                
+
+                await broadcast(
+                    session.session_id, {"type": "board_update", "data": session.get_state()}
+                )
+
                 # Check if game is over after pass
                 next_moves = session.game.get_move_list()
                 if not next_moves:
                     logger.info("Both players have no moves after AI pass - game over")
                     await handle_game_over(websocket, session, "Both players passed")
                     return
-                
+
                 # After pass, frontend will request AI move if needed and not paused
-                    
+
         except Exception as e:
             logger.error(f"Error in AI move request: {e}")
             session.handle_error(e, "handle_ai_move_request")
-            await send_to_connection(websocket, {
-                "type": "error",
-                "message": f"Error processing AI move: {str(e)}"
-            })
-            
+            await send_to_connection(
+                websocket, {"type": "error", "message": f"Error processing AI move: {str(e)}"}
+            )
+
     except Exception as e:
         logger.error(f"Critical error in handle_ai_move_request: {e}")
         session.handle_error(e, "handle_ai_move_request_critical")
-        await send_to_connection(websocket, {
-            "type": "error",
-            "message": f"Critical error: {str(e)}"
-        })
+        await send_to_connection(
+            websocket, {"type": "error", "message": f"Critical error: {str(e)}"}
+        )
+
 
 async def handle_init_message(websocket: WebSocket, session: GameSession, data: dict):
     """Handle init message - create new session"""
@@ -1868,59 +2024,67 @@ async def handle_init_message(websocket: WebSocket, session: GameSession, data: 
         default_ai = "LIGHTNING STRIKE"  # Fallback
         try:
             from core.game_config import load_game_config
+
             game_config = load_game_config()
-            if game_config.white_player.player_type == 'ai' and game_config.white_player.ai_player:
+            if game_config.white_player.player_type == "ai" and game_config.white_player.ai_player:
                 default_ai = game_config.white_player.ai_player
                 logger.info(f"📋 Using AI from config/game.yaml: {default_ai}")
         except Exception as e:
             logger.warning(f"Could not load game config: {e}, using fallback: {default_ai}")
-        
+
         # Use configured AI (ignore client request for now - config is source of truth)
         ai_player_name = default_ai
         logger.info(f"🤖 Creating session with AI: {ai_player_name}")
-        
+
         # Always create a new session on init (white AI by default)
         new_session = GameSession("default", ai_player_name)
         sessions["default"] = new_session
-        
+
         logger.info(f"Created new session with AI: {ai_player_name}")
-        
+
         # Send initial state
-        await send_to_connection(websocket, {
-            "type": "board_update",
-            "data": new_session.get_state()
-        })
-        
+        await send_to_connection(
+            websocket, {"type": "board_update", "data": new_session.get_state()}
+        )
+
     except Exception as e:
         logger.error(f"Error in handle_init_message: {e}")
-        await send_to_connection(websocket, {
-            "type": "error",
-            "message": f"Error initializing game: {str(e)}"
-        })
+        await send_to_connection(
+            websocket, {"type": "error", "message": f"Error initializing game: {str(e)}"}
+        )
+
 
 async def handle_set_players(websocket: WebSocket, session: GameSession, data: dict):
-    """Set players for both sides. Payload: {"white": "Human"|AI_NAME|None, "black": "Human"|AI_NAME|None} """
+    """Set players for both sides. Payload: {"white": "Human"|AI_NAME|None, "black": "Human"|AI_NAME|None}"""
     try:
         white = data.get("white")
         black = data.get("black")
-        
+
         logger.info(f"")
         logger.info(f"╔══════════════════════════════════════════════════════════════╗")
         logger.info(f"║ 📥 Received set_players request                             ║")
         logger.info(f"╠══════════════════════════════════════════════════════════════╣")
         logger.info(f"   Raw white from frontend: {white!r}")
         logger.info(f"   Raw black from frontend: {black!r}")
-        
+
         # Validate player names exist in registry BEFORE setting
         registry = PlayerFactory._get_registry()
         available_players = registry.list_players()
-        
+
         logger.info(f"   Available players in registry: {available_players}")
-        
+
         # Normalize: None or 'Human' or 'Human Player' => human
-        white_normalized = None if (white is None or str(white).lower()=="human" or str(white)=="Human Player") else str(white)
-        black_normalized = None if (black is None or str(black).lower()=="human" or str(black)=="Human Player") else str(black)
-        
+        white_normalized = (
+            None
+            if (white is None or str(white).lower() == "human" or str(white) == "Human Player")
+            else str(white)
+        )
+        black_normalized = (
+            None
+            if (black is None or str(black).lower() == "human" or str(black) == "Human Player")
+            else str(black)
+        )
+
         # VALIDATION: Verify AI player names exist in registry
         if white_normalized:
             if white_normalized not in available_players:
@@ -1931,15 +2095,19 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
                         matched = player_name
                         break
                 if matched:
-                    logger.warning(f"   ⚠️  Case-insensitive match for White: '{white_normalized}' → '{matched}'")
+                    logger.warning(
+                        f"   ⚠️  Case-insensitive match for White: '{white_normalized}' → '{matched}'"
+                    )
                     white_normalized = matched
                 else:
                     logger.error(f"   ❌ White player '{white_normalized}' NOT FOUND in registry!")
                     logger.error(f"   Available: {available_players}")
-                    raise ValueError(f"White player '{white_normalized}' not found. Available: {available_players}")
+                    raise ValueError(
+                        f"White player '{white_normalized}' not found. Available: {available_players}"
+                    )
             else:
                 logger.info(f"   ✅ White player '{white_normalized}' found in registry")
-        
+
         if black_normalized:
             if black_normalized not in available_players:
                 # Try case-insensitive match
@@ -1949,41 +2117,49 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
                         matched = player_name
                         break
                 if matched:
-                    logger.warning(f"   ⚠️  Case-insensitive match for Black: '{black_normalized}' → '{matched}'")
+                    logger.warning(
+                        f"   ⚠️  Case-insensitive match for Black: '{black_normalized}' → '{matched}'"
+                    )
                     black_normalized = matched
                 else:
                     logger.error(f"   ❌ Black player '{black_normalized}' NOT FOUND in registry!")
                     logger.error(f"   Available: {available_players}")
-                    raise ValueError(f"Black player '{black_normalized}' not found. Available: {available_players}")
+                    raise ValueError(
+                        f"Black player '{black_normalized}' not found. Available: {available_players}"
+                    )
             else:
                 logger.info(f"   ✅ Black player '{black_normalized}' found in registry")
-        
+
         # Set normalized names
         session.ai_white_name = white_normalized
         session.ai_black_name = black_normalized
-        
+
         logger.info(f"")
         logger.info(f"   ✅ FINAL Configuration:")
         logger.info(f"      ⚪ ai_white_name: {session.ai_white_name or 'Human'}")
         logger.info(f"      ⚫ ai_black_name: {session.ai_black_name or 'Human'}")
         logger.info(f"╚══════════════════════════════════════════════════════════════╝")
         logger.info(f"")
-        
+
         # Recreate AI instances
         session.reset_session()
-        
-        logger.info(f"Session reset - ai_white: {session.ai_white is not None}, ai_black: {session.ai_black is not None}")
+
+        logger.info(
+            f"Session reset - ai_white: {session.ai_white is not None}, ai_black: {session.ai_black is not None}"
+        )
         logger.info(f"Current turn after reset: {session.game.turn}")
-        
+
         # Send updated state
         state_data = session.get_state()
-        
+
         await send_to_connection(websocket, {"type": "board_update", "data": state_data})
-        
+
         # Check if AI should make first move (if it's AI's turn to start)
         current_turn = session.game.turn
-        ai_present = (session.ai_white is not None and current_turn == 'W') or (session.ai_black is not None and current_turn == 'B')
-        
+        ai_present = (session.ai_white is not None and current_turn == "W") or (
+            session.ai_black is not None and current_turn == "B"
+        )
+
         if ai_present:
             logger.info(f"AI should move immediately (turn: {current_turn})")
             # Small delay to ensure frontend receives board_update first
@@ -1991,34 +2167,33 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
             await handle_ai_move_request(websocket, session, current_turn)
         else:
             logger.info(f"Human to move (turn: {current_turn})")
-        
+
     except Exception as e:
         logger.error(f"Error in handle_set_players: {e}")
         session.handle_error(e, "handle_set_players")
-        await send_to_connection(websocket, {"type": "error", "message": f"Error setting players: {str(e)}"})
+        await send_to_connection(
+            websocket, {"type": "error", "message": f"Error setting players: {str(e)}"}
+        )
+
 
 async def handle_reset_game(websocket: WebSocket, session: GameSession):
     """Handle reset game message"""
     try:
         session.reset_session()
-        await send_to_connection(websocket, {
-            "type": "board_update",
-            "data": session.get_state()
-        })
+        await send_to_connection(websocket, {"type": "board_update", "data": session.get_state()})
     except Exception as e:
         logger.error(f"Error in handle_reset_game: {e}")
         session.handle_error(e, "handle_reset_game")
 
+
 async def handle_get_state(websocket: WebSocket, session: GameSession):
     """Handle get state message"""
     try:
-        await send_to_connection(websocket, {
-            "type": "board_update",
-            "data": session.get_state()
-        })
+        await send_to_connection(websocket, {"type": "board_update", "data": session.get_state()})
     except Exception as e:
         logger.error(f"Error in handle_get_state: {e}")
         session.handle_error(e, "handle_get_state")
+
 
 async def send_to_connection(websocket: WebSocket, message: dict):
     """Send message to WebSocket connection"""
@@ -2028,6 +2203,7 @@ async def send_to_connection(websocket: WebSocket, message: dict):
     except Exception as e:
         logger.error(f"Error sending message: {e}")
 
+
 async def broadcast(session_id: str, message: dict):
     """Broadcast message to all connections in session"""
     try:
@@ -2036,31 +2212,37 @@ async def broadcast(session_id: str, message: dict):
     except Exception as e:
         logger.error(f"Error broadcasting message: {e}")
 
+
 def main():
     """Main function"""
     # Load default AI from game configuration
-    default_ai = 'LIGHTNING STRIKE'  # Fallback if config not found
+    default_ai = "LIGHTNING STRIKE"  # Fallback if config not found
     try:
         from core.game_config import load_game_config
+
         game_config = load_game_config()
-        if game_config.white_player.player_type == 'ai' and game_config.white_player.ai_player:
+        if game_config.white_player.player_type == "ai" and game_config.white_player.ai_player:
             default_ai = game_config.white_player.ai_player
             logger.info(f"📋 Loaded default AI from config/game.yaml: {default_ai}")
     except Exception as e:
         logger.warning(f"Could not load game config, using fallback: {e}")
-    
-    parser = argparse.ArgumentParser(description='Reversi42 WebSocket Backend')
-    parser.add_argument('--port', type=int, default=8000, help='Port to run on')
-    parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
-    parser.add_argument('--player', default=default_ai, help=f'AI player to use (default from config: {default_ai})')
-    
+
+    parser = argparse.ArgumentParser(description="Reversi42 WebSocket Backend")
+    parser.add_argument("--port", type=int, default=8000, help="Port to run on")
+    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
+    parser.add_argument(
+        "--player", default=default_ai, help=f"AI player to use (default from config: {default_ai})"
+    )
+
     args = parser.parse_args()
-    
+
     logger.info(f"Starting Reversi42 WebSocket Backend on {args.host}:{args.port}")
     logger.info(f"AI Player: {args.player}")
-    
+
     import uvicorn
+
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+
 
 if __name__ == "__main__":
     main()
