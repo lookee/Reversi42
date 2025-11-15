@@ -476,11 +476,21 @@ class Game(object):
         return out
 
     def is_finish(self):
-
+        """Check if game is over"""
+        # Game over if board is full
         if self.white_cnt + self.black_cnt == self.cells_cnt:
             return True
-        else:
-            return False
+
+        # Or if neither player has moves
+        moves = self.get_move_list()
+        if len(moves) == 0:
+            # Current player has no moves, check opponent
+            self.switch_player()
+            opp_moves = self.get_move_list()
+            self.switch_player()  # Switch back
+            return len(opp_moves) == 0
+
+        return False
 
     def get_result(self):
         """get last result on game ended"""

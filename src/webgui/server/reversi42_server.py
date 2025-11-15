@@ -168,6 +168,10 @@ class GameSession:
             # Reset game board
             self.game = Game(8)
             
+            # Reset game over flag
+            self.game_over = False
+            self.winner = None
+            
             # Destroy old AI instances (free memory)
             old_white = self.ai_white
             old_black = self.ai_black
@@ -676,6 +680,10 @@ class GameSession:
     def make_move(self, move_coord: str) -> Tuple[bool, str]:
         """Make a move and return (success, error_message)"""
         try:
+            # Check if game is over
+            if self.game_over:
+                return False, "Game is over"
+            
             # Convert algebraic notation (A1-H8) to Move object
             if len(move_coord) != 2:
                 return False, "Invalid move format"
@@ -1441,6 +1449,9 @@ async def process_message_by_type(websocket: WebSocket, session: GameSession, ms
 async def handle_game_over(websocket: WebSocket, session: GameSession, reason: str):
     """Handle game over condition"""
     try:
+        # Mark game as over
+        session.game_over = True
+        
         # Calculate winner
         winner = None
         if session.game.white_cnt > session.game.black_cnt:
@@ -1496,9 +1507,10 @@ async def handle_human_move(websocket: WebSocket, session: GameSession, data: di
         
         logger.info(f"Human move successful. Current turn: {session.game.turn}")
         
-        # Check for game over
-        if session.game.white_cnt + session.game.black_cnt == 64:
-            await handle_game_over(websocket, session, "Board full")
+        # Check for game over using is_finish() which checks both board full and no moves
+        if session.game.is_finish():
+            reason = "Board full" if session.game.white_cnt + session.game.black_cnt == 64 else "Both players passed"
+            await handle_game_over(websocket, session, reason)
             return
         
         # Broadcast update
@@ -1653,9 +1665,10 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
     try:
         logger.info("AI turn - requesting move...")
         
-        # Check if game is already over (board full)
-        if session.game.white_cnt + session.game.black_cnt == 64:
-            await handle_game_over(websocket, session, "Board full")
+        # Check if game is already over
+        if session.game_over or session.game.is_finish():
+            reason = "Board full" if session.game.white_cnt + session.game.black_cnt == 64 else "Both players passed"
+            await handle_game_over(websocket, session, reason)
             return
         
         side = side or session.game.turn
@@ -1778,9 +1791,10 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
                     }
                 })
                 
-                # Check for game over after AI move
-                if session.game.white_cnt + session.game.black_cnt == 64:
-                    await handle_game_over(websocket, session, "Board full")
+                # Check for game over after AI move using is_finish()
+                if session.game.is_finish():
+                    reason = "Board full" if session.game.white_cnt + session.game.black_cnt == 64 else "Both players passed"
+                    await handle_game_over(websocket, session, reason)
                     return
                 
                 # Broadcast board update

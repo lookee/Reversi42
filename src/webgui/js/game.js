@@ -551,6 +551,7 @@ function handleServerMessage(message){
       // Reset AI pause if it's a fresh game (ply < 3)
       if(data.status && data.status.ply !== undefined && data.status.ply < 3){
         aiAutoPaused = false;
+        updateAIPlayPauseButton(false);
         console.log('Fresh game detected (ply < 3) - AI auto-play enabled');
       }
       console.log('Board data:', data);
@@ -695,16 +696,8 @@ function handleServerMessage(message){
       };
       // Update header immediately
       render();
-      // Update Play/Pause button to show it's stopped
-      const btn = qs('aiPlayPauseBtn');
-      const icon = document.getElementById('aiPlayPauseIcon');
-      if(btn && icon){
-        icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-        btn.title = 'Play AI';
-        btn.setAttribute('data-tip', 'Play AI');
-        btn.style.background = 'rgba(245,158,11,.12)';
-        btn.style.borderColor = 'rgba(245,158,11,.35)';
-      }
+      // Update Play/Pause button to show it's stopped (with blinking)
+      updateAIPlayPauseButton(true);
       // Show game over message (non-blocking)
       setTimeout(() => {
         const winner = gameOverInfo.winner;
@@ -718,6 +711,7 @@ function handleServerMessage(message){
           console.log('🔄 User confirmed new game - resetting state immediately');
           gameOverInfo = null;
           aiAutoPaused = false;
+          updateAIPlayPauseButton(false);
           // Now start new game
           document.getElementById('newGameBtn')?.click();
         }
@@ -790,26 +784,39 @@ function handleServerMessage(message){
   }
 }
 
-function toggleAIPlayPause(){
-  aiAutoPaused = !aiAutoPaused;
+function updateAIPlayPauseButton(paused){
+  /**Helper function to update AI play/pause button appearance based on paused state*/
   const btn = qs('aiPlayPauseBtn');
   const icon = document.getElementById('aiPlayPauseIcon');
+  if(!btn || !icon) return;
   
-  if(aiAutoPaused){
-    // Paused - show Play icon
+  if(paused){
+    // Paused - show Play icon and add blinking animation
     icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
     btn.title = 'Play AI';
     btn.setAttribute('data-tip', 'Play AI');
     btn.style.background = 'rgba(245,158,11,.12)';
     btn.style.borderColor = 'rgba(245,158,11,.35)';
-    showToast('AI Auto-Play Paused');
+    btn.classList.add('ai-paused'); // Add blinking animation class
   } else {
-    // Playing - show Pause icon
+    // Playing - show Pause icon and remove blinking animation
     icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
     btn.title = 'Pause AI';
     btn.setAttribute('data-tip', 'Pause AI');
     btn.style.background = 'rgba(16,185,129,.12)';
     btn.style.borderColor = 'rgba(16,185,129,.35)';
+    btn.classList.remove('ai-paused'); // Remove blinking animation class
+  }
+}
+
+function toggleAIPlayPause(){
+  aiAutoPaused = !aiAutoPaused;
+  
+  if(aiAutoPaused){
+    updateAIPlayPauseButton(true);
+    showToast('AI Auto-Play Paused');
+  } else {
+    updateAIPlayPauseButton(false);
     showToast('AI Auto-Play Resumed');
     
     // If an AI should move now, trigger it
@@ -1349,6 +1356,7 @@ function swapPlayersAndRestart(){
   // Reset game state
   gameOverInfo = null;
   aiAutoPaused = false;
+  updateAIPlayPauseButton(false);
   
   if(wsConnection && wsConnection.readyState === WebSocket.OPEN){
     // Send set_players with SWAPPED positions
@@ -1474,6 +1482,7 @@ function startGameWithPlayers(blackPlayer, whitePlayer){
   // Reset game state variables for new game
   gameOverInfo = null;
   aiAutoPaused = false;
+  updateAIPlayPauseButton(false);
   console.log('🔄 Reset gameOverInfo and aiAutoPaused for new game');
   
   // CORRECT ORDER: First init to create session, THEN set_players
@@ -1887,6 +1896,7 @@ function setupToolbar(){
       // Reset game over state immediately to prevent AI blocking
       gameOverInfo = null;
       aiAutoPaused = false;
+      updateAIPlayPauseButton(false);
       wsConnection.send(JSON.stringify({ type: 'reset_game' }));
     }
   });

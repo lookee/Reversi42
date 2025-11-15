@@ -23,6 +23,8 @@
   --bg:#0b1210; --panel:#10241c; --line:#2b4d3e; --txt:#e8f2eb; --muted:#a5b5a9;
   --accent:#10b981; --accent2:#34d399; --gold:#f4c15d;
   --discW:#f7f9fc; --discB:#0b0f14;
+  /* Base font size reduced for normal screens */
+  font-size: 14px; /* Reduced from default 16px */
 }
 
 /* ========================================
@@ -35,19 +37,30 @@ html,body{
     var(--bg);
   color:var(--txt); margin:0;
   font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;
+  font-size: 14px; /* Base font size */
+  /* Prevent vertical scroll - ensure content fits in viewport */
+  overflow-x: hidden;
+  overflow-y: auto; /* Allow scroll only if absolutely necessary */
+  height: 100%;
 }
-.container{max-width:1160px;margin:0 auto;padding:24px}
+.container{
+  max-width:min(960px, 95vw);
+  margin:0 auto;
+  padding:clamp(12px, 2vw, 20px);
+  /* Ensure container doesn't exceed viewport */
+  box-sizing:border-box;
+}
 .card{
   background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
   border:1px solid rgba(255,255,255,.06); border-radius:16px; overflow:hidden;
   box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35);
 }
 .chip{border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04);
-      border-radius:999px; padding:.4rem .7rem; display:inline-flex; gap:.45rem; align-items:center}
+      border-radius:999px; padding:clamp(0.25rem, 0.5vw, 0.4rem) clamp(0.5rem, 1vw, 0.7rem); display:inline-flex; gap:clamp(0.3rem, 0.5vw, 0.45rem); align-items:center; font-size:clamp(0.7rem, 1.2vw, 0.875rem)}
 .btn{border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05);
-     border-radius:10px; padding:.5rem .8rem; cursor:pointer; transition: all 0.2s ease}
+     border-radius:8px; padding:clamp(0.4rem, 0.8vw, 0.5rem) clamp(0.6rem, 1.2vw, 0.8rem); cursor:pointer; transition: all 0.2s ease; font-size:clamp(0.75rem, 1.2vw, 0.875rem)}
 .btn:hover{background:rgba(255,255,255,.08)}
-.btn .icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px}
+.btn .icon{display:inline-flex;align-items:center;justify-content:center;width:clamp(14px, 1.2vw, 16px);height:clamp(14px, 1.2vw, 16px)}
 /* Swap Players button - Special styling with animation */
 #swapPlayersBtn{
   background:rgba(245,158,11,.12);
@@ -108,13 +121,14 @@ html,body{
 .modal-content {
   background: linear-gradient(180deg, rgba(11, 18, 16, 0.90), rgba(11, 18, 16, 0.88));
   border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 16px;
+  border-radius: clamp(10px, 1.5vw, 12px);
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(16, 185, 129, 0.1) inset;
   width: 100%;
-  max-width: 900px;
+  max-width: min(800px, 90vw);
   max-height: 85vh;
   overflow: hidden;
   animation: modalFadeIn 0.2s ease-out;
+  padding: clamp(16px, 2vw, 20px);
 }
 
 @keyframes modalFadeIn {
@@ -129,13 +143,13 @@ html,body{
 }
 .modal-header {
   position: relative;
-  padding: 20px 24px;
+  padding: clamp(16px, 2vw, 20px) clamp(20px, 2.5vw, 24px);
   border-bottom: 1px solid rgba(16, 185, 129, 0.2);
   background: rgba(16, 185, 129, 0.05);
 }
 .modal-header h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: clamp(18px, 2.5vw, 22px);
   font-weight: 700;
   color: var(--txt);
   text-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
@@ -147,9 +161,9 @@ html,body{
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
-  width: 36px;
-  height: 36px;
-  font-size: 24px;
+  width: clamp(28px, 3vw, 32px);
+  height: clamp(28px, 3vw, 32px);
+  font-size: clamp(18px, 2vw, 20px);
   cursor: pointer;
   color: var(--muted);
   transition: all 0.2s;
@@ -190,23 +204,23 @@ html,body{
 }
 /* Tiny player action button */
 .miniIconBtn{border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05);
-     border-radius:999px; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+     border-radius:999px; width:clamp(24px, 2.5vw, 28px); height:clamp(24px, 2.5vw, 28px); display:inline-flex; align-items:center; justify-content:center;
      color:var(--muted); transition:all .2s ease}
 .miniIconBtn:hover{background:rgba(255,255,255,.08); color:var(--txt)}
-.miniIconBtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.miniIconBtn svg{width:clamp(14px, 1.2vw, 16px);height:clamp(14px, 1.2vw, 16px);stroke:currentColor;fill:none;stroke-width:2}
 .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent)}
 
 /* ========================================
    UI COMPONENTS - Avatars
    ======================================== */
 .avatar{
-  width:72px;
-  height:72px;
+  width:clamp(48px, 6vw, 64px);
+  height:clamp(48px, 6vw, 64px);
   border-radius:50%;
   display:grid;
   place-items:center;
   font-weight:900;
-  font-size:22px; 
+  font-size:clamp(16px, 2.5vw, 20px); 
   letter-spacing:.5px;
   color:#e6f6ec;
   border:2px solid rgba(255,255,255,.15);
@@ -337,9 +351,17 @@ html,body{
 /* ========================================
    BOARD & GAME ELEMENTS
    ======================================== */
-.board{display:grid; grid-template-columns:repeat(8,1fr); gap:4px;
-  border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px;
-  background:linear-gradient(180deg,#1d3c31,#17362b)}
+/* Board container - ensures board fits in viewport without vertical scroll */
+.board{display:grid; grid-template-columns:repeat(8,1fr); gap:clamp(3px, 0.5vw, 4px);
+  border:1px solid rgba(255,255,255,.06); border-radius:clamp(10px, 1.5vw, 14px); padding:clamp(8px, 1.5vw, 12px);
+  background:linear-gradient(180deg,#1d3c31,#17362b);
+  /* Ensure board fits in viewport - use min of available width and height */
+  width:100%;
+  max-width:min(100%, calc(100vh - 300px)); /* Reserve space for header/footer */
+  aspect-ratio:1; /* Keep board square */
+  max-height:min(100%, calc(100vh - 300px)); /* Prevent vertical scroll */
+  box-sizing:border-box;
+}
 .cell{position:relative; width:100%; cursor:pointer; transition:all 0.2s ease}
 .cell::before{content:""; display:block; padding-top:100%}
 .cell-content{position:absolute; inset:0;
@@ -409,11 +431,54 @@ html,body{
   border:1px solid rgba(255,255,255,.08); box-shadow: inset 0 1px 2px rgba(0,0,0,.45), 0 0 0 2px rgba(0,0,0,.05);
   opacity:.85; z-index:0}
 
-/* Board coordinates */
+/* Board coordinates - aligned with cells */
 .coords{color:#c7d5cc; font-size:.78rem; letter-spacing:.08em}
-.rows-nums{display:grid; grid-template-rows:repeat(8,1fr); gap:4px; align-self:start; margin-top:12px; width:1.6rem; height:auto; justify-self:end; margin-right:-18px}  
-.rows-nums .coords{display:flex; align-items:center; justify-content:flex-end}
-.col-letters{position:absolute; left:0; right:0; top:-22px; display:grid; grid-template-columns:repeat(8,1fr); gap:4px; padding:0 12px; place-items:center; pointer-events:none}
+/* Board wrapper - container for board and column letters */
+/* Note: Using attribute selector for inline style - if this doesn't work well, 
+   consider adding a class to the wrapper div in HTML */
+div[style*="position:relative"]{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:100%;
+  max-width:100%;
+}
+/* Row numbers - aligned with board rows using same grid structure */
+.rows-nums{
+  display:grid; 
+  grid-template-rows:repeat(8,1fr); 
+  gap:clamp(3px, 0.5vw, 4px); /* Match board gap */
+  align-self:start; 
+  width:1.6rem; 
+  height:100%; /* Match board height */
+  justify-self:end; 
+  margin-right:-18px;
+  /* Ensure alignment with board cells */
+  padding-top:clamp(8px, 1.5vw, 12px); /* Match board padding */
+  padding-bottom:clamp(8px, 1.5vw, 12px); /* Match board padding */
+  box-sizing:border-box;
+}  
+.rows-nums .coords{
+  display:flex; 
+  align-items:center; 
+  justify-content:flex-end;
+  /* Match cell height */
+  height:100%;
+}
+/* Column letters - aligned with board columns using same grid structure */
+.col-letters{
+  position:absolute; 
+  left:0; 
+  right:0; 
+  top:clamp(-22px, -2vw, -24px); /* Position above board */
+  display:grid; 
+  grid-template-columns:repeat(8,1fr); 
+  gap:clamp(3px, 0.5vw, 4px); /* Match board gap */
+  padding:0 clamp(8px, 1.5vw, 12px); /* Match board padding */
+  place-items:center; 
+  pointer-events:none;
+  height:clamp(18px, 2vw, 22px); /* Fixed height for letters */
+}
 
 /* ========================================
    MOVES & HISTORY
@@ -647,7 +712,7 @@ html,body{
 /* Children Container */
 .opening-tree-children{
   margin-top:4px;
-  margin-left:20px;
+  margin-left:clamp(16px, 2vw, 20px);
   padding-left:12px;
   border-left:2px solid rgba(16,185,129,.15);
   position:relative
@@ -816,18 +881,18 @@ body.initial-setup-active .modalOverlay{
   z-index:100001;
 }
 .modalCard{background:linear-gradient(180deg,rgba(15,20,30,.95),rgba(10,15,25,.98));
-  border:1px solid rgba(139,92,246,.3); border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(139,92,246,.2);
-  min-width:280px; width:min(960px,92vw)}
-.modalHead{display:flex; align-items:center; justify-content:space-between; gap:12px;
-  padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
-.modalTitle{font-weight:800; letter-spacing:.02em}
-.modalBody{padding:18px; color:var(--muted); font-size:14px; max-height:70vh; overflow:auto}
+  border:1px solid rgba(139,92,246,.3); border-radius:clamp(12px, 1.5vw, 16px); box-shadow:0 10px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(139,92,246,.2);
+  min-width:min(240px, 85vw); width:min(800px,92vw)}
+.modalHead{display:flex; align-items:center; justify-content:space-between; gap:clamp(10px, 1.2vw, 12px);
+  padding:clamp(10px, 1.2vw, 12px) clamp(12px, 1.5vw, 14px); border-bottom:1px solid rgba(255,255,255,.08)}
+.modalTitle{font-weight:800; letter-spacing:.02em; font-size:clamp(0.9rem, 1.5vw, 1rem)}
+.modalBody{padding:clamp(14px, 1.8vw, 18px); color:var(--muted); font-size:clamp(0.8rem, 1.2vw, 0.875rem); max-height:70vh; overflow:auto}
 
 /* ========================================
    EPIC PLAYERS MODAL - Enhanced Player Selection
    ======================================== */
 #playersModal .modalCard{
-  width:min(1200px,95vw);
+  width:min(1000px,95vw);
   max-height:90vh;
   display:flex;
   flex-direction:column
@@ -847,7 +912,7 @@ body.initial-setup-active .modalOverlay{
   background:linear-gradient(180deg, rgba(11,18,16,.98), rgba(11,18,16,.95));
   backdrop-filter:blur(8px);
   padding:12px 16px;
-  margin:-24px -24px 16px -24px;
+  margin:clamp(-16px, -2vw, -20px) clamp(-16px, -2vw, -20px) clamp(12px, 1.5vw, 16px) clamp(-16px, -2vw, -20px);
   border-bottom:1px solid rgba(139,92,246,.3);
   display:flex;
   align-items:center;
@@ -913,8 +978,8 @@ body.initial-setup-active .modalOverlay{
 /* Players grid - Responsive with larger cards */
 .playersGrid{
   display:grid; 
-  grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); 
-  gap:20px;
+  grid-template-columns:repeat(auto-fill, minmax(min(280px, 90vw),1fr)); 
+  gap:clamp(16px, 2vw, 20px);
   padding:4px
 }
 
@@ -923,7 +988,7 @@ body.initial-setup-active .modalOverlay{
   border:1px solid rgba(255,255,255,.12); 
   background:linear-gradient(145deg, rgba(16,24,32,.95), rgba(10,15,20,.98));
   border-radius:16px; 
-  padding:20px; 
+  padding:clamp(16px, 2vw, 18px); 
   cursor:pointer; 
   transition:all .3s cubic-bezier(.4,0,.2,1);
   position:relative;
@@ -1075,13 +1140,13 @@ body.initial-setup-active .modalOverlay{
 
 /* Player avatar - board style */
 .playerAvatar{
-  width:64px;
-  height:64px;
+  width:clamp(48px, 5vw, 56px);
+  height:clamp(48px, 5vw, 56px);
   border-radius:50%;
   display:grid;
   place-items:center;
   font-weight:900;
-  font-size:26px;
+  font-size:clamp(18px, 2.5vw, 22px);
   letter-spacing:.5px;
   color:#e6f6ec;
   border:3px solid rgba(255,255,255,.2);
@@ -1502,9 +1567,9 @@ body.initial-setup-active .modalOverlay{
 /* Icon in player card */
 .playerIcon{
   position:absolute;
-  top:16px;
-  right:16px;
-  font-size:32px;
+  top:clamp(12px, 1.5vw, 16px);
+  right:clamp(12px, 1.5vw, 16px);
+  font-size:clamp(24px, 3vw, 28px);
   opacity:.15;
   pointer-events:none;
   transition:all .3s ease
@@ -1882,7 +1947,7 @@ code.language-json{font-size:13px}
   border-radius:8px
 }
 .stats-dashboard-body{
-  padding:16px 20px;
+  padding:clamp(12px, 1.5vw, 16px) clamp(16px, 2vw, 20px);
   overflow-y:auto
 }
 .stats-player-avatar{
@@ -1899,7 +1964,7 @@ code.language-json{font-size:13px}
   border:2px solid rgba(255,255,255,0.2)
 }
 .stats-player-name{
-  font-size:20px;
+  font-size:clamp(16px, 2vw, 18px);
   font-weight:700;
   color:#63b3ed
 }
@@ -1909,7 +1974,7 @@ code.language-json{font-size:13px}
   font-family:'Courier New',monospace
 }
 .stats-modal-body{
-  padding:24px;
+  padding:clamp(16px, 2vw, 20px);
   overflow-y:auto;
   flex:1
 }
@@ -1986,14 +2051,14 @@ code.language-json{font-size:13px}
   letter-spacing:0.6px
 }
 .stat-value{
-  font-size:20px;
+  font-size:clamp(16px, 2vw, 18px);
   font-weight:700;
   color:#e5e5e5;
   font-family:'Courier New',monospace;
   letter-spacing:-0.5px
 }
 .stat-value-large{
-  font-size:28px;
+  font-size:clamp(20px, 2.5vw, 24px);
   font-weight:700;
   color:#63b3ed;
   font-family:'Courier New',monospace;
@@ -2094,7 +2159,7 @@ code.language-json{font-size:13px}
   letter-spacing:-0.3px
 }
 .stat-value-lg{
-  font-size:24px;
+  font-size:clamp(18px, 2.2vw, 20px);
   font-weight:700;
   color:#63b3ed;
   font-family:'Courier New',monospace;
@@ -2300,6 +2365,26 @@ code.language-json{font-size:13px}
   }
 }
 
+/* AI Play/Pause Button - Blinking when paused */
+#aiPlayPauseBtn.ai-paused{
+  animation:aiPauseBlink 1s ease-in-out infinite;
+  box-shadow:0 0 10px rgba(245,158,11,0.5);
+}
+@keyframes aiPauseBlink{
+  0%, 100%{
+    opacity:1;
+    box-shadow:0 0 10px rgba(245,158,11,0.5);
+    border-color:rgba(245,158,11,0.35);
+    background:rgba(245,158,11,0.12);
+  }
+  50%{
+    opacity:0.6;
+    box-shadow:0 0 20px rgba(245,158,11,0.8);
+    border-color:rgba(245,158,11,0.6);
+    background:rgba(245,158,11,0.25);
+  }
+}
+
 /* Generic Animations */
 @keyframes fadeIn{
   from{opacity:0}
@@ -2389,9 +2474,9 @@ code.language-json{font-size:13px}
 }
 
 .initial-setup-container{
-  max-width:1100px;
+  max-width:min(900px, 95vw);
   width:90%;
-  padding:48px;
+  padding:clamp(24px, 4vw, 36px);
   animation:slideUp 0.6s ease-out;
 }
 
@@ -2408,14 +2493,14 @@ code.language-json{font-size:13px}
 
 .initial-setup-header{
   text-align:center;
-  margin-bottom:64px;
+  margin-bottom:clamp(32px, 5vw, 48px);
 }
 
 .initial-setup-title{
-  font-size:clamp(3rem, 8vw, 5rem);
+  font-size:clamp(2rem, 6vw, 3.5rem);
   font-weight:900;
   color:#ffffff;
-  margin:0 0 16px 0;
+  margin:0 0 clamp(12px, 1.5vw, 16px) 0;
   letter-spacing:-0.02em;
   text-shadow:
     0 4px 20px rgba(16,185,129,0.6),
@@ -2434,9 +2519,9 @@ code.language-json{font-size:13px}
 }
 
 .initial-setup-version{
-  font-size:clamp(0.9rem, 1.8vw, 1.1rem);
+  font-size:clamp(0.75rem, 1.5vw, 0.9rem);
   color:rgba(16,185,129,0.8);
-  margin:8px 0 4px 0;
+  margin:clamp(6px, 1vw, 8px) 0 clamp(4px, 0.5vw, 4px) 0;
   font-weight:600;
   letter-spacing:0.15em;
   font-family:'Courier New', monospace;
@@ -2444,7 +2529,7 @@ code.language-json{font-size:13px}
 }
 
 .initial-setup-subtitle{
-  font-size:clamp(1.1rem, 2.5vw, 1.5rem);
+  font-size:clamp(0.9rem, 2vw, 1.2rem);
   color:rgba(255,255,255,0.7);
   margin:0;
   font-weight:400;
@@ -2454,16 +2539,16 @@ code.language-json{font-size:13px}
 .initial-setup-players{
   display:grid;
   grid-template-columns:1fr auto 1fr;
-  gap:48px;
+  gap:clamp(24px, 4vw, 36px);
   align-items:center;
-  margin-bottom:48px;
+  margin-bottom:clamp(24px, 4vw, 36px);
 }
 
 .initial-player-card{
   background:linear-gradient(145deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03));
   border:2px solid rgba(16,185,129,0.3);
   border-radius:24px;
-  padding:40px 32px;
+  padding:clamp(24px, 3vw, 32px) clamp(20px, 2.5vw, 28px);
   text-align:center;
   transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
   box-shadow:
@@ -2517,8 +2602,8 @@ code.language-json{font-size:13px}
 }
 
 .initial-player-icon{
-  font-size:4rem;
-  margin-bottom:16px;
+  font-size:clamp(2.5rem, 5vw, 3.5rem);
+  margin-bottom:clamp(12px, 1.5vw, 16px);
   filter:drop-shadow(0 4px 12px rgba(16,185,129,0.4));
   animation:float 3s ease-in-out infinite;
 }
@@ -2541,21 +2626,21 @@ code.language-json{font-size:13px}
 }
 
 .initial-player-title{
-  font-size:1.5rem;
+  font-size:clamp(1.1rem, 2vw, 1.3rem);
   font-weight:700;
   color:#34d399;
-  margin:0 0 24px 0;
+  margin:0 0 clamp(16px, 2vw, 20px) 0;
   letter-spacing:0.05em;
   text-transform:uppercase;
 }
 
 .initial-player-selected{
-  margin:24px 0;
-  padding:24px 24px 20px 24px;
+  margin:clamp(16px, 2vw, 20px) 0;
+  padding:clamp(16px, 2vw, 20px) clamp(16px, 2vw, 20px) clamp(14px, 1.5vw, 18px) clamp(16px, 2vw, 20px);
   background:rgba(0,0,0,0.3);
   border-radius:16px;
   border:1px solid rgba(16,185,129,0.2);
-  min-height:280px;
+  min-height:clamp(220px, 30vw, 260px);
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -2961,12 +3046,12 @@ code.language-json{font-size:13px}
 /* Responsive for mobile */
 @media (max-width: 768px) {
   .initial-setup-container{
-    padding:32px 24px;
+    padding:clamp(20px, 3vw, 28px) clamp(16px, 2.5vw, 24px);
   }
   
   .initial-setup-players{
     grid-template-columns:1fr;
-    gap:32px;
+    gap:clamp(20px, 3vw, 28px);
   }
   
   .initial-vs-divider{
@@ -2981,13 +3066,13 @@ code.language-json{font-size:13px}
   }
   
   .initial-swap-button{
-    width:48px;
-    height:48px;
+    width:clamp(40px, 5vw, 44px);
+    height:clamp(40px, 5vw, 44px);
   }
   
   .initial-swap-button svg{
-    width:24px;
-    height:24px;
+    width:clamp(20px, 2.5vw, 22px);
+    height:clamp(20px, 2.5vw, 22px);
   }
   
   .initial-player-card:nth-child(1){
@@ -3010,48 +3095,52 @@ code.language-json{font-size:13px}
   }
   
   .initial-cancel-button{
-    padding:14px 28px;
-    font-size:0.9rem;
+    padding:clamp(12px, 1.5vw, 14px) clamp(20px, 2.5vw, 24px);
+    font-size:clamp(0.8rem, 1.2vw, 0.9rem);
   }
 }
 
 /* ========================================
    RESPONSIVE IMPROVEMENTS - CONSERVATIVE
    ======================================== */
-/* Make board responsive while keeping layout intact */
+/* Make board responsive while keeping layout intact and preventing vertical scroll */
 @media (max-width: 1400px) {
   .board{
-    max-width: 600px;
+    max-width: min(500px, calc(100vh - 300px));
+    max-height: min(500px, calc(100vh - 300px));
   }
 }
 
 @media (max-width: 1200px) {
   .board{
-    max-width: 500px;
+    max-width: min(450px, calc(100vh - 280px));
+    max-height: min(450px, calc(100vh - 280px));
   }
   .container{
     max-width: 100%;
-    padding: 16px;
+    padding: clamp(12px, 2vw, 16px);
   }
 }
 
 @media (max-width: 768px) {
   .board{
-    max-width: 450px;
+    max-width: min(400px, calc(100vh - 250px));
+    max-height: min(400px, calc(100vh - 250px));
   }
   .container{
-    padding: 12px;
+    padding: clamp(10px, 2vw, 12px);
   }
   .avatar{
-    width: 56px;
-    height: 56px;
-    font-size: 18px;
+    width: clamp(40px, 5vw, 48px);
+    height: clamp(40px, 5vw, 48px);
+    font-size: clamp(14px, 2vw, 16px);
   }
 }
 
 @media (max-width: 600px) {
   .board{
-    max-width: 90vw;
+    max-width: min(90vw, calc(100vh - 220px));
+    max-height: min(90vw, calc(100vh - 220px));
   }
   aside .card{
     max-height: 250px;
