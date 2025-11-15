@@ -10,11 +10,22 @@ ParallelBitboardMinimaxEngine (lines 776-920 and parallel engine).
 """
 
 import copy
+import sys
 import time
 from multiprocessing import Pool, cpu_count
 from typing import List, Optional
 
 from AI.Apocalyptron.observers.interfaces import SearchObserver
+
+# Set multiprocessing start method for Windows compatibility
+if sys.platform == "win32":
+    try:
+        from multiprocessing import set_start_method
+
+        set_start_method("spawn", force=True)
+    except RuntimeError:
+        # Already set, ignore
+        pass
 
 
 def _evaluate_move_worker(args):
@@ -120,7 +131,18 @@ class ParallelSearch:
     def _get_pool(self):
         """Get or create worker pool"""
         if self._pool is None:
-            self._pool = Pool(processes=self.num_workers)
+            try:
+                self._pool = Pool(processes=self.num_workers)
+            except Exception as e:
+                # Fallback: disable parallel processing on error (e.g., Windows issues)
+                import warnings
+
+                warnings.warn(
+                    f"Failed to create multiprocessing pool: {e}. "
+                    "Falling back to sequential processing."
+                )
+                # Return None to indicate sequential fallback
+                return None
         return self._pool
 
     def close_pool(self):
@@ -297,6 +319,13 @@ class ParallelSearch:
 
         # Evaluate in parallel - use imap_unordered for streaming results
         pool = self._get_pool()
+
+        # Fallback to sequential if pool creation failed (e.g., Windows issues)
+        if pool is None:
+            # Use base search sequentially instead
+            return self.base_search.get_best_move(
+                game, depth, player_name, opening_book, game_history
+            )
 
         # Process results as they arrive (streaming like tail -f)
         best_move = None
