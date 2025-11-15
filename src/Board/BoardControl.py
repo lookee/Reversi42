@@ -53,6 +53,7 @@ class BoardControl(object):
         # Create view with dependency injection
         if view_class is None:
             from ui.implementations.headless import HeadlessBoardView
+
             view_class = HeadlessBoardView  # Default to headless view
 
         if view_args is None:

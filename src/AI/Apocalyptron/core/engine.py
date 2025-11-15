@@ -101,38 +101,28 @@ class ApocalyptronEngine:
     def _build_evaluator(self) -> CompositeEvaluator:
         """
         Build composite evaluator from configuration.
-        
+
         UPDATED: Now supports dynamic evaluator configuration.
         Can build different combinations based on config.evaluators.
         """
         evaluator = CompositeEvaluator()
-        
+
         # Build evaluators from configuration (dynamic!)
         for eval_config in self.config.evaluators:
             # Use custom weights if provided, otherwise use engine default weights
             eval_weights = eval_config.custom_weights or self.weights
-            
-            if eval_config.evaluator_type == 'mobility':
+
+            if eval_config.evaluator_type == "mobility":
+                evaluator.add_evaluator(MobilityEvaluator(eval_weights), weight=eval_config.weight)
+            elif eval_config.evaluator_type == "positional":
                 evaluator.add_evaluator(
-                    MobilityEvaluator(eval_weights),
-                    weight=eval_config.weight
+                    PositionalEvaluator(eval_weights), weight=eval_config.weight
                 )
-            elif eval_config.evaluator_type == 'positional':
-                evaluator.add_evaluator(
-                    PositionalEvaluator(eval_weights),
-                    weight=eval_config.weight
-                )
-            elif eval_config.evaluator_type == 'stability':
-                evaluator.add_evaluator(
-                    StabilityEvaluator(eval_weights),
-                    weight=eval_config.weight
-                )
-            elif eval_config.evaluator_type == 'parity':
-                evaluator.add_evaluator(
-                    ParityEvaluator(eval_weights),
-                    weight=eval_config.weight
-                )
-        
+            elif eval_config.evaluator_type == "stability":
+                evaluator.add_evaluator(StabilityEvaluator(eval_weights), weight=eval_config.weight)
+            elif eval_config.evaluator_type == "parity":
+                evaluator.add_evaluator(ParityEvaluator(eval_weights), weight=eval_config.weight)
+
         return evaluator
 
     def _build_orderer(self) -> CompositeOrderer:
@@ -160,44 +150,40 @@ class ApocalyptronEngine:
             return [ConsoleObserver()]
         else:
             return [QuietObserver()]
-    
+
     def _build_search_strategy(self):
         """
         Build search strategy from configuration.
-        
+
         NEW METHOD: Creates appropriate SearchStrategy based on config.search_strategy.
         Supports: 'fixed_depth', 'iterative_deepening', 'adaptive'
         """
         from AI.Apocalyptron.search import (
+            AdaptiveDepthStrategy,
             FixedDepthStrategy,
             IterativeDeepeningStrategy,
-            AdaptiveDepthStrategy
         )
-        
-        if self.config.search_strategy == 'fixed_depth':
-            return FixedDepthStrategy(
-                self.alphabeta,
-                observers=self.observers
-            )
-        
-        elif self.config.search_strategy == 'iterative_deepening':
+
+        if self.config.search_strategy == "fixed_depth":
+            return FixedDepthStrategy(self.alphabeta, observers=self.observers)
+
+        elif self.config.search_strategy == "iterative_deepening":
             return IterativeDeepeningStrategy(
                 self.alphabeta,
                 use_aspiration=self.config.use_aspiration_windows,
-                observers=self.observers
+                observers=self.observers,
             )
-        
-        elif self.config.search_strategy == 'adaptive':
+
+        elif self.config.search_strategy == "adaptive":
             # CRITICAL: Create a copy of adaptive_depths to avoid sharing
             # This ensures each engine instance has its own independent depth config
             import copy
+
             adaptive_depths_copy = copy.deepcopy(self.config.adaptive_depths)
             return AdaptiveDepthStrategy(
-                self.alphabeta,
-                depth_config=adaptive_depths_copy,
-                observers=self.observers
+                self.alphabeta, depth_config=adaptive_depths_copy, observers=self.observers
             )
-        
+
         else:
             raise ValueError(
                 f"Unknown search strategy: {self.config.search_strategy}. "
@@ -205,7 +191,13 @@ class ApocalyptronEngine:
             )
 
     def get_best_move(
-        self, game, depth: int, player_name: str = None, opening_book=None, game_history: str = None, observer=None
+        self,
+        game,
+        depth: int,
+        player_name: str = None,
+        opening_book=None,
+        game_history: str = None,
+        observer=None,
     ):
         """
         Get best move for position.

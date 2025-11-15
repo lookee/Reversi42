@@ -24,7 +24,7 @@ class BitboardGame:
     # NOTE: Masks are applied BEFORE shift to prevent edge wrapping
     # For left shifts (+): mask out bits that would go beyond board (right/bottom edges)
     # For right shifts (-): mask out bits that would come from beyond board (left/top edges)
-    # 
+    #
     # CRITICAL: Masks must prevent wrap-around at board edges!
     # - Row 1 (top):    bits 0-7   → mask 0x00 in last byte
     # - Row 8 (bottom): bits 56-63 → mask 0x00 in first byte
@@ -33,10 +33,10 @@ class BitboardGame:
     DIRECTIONS = [
         (-8, 0xFFFFFFFFFFFFFF00),  # North: mask row 1 (bits 0-7)
         (-7, 0x7F7F7F7F7F7F7F00),  # NE: mask row 1 AND col H (FIXED: was 0xFEFE...FE00)
-        (1, 0x7F7F7F7F7F7F7F7F),   # East: mask col H
-        (9, 0x007F7F7F7F7F7F7F),   # SE: mask row 8 AND col H
-        (8, 0x00FFFFFFFFFFFFFF),   # South: mask row 8 (bits 56-63)
-        (7, 0x00FEFEFEFEFEFEFE),   # SW: mask row 8 AND col A
+        (1, 0x7F7F7F7F7F7F7F7F),  # East: mask col H
+        (9, 0x007F7F7F7F7F7F7F),  # SE: mask row 8 AND col H
+        (8, 0x00FFFFFFFFFFFFFF),  # South: mask row 8 (bits 56-63)
+        (7, 0x00FEFEFEFEFEFEFE),  # SW: mask row 8 AND col A
         (-1, 0xFEFEFEFEFEFEFEFE),  # West: mask col A
         (-9, 0xFEFEFEFEFEFEFE00),  # NW: mask row 1 AND col A
     ]
@@ -333,7 +333,7 @@ class BitboardGame:
     def view(self):
         """Print board to console (uses Unicode representation by default)"""
         print(self.get_unicode_view())
-    
+
     def __str__(self):
         """String representation (Unicode by default)"""
         return self.get_unicode_view()
@@ -342,54 +342,56 @@ class BitboardGame:
         """Get Zobrist hash for transposition table (to be implemented)"""
         # For now, use simple hash
         return hash((self.black, self.white, self.turn))
-    
+
     def get_unicode_view(self):
         """
         Get elegant Unicode representation of the board.
-        
+
         Uses:
         - ○ for black pieces (circle)
         - ◉ for white pieces (fisheye - visible on dark backgrounds)
         - · for empty squares
-        
+
         Returns:
             str: Unicode board representation
         """
         # Use virtual matrix for display (compatible with Game)
         lines = []
-        
+
         # Header with column coordinates
         lines.append("      A  B  C  D  E  F  G  H")
-        
+
         for row in range(1, 9):
             # Row number on left
             line = f"    {row} "
-            
+
             for col in range(1, 9):
                 cell = self.matrix[row][col]
-                
-                if cell == 'B':
+
+                if cell == "B":
                     symbol = "○"  # Circle for black
-                elif cell == 'W':
+                elif cell == "W":
                     symbol = "◉"  # Fisheye for white
                 else:
                     symbol = "·"  # Empty square
-                
+
                 line += f"{symbol}  "  # Symbol + 2 spaces for alignment
-            
+
             # Row number on right
             line += f"{row}"
             lines.append(line)
-        
+
         # Footer
         lines.append("      A  B  C  D  E  F  G  H")
-        
+
         # Info line
         turn_symbol = "○" if self.turn == "B" else "◉"
-        lines.append(f"       {turn_symbol} Turno:{self.turn}  ○ Nero:{self.black_cnt}  ◉ Bianco:{self.white_cnt}")
-        
+        lines.append(
+            f"       {turn_symbol} Turno:{self.turn}  ○ Nero:{self.black_cnt}  ◉ Bianco:{self.white_cnt}"
+        )
+
         return "\n".join(lines)
-    
+
     def print_unicode_view(self):
         """Print Unicode board representation to stdout"""
         print(self.get_unicode_view())

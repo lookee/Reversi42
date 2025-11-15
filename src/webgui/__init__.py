@@ -4,4 +4,3 @@ Web-based interface for playing Reversi/Othello against AI opponents.
 """
 
 __all__ = ["cli"]
-

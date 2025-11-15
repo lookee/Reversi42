@@ -23,26 +23,26 @@ from Players.PlayerHuman import PlayerHuman
 class PlayerFactory:
     """
     Factory class for creating players with Dependency Injection.
-    
+
     MIGRATION NOTE: This factory now wraps the new PlayerRegistry system.
     All Gladiator players are now created from YAML configurations.
-    
+
     Clean Architecture: Factory handles dependency injection of InputProviders
     for human players, keeping the Player domain layer UI-agnostic.
-    
+
     Legacy Support: Maintains backward compatibility with old API.
     New code should use Players.config.PlayerRegistry directly.
     """
 
     # Legacy player classes (kept for backward compatibility)
     LEGACY_PLAYER_CLASSES = [
-        PlayerHuman,         # Human player
+        PlayerHuman,  # Human player
         PlayerApocalyptron,  # Apocalyptron AI
     ]
 
     # Build legacy registry
     PLAYER_TYPES = {cls.PLAYER_METADATA["display_name"]: cls for cls in LEGACY_PLAYER_CLASSES}
-    
+
     # NEW: PlayerRegistry integration
     _registry = None
 
@@ -75,16 +75,17 @@ class PlayerFactory:
         """Get or create PlayerRegistry instance (lazy initialization)."""
         if cls._registry is None:
             from Players.config import PlayerRegistry
+
             cls._registry = PlayerRegistry(auto_discover=True)
         return cls._registry
-    
+
     @classmethod
     def create_player(cls, player_type, **kwargs):
         """
         Create a player of the specified type with dependency injection.
-        
+
         MIGRATION: Now uses PlayerRegistry for AI players.
-        
+
         For PlayerHuman, automatically injects appropriate InputProvider.
         For AI players, delegates to PlayerRegistry (config-based).
 
@@ -101,22 +102,23 @@ class PlayerFactory:
         # Check legacy players first (Human, Apocalyptron)
         if player_type in cls.PLAYER_TYPES:
             player_class = cls.PLAYER_TYPES[player_type]
-            
+
             # Special handling for PlayerHuman - inject InputProvider
             if player_class == PlayerHuman:
                 return cls.create_human_player(**kwargs)
-            
+
             # Apocalyptron uses legacy class
             return player_class(**kwargs)
-        
+
         # Try PlayerRegistry for config-based players (Gladiators)
         try:
             import logging
+
             logger = logging.getLogger(__name__)
-            
+
             registry = cls._get_registry()
             available_players = registry.list_players()
-            
+
             logger.info(f"")
             logger.info(f"╔══════════════════════════════════════════════════════════════╗")
             logger.info(f"║ 🔍 PlayerFactory.create_player                               ║")
@@ -125,57 +127,60 @@ class PlayerFactory:
             logger.info(f"   Available players in registry: {available_players}")
             logger.info(f"╚══════════════════════════════════════════════════════════════╝")
             logger.info(f"")
-            
+
             # EXACT MATCH FIRST (case-sensitive)
             if player_type in available_players:
                 logger.info(f"✅ EXACT MATCH found: '{player_type}'")
                 player = registry.create_player(player_type, cached=False)
-                
+
                 # VALIDATION: Verify the player name matches what we requested
                 player_info = registry.get_player_info(player_type)
-                actual_name = player_info['metadata'].get('name', 'UNKNOWN')
+                actual_name = player_info["metadata"].get("name", "UNKNOWN")
                 if actual_name != player_type:
                     logger.error(f"❌ CRITICAL: Player name mismatch!")
                     logger.error(f"   Requested: '{player_type}'")
                     logger.error(f"   Got: '{actual_name}'")
-                    raise ValueError(f"Player name mismatch: requested '{player_type}', got '{actual_name}'")
-                
+                    raise ValueError(
+                        f"Player name mismatch: requested '{player_type}', got '{actual_name}'"
+                    )
+
                 logger.info(f"✅ Verified: Player '{player_type}' created correctly")
                 return player
-            
+
             # CASE-INSENSITIVE MATCH (but log it as a warning)
             matched_name = None
             for registered_name in available_players:
                 if registered_name.upper() == player_type.upper():
                     matched_name = registered_name
                     break
-            
+
             if matched_name:
                 logger.warning(f"⚠️  CASE-INSENSITIVE MATCH: '{player_type}' → '{matched_name}'")
                 logger.warning(f"   This may cause issues if names don't match exactly!")
                 player = registry.create_player(matched_name, cached=False)
-                
+
                 # VALIDATION: Verify the matched player
                 player_info = registry.get_player_info(matched_name)
-                actual_name = player_info['metadata'].get('name', 'UNKNOWN')
+                actual_name = player_info["metadata"].get("name", "UNKNOWN")
                 logger.info(f"✅ Created player: '{actual_name}' (matched from '{player_type}')")
                 return player
-            
+
             logger.error(f"❌ Player '{player_type}' NOT FOUND in registry!")
-            
+
         except Exception as e:
             import logging
+
             logger = logging.getLogger(__name__)
             logger.error(f"❌ Registry lookup failed for '{player_type}': {e}")
             logger.exception(e)
-        
+
         # Player not found
         available = list(cls.PLAYER_TYPES.keys())
         try:
             available.extend(cls._get_registry().list_players())
         except:
             pass
-        
+
         raise ValueError(
             f"Unsupported player type: '{player_type}'\n"
             f"Available players: {', '.join(sorted(set(available)))}"
@@ -260,48 +265,49 @@ class PlayerFactory:
     def get_available_player_types(cls):
         """
         Get list of available (enabled) player types.
-        
+
         MIGRATION: Now includes both legacy and config-based players.
 
         Returns:
             list: List of available player type names
         """
         available = []
-        
+
         # Legacy players
         for player_class in cls.LEGACY_PLAYER_CLASSES:
             if player_class.PLAYER_METADATA.get("enabled", False):
                 available.append(player_class.PLAYER_METADATA["display_name"])
-        
+
         # Config-based players from registry
         try:
             registry = cls._get_registry()
             available.extend(registry.list_players())
         except Exception as e:
             import logging
+
             logging.getLogger(__name__).warning(f"Could not load registry players: {e}")
-        
+
         return sorted(set(available))
 
     @classmethod
     def get_all_player_types(cls):
         """
         Get list of all player types (including disabled).
-        
+
         MIGRATION: Now includes both legacy and config-based players.
 
         Returns:
             list: List of all player type names
         """
         all_types = list(cls.PLAYER_TYPES.keys())
-        
+
         # Add config-based players
         try:
             registry = cls._get_registry()
             all_types.extend(registry.list_players())
         except Exception:
             pass
-        
+
         return sorted(set(all_types))
 
     @classmethod

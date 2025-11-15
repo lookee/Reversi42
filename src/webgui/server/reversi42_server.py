@@ -7,12 +7,12 @@ Usage:
     python -m src.webgui.backend_server --port 8000 --player DIVZERO.EXE
 """
 
-import sys
-import os
-import logging
-import traceback
-import signal
 import atexit
+import logging
+import os
+import signal
+import sys
+import traceback
 from datetime import datetime
 from typing import Dict, Optional, Tuple
 
@@ -24,18 +24,20 @@ project_root = os.path.dirname(src_dir)  # project root
 sys.path.insert(0, src_dir)
 sys.path.insert(0, project_root)
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, FileResponse, Response
+import argparse
 import asyncio
 import json
-import argparse
-from typing import Dict, Set, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from typing import Dict, Optional, Set
+
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse, Response
+
+from Players.PlayerFactory import PlayerFactory
 
 # Import game engine
 from Reversi.Game import Game, Move
-from Players.PlayerFactory import PlayerFactory
 
 # Import WebSocket observer for AI insights
 from webgui.server.websocket_observer import WebSocketSearchObserver
@@ -1432,7 +1434,7 @@ async def get_game_config():
 async def get_version():
     """Get Reversi42 version from centralized source"""
     try:
-        from __version__ import __version__, __author__, __url__
+        from __version__ import __author__, __url__, __version__
 
         return {"version": __version__, "author": __author__, "url": __url__, "name": "Reversi42"}
     except Exception as e:

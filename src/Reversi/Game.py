@@ -133,53 +133,55 @@ class Game(object):
     def view(self):
         """print to stdout the board (uses Unicode representation by default)"""
         print(self.get_unicode_view())
-    
+
     def get_unicode_view(self):
         """
         Get elegant Unicode representation of the board.
-        
+
         Uses:
         - ○ for black pieces (circle)
         - ◉ for white pieces (fisheye - visible on dark backgrounds)
         - · for empty squares
-        
+
         Returns:
             str: Unicode board representation
         """
         lines = []
-        
+
         # Header with column coordinates
         lines.append("      A  B  C  D  E  F  G  H")
-        
+
         for row in range(1, 9):
             # Row number on left
             line = f"    {row} "
-            
+
             for col in range(1, 9):
                 cell = self.matrix[row][col]
-                
-                if cell == 'B':
+
+                if cell == "B":
                     symbol = "○"  # Circle for black
-                elif cell == 'W':
+                elif cell == "W":
                     symbol = "◉"  # Fisheye for white
                 else:
                     symbol = "·"  # Empty square
-                
+
                 line += f"{symbol}  "  # Symbol + 2 spaces for alignment
-            
+
             # Row number on right
             line += f"{row}"
             lines.append(line)
-        
+
         # Footer
         lines.append("      A  B  C  D  E  F  G  H")
-        
+
         # Info line
         turn_symbol = "○" if self.turn == "B" else "◉"
-        lines.append(f"       {turn_symbol} Turno:{self.turn}  ○ Nero:{self.black_cnt}  ◉ Bianco:{self.white_cnt}")
-        
+        lines.append(
+            f"       {turn_symbol} Turno:{self.turn}  ○ Nero:{self.black_cnt}  ◉ Bianco:{self.white_cnt}"
+        )
+
         return "\n".join(lines)
-    
+
     def print_unicode_view(self):
         """Print Unicode board representation to stdout"""
         print(self.get_unicode_view())
@@ -386,7 +388,7 @@ class Game(object):
         cur_state = (self.export_str(), self.turn, self.turn_cnt, self.history)
         # Pop saved state (board, turn, turn_cnt)
         saved_state = self.board_position_stack.pop()
-        
+
         # Unpack saved state
         if isinstance(saved_state, tuple):
             # New format: (board, turn, turn_cnt)

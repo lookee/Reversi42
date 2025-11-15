@@ -13,14 +13,19 @@ The knowledge is stored as:
 This organization keeps related code and data together (Cohesion principle).
 """
 
+from .enhanced_opening_book import (
+    EnhancedOpeningBook,
+    MoveEvaluation,
+    SelectionMode,
+    get_enhanced_opening_book,
+)
 from .opening_book import OpeningBook, get_default_opening_book
-from .enhanced_opening_book import EnhancedOpeningBook, get_enhanced_opening_book, SelectionMode, MoveEvaluation
 
 __all__ = [
-    "OpeningBook", 
+    "OpeningBook",
     "get_default_opening_book",
     "EnhancedOpeningBook",
-    "get_enhanced_opening_book", 
+    "get_enhanced_opening_book",
     "SelectionMode",
-    "MoveEvaluation"
+    "MoveEvaluation",
 ]

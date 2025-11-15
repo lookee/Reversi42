@@ -14,13 +14,13 @@ Usage:
     reversi42 --help                   # Show help
 """
 
-import sys
-import os
 import argparse
 import asyncio
-import webbrowser
-import time
+import os
 import signal
+import sys
+import time
+import webbrowser
 from pathlib import Path
 from typing import Optional
 

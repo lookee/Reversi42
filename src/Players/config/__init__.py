@@ -13,40 +13,39 @@ Architecture:
 
 Usage:
     from Players.config import PlayerRegistry
-    
+
     # Initialize registry (auto-discovers all players)
     registry = PlayerRegistry()
-    
+
     # Get available players
     players = registry.list_players()
-    
+
     # Create player instance
     player = registry.create_player("DIVZERO.EXE")
 """
 
-from .registry import PlayerRegistry
-from .loader import ConfigLoader
-from .factory import PlayerFactory
 from .discovery import PlayerDiscovery
-from .validator import ConfigValidator
 from .exceptions import (
-    PlayerConfigError,
-    PlayerNotFoundError,
     InvalidConfigError,
-    PlayerCreationError
+    PlayerConfigError,
+    PlayerCreationError,
+    PlayerNotFoundError,
 )
+from .factory import PlayerFactory
+from .loader import ConfigLoader
+from .registry import PlayerRegistry
+from .validator import ConfigValidator
 
 __all__ = [
-    'PlayerRegistry',
-    'ConfigLoader',
-    'PlayerFactory',
-    'PlayerDiscovery',
-    'ConfigValidator',
-    'PlayerConfigError',
-    'PlayerNotFoundError',
-    'InvalidConfigError',
-    'PlayerCreationError',
+    "PlayerRegistry",
+    "ConfigLoader",
+    "PlayerFactory",
+    "PlayerDiscovery",
+    "ConfigValidator",
+    "PlayerConfigError",
+    "PlayerNotFoundError",
+    "InvalidConfigError",
+    "PlayerCreationError",
 ]
 
-__version__ = '1.0.0'
-
+__version__ = "1.0.0"

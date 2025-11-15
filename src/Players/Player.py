@@ -52,14 +52,22 @@ class Player(object):
         """
         # Default implementation: return first move
         return move_list[0] if move_list else None
-    
-    def _call_engine_with_observer(self, engine, bitboard_game, depth, player_name=None, 
-                                     opening_book=None, game_history=None, observer=None):
+
+    def _call_engine_with_observer(
+        self,
+        engine,
+        bitboard_game,
+        depth,
+        player_name=None,
+        opening_book=None,
+        game_history=None,
+        observer=None,
+    ):
         """
         Helper method to call engine.get_best_move with observer support.
-        
+
         This centralizes observer handling so all AI players get it automatically.
-        
+
         Args:
             engine: ApocalyptronEngine instance
             bitboard_game: BitboardGame instance
@@ -68,7 +76,7 @@ class Player(object):
             opening_book: Opening book instance (optional)
             game_history: Game history string (optional)
             observer: SearchObserver instance (optional, from control parameter)
-        
+
         Returns:
             Best move from engine
         """
@@ -78,7 +86,7 @@ class Player(object):
             player_name=player_name,
             opening_book=opening_book,
             game_history=game_history,
-            observer=observer
+            observer=observer,
         )
 
     @classmethod

@@ -6,4 +6,3 @@ This package contains comprehensive tests for:
 - Frontend JavaScript functionality
 - End-to-end integration tests
 """
-

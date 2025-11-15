@@ -3,7 +3,7 @@ HeadlessBoardView - No-Rendering View for Tournaments
 
 This view implementation performs no rendering at all. It's perfect for:
 - Automated tournaments
-- Performance benchmarking  
+- Performance benchmarking
 - Batch game execution
 - CI/CD testing
 

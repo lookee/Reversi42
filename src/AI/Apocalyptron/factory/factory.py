@@ -128,22 +128,22 @@ class ApocalyptronFactory:
         )
 
         return ApocalyptronEngine(config=config)
-    
+
     # NEW PRESETS - Diverse Player Configurations
-    
+
     @staticmethod
     def create_speed_demon(depth: int = 6) -> ApocalyptronEngine:
         """
         Speed Demon: Maximum speed, minimal intelligence.
-        
+
         - Fixed depth (no iterative deepening)
         - No pruning techniques
         - Only positional evaluator
         - No parallel (overhead too high for shallow)
-        
+
         Args:
             depth: Search depth (default: 6)
-        
+
         Returns:
             ApocalyptronEngine optimized for speed
         """
@@ -158,18 +158,18 @@ class ApocalyptronFactory:
             .build()
         )
         return ApocalyptronEngine(config=config)
-    
+
     @staticmethod
     def create_mobility_obsessed(depth: int = 9) -> ApocalyptronEngine:
         """
         Mobility Obsessed: Only cares about move count.
-        
+
         - Only mobility evaluator
         - All other optimizations enabled
-        
+
         Args:
             depth: Search depth (default: 9)
-        
+
         Returns:
             ApocalyptronEngine focused on mobility
         """
@@ -181,19 +181,19 @@ class ApocalyptronFactory:
             .build()
         )
         return ApocalyptronEngine(config=config)
-    
+
     @staticmethod
     def create_corner_hunter(depth: int = 9) -> ApocalyptronEngine:
         """
         Corner Hunter: Obsessed with corners.
-        
+
         - Only positional evaluator
         - Corner hunter weight preset
         - All optimizations enabled
-        
+
         Args:
             depth: Search depth (default: 9)
-        
+
         Returns:
             ApocalyptronEngine focused on positional play
         """
@@ -201,25 +201,25 @@ class ApocalyptronFactory:
             ApocalyptronConfigBuilder()
             .with_depth(depth)
             .with_only_positional()
-            .with_preset_weights('corner_hunter')
+            .with_preset_weights("corner_hunter")
             .enable_all_optimizations()
             .build()
         )
         return ApocalyptronEngine(config=config)
-    
+
     @staticmethod
     def create_pure_alphabeta(depth: int = 7) -> ApocalyptronEngine:
         """
         Pure Alpha-Beta: No fancy optimizations.
-        
+
         - Fixed depth
         - No pruning
         - No iterative deepening
         - Basic evaluator mix
-        
+
         Args:
             depth: Search depth (default: 7)
-        
+
         Returns:
             ApocalyptronEngine with pure alpha-beta
         """
@@ -232,23 +232,23 @@ class ApocalyptronFactory:
             .build()
         )
         return ApocalyptronEngine(config=config)
-    
+
     @staticmethod
     def create_adaptive_player(
         opening_depth: int = 7, mid_depth: int = 9, end_depth: int = 11
     ) -> ApocalyptronEngine:
         """
         Adaptive Player: Changes depth based on game phase.
-        
+
         - Adaptive depth strategy
         - All optimizations enabled
         - Shallow in opening, deep in endgame
-        
+
         Args:
             opening_depth: Depth for opening phase (default: 7)
             mid_depth: Depth for midgame phase (default: 9)
             end_depth: Depth for endgame phase (default: 11)
-        
+
         Returns:
             ApocalyptronEngine with adaptive depth
         """

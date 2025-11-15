@@ -110,105 +110,106 @@ class ApocalyptronConfigBuilder:
         self._config.show_search_output = True
         self._config.show_statistics = True
         return self
-    
+
     # NEW: Search strategy configuration methods
-    
+
     def with_search_strategy(self, strategy: str) -> "ApocalyptronConfigBuilder":
         """
         Set search strategy.
-        
+
         Args:
             strategy: 'fixed_depth', 'iterative_deepening', or 'adaptive'
         """
-        valid_strategies = ['fixed_depth', 'iterative_deepening', 'adaptive']
+        valid_strategies = ["fixed_depth", "iterative_deepening", "adaptive"]
         if strategy not in valid_strategies:
             raise ValueError(f"Invalid strategy '{strategy}'. Must be one of: {valid_strategies}")
         self._config.search_strategy = strategy
         return self
-    
+
     def with_fixed_depth_search(self) -> "ApocalyptronConfigBuilder":
         """Use fixed depth search (no iterative deepening)"""
-        self._config.search_strategy = 'fixed_depth'
+        self._config.search_strategy = "fixed_depth"
         self._config.use_iterative_deepening = False  # For backward compatibility
         return self
-    
+
     def with_adaptive_depth(
         self, opening: int = 7, midgame: int = 9, endgame: int = 11
     ) -> "ApocalyptronConfigBuilder":
         """
         Use adaptive depth based on game phase.
-        
+
         Args:
             opening: Depth for opening phase (default: 7)
             midgame: Depth for midgame phase (default: 9)
             endgame: Depth for endgame phase (default: 11)
         """
-        self._config.search_strategy = 'adaptive'
-        self._config.adaptive_depths = {
-            'opening': opening,
-            'midgame': midgame,
-            'endgame': endgame
-        }
+        self._config.search_strategy = "adaptive"
+        self._config.adaptive_depths = {"opening": opening, "midgame": midgame, "endgame": endgame}
         return self
-    
+
     # NEW: Evaluator configuration methods
-    
+
     def with_evaluators(self, evaluator_configs: list) -> "ApocalyptronConfigBuilder":
         """
         Set evaluators explicitly.
-        
+
         Args:
             evaluator_configs: List of EvaluatorConfig objects
         """
         self._config.evaluators = evaluator_configs
         return self
-    
+
     def with_only_mobility(self, weight: float = 1.0) -> "ApocalyptronConfigBuilder":
         """Use ONLY mobility evaluator"""
         from AI.Apocalyptron.core.config import EvaluatorConfig
-        self._config.evaluators = [EvaluatorConfig('mobility', weight=weight)]
+
+        self._config.evaluators = [EvaluatorConfig("mobility", weight=weight)]
         return self
-    
+
     def with_only_positional(self, weight: float = 1.0) -> "ApocalyptronConfigBuilder":
         """Use ONLY positional evaluator"""
         from AI.Apocalyptron.core.config import EvaluatorConfig
-        self._config.evaluators = [EvaluatorConfig('positional', weight=weight)]
+
+        self._config.evaluators = [EvaluatorConfig("positional", weight=weight)]
         return self
-    
+
     def with_only_stability(self, weight: float = 1.0) -> "ApocalyptronConfigBuilder":
         """Use ONLY stability evaluator"""
         from AI.Apocalyptron.core.config import EvaluatorConfig
-        self._config.evaluators = [EvaluatorConfig('stability', weight=weight)]
+
+        self._config.evaluators = [EvaluatorConfig("stability", weight=weight)]
         return self
-    
+
     def with_only_parity(self, weight: float = 1.0) -> "ApocalyptronConfigBuilder":
         """Use ONLY parity evaluator"""
         from AI.Apocalyptron.core.config import EvaluatorConfig
-        self._config.evaluators = [EvaluatorConfig('parity', weight=weight)]
+
+        self._config.evaluators = [EvaluatorConfig("parity", weight=weight)]
         return self
-    
+
     def add_evaluator(
         self, eval_type: str, weight: float = 1.0, custom_weights=None
     ) -> "ApocalyptronConfigBuilder":
         """
         Add single evaluator to configuration.
-        
+
         Args:
             eval_type: 'mobility', 'positional', 'stability', or 'parity'
             weight: Evaluator weight (default: 1.0)
             custom_weights: Custom EvaluationWeights (optional)
         """
         from AI.Apocalyptron.core.config import EvaluatorConfig
-        
+
         # If evaluators is still default, clear it first (avoid duplicates)
-        if self._config.evaluators == self._config.__class__.__dataclass_fields__['evaluators'].default_factory():
+        if (
+            self._config.evaluators
+            == self._config.__class__.__dataclass_fields__["evaluators"].default_factory()
+        ):
             self._config.evaluators = []
-        
-        self._config.evaluators.append(
-            EvaluatorConfig(eval_type, weight, custom_weights)
-        )
+
+        self._config.evaluators.append(EvaluatorConfig(eval_type, weight, custom_weights))
         return self
-    
+
     def disable_all_pruning(self) -> "ApocalyptronConfigBuilder":
         """Disable ALL pruning techniques (pure alpha-beta)"""
         self._config.enable_null_move_pruning = False
@@ -220,9 +221,10 @@ class ApocalyptronConfigBuilder:
     def build(self) -> ApocalyptronConfig:
         """
         Build and return the configuration.
-        
+
         CRITICAL: Returns a deep copy to ensure isolation between instances.
         This prevents configuration sharing between different player instances.
         """
         import copy
+
         return copy.deepcopy(self._config)

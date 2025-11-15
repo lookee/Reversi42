@@ -51,9 +51,7 @@ class ViewFactory:
 
         view_class = cls._get_view_class(view_type)
         if view_class is None:
-            raise ValueError(
-                f"Unsupported view type: {view_type}. " f"Available: headless"
-            )
+            raise ValueError(f"Unsupported view type: {view_type}. " f"Available: headless")
 
         return view_class(sizex, sizey, width, height, **kwargs)
 

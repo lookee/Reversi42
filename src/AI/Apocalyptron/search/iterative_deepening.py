@@ -58,7 +58,7 @@ class IterativeDeepeningSearch:
                 self.pv_orderer = orderer
             elif isinstance(orderer, KillerMoveOrderer):
                 self.killer_orderer = orderer
-        
+
         # Track maximum depth reached to avoid re-searching
         self.max_depth_reached = 0
 
@@ -92,7 +92,7 @@ class IterativeDeepeningSearch:
                 return self.pv_orderer.pv_move
             # If PV move not available but we've already searched, something went wrong
             # Fall through to normal search (but this shouldn't happen)
-        
+
         time_start = time.perf_counter()
 
         # Notify: Search start (only if we're actually searching)
@@ -111,10 +111,14 @@ class IterativeDeepeningSearch:
         self.aspiration_fails = 0
         aspiration_hits = 0
         aspiration_fails = 0
-        
+
         # Iterative deepening loop
         # Start from max_depth_reached + 1 if we've already searched some depths
-        start_depth = max(1, self.max_depth_reached + 1) if self.max_depth_reached < target_depth else target_depth
+        start_depth = (
+            max(1, self.max_depth_reached + 1)
+            if self.max_depth_reached < target_depth
+            else target_depth
+        )
         for current_depth in range(start_depth, target_depth + 1):
             iter_start = time.perf_counter()
             self.alphabeta.nodes = 0
@@ -201,7 +205,7 @@ class IterativeDeepeningSearch:
             self._notify_iteration_complete(
                 current_depth, best_move, best_value, iter_time * 1000, not re_search_needed
             )
-            
+
             # Update max depth reached
             self.max_depth_reached = max(self.max_depth_reached, current_depth)
 
@@ -214,7 +218,13 @@ class IterativeDeepeningSearch:
 
         # Notify: Search complete (convert time to milliseconds)
         self._notify_search_complete(
-            final_best_move, final_best_value, stats, time_total * 1000, opening_book, game_history, game
+            final_best_move,
+            final_best_value,
+            stats,
+            time_total * 1000,
+            opening_book,
+            game_history,
+            game,
         )
 
         return final_best_move

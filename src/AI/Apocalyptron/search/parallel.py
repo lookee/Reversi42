@@ -172,13 +172,13 @@ class ParallelSearch:
         if use_parallel:
             # Check if base_search has already reached target depth
             # This prevents parallel search from re-searching if sequential is already complete
-            if hasattr(self.base_search, 'max_depth_reached'):
+            if hasattr(self.base_search, "max_depth_reached"):
                 if self.base_search.max_depth_reached >= target_depth:
                     # Sequential search already complete, use it directly
                     return self.base_search.get_best_move(
                         game, target_depth, player_name, opening_book, game_history
                     )
-            
+
             return self._get_best_move_parallel(
                 game, target_depth, player_name, move_list, opening_book, game_history
             )
@@ -226,10 +226,12 @@ class ParallelSearch:
             # IMPORTANT: Only run Phase 1 if we haven't already searched up to depth-1
             # Check if alphabeta has already searched to depth-1 by checking statistics
             existing_depth = 0
-            if hasattr(self.base_search, 'alphabeta') and hasattr(self.base_search.alphabeta, 'get_statistics'):
+            if hasattr(self.base_search, "alphabeta") and hasattr(
+                self.base_search.alphabeta, "get_statistics"
+            ):
                 existing_stats = self.base_search.alphabeta.get_statistics()
-                existing_depth = existing_stats.get('depth_reached', existing_stats.get('depth', 0))
-            
+                existing_depth = existing_stats.get("depth_reached", existing_stats.get("depth", 0))
+
             # Only run Phase 1 if we haven't already reached depth-1
             if existing_depth < depth - 1:
                 for current_depth in range(max(1, existing_depth + 1), depth):
@@ -240,10 +242,12 @@ class ParallelSearch:
             else:
                 # Already searched to depth-1, skip Phase 1
                 # Get the best move from the last search
-                if hasattr(self.base_search, 'alphabeta') and hasattr(self.base_search.alphabeta, 'orderer'):
+                if hasattr(self.base_search, "alphabeta") and hasattr(
+                    self.base_search.alphabeta, "orderer"
+                ):
                     # Try to get PV move from orderer
                     for orderer in self.base_search.alphabeta.orderer.orderers:
-                        if hasattr(orderer, 'pv_move') and orderer.pv_move:
+                        if hasattr(orderer, "pv_move") and orderer.pv_move:
                             phase1_best_move = orderer.pv_move
                             break
 
@@ -293,7 +297,7 @@ class ParallelSearch:
 
         # Evaluate in parallel - use imap_unordered for streaming results
         pool = self._get_pool()
-        
+
         # Process results as they arrive (streaming like tail -f)
         best_move = None
         best_value = -999999
@@ -325,15 +329,15 @@ class ParallelSearch:
             if hasattr(self.base_search, "alphabeta")
             else {}
         )
-        
+
         # Get Phase 1 nodes if available (from phase1_stats)
         phase1_nodes = phase1_stats.get("nodes", 0) if depth > 1 else 0
         phase1_pruning = phase1_stats.get("pruning", 0) if depth > 1 else 0
-        
+
         # IMPORTANT: Combine Phase 1 + Parallel phase nodes for accurate totals
         total_nodes_combined = phase1_nodes + total_nodes
         total_pruning_combined = phase1_pruning + total_pruning
-        
+
         # Use standard keys for compatibility with observers
         stats["depth_reached"] = depth
         stats["nodes_searched"] = total_nodes_combined  # Phase 1 + Parallel
@@ -349,7 +353,13 @@ class ParallelSearch:
 
         for observer in self.observers:
             observer.on_search_complete(
-                best_move, best_value, stats, time_total * 1000, opening_book, game_history, game  # Convert to ms
+                best_move,
+                best_value,
+                stats,
+                time_total * 1000,
+                opening_book,
+                game_history,
+                game,  # Convert to ms
             )
 
         return best_move
