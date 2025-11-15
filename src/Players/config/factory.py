@@ -258,20 +258,20 @@ class PlayerFactory:
     def _configure_pruning(self, builder, pruning_config: Dict[str, Any]):
         """Configure pruning optimizations."""
         # Null move pruning
-        if pruning_config.get("null_move", {}).get("enabled", True):
-            builder.enable_null_move_pruning()
+        null_move_config = pruning_config.get("null_move", {})
+        builder.enable_null_move_pruning(null_move_config.get("enabled", True))
 
         # Futility pruning
-        if pruning_config.get("futility", {}).get("enabled", True):
-            builder.enable_futility_pruning()
+        futility_config = pruning_config.get("futility", {})
+        builder.enable_futility_pruning(futility_config.get("enabled", True))
 
         # Late move reduction
-        if pruning_config.get("late_move_reduction", {}).get("enabled", True):
-            builder.enable_late_move_reduction()
+        lmr_config = pruning_config.get("late_move_reduction", {})
+        builder.enable_late_move_reduction(lmr_config.get("enabled", True))
 
         # Multi-cut pruning (note: method name is enable_multi_cut_pruning)
-        if pruning_config.get("multi_cut", {}).get("enabled", True):
-            builder.enable_multi_cut_pruning()
+        multi_cut_config = pruning_config.get("multi_cut", {})
+        builder.enable_multi_cut_pruning(multi_cut_config.get("enabled", True))
 
     def _create_apocalyptron_player(self, config: Dict[str, Any], engine_config: Any) -> Any:
         """
