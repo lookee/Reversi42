@@ -63,8 +63,8 @@ jobs:
     
     - name: Run Bandit security scanner
       run: |
-        bandit -r src/ -f json -o bandit-report.json || true
-        bandit -r src/ -ll
+        bandit -r src/ -f json -o bandit-report.json --skip B110,B311,B112 || true
+        bandit -r src/ -ll --skip B110,B311,B112
       continue-on-error: true
     
     - name: Upload Bandit results

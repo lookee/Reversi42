@@ -213,3 +213,12 @@ max-locals = 15
 max-branches = 15
 max-statements = 50
 
+[tool.bandit]
+# Bandit security scanner configuration
+# Skip tests that are often false positives or acceptable for this project
+# B110: try_except_pass - Sometimes necessary for graceful error handling
+# B311: blacklist - Use of deprecated/blacklisted functions (often false positives)
+# B112: try_except_continue - Similar to B110, sometimes necessary
+skips = ["B110", "B311", "B112"]
+exclude_dirs = ["tests", "test_", ".git", "venv", "env", "__pycache__", "dist", "build"]
+

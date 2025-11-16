@@ -12,6 +12,7 @@ import logging
 import os
 import signal
 import sys
+import tempfile
 import traceback
 from datetime import datetime
 from typing import Dict, Optional, Tuple
@@ -49,10 +50,11 @@ except ImportError:
     __version__ = "6.2.1"  # Fallback (must match pyproject.toml)
 
 # Configure logging
+log_file_path = os.path.join(tempfile.gettempdir(), "backend_detailed.log")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("/tmp/backend_detailed.log"), logging.StreamHandler()],
+    handlers=[logging.FileHandler(log_file_path), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -1474,7 +1476,7 @@ async def get_version():
 async def get_logs():
     """Get server logs"""
     try:
-        log_file = "/tmp/backend_detailed.log"
+        log_file = os.path.join(tempfile.gettempdir(), "backend_detailed.log")
         if os.path.exists(log_file):
             # Return last 500 lines
             with open(log_file, "r") as f:
@@ -2233,7 +2235,8 @@ def main():
 
     parser = argparse.ArgumentParser(description="Reversi42 WebSocket Backend")
     parser.add_argument("--port", type=int, default=8000, help="Port to run on")
-    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
+    # Binding to 0.0.0.0 is intentional for web server accessibility
+    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")  # nosec B104
     parser.add_argument(
         "--player", default=default_ai, help=f"AI player to use (default from config: {default_ai})"
     )
