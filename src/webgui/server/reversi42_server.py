@@ -46,7 +46,7 @@ from webgui.server.websocket_observer import WebSocketSearchObserver
 try:
     from __version__ import __version__
 except ImportError:
-    __version__ = "6.1.3"  # Fallback (must match pyproject.toml)
+    __version__ = "6.2.0"  # Fallback (must match pyproject.toml)
 
 # Configure logging
 logging.basicConfig(
@@ -1440,7 +1440,7 @@ async def get_version():
     except Exception as e:
         logger.error(f"Error loading version: {e}")
         return {
-            "version": "6.1.3",
+            "version": "6.2.0",
             "author": "Luca Amore",
             "url": "https://github.com/lucaamore/reversi42",
             "name": "Reversi42",
