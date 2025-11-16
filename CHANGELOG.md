@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.2.1] - 2025-01-XX
+
+### Fixed
+- **🎨 Initial Setup Screen Improvements**
+  - Removed unnecessary scrollbar from initial setup screen
+  - Fixed player tags display - all tags now visible without being cut off
+  - Fixed duplicate tags issue - tags are now distinct (case-insensitive deduplication)
+  - Aligned "Change Player" buttons at same vertical height in both player cards
+  - Improved responsive layout for better tag wrapping and visibility
+
+### Changed
+- **🏷️ Tag Management**
+  - Tags are now deduplicated in both initial setup screen and player selection modal
+  - All config tags are displayed (removed 3-tag limit)
+  - Better tag wrapping and spacing for multiple tags
+
 ## [6.2.0] - 2025-01-XX
 
 ### Changed

@@ -75,7 +75,7 @@ let initialWhitePlayer = 'LIGHTNING STRIKE'; // Default White (must match YAML n
 let initialSelectingFor = null; // 'black' or 'white'
 
 /* Version Information */
-let gameVersion = '6.2.0'; // Fallback version
+let gameVersion = '6.2.1'; // Fallback version
 
 /* Player Cache - for avatar lookups */
 let playersCache = null;
@@ -1260,25 +1260,35 @@ async function updateInitialPlayerDisplay(side, playerName){
       if(tagsEl){
         tagsEl.innerHTML = '';
         const tags = [];
+        const seenTags = new Set(); // Track seen tags (case-insensitive)
+        
+        // Helper function to add tag if not duplicate
+        const addTagIfUnique = (tagName, tagClass) => {
+          const normalized = tagName.toUpperCase();
+          if(!seenTags.has(normalized)){
+            seenTags.add(normalized);
+            tags.push({ name: tagName.toUpperCase(), class: tagClass });
+          }
+        };
         
         // Add main tag (HUMAN/AI)
         if(player.tag){
-          tags.push({ name: player.tag, class: player.tag.toLowerCase() });
+          addTagIfUnique(player.tag, player.tag.toLowerCase());
         }
         
         // Add category (champion/premium/specialist/intermediate/beginner)
         if(player.category){
-          tags.push({ name: player.category.toUpperCase(), class: player.category.toLowerCase() });
+          addTagIfUnique(player.category, player.category.toLowerCase());
         }
         
-        // Add config tags (Gladiators, depth, etc.)
+        // Add config tags (Gladiators, depth, etc.) - Show ALL tags (distinct)
         if(player.config_tags && Array.isArray(player.config_tags)){
-          player.config_tags.slice(0, 3).forEach(tag => {
-            tags.push({ name: tag.toUpperCase(), class: 'config' });
+          player.config_tags.forEach(tag => {
+            addTagIfUnique(tag, 'config');
           });
         }
         
-        console.log(`🏷️  Tags:`, tags);
+        console.log(`🏷️  Tags (distinct):`, tags);
         
         // Render tags
         tags.forEach(tag => {
@@ -2298,19 +2308,52 @@ function setupPlayersUI(){
         </div>
       `;
       
-      // Build config tags HTML with click handlers
-      const configTagsHTML = (p.config_tags && p.config_tags.length > 0) ? `
+      // Build distinct tags (remove duplicates, case-insensitive)
+      const seenTags = new Set(); // Track seen tags (case-insensitive)
+      const distinctTags = [];
+      
+      // Helper function to add tag if not duplicate
+      const addTagIfUnique = (tagName) => {
+        const normalized = tagName.toUpperCase();
+        if(!seenTags.has(normalized)){
+          seenTags.add(normalized);
+          distinctTags.push(tagName);
+          return true;
+        }
+        return false;
+      };
+      
+      // Build player tags HTML (tag + category, distinct)
+      const playerTagsArray = [];
+      if(p.tag){
+        if(addTagIfUnique(p.tag)){
+          playerTagsArray.push({ name: p.tag, class: p.tag === 'HUMAN' ? 'human' : 'ai' });
+        }
+      }
+      if(p.category){
+        if(addTagIfUnique(p.category)){
+          playerTagsArray.push({ name: p.category, class: p.category.toLowerCase() });
+        }
+      }
+      
+      // Build config tags HTML (from config_tags, excluding duplicates with tag/category)
+      const configTagsArray = [];
+      if(p.config_tags && Array.isArray(p.config_tags)){
+        p.config_tags.forEach(tag => {
+          if(addTagIfUnique(tag)){
+            configTagsArray.push(tag);
+          }
+        });
+      }
+      
+      const configTagsHTML = configTagsArray.length > 0 ? `
         <div class="playerConfigTags">
-          ${p.config_tags.map(tag => `<div class="configTag" data-tag="${tag}">${tag}</div>`).join('')}
+          ${configTagsArray.map(tag => `<div class="configTag" data-tag="${tag}">${tag}</div>`).join('')}
         </div>
       ` : '';
       
-      // Store all tags in data attribute for filtering (include category and config tags)
-      const allTags = [];
-      if(p.category) allTags.push(p.category);
-      if(p.tag) allTags.push(p.tag);
-      if(p.config_tags) allTags.push(...p.config_tags);
-      card.dataset.tags = allTags.join('|');
+      // Store all distinct tags in data attribute for filtering
+      card.dataset.tags = distinctTags.join('|');
       
       // Config button (only for AI players) - placed at bottom
       const configButtonHTML = p.tag !== 'HUMAN' ? `
@@ -2338,8 +2381,7 @@ function setupPlayersUI(){
             <div class="playerName">${p.name}</div>
             ${p.headline ? `<div class="playerHeadline">${p.headline}</div>` : ''}
             <div class="playerTags">
-              <div class="playerTag ${p.tag === 'HUMAN' ? 'human' : 'ai'}" data-tag="${p.tag}">${p.tag}</div>
-              ${p.category ? `<div class="playerTag ${p.category}" data-tag="${p.category}">${p.category}</div>` : ''}
+              ${playerTagsArray.map(tag => `<div class="playerTag ${tag.class}" data-tag="${tag.name}">${tag.name}</div>`).join('')}
             </div>
           </div>
         </div>
