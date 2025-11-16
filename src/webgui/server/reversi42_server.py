@@ -115,6 +115,8 @@ class GameSession:
             self.error_count = 0  # Track consecutive errors
             self.max_errors = 5  # Max errors before session reset
             self.last_error_time = None
+            self.game_over = False  # Track if game is finished
+            self.winner = None  # Track winner ('B', 'W', or None)
 
             # Create AI players (only for configured sides)
             # Now uses PlayerFactory which delegates to PlayerRegistry for config-based players

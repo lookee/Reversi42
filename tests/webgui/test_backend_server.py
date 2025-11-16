@@ -67,7 +67,7 @@ class TestGameSession:
         assert state["meta"]["variant"] == "Reversi/Othello"
         assert state["meta"]["size"] == 8
         assert state["players"]["black"]["name"] == "Human"
-        assert state["players"]["white"]["name"] == "DIVZERO.EXE"
+        assert state["players"]["white"]["name"] == "LIGHTNING STRIKE"
         assert len(state["positions"]) == 1
         assert len(state["moves"]) == 0
 

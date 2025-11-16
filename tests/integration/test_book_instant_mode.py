@@ -33,21 +33,10 @@ class TestBookInstantMode:
         p2 = PlayerApocalyptron(depth=6, book_instant=True)
         assert p2.book_instant == True, "Should be True"
 
-        # PlayerDivZero
-        p3 = PlayerDivZero(depth=8, book_instant=False)
-        assert hasattr(p3, "book_instant"), "Should have book_instant attribute"
-        assert p3.book_instant == False, "Should be False"
-
-        p4 = PlayerDivZero(depth=8, book_instant=True)
-        assert p4.book_instant == True, "Should be True"
-
     def test_default_is_false(self):
         """Verify default is book_instant=False"""
         p1 = PlayerApocalyptron(depth=6)
         assert p1.book_instant == False, "Default should be False"
-
-        p2 = PlayerDivZero(depth=8)
-        assert p2.book_instant == False, "Default should be False"
 
     def test_instant_mode_selects_valid_move(self):
         """Test that instant mode selects a valid move"""
