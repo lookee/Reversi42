@@ -7,16 +7,17 @@ Demonstrates the difference between:
 - book_instant=False (NEW DEFAULT): Book moves evaluated by engine
 """
 
-import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from Players.PlayerApocalyptron import PlayerApocalyptron
 from Reversi.Game import Game
 
-print("\n" + "="*80)
+print("\n" + "=" * 80)
 print("EXAMPLE: book_instant Parameter Comparison")
-print("="*80 + "\n")
+print("=" * 80 + "\n")
 
 print("SCENARIO: First move of a Reversi game")
 print("-" * 80)
@@ -32,15 +33,15 @@ print()
 # ==============================================================================
 # Test 1: Legacy behavior (book_instant=True)
 # ==============================================================================
-print("\n" + "="*80)
+print("\n" + "=" * 80)
 print("TEST 1: LEGACY BEHAVIOR (book_instant=True)")
-print("="*80 + "\n")
+print("=" * 80 + "\n")
 
 print("Creating player with book_instant=True...")
 player_legacy = PlayerApocalyptron(
     depth=6,
     show_book_options=True,  # Show what's happening
-    book_instant=True        # LEGACY: instant selection
+    book_instant=True,  # LEGACY: instant selection
 )
 
 print(f"\nPlayer: {player_legacy.name}")
@@ -61,15 +62,15 @@ print("   4. Fast but may miss better tactical moves")
 # ==============================================================================
 # Test 2: New behavior (book_instant=False)
 # ==============================================================================
-print("\n" + "="*80)
+print("\n" + "=" * 80)
 print("TEST 2: NEW BEHAVIOR (book_instant=False - DEFAULT)")
-print("="*80 + "\n")
+print("=" * 80 + "\n")
 
 print("Creating player with book_instant=False...")
 player_new = PlayerApocalyptron(
     depth=6,
     show_book_options=True,  # Show what's happening
-    book_instant=False       # NEW: evaluate after prioritization
+    book_instant=False,  # NEW: evaluate after prioritization
 )
 
 print(f"\nPlayer: {player_new.name}")
@@ -92,9 +93,9 @@ print("   6. More intelligent - combines book + tactical analysis")
 # ==============================================================================
 # Summary
 # ==============================================================================
-print("\n" + "="*80)
+print("\n" + "=" * 80)
 print("COMPARISON SUMMARY")
-print("="*80 + "\n")
+print("=" * 80 + "\n")
 
 print("┌─────────────────────────┬──────────────────────┬──────────────────────┐")
 print("│ Feature                 │ book_instant=True    │ book_instant=False   │")
@@ -112,11 +113,12 @@ print("└───────────────────────�
 print("\n📚 RECOMMENDATION:")
 print("   • Use book_instant=False (default) for STRONGEST play")
 print("   • Use book_instant=True for FASTEST play in known openings")
-print("\n" + "="*80 + "\n")
+print("\n" + "=" * 80 + "\n")
 
 print("Example Configuration:")
 print("-" * 80)
-print("""
+print(
+    """
 # Strong player (evaluates everything)
 strong_player = PlayerApocalyptron(
     depth=9,
@@ -128,6 +130,6 @@ fast_player = PlayerApocalyptron(
     depth=6,
     book_instant=True   # Legacy - instant selection
 )
-""")
-print("="*80 + "\n")
-
+"""
+)
+print("=" * 80 + "\n")

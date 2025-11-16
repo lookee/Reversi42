@@ -101,7 +101,9 @@ class TestEpicGladiators:
         config = fortress.bitboard_engine.config
 
         # Should have stability evaluator with high weight
-        stability_eval = next((e for e in config.evaluators if e.evaluator_type == "stability"), None)
+        stability_eval = next(
+            (e for e in config.evaluators if e.evaluator_type == "stability"), None
+        )
         assert stability_eval is not None, "Should have stability evaluator"
         assert stability_eval.weight >= 2.5, "Should have high stability weight"
 
@@ -115,7 +117,9 @@ class TestEpicGladiators:
         config = reaper.bitboard_engine.config
 
         # Should have positional evaluator with high weight
-        positional_eval = next((e for e in config.evaluators if e.evaluator_type == "positional"), None)
+        positional_eval = next(
+            (e for e in config.evaluators if e.evaluator_type == "positional"), None
+        )
         assert positional_eval is not None, "Should have positional evaluator"
         assert positional_eval.weight >= 2.0, "Should have high positional weight"
 

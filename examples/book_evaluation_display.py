@@ -6,17 +6,17 @@ Demonstrates the new elegant visualization when using book_instant=False.
 Shows book moves with scores, priorities, and engine evaluation process.
 """
 
-import sys
 import os
+import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from Players.PlayerApocalyptron import PlayerApocalyptron
 from Reversi.Game import Game
 
-print("\n" + "="*80)
+print("\n" + "=" * 80)
 print("EXAMPLE: Evolved Book Evaluation Display")
-print("="*80 + "\n")
+print("=" * 80 + "\n")
 
 print("Creating player with book_instant=False and show_book_options=True...")
 print()
@@ -24,8 +24,8 @@ print()
 # Create player with evaluation mode and verbose output
 player = PlayerApocalyptron(
     depth=6,
-    show_book_options=True,   # Enable evolved display
-    book_instant=False         # Evaluation mode (default)
+    show_book_options=True,  # Enable evolved display
+    book_instant=False,  # Evaluation mode (default)
 )
 
 print(f"✓ Player: {player.name}")
@@ -37,9 +37,9 @@ print()
 game = Game(8)
 moves = game.get_move_list()
 
-print("="*80)
+print("=" * 80)
 print("SCENARIO: First move of the game")
-print("="*80)
+print("=" * 80)
 print(f"Valid moves: {[str(m) for m in moves]}")
 print()
 
@@ -55,16 +55,16 @@ print("  3. Engine evaluation of ALL moves")
 print("  4. Final selection by ENGINE SCORE (not just book)")
 print()
 
-print("="*80)
+print("=" * 80)
 print("Press ENTER to get move and see the display...")
 input()
 
 # This will show the evolved display
 move = player.get_move(game, moves, None)
 
-print("\n" + "="*80)
+print("\n" + "=" * 80)
 print(f"✅ Selected move: {move}")
-print("="*80 + "\n")
+print("=" * 80 + "\n")
 
 print("Key features of the new display:")
 print("  ✓ Shows book moves with calculated scores (advantage + variety)")
@@ -82,16 +82,14 @@ print("  • Understand book scores vs engine scores")
 print("  • Debug opening book behavior")
 print()
 
-print("="*80)
+print("=" * 80)
 print("Compare with book_instant=True (legacy):")
-print("="*80)
+print("=" * 80)
 print()
 
 print("Creating legacy player...")
 player_legacy = PlayerApocalyptron(
-    depth=6,
-    show_book_options=True,
-    book_instant=True  # Legacy instant mode
+    depth=6, show_book_options=True, book_instant=True  # Legacy instant mode
 )
 
 # Reset game
@@ -107,9 +105,9 @@ move_legacy = player_legacy.get_move(game2, moves2, None)
 print(f"\n✅ Selected move (instant): {move_legacy}")
 print()
 
-print("="*80)
+print("=" * 80)
 print("Summary:")
-print("="*80)
+print("=" * 80)
 print()
 print("book_instant=False (NEW DEFAULT):")
 print("  • Shows evolved book evaluation display")
@@ -124,5 +122,4 @@ print("  • Faster but less transparent")
 print("  • Relies only on book score")
 print()
 
-print("="*80 + "\n")
-
+print("=" * 80 + "\n")
