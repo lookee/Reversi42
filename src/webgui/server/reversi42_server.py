@@ -47,7 +47,7 @@ from webgui.server.websocket_observer import WebSocketSearchObserver
 try:
     from __version__ import __version__
 except ImportError:
-    __version__ = "6.2.1"  # Fallback (must match pyproject.toml)
+    __version__ = "6.2.2"  # Fallback (must match pyproject.toml)
 
 # Configure logging
 log_file_path = os.path.join(tempfile.gettempdir(), "backend_detailed.log")

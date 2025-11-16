@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.2.2] - 2025-11-16
+
+### Fixed
+- **🔒 Security Fixes**
+  - Fixed Bandit security scan issues (B108: hardcoded temp directory)
+  - Replaced hardcoded `/tmp` paths with `tempfile.gettempdir()` for cross-platform compatibility
+  - Added security comment for intentional `0.0.0.0` binding (web server requirement)
+  - Configured Bandit to skip false positives (B110, B311, B112)
+
+- **🧪 CI/CD Improvements**
+  - Fixed cross-platform test failures on Windows and macOS
+  - Disabled pytest-xdist on Windows/Mac to avoid multiprocessing conflicts
+  - Increased timeout for sequential tests on Windows/Mac (45 minutes)
+  - Fixed async test issues in webgui backend server
+  - Fixed incorrect assertions in epic gladiators tests
+  - Optimized performance tests with quiet mode and fixed depth search
+  - Fixed time reporting in console output (milliseconds to seconds conversion)
+
+### Changed
+- **🔧 CI Configuration**
+  - Updated GitHub Actions workflows to handle platform-specific test execution
+  - Sequential test execution on Windows/Mac, parallel only on Linux
+  - Added Bandit security scanning with proper skip configuration
+
 ## [6.2.1] - 2025-01-XX
 
 ### Fixed
