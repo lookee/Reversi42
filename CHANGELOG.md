@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.3.0] - 2025-11-16
+
+### Added
+- **🚀 Cross-Platform Executable Builds**
+  - Added PyInstaller support for creating standalone executables
+  - Created `reversi42.spec` configuration file for Windows, macOS, and Linux builds
+  - Added `scripts/build_executables.sh` for local builds
+  - Integrated cross-platform builds into GitHub Actions release workflow
+  - Executables are now automatically created for all platforms on release
+  - Added icon support (Windows .ico, macOS .icns, Linux .png)
+  - Created comprehensive build documentation (`docs/deployment/BUILD_CROSS_PLATFORM.md`)
+
+### Changed
+- **📦 Build System**
+  - Updated GitHub Actions release workflow to build executables for Windows, macOS, and Linux
+  - Release artifacts now include standalone executables in addition to Python packages
+  - Improved release notes generation with executable download instructions
+
 ## [6.2.2] - 2025-11-16
 
 ### Fixed
