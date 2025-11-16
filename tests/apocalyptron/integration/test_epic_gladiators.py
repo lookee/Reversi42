@@ -93,6 +93,9 @@ class TestEpicGladiators:
         mobility_eval = next((e for e in config.evaluators if e.evaluator_type == "mobility"), None)
         assert mobility_eval is not None, "Should have mobility evaluator"
         assert mobility_eval.weight >= 2.5, "Should have high mobility weight"
+        
+        # Should have multiple evaluators (mobility, positional, stability, parity)
+        assert len(config.evaluators) >= 4, "Should have all evaluators enabled"
 
     def test_fortress_focuses_on_stability(self):
         """Test that FORTRESS ETERNAL focuses on stability"""
@@ -107,7 +110,7 @@ class TestEpicGladiators:
         assert stability_eval is not None, "Should have stability evaluator"
         assert stability_eval.weight >= 2.5, "Should have high stability weight"
 
-        # Should use defensive weights
+        # Should use defensive weights (actual config has 25)
         assert config.weights.stability_weight >= 20
 
     def test_corner_reaper_focuses_on_corners(self):
@@ -123,8 +126,11 @@ class TestEpicGladiators:
         assert positional_eval is not None, "Should have positional evaluator"
         assert positional_eval.weight >= 2.0, "Should have high positional weight"
 
-        # Should have corner hunter weights (high emphasis on corners)
+        # Should have corner hunter weights (high emphasis on corners - actual config has 200)
         assert config.weights.corner_weight >= 150
+        
+        # Should have multiple evaluators (positional, stability, mobility, parity)
+        assert len(config.evaluators) >= 4, "Should have all evaluators enabled"
 
     def test_oracle_has_adaptive_depth(self):
         """Test that THE ORACLE uses adaptive depth"""
@@ -145,8 +151,10 @@ class TestEpicGladiators:
 
         config = zen.bitboard_engine.config
 
-        # Should use iterative deepening (beginner-friendly, teaches depth progression)
-        assert config.search_strategy == "iterative_deepening"
+        # Should use iterative strategy (beginner-friendly, teaches depth progression)
+        # Note: Config uses "iterative" which maps to "iterative_deepening"
+        assert config.search_strategy in ["iterative_deepening", "iterative"], \
+            f"Expected iterative_deepening or iterative, got {config.search_strategy}"
 
         # Should be shallow (beginner-friendly)
         assert config.depth <= 5
