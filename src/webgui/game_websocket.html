@@ -186,21 +186,20 @@
   <main class="container">
     <article class="card">
       <div style="padding:18px 22px">
-        <div class="grid gap-6 md:grid-cols-[auto_1fr_320px]">
-          <!-- Left: Row numbers -->
-          <div class="rows-nums">
-            <div class="coords" style="text-align:right">1</div><div class="coords" style="text-align:right">2</div>
-            <div class="coords" style="text-align:right">3</div><div class="coords" style="text-align:right">4</div>
-            <div class="coords" style="text-align:right">5</div><div class="coords" style="text-align:right">6</div>
-            <div class="coords" style="text-align:right">7</div><div class="coords" style="text-align:right">8</div>
-          </div>
-
+        <div class="grid gap-0 md:grid-cols-[1fr_320px]">
           <!-- Center: Game Board -->
           <div style="position:relative">
             <div id="board" class="board" role="grid" aria-label="Scacchiera Reversi"></div>
             <div class="col-letters">
               <span class="coords">A</span><span class="coords">B</span><span class="coords">C</span><span class="coords">D</span>
               <span class="coords">E</span><span class="coords">F</span><span class="coords">G</span><span class="coords">H</span>
+            </div>
+            <!-- Row numbers - positioned absolutely to the left of board -->
+            <div class="rows-nums">
+              <div class="coords" style="text-align:right">1</div><div class="coords" style="text-align:right">2</div>
+              <div class="coords" style="text-align:right">3</div><div class="coords" style="text-align:right">4</div>
+              <div class="coords" style="text-align:right">5</div><div class="coords" style="text-align:right">6</div>
+              <div class="coords" style="text-align:right">7</div><div class="coords" style="text-align:right">8</div>
             </div>
           </div>
 

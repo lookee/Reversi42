@@ -1700,20 +1700,106 @@ function setupHistoryDemo(){
 function setupCoordSync(){
   const rowsNums = document.querySelector('.rows-nums');
   const elBoard = document.getElementById('board');
+  const colLetters = document.querySelector('.col-letters');
   
   window.syncRowCoords = function(){
     if(!rowsNums || !elBoard) return;
-    const PADDING = 12;
-    const innerHeight = Math.max(0, elBoard.clientHeight - (PADDING*2));
-    rowsNums.style.height = innerHeight + 'px';
-    rowsNums.style.marginTop = PADDING + 'px';
-    rowsNums.style.marginRight = '-18px';
+    
+    // Get actual computed styles from board
+    const boardStyles = window.getComputedStyle(elBoard);
+    const paddingTop = parseFloat(boardStyles.paddingTop) || 0;
+    const paddingBottom = parseFloat(boardStyles.paddingBottom) || 0;
+    const paddingLeft = parseFloat(boardStyles.paddingLeft) || 0;
+    const paddingRight = parseFloat(boardStyles.paddingRight) || 0;
+    // Gap can be a string like "3px" or "4px", parse it correctly
+    const gapStr = boardStyles.gap || boardStyles.rowGap || '0px';
+    const gap = parseFloat(gapStr) || 0;
+    
+    // Get board dimensions
+    const boardHeight = elBoard.clientHeight;
+    const boardWidth = elBoard.clientWidth;
+    
+    // Calculate inner dimensions (board content area without padding)
+    const innerHeight = Math.max(0, boardHeight - paddingTop - paddingBottom);
+    const innerWidth = Math.max(0, boardWidth - paddingLeft - paddingRight);
+    
+    // Calculate cell size: (inner dimension - 7 gaps) / 8 cells
+    const cellHeight = (innerHeight - (7 * gap)) / 8;
+    const cellWidth = (innerWidth - (7 * gap)) / 8;
+    
+    // Position row numbers absolutely to the left of the board
+    // Get the board container (parent of board)
+    const boardContainer = elBoard.parentElement;
+    if(boardContainer && rowsNums){
+      const containerStyles = window.getComputedStyle(boardContainer);
+      const containerWidth = boardContainer.clientWidth;
+      
+      // Calculate how the board is positioned within its container (centered)
+      const boardOffsetLeft = (containerWidth - boardWidth) / 2;
+      
+      // Position rows-nums to the left of the board, accounting for board offset
+      // We want rows-nums to be positioned at: boardOffsetLeft - rowsNumsWidth - small gap
+      const rowsNumsComputedWidth = window.getComputedStyle(rowsNums).width;
+      const rowsNumsWidth = parseFloat(rowsNumsComputedWidth) || Math.min(Math.max(1.6 * 16, 2 * window.innerWidth / 100), 2 * 16);
+      const gapBetween = 4; // Small gap between coordinates and board
+      
+      rowsNums.style.left = (boardOffsetLeft - rowsNumsWidth - gapBetween) + 'px';
+      rowsNums.style.top = '0px';
+      rowsNums.style.height = innerHeight + 'px';
+      
+      // Match padding exactly
+      rowsNums.style.paddingTop = boardStyles.paddingTop;
+      rowsNums.style.paddingBottom = boardStyles.paddingBottom;
+    }
+    
+    // Sync column letters alignment
+    if(colLetters && elBoard){
+      // The col-letters is positioned absolute relative to its parent (board container)
+      // We need to position it to align with the board's grid columns
+      // Since the board container centers the board, we need to calculate the offset
+      const boardContainer = elBoard.parentElement;
+      if(boardContainer){
+        const containerStyles = window.getComputedStyle(boardContainer);
+        const containerWidth = boardContainer.clientWidth;
+        
+        // Calculate how the board is positioned within its container
+        // The board is centered, so: (containerWidth - boardWidth) / 2
+        const boardOffsetLeft = (containerWidth - boardWidth) / 2;
+        
+        // Position column letters: board offset + board padding = start of grid columns
+        colLetters.style.left = (boardOffsetLeft + paddingLeft) + 'px';
+        colLetters.style.width = innerWidth + 'px';
+        colLetters.style.paddingLeft = '0';
+        colLetters.style.paddingRight = '0';
+      } else {
+        // Fallback: assume board starts at left edge
+        colLetters.style.left = paddingLeft + 'px';
+        colLetters.style.width = innerWidth + 'px';
+        colLetters.style.paddingLeft = '0';
+        colLetters.style.paddingRight = '0';
+      }
+    }
   };
   
-  window.syncRowCoords();
-  const ro = new ResizeObserver(()=> window.syncRowCoords());
-  ro.observe(elBoard);
-  window.addEventListener('resize', window.syncRowCoords);
+  // Initial sync - wait for board to be rendered and cells to be created
+  setTimeout(() => {
+    window.syncRowCoords();
+  }, 200);
+  
+  // Sync on board resize
+  if(elBoard){
+    const ro = new ResizeObserver(()=> {
+      requestAnimationFrame(() => {
+        window.syncRowCoords();
+      });
+    });
+    ro.observe(elBoard);
+  }
+  
+  // Sync on window resize
+  window.addEventListener('resize', () => {
+    requestAnimationFrame(() => window.syncRowCoords());
+  });
 }
 
 function setupToolbar(){
