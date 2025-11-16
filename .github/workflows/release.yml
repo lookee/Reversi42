@@ -57,6 +57,112 @@ jobs:
         path: dist/
         retention-days: 30
 
+  build-executables:
+    name: Build Executables (Cross-Platform)
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x86_64
+          - os: macos-latest
+            platform: macos
+            arch: x86_64
+          - os: windows-latest
+            platform: windows
+            arch: x86_64
+    runs-on: ${{ matrix.os }}
+    needs: build-python-package
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+    
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller setuptools wheel
+        pip install -e .
+    
+    - name: Extract version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+    
+    - name: Build executable
+      shell: bash
+      run: |
+        pyinstaller reversi42.spec --clean --noconfirm
+    
+    - name: Determine executable name
+      id: exe_name
+      shell: bash
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        PLATFORM="${{ matrix.platform }}"
+        ARCH="${{ matrix.arch }}"
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          EXE_NAME="reversi42-${PLATFORM}-${ARCH}-${VERSION}.exe"
+          EXE_PATH="dist/reversi42.exe"
+        else
+          EXE_NAME="reversi42-${PLATFORM}-${ARCH}-${VERSION}"
+          EXE_PATH="dist/reversi42"
+        fi
+        echo "exe_name=$EXE_NAME" >> $GITHUB_OUTPUT
+        echo "exe_path=$EXE_PATH" >> $GITHUB_OUTPUT
+        echo "Executable: $EXE_NAME"
+    
+    - name: Rename executable
+      shell: bash
+      run: |
+        if [ -f "${{ steps.exe_name.outputs.exe_path }}" ]; then
+          mv "${{ steps.exe_name.outputs.exe_path }}" "dist/${{ steps.exe_name.outputs.exe_name }}"
+        fi
+    
+    - name: Create archive (Windows)
+      if: matrix.os == 'windows-latest'
+      shell: pwsh
+      run: |
+        cd dist
+        Compress-Archive -Path "${{ steps.exe_name.outputs.exe_name }}" -DestinationPath "${{ steps.exe_name.outputs.exe_name }}.zip" -Force
+        cd ..
+        Get-ChildItem dist/ | Format-Table
+    
+    - name: Create archive (macOS/Linux)
+      if: matrix.os != 'windows-latest'
+      shell: bash
+      run: |
+        cd dist
+        if [ "${{ matrix.os }}" == "macos-latest" ]; then
+          zip -q "${{ steps.exe_name.outputs.exe_name }}.zip" "${{ steps.exe_name.outputs.exe_name }}"
+        else
+          tar -czf "${{ steps.exe_name.outputs.exe_name }}.tar.gz" "${{ steps.exe_name.outputs.exe_name }}"
+        fi
+        cd ..
+        ls -lh dist/
+    
+    - name: Upload executable artifact
+      uses: actions/upload-artifact@v5
+      with:
+        name: executable-${{ matrix.platform }}-${{ matrix.arch }}
+        path: |
+          dist/${{ steps.exe_name.outputs.exe_name }}
+          dist/${{ steps.exe_name.outputs.exe_name }}.*
+        retention-days: 30
+
   build-docker-image:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
@@ -118,7 +224,7 @@ jobs:
 
   create-release:
     name: Create GitHub Release
-    needs: [build-python-package, build-docker-image]
+    needs: [build-python-package, build-executables, build-docker-image]
     runs-on: ubuntu-latest
     
     steps:
@@ -127,11 +233,30 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Download artifacts
+    - name: Download Python package artifacts
       uses: actions/download-artifact@v6
       with:
         name: python-package
         path: dist/
+    
+    - name: Download executable artifacts
+      uses: actions/download-artifact@v6
+      with:
+        name: executable-linux-x86_64
+        path: dist/executables/linux/
+        if-no-files-found: ignore
+    - name: Download macOS executable
+      uses: actions/download-artifact@v6
+      with:
+        name: executable-macos-x86_64
+        path: dist/executables/macos/
+        if-no-files-found: ignore
+    - name: Download Windows executable
+      uses: actions/download-artifact@v6
+      with:
+        name: executable-windows-x86_64
+        path: dist/executables/windows/
+        if-no-files-found: ignore
     
     - name: Extract version
       id: version
@@ -174,7 +299,15 @@ jobs:
         ```
         Then open: http://localhost:8000
         
-        ### Option 3: From Source
+        ### Option 3: Standalone Executables
+        Download the executable for your platform from the assets below:
+        - **Windows**: `reversi42-windows-x86_64-${{ steps.version.outputs.version }}.exe.zip`
+        - **macOS**: `reversi42-macos-x86_64-${{ steps.version.outputs.version }}.zip`
+        - **Linux**: `reversi42-linux-x86_64-${{ steps.version.outputs.version }}.tar.gz`
+        
+        Extract and run directly - no Python installation required!
+        
+        ### Option 4: From Source
         ```bash
         pip install dist/reversi42-${{ steps.version.outputs.version }}-py3-none-any.whl
         reversi42
@@ -189,10 +322,19 @@ jobs:
         ```
         EOF
     
+    - name: Prepare release files
+      run: |
+        # Collect all files for release
+        mkdir -p release_files
+        cp dist/*.whl release_files/ 2>/dev/null || true
+        cp dist/*.tar.gz release_files/ 2>/dev/null || true
+        find dist/executables -type f -exec cp {} release_files/ \; 2>/dev/null || true
+        ls -lh release_files/
+    
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        files: dist/*
+        files: release_files/*
         body_path: release_notes.md
         draft: false
         prerelease: false

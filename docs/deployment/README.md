@@ -6,7 +6,9 @@ Complete guide for deploying and distributing Reversi42.
 
 - [**Installation**](installation.md) - How to install Reversi42
 - [**Platform-Specific Guides**](platforms/) - macOS, Windows, Linux
-- [**Building Distributions**](building.md) - Create executables
+- [**Build Cross-Platform**](BUILD_CROSS_PLATFORM.md) - Create executables for Windows, Linux, macOS
+- [**Build Quick Start**](BUILD_QUICKSTART.md) - Quick reference for building
+- [**Building Distributions**](building.md) - Create executables (legacy)
 - [**Package Management**](packaging.md) - PyPI, Homebrew, etc.
 - [**Docker**](docker.md) - Containerized deployment
 - [**Configuration**](configuration.md) - Post-install configuration
@@ -44,9 +46,13 @@ reversi42
 
 Download from [Releases](https://github.com/lucaamore/reversi42/releases):
 
-- **macOS**: `reversi42-macos.dmg`
-- **Windows**: `reversi42-windows.exe`
-- **Linux**: `reversi42-linux.AppImage`
+- **macOS**: `reversi42-macos-x86_64-X.Y.Z.zip`
+- **Windows**: `reversi42-windows-x86_64-X.Y.Z.exe.zip`
+- **Linux**: `reversi42-linux-x86_64-X.Y.Z.tar.gz`
+
+Extract and run directly - no Python installation required!
+
+See [BUILD_CROSS_PLATFORM.md](BUILD_CROSS_PLATFORM.md) for building your own executables.
 
 ## Platform-Specific Installation
 
