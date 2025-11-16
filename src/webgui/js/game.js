@@ -2251,45 +2251,44 @@ function setupPlayersUI(){
       }
       
       // Build stats HTML (only for AI players with stats)
-      const statsHTML = (p.stats && p.tag !== 'HUMAN') ? `
-        <div class="playerStats">
-          <div class="statRow">
-            <div class="statLabel">Power</div>
-            <div class="statBarContainer">
-              <div class="statBar power" style="width:${p.stats.power * 10}%"></div>
+      // Helper function to safely get stat value with fallback
+      const getStatValue = (statName) => {
+        if(!p.stats || p.stats[statName] === undefined || p.stats[statName] === null) return null;
+        const val = Number(p.stats[statName]);
+        return isFinite(val) && val >= 0 ? val : null;
+      };
+      
+      const statsHTML = (p.stats && p.tag !== 'HUMAN') ? (() => {
+        const power = getStatValue('power');
+        const speed = getStatValue('speed');
+        const accuracy = getStatValue('accuracy');
+        const depth = getStatValue('depth');
+        const lethality = getStatValue('lethality');
+        
+        // Build stat row HTML helper
+        const buildStatRow = (label, value, barClass) => {
+          if(value === null) return '';
+          return `
+            <div class="statRow">
+              <div class="statLabel">${label}</div>
+              <div class="statBarContainer">
+                <div class="statBar ${barClass}" style="width:${Math.min(100, value * 10)}%"></div>
+              </div>
+              <div class="statValue">${value}</div>
             </div>
-            <div class="statValue">${p.stats.power}</div>
-          </div>
-          <div class="statRow">
-            <div class="statLabel">Speed</div>
-            <div class="statBarContainer">
-              <div class="statBar speed" style="width:${p.stats.speed * 10}%"></div>
-            </div>
-            <div class="statValue">${p.stats.speed}</div>
-          </div>
-          <div class="statRow">
-            <div class="statLabel">Accuracy</div>
-            <div class="statBarContainer">
-              <div class="statBar accuracy" style="width:${p.stats.accuracy * 10}%"></div>
-            </div>
-            <div class="statValue">${p.stats.accuracy}</div>
-          </div>
-          <div class="statRow">
-            <div class="statLabel">Depth</div>
-            <div class="statBarContainer">
-              <div class="statBar depth" style="width:${p.stats.depth * 10}%"></div>
-            </div>
-            <div class="statValue">${p.stats.depth}</div>
-          </div>
-          <div class="statRow">
-            <div class="statLabel">Lethality</div>
-            <div class="statBarContainer">
-              <div class="statBar lethality" style="width:${p.stats.lethality * 10}%"></div>
-            </div>
-            <div class="statValue">${p.stats.lethality}</div>
-          </div>
-        </div>
-      ` : '';
+          `;
+        };
+        
+        const rows = [
+          buildStatRow('Power', power, 'power'),
+          buildStatRow('Speed', speed, 'speed'),
+          buildStatRow('Accuracy', accuracy, 'accuracy'),
+          buildStatRow('Depth', depth, 'depth'),
+          buildStatRow('Lethality', lethality, 'lethality')
+        ].filter(row => row !== ''); // Remove empty rows
+        
+        return rows.length > 0 ? `<div class="playerStats">${rows.join('')}</div>` : '';
+      })() : '';
       
       // Build meta HTML
       const metaHTML = `
@@ -2852,8 +2851,9 @@ function fmtEval(val){
   return s + n.toFixed(Math.abs(n) < 10 ? 1 : 0);
 }
 function fmtDepth(val){
+  if(val === undefined || val === null || val === '--' || val === '') return '--';
   const n = parseInt(String(val).replace(/[^0-9]/g,''),10);
-  if(!isFinite(n)) return '—';
+  if(!isFinite(n) || n <= 0) return '--';
   return 'D' + n;
 }
 function formatDurationMs(ms){
@@ -2925,8 +2925,8 @@ function updateAIAnalysis(aiData){
     // Basic analysis data - use available data or defaults
     selected_move: aiData.move || aiData.selected_move || aiData.best_move || 'N/A',
     evaluation: aiData.evaluation !== undefined ? String(aiData.evaluation) : '0',
-    depth: aiData.depth !== undefined ? `${aiData.depth} plies` : 
-           aiData.depth_reached !== undefined ? `${aiData.depth_reached} plies` : '0 plies',
+    depth: (aiData.depth !== undefined && aiData.depth > 0) ? `${aiData.depth} plies` : 
+           (aiData.depth_reached !== undefined && aiData.depth_reached > 0) ? `${aiData.depth_reached} plies` : '--',
     
     // Search statistics from engine
     nodes_searched: (aiData.nodes_searched ?? aiData.nodes ?? 0).toLocaleString(),
@@ -3100,7 +3100,8 @@ function updateAIQuickStats(stats, isFinal = false){
   const pruneElem = document.getElementById('aiQuickPrune');
   const timeElem = document.getElementById('aiQuickTime');
   
-  if(depthElem) depthElem.textContent = depth || '--';
+  // Depth: show number if > 0, otherwise show '--'
+  if(depthElem) depthElem.textContent = depth > 0 ? depth.toString() : '--';
   if(nodesElem) nodesElem.textContent = formatNumber(nodes);
   if(npsElem) npsElem.textContent = formatNPS(nps);
   if(pruneElem) pruneElem.textContent = `${prunePercent.toFixed(1)}%`;

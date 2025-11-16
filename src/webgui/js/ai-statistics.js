@@ -125,12 +125,25 @@ function showAIStatisticsDashboard(stats){
   const timeElem = document.getElementById('statTime');
   if(timeElem) timeElem.textContent = formatTime(stats.total_time_ms);
   
+  // Depth: use depth_reached first, then depth, then 0 if neither available
   const depthElem = document.getElementById('statDepth');
-  if(depthElem) depthElem.textContent = stats.depth_reached ? stats.depth_reached + '' : '--';
+  if(depthElem){
+    const depth = stats.depth_reached !== undefined ? stats.depth_reached : 
+                  (stats.depth !== undefined ? stats.depth : 0);
+    depthElem.textContent = depth > 0 ? depth.toString() : '--';
+  }
   
+  // Target depth badge: show only if target_depth exists and is different from current depth
   const depthTargetElem = document.getElementById('statDepthTarget');
-  if(depthTargetElem && stats.target_depth){
-    depthTargetElem.textContent = `/ ${stats.target_depth}`;
+  if(depthTargetElem){
+    const currentDepth = stats.depth_reached !== undefined ? stats.depth_reached : 
+                         (stats.depth !== undefined ? stats.depth : 0);
+    if(stats.target_depth && stats.target_depth > currentDepth){
+      depthTargetElem.textContent = `/ ${stats.target_depth}`;
+      depthTargetElem.style.display = 'inline-block';
+    } else {
+      depthTargetElem.style.display = 'none';
+    }
   }
   
   // Node statistics
