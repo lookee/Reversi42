@@ -24,8 +24,11 @@ export REVERSI42_VIEW=headless
 # 1. Bitboard operations benchmark
 echo -e "\n${BLUE}→ Bitboard Operations${NC}"
 python3 << 'PYTHON'
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 import time
-from src.Reversi.BitboardGame import BitboardGame
+from Reversi.BitboardGame import BitboardGame
 
 game = BitboardGame()
 iterations = 10000
@@ -55,9 +58,12 @@ PYTHON
 # 2. AI Performance benchmark
 echo -e "\n${BLUE}→ AI Performance${NC}"
 python3 << 'PYTHON'
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 import time
-from src.Reversi.BitboardGame import BitboardGame
-from src.Players.PlayerApocalyptron import PlayerApocalyptron
+from Reversi.BitboardGame import BitboardGame
+from Players.PlayerApocalyptron import PlayerApocalyptron
 
 game = BitboardGame()
 
@@ -83,8 +89,10 @@ PYTHON
 echo -e "\n${BLUE}→ Memory Usage${NC}"
 python3 << 'PYTHON'
 import sys
-from src.Reversi.BitboardGame import BitboardGame
-from src.Players.PlayerApocalyptron import PlayerApocalyptron
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+from Reversi.BitboardGame import BitboardGame
+from Players.PlayerApocalyptron import PlayerApocalyptron
 
 game = BitboardGame()
 game_size = sys.getsizeof(game)
@@ -103,9 +111,12 @@ PYTHON
 # 4. Full game benchmark
 echo -e "\n${BLUE}→ Full Game Completion${NC}"
 python3 << 'PYTHON'
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 import time
-from src.Reversi.BitboardGame import BitboardGame
-from src.Players.PlayerApocalyptron import PlayerApocalyptron
+from Reversi.BitboardGame import BitboardGame
+from Players.PlayerApocalyptron import PlayerApocalyptron
 
 game = BitboardGame()
 black = PlayerApocalyptron(depth=6)
