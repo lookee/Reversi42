@@ -174,7 +174,8 @@ def assert_valid_move(game, move):
     Raises:
         AssertionError: If move is not valid
     """
-    valid_moves = game.get_valid_moves(game.current_player)
+    # BitboardGame.get_valid_moves() doesn't take parameters - it uses game.turn internally
+    valid_moves = game.get_move_list()
     assert move in valid_moves, f"Move {move} not in valid moves {valid_moves}"
 
 
