@@ -2,15 +2,15 @@
 # Pygame dependency removed - pygame/terminal views deprecated
 
 # Web Server & API
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-websockets>=12.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+websockets>=13.0
 
 # CORS support for web frontend
-python-multipart>=0.0.6
+python-multipart>=0.0.20
 
 # Configuration system
-PyYAML>=6.0.0
+PyYAML>=6.0.2
 
 # Optional: for better performance
 # orjson>=3.9.0
