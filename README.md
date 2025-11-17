@@ -1,7 +1,40 @@
 # Reversi42
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lucaamore/reversi42/master/icons/reversi42.png" alt="Reversi42 Logo" width="200" style="max-width: 100%; height: auto;">
+  <img src="https://raw.githubusercontent.com/lookee/Reversi42/refs/heads/master/icons/reversi42.png" alt="Reversi42 Logo" width="200" style="max-width: 100%; height: auto;">
+</p>
+
+<p align="center">
+  <a href="https://github.com/lookee/Reversi42/actions/workflows/ci.yml">
+    <img src="https://github.com/lookee/Reversi42/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+  </a>
+  <a href="https://github.com/lookee/Reversi42/actions/workflows/release.yml">
+    <img src="https://github.com/lookee/Reversi42/actions/workflows/release.yml/badge.svg" alt="Release Status">
+  </a>
+  <a href="https://pypi.org/project/reversi42/">
+    <img src="https://img.shields.io/pypi/v/reversi42.svg" alt="PyPI Version">
+  </a>
+  <a href="https://pypi.org/project/reversi42/">
+    <img src="https://img.shields.io/pypi/pyversions/reversi42.svg" alt="Python Versions">
+  </a>
+  <a href="https://pypi.org/project/reversi42/">
+    <img src="https://img.shields.io/pypi/dm/reversi42.svg" alt="PyPI Downloads">
+  </a>
+  <a href="https://github.com/lookee/Reversi42/blob/master/COPYING">
+    <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg" alt="License">
+  </a>
+  <a href="https://github.com/lookee/Reversi42">
+    <img src="https://img.shields.io/github/stars/lookee/Reversi42.svg?style=social&label=Star" alt="GitHub Stars">
+  </a>
+  <a href="https://github.com/lookee/Reversi42/issues">
+    <img src="https://img.shields.io/github/issues/lookee/Reversi42.svg" alt="GitHub Issues">
+  </a>
+  <a href="https://github.com/lookee/Reversi42/releases">
+    <img src="https://img.shields.io/github/release/lookee/Reversi42.svg" alt="GitHub Release">
+  </a>
+  <a href="https://codecov.io/gh/lookee/Reversi42">
+    <img src="https://codecov.io/gh/lookee/Reversi42/branch/master/graph/badge.svg" alt="Code Coverage">
+  </a>
 </p>
 
 **Ultra-Fast Reversi with Bitboard AI and Opening Book Learning**
