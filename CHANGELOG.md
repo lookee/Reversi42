@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.3.2] - 2025-11-16
+
+### Fixed
+- **🔧 GitHub Actions Workflow**
+  - Fixed duplicate step IDs in build-executables job
+  - Unified Extract version steps into single cross-platform step
+  - Unified Determine executable name steps into single step with conditional logic
+  - Unified Rename executable steps into single step
+  - Unified Create archive steps into single step
+  - All steps now use bash with platform-specific logic, ensuring workflow validity
+
 ## [6.3.1] - 2025-11-16
 
 ### Fixed
