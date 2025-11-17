@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.3.1] - 2025-11-16
+
+### Fixed
+- **🔧 Build System**
+  - Fixed Windows build workflow to use PowerShell instead of bash
+  - Corrected executable name determination and archive creation for Windows
+  - Improved error handling in Windows archive creation step
+- **🐛 Tests**
+  - Fixed `get_valid_moves()` call in conftest.py (BitboardGame doesn't accept parameters)
+  - Corrected test helper to use `get_move_list()` instead
+- **🎨 Code Quality**
+  - Formatted code with Black (console.py, epic_gladiators test, performance benchmarks)
+
+### Changed
+- **🔒 Security**
+  - Updated all dependencies to latest secure versions:
+    - fastapi: 0.104.0 → 0.115.0
+    - uvicorn: 0.24.0 → 0.32.0
+    - websockets: 12.0 → 13.0
+    - PyYAML: 6.0.0 → 6.0.2
+    - python-multipart: 0.0.6 → 0.0.20
+  - Added SECURITY.md policy document
+
 ## [6.3.0] - 2025-11-16
 
 ### Added
