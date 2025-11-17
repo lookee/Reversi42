@@ -37,7 +37,7 @@
   </a>
 </p>
 
-**Ultra-Fast Reversi with Bitboard AI and Opening Book Learning**
+**Reversi42: Fast AI Reversi**
 
 A tournament-grade Reversi implementation featuring high-performance bitboard-based AI engine, comprehensive opening book system, and modern web-based interface. Designed for both casual play and competitive AI research.
 
