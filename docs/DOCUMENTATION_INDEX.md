@@ -2,6 +2,30 @@
 
 Complete index of all documentation for Reversi42.
 
+## 🤖 Apocalyptron AI Engine - **START HERE!**
+
+**The Ultimate Reversi AI Engine** - 3500-14000x faster than basic AI
+
+### Quick Start
+- **[🚀 Getting Started with Apocalyptron](apocalyptron/getting-started.md)** - Your first steps with the ultimate AI ⭐ **NEW**
+- **[📚 Apocalyptron Documentation Hub](apocalyptron/README.md)** - Complete guide to Apocalyptron ⭐ **NEW**
+- **[🏆 Epic Gladiators](EPIC_GLADIATORS.md)** - 10 legendary AI fighters powered by Apocalyptron
+- **[⚙️ AI Configuration System](AI_CONFIGURATION_SYSTEM.md)** - Customize AI without coding
+
+### Technical Documentation
+- **[🔬 Technical Deep Dive](architecture/apocalyptron-engine.md)** - Complete engine documentation
+- **[🏗️ Architecture Overview](architecture/apocalyptron-engine.md#system-architecture)** - System design and components
+- **[📊 Performance Benchmarks](apocalyptron/README.md#performance-benchmarks)** - Speed and efficiency metrics
+- **[🎯 Search Algorithms](architecture/apocalyptron-engine.md#search-algorithms)** - How search works
+- **[🧠 Evaluation Functions](architecture/apocalyptron-engine.md#evaluation-module)** - Position evaluation
+
+### Advanced Topics
+- **[🎓 Create Custom Player](tutorials/CREATE_CUSTOM_PLAYER.md)** - Build your own AI player
+- **[🔧 Search Strategies](architecture/apocalyptron-engine.md#search-strategies)** - Understanding search modes
+- **[📈 Performance Tuning](development/performance.md)** - Optimization guide
+
+---
+
 ## 📖 User Documentation
 
 Perfect for players who want to enjoy the game.
@@ -13,13 +37,6 @@ Perfect for players who want to enjoy the game.
 
 ### Playing the Game
 - [**User Guide**](user-guide/README.md) - Complete player guide
-- [**AI Opponents**](user-guide/ai-opponents.md) - Understanding AI players
-- [**Opening Book Guide**](user-guide/opening-book.md) - Learn opening theory
-- [**Strategies & Tips**](user-guide/strategies.md) - Improve your game
-
-### Advanced Features
-- [**Tournament Guide**](user-guide/tournaments.md) - Run AI tournaments
-- [**Player Documentation**](players/README.md) - Detailed player docs
 - [**Epic Gladiators**](EPIC_GLADIATORS.md) - 10 legendary AI fighters ⭐ NEW
 - [**Gladiators Summary**](GLADIATORS_SUMMARY.md) - Quick reference guide ⭐ NEW
 
@@ -28,62 +45,41 @@ Perfect for players who want to enjoy the game.
 For contributors and developers extending Reversi42.
 
 ### Getting Started
-- [**Development Setup**](development/getting-started.md) - Set up dev environment
-- [**Project Structure**](development/project-structure.md) - Understanding the codebase
+- [**Development Guide**](development/README.md) - Complete development guide
 - [**Contributing Guide**](../CONTRIBUTING.md) - How to contribute
-
-### Development Guides
-- [**Development Guide**](development/README.md) - Complete dev guide
-- [**Testing Guide**](development/testing.md) - Writing and running tests
-- [**Code Style Guide**](development/code-style.md) - Coding standards
-- [**Debugging Guide**](development/debugging.md) - Debugging techniques
-- [**Best Practices**](development/best-practices.md) - Development patterns
 
 ### Tutorials
 - [**Create Custom Player**](tutorials/CREATE_CUSTOM_PLAYER.md) - Step-by-step guide to creating AI players ⭐ NEW
-- [**Search Strategy Guide**](tutorials/search-strategies.md) - Understanding search strategies
-- [**Evaluator Customization**](tutorials/custom-evaluators.md) - Custom evaluation functions
 
 ### API Reference
 - [**API Overview**](api/README.md) - Complete API documentation
 - [**BitboardGame API**](api/bitboard-game.md) - Core game engine
-- [**Player API**](api/player-interface.md) - Player system
-- [**View API**](api/view-interface.md) - UI system
-- [**AI Engine API**](api/apocalyptron-engine.md) - AI engine
-- [**Evaluation Functions**](api/evaluation-functions.md) - Position evaluation
-- [**Opening Book API**](api/opening-book.md) - Opening database
 
 ### Architecture
 - [**Architecture Overview**](architecture/README.md) - System architecture
 - [**System Design**](architecture/system-overview.md) - High-level design
 - [**Design Principles**](architecture/design-principles.md) - Guiding principles
 - [**Data Flow**](architecture/data-flow.md) - How data flows
-- [**Module Structure**](architecture/module-structure.md) - Component organization
 
 ### Technical Deep Dives
+- [**Apocalyptron Engine**](architecture/apocalyptron-engine.md) - Ultimate AI deep dive ⭐ **FEATURED**
+- [**Apocalyptron Getting Started**](apocalyptron/getting-started.md) - Quick start guide ⭐ **NEW**
+- [**Apocalyptron Documentation Hub**](apocalyptron/README.md) - Complete Apocalyptron guide ⭐ **NEW**
 - [**Bitboard Implementation**](architecture/bitboard.md) - Bitboard technical details ⭐ NEW
-- [**Apocalyptron Engine**](architecture/apocalyptron-engine.md) - Ultimate AI deep dive ⭐ NEW
-- [**UI Layout System**](architecture/ui-layout-system.md) - Bootstrap-like layout primitives ⭐ NEW
 - [**System Overview**](architecture/system-overview.md) - Complete system architecture ⭐ NEW
 - [**Design Principles**](architecture/design-principles.md) - Architectural principles ⭐ NEW
 - [**Data Flow**](architecture/data-flow.md) - Data flow diagrams ⭐ NEW
-- [**ADR Index**](architecture/adr/README.md) - Architecture Decision Records ⭐ NEW
-- [**Performance**](development/performance.md) - Profiling and optimization
 
 ## 🚀 Deployment Documentation
 
 For installing, configuring, and deploying Reversi42.
 
-### Installation
+### Installation & Deployment
 - [**Deployment Guide**](deployment/README.md) - Complete deployment guide
-- [**Installation Guide**](deployment/installation.md) - How to install
-- [**Configuration Guide**](deployment/configuration.md) - Post-install setup
-
-### Server Deployment
-- [**Web Server Setup**](deployment/web-server.md) - Deploy WebGUI backend ⭐ NEW
-- [**Backend Monitor**](deployment/backend-monitor.md) - Auto-restart configuration ⭐ NEW
-- [**Docker Guide**](deployment/docker.md) - Containerized deployment
-- [**CI/CD Guide**](deployment/ci-cd.md) - Continuous integration
+- [**Build Quickstart**](deployment/BUILD_QUICKSTART.md) - Quick build guide
+- [**Cross-Platform Build**](deployment/BUILD_CROSS_PLATFORM.md) - Build for all platforms
+- [**CI/CD Implementation**](deployment/CI_CD_IMPLEMENTATION.md) - CI/CD setup
+- [**Version Management**](deployment/VERSION_MANAGEMENT.md) - Version handling
 
 ## 🤝 Contributing Documentation
 
@@ -92,8 +88,6 @@ For contributors and community members.
 ### How to Contribute
 - [**Contributing Guide**](../CONTRIBUTING.md) - Main contributing guide
 - [**Contributing Overview**](contributing/README.md) - Contributor guides
-- [**Pull Request Process**](contributing/pull-request-process.md) - PR workflow
-- [**Code Review Guidelines**](contributing/review-guidelines.md) - Review process
 
 ### Community & Governance
 - [**Security Policy**](../SECURITY.md) - Reporting vulnerabilities
@@ -106,21 +100,13 @@ Quick reference and specific topics.
 ### Features & Formats
 - [**XOT Format Guide**](XOT_FORMAT.md) - eXtended Othello Transcript format ⭐ NEW
 - [**WebGUI Guide**](WEBGUI.md) - Modern web interface ⭐ NEW
+- [**WebGUI Testing**](WEBGUI_TESTING.md) - Testing guide ⭐ NEW
+- [**Book Instant Mode**](BOOK_INSTANT_MODE.md) - Opening book configuration
 - [**Board Module**](../src/Board/README.md) - Core game engine
-- [**Strategy Improvements**](STRATEGY_IMPROVEMENTS.md) - AI techniques
-
-### Player Types
-- [**Player Overview**](players/README.md) - All player types
-- [**Human Player**](players/HumanPlayer.md) - Interactive player
-- [**AI Players**](players/AIPlayer.md) - AI implementations
-- [**Apocalyptron**](players/AIPlayerGrandmaster.md) - Ultimate AI
-- [**Adding Custom Players**](ADDING_PLAYERS.md) - Create your own
 
 ### Tournament System
 - [**Tournament System**](../tournament/README.md) - Tournament overview
-- [**Tournament Guide**](../tournament/TOURNAMENTS_GUIDE.md) - All tournaments
 - [**Tournament Configs**](../tournament/ring/README.md) - Configuration files
-- [**Configuration System**](../tournament/CONFIGURATION_SYSTEM.md) - Technical reference
 
 ## 📋 Project Documentation
 
@@ -156,32 +142,31 @@ External resources and references.
 ## 🔍 Documentation by Topic
 
 ### For Players
-1. [Getting Started](user-guide/getting-started.md)
-2. [Game Rules](user-guide/game-rules.md)
-3. [AI Opponents](user-guide/ai-opponents.md)
-4. [Strategies](user-guide/strategies.md)
+1. **[🤖 Apocalyptron Getting Started](apocalyptron/getting-started.md)** ⭐ **START HERE**
+2. [Getting Started](user-guide/getting-started.md)
+3. [Epic Gladiators](EPIC_GLADIATORS.md)
+4. [Game Rules](user-guide/game-rules.md)
 5. [FAQ](user-guide/faq.md)
 
 ### For Developers
-1. [Development Setup](development/getting-started.md)
-2. [API Reference](api/README.md)
-3. [Architecture](architecture/README.md)
-4. [Contributing](../CONTRIBUTING.md)
-5. [Testing](development/testing.md)
+1. **[🤖 Apocalyptron Technical Deep Dive](architecture/apocalyptron-engine.md)** ⭐ **FEATURED**
+2. [Apocalyptron Documentation Hub](apocalyptron/README.md)
+3. [Development Guide](development/README.md)
+4. [API Reference](api/README.md)
+5. [Architecture](architecture/README.md)
+6. [Contributing](../CONTRIBUTING.md)
+7. [Create Custom Player](tutorials/CREATE_CUSTOM_PLAYER.md)
 
 ### For Contributors
 1. [Contributing Guide](../CONTRIBUTING.md)
-2. [Code Style](development/code-style.md)
-3. [Testing Guide](development/testing.md)
-4. [PR Process](contributing/pull-request-process.md)
-5. [Code Review](contributing/review-guidelines.md)
+2. [Contributing Overview](contributing/README.md)
+3. [Development Guide](development/README.md)
 
 ### For Deployers
-1. [Installation](deployment/installation.md)
-2. [Configuration](deployment/configuration.md)
-3. [Building](deployment/building.md)
-4. [Docker](deployment/docker.md)
-5. [Troubleshooting](deployment/troubleshooting.md)
+1. [Deployment Guide](deployment/README.md)
+2. [Build Quickstart](deployment/BUILD_QUICKSTART.md)
+3. [Cross-Platform Build](deployment/BUILD_CROSS_PLATFORM.md)
+4. [CI/CD Implementation](deployment/CI_CD_IMPLEMENTATION.md)
 
 ## 📊 Documentation Statistics
 
@@ -198,7 +183,9 @@ External resources and references.
 
 | Category | Link |
 |----------|------|
+| **🤖 Apocalyptron** | [Getting Started](apocalyptron/getting-started.md) ⭐ **START HERE** |
 | **Main README** | [README.md](../README.md) |
+| **Epic Gladiators** | [EPIC_GLADIATORS.md](EPIC_GLADIATORS.md) |
 | **User Guide** | [docs/user-guide/](user-guide/) |
 | **Developer Guide** | [docs/development/](development/) |
 | **API Reference** | [docs/api/](api/) |

@@ -257,11 +257,29 @@ GNU General Public License v3.0 - See [LICENSE](COPYING) file for details.
 
 ---
 
+## 🛠️ Development Story
+
+This project was developed using **[Cursor](https://cursor.sh)**, an AI-powered code editor that dramatically accelerated the development process. The transformation from a legacy 2011 project to a modern, production-ready codebase showcases the power of AI-assisted development.
+
+**Read the full story**: [Reversi42: A Journey Through Hyperspace – From Vim to Cursor](https://www.lucaamore.com/?p=2503)
+
+> *"It felt like having a conversation with a younger version of myself — same passion, entirely new tools."*
+
+Cursor enabled:
+- Deep structural refactoring with SOLID principles
+- Advanced edge case analysis
+- Compressed think–code–verify cycles
+- Architecture clarification and pattern implementation
+
+The codebase demonstrates modern software engineering practices while preserving the original vision and passion from 2011.
+
+---
+
 ## 🙏 Acknowledgments
 
 - **Donato Barnaba** and **Federazione Italiana Gioco Othello (FNGO)** - Invaluable Reversi expertise
 - **PointyStone3 Project** - Opening book data
-- **AI-Human Collaboration** - Developed through human-AI synergy using advanced LLMs
+- **[Cursor](https://cursor.sh)** - AI-powered development environment that accelerated this project
 
 ---
 
