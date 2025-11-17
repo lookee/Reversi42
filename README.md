@@ -4,290 +4,336 @@
   <img src="Images/apocalyptron.png" alt="Reversi42 Logo" width="400">
 </p>
 
-**Ultra-Fast Reversi (Othello) with Bitboard AI and Opening Book Learning**
+**Ultra-Fast Reversi with Bitboard AI and Opening Book Learning**
 
-Version: **5.0.0** 🚀  
-Copyright (C) 2011-2025 Luca Amore  
-Website: https://www.lucaamore.com
+A tournament-grade Reversi implementation featuring high-performance bitboard-based AI engine, comprehensive opening book system, and modern web-based interface. Designed for both casual play and competitive AI research.
 
----
-
-## 📖 Description
-
-Tournament-grade Reversi (Othello) implementation featuring ultra-fast bitboard AI, interactive opening book learning, and modern web interface.
-
-### ✨ Key Features
-
-- 🌐 **Modern Web UI** - Browser-based interface with real-time WebSocket updates
-- ⚡ **Ultra-Fast Bitboard Engine** - 50-100x faster than standard implementations
-- 🤖 **12 AI Gladiators** - Unique opponents from beginner (ELO 1250) to champion (ELO 1880)
-- 🎛️ **No-Code AI Creation** - Configure AI players via YAML (zero programming!)
-- 📚 **Opening Book System** - 644 professional opening sequences
-- 🏆 **Tournament Mode** - Run AI competitions and benchmarks
-- 💾 **Save/Load Games** - XOT (eXtended Othello Transcript) format
-- 🔧 **Highly Configurable** - 200+ parameters per AI, 4 evaluation presets, parallel search
+**Copyright (C) 2011-2025 Luca Amore**  
+**Website:** https://www.lucaamore.com
 
 ---
 
-## 📸 Screenshots
+## Overview
 
-### Modern Web Interface
+Reversi42 is a Reversi implementation that combines classical game AI techniques with modern software engineering practices. The engine utilizes bitboard representation for optimal performance, achieving 50-100x speedup over standard implementations through efficient 64-bit integer operations.
 
-<p align="center">
-  <img src="screen/reversi42-screen-1.png" alt="Reversi42 Game Interface" width="800">
-  <br>
-  <em>Main game interface with AI gladiator selection</em>
-</p>
-
-<p align="center">
-  <img src="screen/reversi42-screen-2.png" alt="Reversi42 AI Players" width="800">
-  <br>
-  <em>Epic Gladiators selection screen</em>
-</p>
-
-<p align="center">
-  <img src="screen/reversi42-screen-4.png" alt="Reversi42 Gameplay" width="800">
-  <br>
-  <em>Live gameplay with real-time AI analysis</em>
-</p>
-
-
+The system includes 12 pre-configured AI players with ELO ratings ranging from 1250 to 1880, a comprehensive opening book with 644 professional sequences, and a fully-featured tournament system for AI benchmarking and competition.
 
 ---
 
-## 🎮 AI Players
+## Key Features
 
-### Epic Gladiators Gallery
+### Core Engine
+- **Bitboard-Based Architecture**: 64-bit integer operations for O(1) board operations
+- **Advanced Search Algorithms**: Alpha-beta pruning with transposition tables, null-move pruning, futility pruning, late move reduction (LMR), and multi-cut pruning
+- **Multiple Search Strategies**: Fixed depth, iterative deepening, and adaptive depth search
+- **Parallel Processing**: Multi-core support for parallel search execution
+- **Evaluation Functions**: Four specialized evaluators (Mobility, Positional, Stability, Parity) with configurable weights
 
+### AI Players
+- **12 Pre-configured Players**: Ranging from beginner (ELO 1250) to expert level (ELO 1880)
+- **Configurable Difficulty**: Each player features unique strategies and evaluation profiles
+- **YAML-Based Configuration**: No-code AI player creation through declarative configuration files
+- **Custom Avatars**: Support for custom player avatars (PNG/JPEG, 512x512 recommended)
 
+### Opening Book System
+- **644 Professional Sequences**: Comprehensive opening book derived from tournament play
+- **Trie-Based Lookup**: O(m) complexity for efficient sequence matching
+- **Multiple Modes**: Instant play and evaluated modes for flexible gameplay
 
-### Players Roster
+### User Interface
+- **Modern Web Interface**: Browser-based UI built with FastAPI and WebSocket for real-time updates
+- **Game Management**: Save and load functionality using XOT (eXtended Othello Transcript) format
+- **Real-time Analysis**: Live move evaluation and game state visualization
 
-| Avatar | Player & ELO | Description | Stats |
-|:------:|:------------|:------------|:------|
-| <img src="config/players/enabled/gladiators/avatars/divzero.png" width="70"> | **💀 DIVZERO.EXE**<br>ELO: **1880** | The Ultimate Singularity - Adaptive depth 8/12/16 with 8 parallel cores. Master of all evaluation functions. | **Speed:** ~5s<br>**Strategy:** Adaptive<br>**Best For:** Final Boss |
-| <img src="config/players/enabled/gladiators/avatars/the_oracle.png" width="70"> | **🔮 THE ORACLE**<br>ELO: **1850** | Seer of Fates - Prophetic vision with adaptive depth 7/9/14. Endgame specialist with parity mastery. | **Speed:** ~3s<br>**Strategy:** Endgame Focus<br>**Best For:** Expert Challenge |
-| <img src="config/players/enabled/gladiators/avatars/apocalyptron.png" width="70"> | **🏆 Apocalyptron**<br>ELO: **1850** | The Omni-Engine - Standard strong AI with infinite configuration possibilities. Balanced and reliable. | **Speed:** ~1s<br>**Strategy:** Balanced<br>**Best For:** Standard Play |
-| <img src="config/players/enabled/gladiators/avatars/fortress_eternal.png" width="70"> | **🛡️ FORTRESS ETERNAL**<br>ELO: **1800** | The Impenetrable - Defensive master with stability ×2. Builds unbreakable positions that never fall. | **Speed:** ~6s<br>**Strategy:** Defensive<br>**Best For:** Defense Play |
-| <img src="config/players/enabled/gladiators/avatars/the_executioner.png" width="70"> | **⚔️ THE EXECUTIONER**<br>ELO: **1770** | Ruthless Destroyer - Aggressive hybrid with mobility ×2. Shows no mercy in tactical destruction. | **Speed:** ~4s<br>**Strategy:** Aggressive<br>**Best For:** Attack Play |
-| <img src="config/players/enabled/gladiators/avatars/the_strangler.png" width="70"> | **🎯 THE STRANGLER**<br>ELO: **1750** | The Suffocator - Mobility destroyer with ×3 focus. Watches your options disappear completely. | **Speed:** ~12s<br>**Strategy:** Mobility Kill<br>**Best For:** Control Play |
-| <img src="config/players/enabled/gladiators/avatars/corner_reaper.png" width="70"> | **👑 CORNER REAPER**<br>ELO: **1720** | Lord of Corners - Positional master with corner weight ×2.5. The corners are his, the board follows. | **Speed:** ~2s<br>**Strategy:** Positional<br>**Best For:** Corner Strategy |
-| <img src="config/players/enabled/gladiators/avatars/glitch_lord.png" width="70"> | **👾 GLITCH_LORD**<br>ELO: **1500±200** | Chaotic Anomaly - Unpredictable and chaotic. ERROR 404: Sanity not found. Proceeding anyway. | **Speed:** ~0.2s<br>**Strategy:** Chaos<br>**Best For:** Fun/Unpredictable |
-| <img src="config/players/enabled/gladiators/avatars/lighting_strike.png" width="70"> | **⚡ LIGHTNING STRIKE**<br>ELO: **1400** | The Blitz Master - Speed mode activated with fixed depth 4. Faster than thought, quicker than death. | **Speed:** <0.1s<br>**Strategy:** Speed<br>**Best For:** Fast Games |
-| <img src="config/players/enabled/gladiators/avatars/blitz_demon.png" width="70"> | **🔥 BLITZ DEMON**<br>ELO: **1350** | Chaos Incarnate - Pure speed with depth 5. Speed without wisdom, beautiful destruction incarnate. | **Speed:** <0.05s<br>**Strategy:** Rapid Fire<br>**Best For:** Quick Matches |
-| <img src="config/players/enabled/gladiators/avatars/zen_master.png" width="70"> | **🧘 ZEN MASTER**<br>ELO: **1250** | The Enlightened - Balanced harmony with depth 3. The best move is no thought. Just... be. | **Speed:** ~0.03s<br>**Strategy:** Zen Balance<br>**Best For:** Beginners |
-
-### Recommended Progression
-
-1. **Beginner**: 🧘 Zen Master (1250)
-2. **Easy**: 🔥 Blitz Demon (1350) / 👾 Glitch Lord (1500)
-3. **Medium**: ⚡ Lightning Strike (1400) / 👑 Corner Reaper (1720)
-4. **Hard**: 🎯 The Strangler (1750) / ⚔️ The Executioner (1770)
-5. **Very Hard**: 🛡️ Fortress Eternal (1800) / 🏆 Apocalyptron (1850)
-6. **Expert**: 🔮 The Oracle (1850)
-7. **Final Boss**: 💀 DIVZERO.EXE (1880)
-
-> 📚 Full player profiles and configurations in [EPIC_GLADIATORS.md](docs/EPIC_GLADIATORS.md)
+### Tournament System
+- **AI Competitions**: Automated tournament mode for benchmarking and competition
+- **Statistical Analysis**: Comprehensive statistics and performance metrics
+- **Custom Configurations**: Flexible tournament setup through JSON configuration files
 
 ---
 
-## 🎛️ No-Code AI Creation
+## Installation
 
-Create custom AI players using simple YAML files - no programming required!
+### Requirements
+- Python 3.9 or higher
+- pip package manager
 
-### Quick Start
+### Install from PyPI
 
 ```bash
-# 1. Copy template
-cp config/players/00_AI_CONFIG_TEMPLATE.yaml config/players/enabled/my_ai.yaml
-
-# 2. Edit configuration (name, depth, weights, etc.)
-vim config/players/enabled/my_ai.yaml
-
-# 3. Play! Auto-discovered on startup
-./reversi42
+pip install reversi42
 ```
 
-### Key Configuration Options
-
-- **Search Depth** (4-16): Higher = stronger but slower
-- **Strategy**: `fixed` | `iterative` | `adaptive`
-- **Evaluation Presets**: `balanced` | `aggressive` | `defensive` | `endgame_specialist`
-- **Parallel Search**: Enable multi-core processing
-- **Pruning Techniques**: Null-move, futility, LMR, multi-cut (10-100x speedup)
-- **Opening Book**: 644 sequences, instant/evaluated modes
-- **Custom Avatars**: PNG/JPEG support (512x512 recommended)
-
-### Example Configurations
-
-**Speed Demon**: Depth 4-5, no pruning → <100ms, ELO ~1400  
-**Tactical Fighter**: Depth 9, mobility ×2.5 → ~5s, ELO ~1750  
-**Defensive Fortress**: Depth 10, stability ×2.5 → ~10s, ELO ~1800  
-**Endgame Master**: Adaptive 7/9/14, parity ×2.0 → varies, ELO ~1850
-
-> 📚 See [CREATE_CUSTOM_PLAYER.md](docs/tutorials/CREATE_CUSTOM_PLAYER.md) and [AI_CONFIGURATION_SYSTEM.md](docs/AI_CONFIGURATION_SYSTEM.md) for details
-
----
-
-## 🧠 AI Technology
-
-**Core Features:**
-- ⚡ **Bitboard Engine**: 64-bit integer operations (50-100x faster than standard)
-- 🌲 **Alpha-Beta Pruning**: Efficient minimax with transposition tables
-- 📊 **4 Evaluators**: Mobility, Positional, Stability, Parity
-- 📚 **Opening Book**: 644 sequences, trie-based O(m) lookup
-- 🔀 **Move Ordering**: PV-move, killer moves, history heuristic
-
-**Technologies Used:**
-- Classical AI (no neural networks/deep learning)
-- Bitboard representation for O(1) operations
-- Advanced pruning techniques (null-move, futility, LMR, multi-cut)
-- Parallel search with multi-core support
-
-> 📖 Technical details in [apocalyptron-engine.md](docs/architecture/apocalyptron-engine.md) and [bitboard.md](docs/architecture/bitboard.md)
-
----
-
-## 🏆 Tournament System
-
-Run AI competitions and benchmarks:
+### Install from Source
 
 ```bash
-python tournament/quick_tournament.py          # Quick match
-python tournament/tournament.py ring/config.json  # Custom tournament
-```
+# Clone the repository
+git clone https://github.com/lucaamore/reversi42.git
+cd reversi42
 
-See [tournament/README.md](tournament/README.md) for details.
-
----
-
-## 🚀 Quick Start
-
-### Installation
-
-```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Launch web interface
-./reversi42
-# Open browser at http://localhost:8000
+# Or install in development mode
+pip install -e .
 ```
 
-**Requirements**: Python 3.9+, FastAPI, Uvicorn
+---
 
-### Usage Modes
+## Quick Start
 
-**1. Web Interface** (Recommended)
+### Web Interface (Recommended)
+
+Launch the web-based interface:
+
 ```bash
-./reversi42
+reversi42
 ```
-Browser-based UI with real-time WebSocket updates
 
-**2. Tournament Mode**
-```bash
-python tournament/quick_tournament.py
-```
-AI vs AI competitions with detailed statistics
+The interface will be available at `http://localhost:8000` in your web browser.
 
-**3. Python Library**
+### Python API
+
+Use Reversi42 as a Python library:
+
 ```python
 from Reversi.BitboardGame import BitboardGame
 from Players.PlayerFactory import PlayerFactory
 
+# Initialize game
 game = BitboardGame()
+
+# Create AI player from YAML configuration
 player = PlayerFactory.create_from_yaml("config/players/enabled/divzero.yaml")
+
+# Play game programmatically
+# ... game logic ...
 ```
 
-### Save/Load
+### Tournament Mode
 
-Games saved in **XOT** (eXtended Othello Transcript) format in `saves/` directory - human-readable, complete move history.
+Run AI competitions:
+
+```bash
+# Quick tournament match
+python tournament/quick_tournament.py
+
+# Custom tournament configuration
+python tournament/tournament.py ring/config.json
+```
 
 ---
 
-## 📁 Project Structure
+## AI Players
+
+Reversi42 includes 12 pre-configured AI players with varying skill levels and strategies:
+
+| Player | ELO Rating | Strategy | Search Depth | Description |
+|:------:|:----------:|:--------:|:------------:|:------------|
+| DIVZERO.EXE | 1880 | Adaptive | 8/12/16 | Maximum strength player with adaptive depth and parallel processing |
+| The Oracle | 1850 | Endgame Focus | 7/9/14 | Specialized in endgame positions with parity evaluation |
+| Apocalyptron | 1850 | Balanced | Adaptive | Standard strong AI with balanced evaluation |
+| Fortress Eternal | 1800 | Defensive | 10 | Defensive specialist with stability focus |
+| The Executioner | 1770 | Aggressive | 9 | Aggressive player with mobility emphasis |
+| The Strangler | 1750 | Mobility Control | 11 | Focuses on restricting opponent mobility |
+| Corner Reaper | 1720 | Positional | 8 | Positional player with corner control emphasis |
+| Glitch Lord | 1500±200 | Chaotic | Variable | Unpredictable player with randomized behavior |
+| Lightning Strike | 1400 | Speed | 4 | Fast-playing player for rapid games |
+| Blitz Demon | 1350 | Rapid Fire | 5 | Ultra-fast player optimized for speed |
+| Zen Master | 1250 | Balanced | 3 | Beginner-friendly balanced player |
+
+For detailed player profiles and configurations, see [EPIC_GLADIATORS.md](docs/EPIC_GLADIATORS.md).
+
+---
+
+## Custom AI Player Configuration
+
+Create custom AI players using YAML configuration files without programming:
+
+### Quick Start
+
+```bash
+# Copy template
+cp config/players/00_AI_CONFIG_TEMPLATE.yaml config/players/enabled/my_ai.yaml
+
+# Edit configuration
+vim config/players/enabled/my_ai.yaml
+
+# Player is automatically discovered on startup
+reversi42
+```
+
+### Configuration Options
+
+- **Search Depth** (4-16): Controls AI strength vs. speed tradeoff
+- **Search Strategy**: `fixed`, `iterative`, or `adaptive`
+- **Evaluation Presets**: `balanced`, `aggressive`, `defensive`, `endgame_specialist`
+- **Parallel Search**: Enable multi-core processing
+- **Pruning Techniques**: Configure null-move, futility, LMR, and multi-cut pruning
+- **Opening Book**: Enable/disable and configure opening book usage
+- **Custom Avatars**: Specify custom avatar images (PNG/JPEG)
+
+### Example Configurations
+
+**Speed-Optimized Player** (ELO ~1400):
+- Depth: 4-5
+- Minimal pruning
+- Average move time: <100ms
+
+**Tactical Player** (ELO ~1750):
+- Depth: 9
+- Mobility weight: ×2.5
+- Average move time: ~5s
+
+**Defensive Specialist** (ELO ~1800):
+- Depth: 10
+- Stability weight: ×2.5
+- Average move time: ~10s
+
+**Endgame Specialist** (ELO ~1850):
+- Adaptive depth: 7/9/14
+- Parity weight: ×2.0
+- Variable move time
+
+For comprehensive configuration documentation, see [CREATE_CUSTOM_PLAYER.md](docs/tutorials/CREATE_CUSTOM_PLAYER.md) and [AI_CONFIGURATION_SYSTEM.md](docs/AI_CONFIGURATION_SYSTEM.md).
+
+---
+
+## Technical Architecture
+
+### Core Technologies
+
+- **Bitboard Representation**: 64-bit integers for efficient board state manipulation
+- **Classical AI Algorithms**: Minimax with alpha-beta pruning (no neural networks)
+- **Advanced Pruning**: Null-move, futility, LMR, and multi-cut techniques
+- **Transposition Tables**: Efficient position caching for improved performance
+- **Move Ordering**: PV-move, killer moves, and history heuristic optimization
+
+### Performance Characteristics
+
+- **Speed**: 50-100x faster than standard array-based implementations
+- **Search Depth**: Configurable from 4 to 16 ply
+- **Parallel Processing**: Multi-core support for parallel search
+- **Memory Efficiency**: Optimized data structures for minimal memory footprint
+
+### Project Statistics
+
+- **Codebase**: ~12,000 lines of Python code
+- **Test Coverage**: 220+ unit and integration tests
+- **Documentation**: 40+ documentation files
+- **AI Players**: 12 pre-configured players
+- **Opening Sequences**: 644 professional opening sequences
+
+For detailed technical documentation, see:
+- [Apocalyptron Engine Architecture](docs/architecture/apocalyptron-engine.md)
+- [Bitboard Implementation](docs/architecture/bitboard.md)
+- [System Architecture](docs/architecture/README.md)
+
+---
+
+## Project Structure
 
 ```
 Reversi42/
 ├── src/                      # Source code
-│   ├── Reversi/              # Core game (BitboardGame, Game)
+│   ├── Reversi/              # Core game engine (BitboardGame, Game)
 │   ├── AI/Apocalyptron/      # AI engine (search, evaluation, pruning, caching)
-│   ├── Players/              # Player system + 12 Gladiators
+│   ├── Players/              # Player system and configurations
 │   ├── webgui/               # FastAPI WebSocket server
-│   ├── domain/               # Opening book (644 sequences)
+│   ├── domain/               # Opening book system
 │   └── ui/                   # UI implementations
 ├── config/                   # YAML configurations
-│   └── players/enabled/      # AI player configs
-├── docs/                     # Documentation (40+ files)
+│   └── players/enabled/      # AI player configurations
+├── docs/                     # Comprehensive documentation
 ├── tests/                    # Test suite (220+ tests)
 ├── tournament/               # Tournament system
-├── saves/                    # Saved games (XOT format)
-└── requirements.txt          # Dependencies
+└── saves/                    # Saved games (XOT format)
 ```
 
-**Statistics**: 250+ files, ~12K lines of code, 12 AI players, 3 search strategies, 220+ tests, 644 openings
+---
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[User Guide](docs/user-guide/README.md)**: Getting started, game rules, strategies, and FAQ
+- **[API Reference](docs/api/README.md)**: Complete API documentation for BitboardGame, Player, and View classes
+- **[Architecture Documentation](docs/architecture/README.md)**: System design, engine architecture, and technical details
+- **[Tutorials](docs/tutorials/CREATE_CUSTOM_PLAYER.md)**: Step-by-step guides for creating custom AI players
+- **[Tournament System](tournament/README.md)**: Tournament configuration and usage
+- **[Development Guide](docs/development/README.md)**: Setup, testing, and contribution guidelines
 
 ---
 
-## 📚 Documentation
+## Testing
 
-- 📖 **[User Guide](docs/user-guide/README.md)** - Getting started, rules, strategies, FAQ
-- 👨‍💻 **[API Reference](docs/api/README.md)** - BitboardGame, Player, View APIs
-- 🏗️ **[Architecture](docs/architecture/README.md)** - System design, Apocalyptron engine, bitboard
-- 🎓 **[Tutorials](docs/tutorials/CREATE_CUSTOM_PLAYER.md)** - Create custom AI players
-- 🏆 **[Tournament System](tournament/README.md)** - AI competitions
-- 🔧 **[Development Guide](docs/development/README.md)** - Setup, testing, contributing
-
----
-
-## 🧪 Testing & CI/CD
+Run the comprehensive test suite:
 
 ```bash
-./scripts/run_tests.sh              # Run full test suite (220+ tests)
-pytest tests/apocalyptron/unit/ -v  # Quick unit tests
+# Full test suite
+./scripts/run_tests.sh
+
+# Quick unit tests
+pytest tests/apocalyptron/unit/ -v
+
+# With coverage
+pytest --cov=src tests/
 ```
 
-See [test documentation](tests/apocalyptron/README.md) and [CI/CD guide](docs/ci-cd/README.md)
+The project includes 220+ tests covering unit, integration, and characterization scenarios. See [test documentation](tests/apocalyptron/README.md) for details.
 
 ---
 
-## 📜 License
+## Game File Format
 
-GNU General Public License v3.0 - See [LICENSE](COPYING) file for details.
-
----
-
-## 🛠️ Development Story
-
-This project was developed using **[Cursor](https://cursor.sh)**, an AI-powered code editor that dramatically accelerated the development process. The transformation from a legacy 2011 project to a modern, production-ready codebase showcases the power of AI-assisted development.
-
-**Read the full story**: [Reversi42: A Journey Through Hyperspace – From Vim to Cursor](https://www.lucaamore.com/?p=2503)
-
-> *"It felt like having a conversation with a younger version of myself — same passion, entirely new tools."*
-
-Cursor enabled:
-- Deep structural refactoring with SOLID principles
-- Advanced edge case analysis
-- Compressed think–code–verify cycles
-- Architecture clarification and pattern implementation
-
-The codebase demonstrates modern software engineering practices while preserving the original vision and passion from 2011.
+Games are saved in **XOT** (eXtended Othello Transcript) format, a human-readable format that stores complete move history, game metadata, and player information. Saved games are stored in the `saves/` directory.
 
 ---
 
-## 🙏 Acknowledgments
+## License
 
-- **Donato Barnaba** and **Federazione Italiana Gioco Othello (FNGO)** - Invaluable Reversi expertise
-- **PointyStone3 Project** - Opening book data
-- **[Cursor](https://cursor.sh)** - AI-powered development environment that accelerated this project
+This project is licensed under the GNU General Public License v3.0 or later. See the [LICENSE](COPYING) file for details.
 
 ---
 
-## 👤 Author
+## Development
+
+Reversi42 was developed using modern software engineering practices and AI-assisted development tools. The codebase demonstrates:
+
+- SOLID principles and clean architecture
+- Comprehensive test coverage
+- Extensive documentation
+- Type hints and static analysis
+- CI/CD integration
+
+For development setup and contribution guidelines, see [Development Guide](docs/development/README.md).
+
+---
+
+## Acknowledgments
+
+- **Donato Barnaba** and **Federazione Italiana Gioco Othello (FNGO)** - Reversi expertise and guidance
+- **PointyStone3 Project** - Opening book data contributions
+- **Cursor** - AI-powered development environment
+
+---
+
+## Author
 
 **Luca Amore**  
 Email: luca.amore@gmail.com  
 Website: https://www.lucaamore.com
 
-**Have fun playing Reversi42!** 🎮
+---
 
+## Links
+
+- **Homepage**: https://www.lucaamore.com
+- **Repository**: https://github.com/lucaamore/reversi42
+- **Documentation**: https://github.com/lucaamore/reversi42/tree/main/docs
+- **Issue Tracker**: https://github.com/lucaamore/reversi42/issues
+
+---
+
+**Reversi42** - Professional-grade Reversi implementation for players and researchers alike.
