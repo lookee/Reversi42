@@ -18,12 +18,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Executables are now automatically created for all platforms on release
   - Added icon support (Windows .ico, macOS .icns, Linux .png)
   - Created comprehensive build documentation (`docs/deployment/BUILD_CROSS_PLATFORM.md`)
+- **🔒 Security**
+  - Added SECURITY.md policy document
+  - Updated all dependencies to latest secure versions
 
 ### Changed
 - **📦 Build System**
   - Updated GitHub Actions release workflow to build executables for Windows, macOS, and Linux
   - Release artifacts now include standalone executables in addition to Python packages
   - Improved release notes generation with executable download instructions
+- **🔒 Security Updates**
+  - Updated fastapi: 0.104.0 → 0.115.0 (resolves CVE vulnerabilities in older versions)
+  - Updated uvicorn: 0.24.0 → 0.32.0 (includes security patches)
+  - Updated websockets: 12.0 → 13.0 (fixes security issues)
+  - Updated PyYAML: 6.0.0 → 6.0.2 (resolves CVE-2020-14343 and related issues)
+  - Updated python-multipart: 0.0.6 → 0.0.20 (security improvements)
+  - All security vulnerabilities from previous versions have been resolved
 
 ## [6.2.2] - 2025-11-16
 
