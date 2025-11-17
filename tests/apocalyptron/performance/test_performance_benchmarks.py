@@ -33,11 +33,14 @@ class TestPerformanceBaseline:
         game = BitboardGame()
         # Use quiet mode to reduce overhead
         from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
-        engine_config = (ApocalyptronConfigBuilder()
-                        .with_depth(6)
-                        .enable_all_optimizations()
-                        .quiet_mode()  # Disable output for speed
-                        .build())
+
+        engine_config = (
+            ApocalyptronConfigBuilder()
+            .with_depth(6)
+            .enable_all_optimizations()
+            .quiet_mode()  # Disable output for speed
+            .build()
+        )
         engine = ApocalyptronFactory.create_engine(engine_config)
 
         start = time.perf_counter()
@@ -63,11 +66,14 @@ class TestPerformanceBaseline:
 
         # Use quiet mode to reduce overhead
         from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
-        engine_config = (ApocalyptronConfigBuilder()
-                        .with_depth(8)
-                        .enable_all_optimizations()
-                        .quiet_mode()  # Disable output for speed
-                        .build())
+
+        engine_config = (
+            ApocalyptronConfigBuilder()
+            .with_depth(8)
+            .enable_all_optimizations()
+            .quiet_mode()  # Disable output for speed
+            .build()
+        )
         engine = ApocalyptronFactory.create_engine(engine_config)
 
         start = time.perf_counter()
@@ -87,12 +93,15 @@ class TestPerformanceBaseline:
         game = BitboardGame()
         # Use fixed depth for shallow searches to avoid iterative deepening overhead
         from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
-        engine_config = (ApocalyptronConfigBuilder()
-                        .with_depth(3)
-                        .with_fixed_depth_search()  # No iterative deepening overhead
-                        .enable_all_optimizations()
-                        .quiet_mode()  # Disable output for speed
-                        .build())
+
+        engine_config = (
+            ApocalyptronConfigBuilder()
+            .with_depth(3)
+            .with_fixed_depth_search()  # No iterative deepening overhead
+            .enable_all_optimizations()
+            .quiet_mode()  # Disable output for speed
+            .build()
+        )
         engine = ApocalyptronFactory.create_engine(engine_config)
 
         for depth in [1, 2, 3]:
@@ -263,11 +272,14 @@ class TestNodesPerSecond:
         game = BitboardGame()
         # Use quiet mode to reduce overhead
         from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
-        engine_config = (ApocalyptronConfigBuilder()
-                        .with_depth(5)
-                        .enable_all_optimizations()
-                        .quiet_mode()  # Disable output for speed
-                        .build())
+
+        engine_config = (
+            ApocalyptronConfigBuilder()
+            .with_depth(5)
+            .enable_all_optimizations()
+            .quiet_mode()  # Disable output for speed
+            .build()
+        )
         engine = ApocalyptronFactory.create_engine(engine_config)
 
         start = time.perf_counter()
@@ -289,12 +301,15 @@ class TestNodesPerSecond:
         """Test NPS in midgame vs opening."""
         # Use quiet mode to reduce overhead
         from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
-        engine_config = (ApocalyptronConfigBuilder()
-                        .with_depth(5)
-                        .enable_all_optimizations()
-                        .quiet_mode()  # Disable output for speed
-                        .build())
-        
+
+        engine_config = (
+            ApocalyptronConfigBuilder()
+            .with_depth(5)
+            .enable_all_optimizations()
+            .quiet_mode()  # Disable output for speed
+            .build()
+        )
+
         # Opening position
         game_opening = BitboardGame()
         engine = ApocalyptronFactory.create_engine(engine_config)
@@ -581,11 +596,14 @@ class TestRegressionPerformance:
         game = BitboardGame()
         # Use quiet mode to reduce overhead
         from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
-        engine_config = (ApocalyptronConfigBuilder()
-                        .with_depth(5)
-                        .enable_all_optimizations()
-                        .quiet_mode()  # Disable output for speed
-                        .build())
+
+        engine_config = (
+            ApocalyptronConfigBuilder()
+            .with_depth(5)
+            .enable_all_optimizations()
+            .quiet_mode()  # Disable output for speed
+            .build()
+        )
         engine = ApocalyptronFactory.create_engine(engine_config)
 
         start = time.perf_counter()
@@ -611,11 +629,14 @@ class TestRegressionPerformance:
 
         # Use quiet mode to reduce overhead
         from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
-        engine_config = (ApocalyptronConfigBuilder()
-                        .with_depth(8)
-                        .enable_all_optimizations()
-                        .quiet_mode()  # Disable output for speed
-                        .build())
+
+        engine_config = (
+            ApocalyptronConfigBuilder()
+            .with_depth(8)
+            .enable_all_optimizations()
+            .quiet_mode()  # Disable output for speed
+            .build()
+        )
         engine = ApocalyptronFactory.create_engine(engine_config)
 
         start = time.perf_counter()
@@ -624,7 +645,9 @@ class TestRegressionPerformance:
 
         assert move is not None
         # Increased threshold for CI environments (GitHub Actions can be slower)
-        assert elapsed < 10.0, f"Regression: depth 8 took {elapsed:.2f}s (should be < 10s CI-friendly)"
+        assert (
+            elapsed < 10.0
+        ), f"Regression: depth 8 took {elapsed:.2f}s (should be < 10s CI-friendly)"
 
 
 if __name__ == "__main__":

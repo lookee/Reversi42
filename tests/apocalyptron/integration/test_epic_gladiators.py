@@ -93,7 +93,7 @@ class TestEpicGladiators:
         mobility_eval = next((e for e in config.evaluators if e.evaluator_type == "mobility"), None)
         assert mobility_eval is not None, "Should have mobility evaluator"
         assert mobility_eval.weight >= 2.5, "Should have high mobility weight"
-        
+
         # Should have multiple evaluators (mobility, positional, stability, parity)
         assert len(config.evaluators) >= 4, "Should have all evaluators enabled"
 
@@ -128,7 +128,7 @@ class TestEpicGladiators:
 
         # Should have corner hunter weights (high emphasis on corners - actual config has 200)
         assert config.weights.corner_weight >= 150
-        
+
         # Should have multiple evaluators (positional, stability, mobility, parity)
         assert len(config.evaluators) >= 4, "Should have all evaluators enabled"
 
@@ -153,8 +153,10 @@ class TestEpicGladiators:
 
         # Should use iterative strategy (beginner-friendly, teaches depth progression)
         # Note: Config uses "iterative" which maps to "iterative_deepening"
-        assert config.search_strategy in ["iterative_deepening", "iterative"], \
-            f"Expected iterative_deepening or iterative, got {config.search_strategy}"
+        assert config.search_strategy in [
+            "iterative_deepening",
+            "iterative",
+        ], f"Expected iterative_deepening or iterative, got {config.search_strategy}"
 
         # Should be shallow (beginner-friendly)
         assert config.depth <= 5

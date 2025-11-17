@@ -103,7 +103,7 @@ class ConsoleObserver(SearchObserver):
         # (iterative_deepening passes time in milliseconds)
         if iteration_time > 1000:  # If > 1000, likely in milliseconds
             iteration_time = iteration_time / 1000.0
-        
+
         print("-" * 80)
 
         asp_info = ""
@@ -334,7 +334,7 @@ class ConsoleObserver(SearchObserver):
         # (iterative_deepening passes time in milliseconds)
         if total_time > 1000:  # If > 1000, likely in milliseconds
             total_time = total_time / 1000.0
-        
+
         print(f"   • Final depth: {stats.get('depth', '?')}")
         print(f"   • Total nodes: {stats.get('nodes', 0):,}")
 
