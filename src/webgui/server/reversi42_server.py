@@ -1093,6 +1093,7 @@ async def get_index():
         else:
             logger.error(f"Game file not found at: {html_file}")
             import html
+
             escaped_path = html.escape(str(html_file))
             return HTMLResponse(
                 f"<h1>Game file not found</h1><p>Expected at: {escaped_path}</p>", status_code=404
@@ -1119,7 +1120,7 @@ async def get_css(filename: str):
     css_file_abs = os.path.abspath(css_file)
     if not css_file_abs.startswith(css_dir):
         return HTMLResponse("Invalid path", status_code=400)
-    
+
     if os.path.exists(css_file):
         with open(css_file, "r", encoding="utf-8") as f:
             content = f.read()
@@ -1148,7 +1149,7 @@ async def get_js(filename: str):
     js_file_abs = os.path.abspath(js_file)
     if not js_file_abs.startswith(js_dir):
         return HTMLResponse("Invalid path", status_code=400)
-    
+
     if os.path.exists(js_file):
         with open(js_file, "r", encoding="utf-8") as f:
             content = f.read()
@@ -1175,7 +1176,7 @@ async def get_template(filename: str):
     template_file_abs = os.path.abspath(template_file)
     if not template_file_abs.startswith(templates_dir):
         return HTMLResponse("Invalid path", status_code=400)
-    
+
     if os.path.exists(template_file):
         return FileResponse(template_file, media_type="text/html")
     return HTMLResponse("Template not found", status_code=404)
@@ -1237,13 +1238,14 @@ async def get_avatar(filename: str):
 async def get_player_config(player_name: str):
     """Get player configuration YAML content"""
     import html
-    
+
     # Security: Sanitize player_name to prevent path traversal and injection
     # Player names should only contain alphanumeric, spaces, dots, hyphens, underscores
     import re
-    if not re.match(r'^[a-zA-Z0-9._\-\s]+$', player_name):
+
+    if not re.match(r"^[a-zA-Z0-9._\-\s]+$", player_name):
         return {"error": "Invalid player name", "player_name": html.escape(player_name)}
-    
+
     try:
         from Players.config import PlayerRegistry
 
@@ -1252,7 +1254,7 @@ async def get_player_config(player_name: str):
         # Get player info
         player_info = registry.get_player_info(player_name)
         config_file = player_info["config_file"]
-        
+
         # Security: Validate config_file path is within project_root
         config_path_abs = os.path.abspath(config_file.path)
         project_root_abs = os.path.abspath(project_root)
@@ -1272,6 +1274,7 @@ async def get_player_config(player_name: str):
         }
     except Exception as e:
         import html
+
         logger.error(f"Error loading player config for {player_name}: {e}")
         # Security: Sanitize error message and player_name to prevent XSS
         sanitized_error = html.escape(str(e))
@@ -1557,6 +1560,7 @@ async def get_logs():
     except Exception as e:
         logger.error(f"Error reading logs: {e}")
         import html
+
         escaped_error = html.escape(str(e))
         return Response(content=f"Error reading logs: {escaped_error}", media_type="text/plain")
 
