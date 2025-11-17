@@ -90,21 +90,7 @@ jobs:
         pip install pyinstaller setuptools wheel
         pip install -e .
     
-    - name: Extract version (Windows)
-      if: matrix.os == 'windows-latest'
-      id: version
-      shell: pwsh
-      run: |
-        if ("${{ github.event_name }}" -eq "workflow_dispatch") {
-          $VERSION = "${{ github.event.inputs.version }}"
-        } else {
-          $VERSION = "${{ github.ref }}".Replace("refs/tags/", "").Replace("v", "")
-        }
-        Write-Host "version=$VERSION" >> $env:GITHUB_OUTPUT
-        Write-Host "Version: $VERSION"
-    
-    - name: Extract version (macOS/Linux)
-      if: matrix.os != 'windows-latest'
+    - name: Extract version
       id: version
       shell: bash
       run: |
@@ -122,76 +108,54 @@ jobs:
         pyinstaller reversi42.spec --clean --noconfirm
       continue-on-error: false
     
-    - name: Determine executable name (Windows)
-      if: matrix.os == 'windows-latest'
-      id: exe_name
-      shell: pwsh
-      run: |
-        $VERSION = "${{ steps.version.outputs.version }}"
-        $PLATFORM = "${{ matrix.platform }}"
-        $ARCH = "${{ matrix.arch }}"
-        $EXE_NAME = "reversi42-${PLATFORM}-${ARCH}-${VERSION}.exe"
-        $EXE_PATH = "dist\reversi42.exe"
-        Write-Host "exe_name=$EXE_NAME" >> $env:GITHUB_OUTPUT
-        Write-Host "exe_path=$EXE_PATH" >> $env:GITHUB_OUTPUT
-        Write-Host "Executable: $EXE_NAME"
-    
-    - name: Determine executable name (macOS/Linux)
-      if: matrix.os != 'windows-latest'
+    - name: Determine executable name
       id: exe_name
       shell: bash
       run: |
         VERSION="${{ steps.version.outputs.version }}"
         PLATFORM="${{ matrix.platform }}"
         ARCH="${{ matrix.arch }}"
-        EXE_NAME="reversi42-${PLATFORM}-${ARCH}-${VERSION}"
-        EXE_PATH="dist/reversi42"
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          EXE_NAME="reversi42-${PLATFORM}-${ARCH}-${VERSION}.exe"
+          EXE_PATH="dist/reversi42.exe"
+        else
+          EXE_NAME="reversi42-${PLATFORM}-${ARCH}-${VERSION}"
+          EXE_PATH="dist/reversi42"
+        fi
         echo "exe_name=$EXE_NAME" >> $GITHUB_OUTPUT
         echo "exe_path=$EXE_PATH" >> $GITHUB_OUTPUT
         echo "Executable: $EXE_NAME"
     
-    - name: Rename executable (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: pwsh
-      run: |
-        if (Test-Path "${{ steps.exe_name.outputs.exe_path }}") {
-          Move-Item -Path "${{ steps.exe_name.outputs.exe_path }}" -Destination "dist\${{ steps.exe_name.outputs.exe_name }}" -Force
-        }
-    
-    - name: Rename executable (macOS/Linux)
-      if: matrix.os != 'windows-latest'
+    - name: Rename executable
       shell: bash
       run: |
-        if [ -f "${{ steps.exe_name.outputs.exe_path }}" ]; then
-          mv "${{ steps.exe_name.outputs.exe_path }}" "dist/${{ steps.exe_name.outputs.exe_name }}"
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          # Windows: use PowerShell for file operations
+          pwsh -Command "if (Test-Path '${{ steps.exe_name.outputs.exe_path }}') { Move-Item -Path '${{ steps.exe_name.outputs.exe_path }}' -Destination 'dist\${{ steps.exe_name.outputs.exe_name }}' -Force }"
+        else
+          # macOS/Linux: use standard mv
+          if [ -f "${{ steps.exe_name.outputs.exe_path }}" ]; then
+            mv "${{ steps.exe_name.outputs.exe_path }}" "dist/${{ steps.exe_name.outputs.exe_name }}"
+          fi
         fi
     
-    - name: Create archive (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: pwsh
-      run: |
-        Set-Location dist
-        $exeName = "${{ steps.exe_name.outputs.exe_name }}"
-        if (Test-Path $exeName) {
-          Compress-Archive -Path $exeName -DestinationPath "${exeName}.zip" -Force
-          Write-Host "Archive created: ${exeName}.zip"
-        } else {
-          Write-Host "Error: Executable not found: $exeName"
-          Get-ChildItem | Format-Table
-          exit 1
-        }
-        Set-Location ..
-        Get-ChildItem dist/ | Format-Table
-    
-    - name: Create archive (macOS/Linux)
-      if: matrix.os != 'windows-latest'
+    - name: Create archive
       shell: bash
       run: |
         cd dist
-        if [ "${{ matrix.os }}" == "macos-latest" ]; then
-          zip -q "${{ steps.exe_name.outputs.exe_name }}.zip" "${{ steps.exe_name.outputs.exe_name }}"
+        EXE_NAME="${{ steps.exe_name.outputs.exe_name }}"
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          # Windows: use PowerShell Compress-Archive
+          pwsh -Command "Compress-Archive -Path '$EXE_NAME' -DestinationPath '${EXE_NAME}.zip' -Force"
+          echo "Archive created: ${EXE_NAME}.zip"
+        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+          # macOS: use zip
+          zip -q "${EXE_NAME}.zip" "$EXE_NAME"
+          echo "Archive created: ${EXE_NAME}.zip"
         else
-          tar -czf "${{ steps.exe_name.outputs.exe_name }}.tar.gz" "${{ steps.exe_name.outputs.exe_name }}"
+          # Linux: use tar.gz
+          tar -czf "${EXE_NAME}.tar.gz" "$EXE_NAME"
+          echo "Archive created: ${EXE_NAME}.tar.gz"
         fi
         cd ..
         ls -lh dist/
