@@ -1,7 +1,7 @@
 # Reversi42
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lucaamore/reversi42/main/Images/apocalyptron.png" alt="Reversi42 Logo" width="400">
+  <img src="https://raw.githubusercontent.com/lucaamore/reversi42/master/Images/apocalyptron.png" alt="Reversi42 Logo" width="400">
 </p>
 
 **Ultra-Fast Reversi with Bitboard AI and Opening Book Learning**
