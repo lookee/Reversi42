@@ -1092,8 +1092,10 @@ async def get_index():
             )
         else:
             logger.error(f"Game file not found at: {html_file}")
+            import html
+            escaped_path = html.escape(str(html_file))
             return HTMLResponse(
-                f"<h1>Game file not found</h1><p>Expected at: {html_file}</p>", status_code=404
+                f"<h1>Game file not found</h1><p>Expected at: {escaped_path}</p>", status_code=404
             )
     except Exception as e:
         logger.error(f"Error serving index: {e}")
@@ -1105,8 +1107,19 @@ async def get_css(filename: str):
     """Serve CSS files"""
     from fastapi.responses import Response
 
+    # Security: Prevent path traversal
+    filename = os.path.basename(filename)
+    if not filename or ".." in filename or "/" in filename or "\\" in filename:
+        return HTMLResponse("Invalid filename", status_code=400)
+
     webgui_dir = os.path.dirname(current_dir)
     css_file = os.path.join(webgui_dir, "css", filename)
+    # Security: Ensure the resolved path is within the css directory
+    css_dir = os.path.abspath(os.path.join(webgui_dir, "css"))
+    css_file_abs = os.path.abspath(css_file)
+    if not css_file_abs.startswith(css_dir):
+        return HTMLResponse("Invalid path", status_code=400)
+    
     if os.path.exists(css_file):
         with open(css_file, "r", encoding="utf-8") as f:
             content = f.read()
@@ -1123,8 +1136,19 @@ async def get_js(filename: str):
     """Serve JavaScript files"""
     from fastapi.responses import Response
 
+    # Security: Prevent path traversal
+    filename = os.path.basename(filename)
+    if not filename or ".." in filename or "/" in filename or "\\" in filename:
+        return HTMLResponse("Invalid filename", status_code=400)
+
     webgui_dir = os.path.dirname(current_dir)
     js_file = os.path.join(webgui_dir, "js", filename)
+    # Security: Ensure the resolved path is within the js directory
+    js_dir = os.path.abspath(os.path.join(webgui_dir, "js"))
+    js_file_abs = os.path.abspath(js_file)
+    if not js_file_abs.startswith(js_dir):
+        return HTMLResponse("Invalid path", status_code=400)
+    
     if os.path.exists(js_file):
         with open(js_file, "r", encoding="utf-8") as f:
             content = f.read()
@@ -1139,8 +1163,19 @@ async def get_js(filename: str):
 @app.get("/templates/{filename}")
 async def get_template(filename: str):
     """Serve HTML template files"""
+    # Security: Prevent path traversal
+    filename = os.path.basename(filename)
+    if not filename or ".." in filename or "/" in filename or "\\" in filename:
+        return HTMLResponse("Invalid filename", status_code=400)
+
     webgui_dir = os.path.dirname(current_dir)
     template_file = os.path.join(webgui_dir, "templates", filename)
+    # Security: Ensure the resolved path is within the templates directory
+    templates_dir = os.path.abspath(os.path.join(webgui_dir, "templates"))
+    template_file_abs = os.path.abspath(template_file)
+    if not template_file_abs.startswith(templates_dir):
+        return HTMLResponse("Invalid path", status_code=400)
+    
     if os.path.exists(template_file):
         return FileResponse(template_file, media_type="text/html")
     return HTMLResponse("Template not found", status_code=404)
@@ -1149,6 +1184,11 @@ async def get_template(filename: str):
 @app.get("/avatars/{filename}")
 async def get_avatar(filename: str):
     """Serve player avatar images"""
+    # Security: Prevent path traversal
+    filename = os.path.basename(filename)
+    if not filename or ".." in filename or "/" in filename or "\\" in filename:
+        return HTMLResponse("Invalid filename", status_code=400)
+
     # Try multiple locations for avatar files
     avatar_locations = [
         # First check config/players/avatar/ (for human.png)
@@ -1161,6 +1201,16 @@ async def get_avatar(filename: str):
 
     avatar_file = None
     for location in avatar_locations:
+        # Security: Ensure the resolved path is within allowed directories
+        location_abs = os.path.abspath(location)
+        location_dir = os.path.dirname(location_abs)
+        # Check if location is within project_root
+        project_root_abs = os.path.abspath(project_root)
+        if not location_abs.startswith(project_root_abs):
+            continue
+        # Additional check: ensure filename matches
+        if os.path.basename(location_abs) != filename:
+            continue
         if os.path.exists(location):
             avatar_file = location
             break
@@ -1186,6 +1236,14 @@ async def get_avatar(filename: str):
 @app.get("/api/player-config/{player_name}")
 async def get_player_config(player_name: str):
     """Get player configuration YAML content"""
+    import html
+    
+    # Security: Sanitize player_name to prevent path traversal and injection
+    # Player names should only contain alphanumeric, spaces, dots, hyphens, underscores
+    import re
+    if not re.match(r'^[a-zA-Z0-9._\-\s]+$', player_name):
+        return {"error": "Invalid player name", "player_name": html.escape(player_name)}
+    
     try:
         from Players.config import PlayerRegistry
 
@@ -1194,6 +1252,13 @@ async def get_player_config(player_name: str):
         # Get player info
         player_info = registry.get_player_info(player_name)
         config_file = player_info["config_file"]
+        
+        # Security: Validate config_file path is within project_root
+        config_path_abs = os.path.abspath(config_file.path)
+        project_root_abs = os.path.abspath(project_root)
+        if not config_path_abs.startswith(project_root_abs):
+            logger.error(f"Security: Config file path outside project root: {config_path_abs}")
+            return {"error": "Invalid configuration path", "player_name": html.escape(player_name)}
 
         # Read YAML file
         with open(config_file.path, "r", encoding="utf-8") as f:
@@ -1206,8 +1271,12 @@ async def get_player_config(player_name: str):
             "metadata": player_info["metadata"],
         }
     except Exception as e:
+        import html
         logger.error(f"Error loading player config for {player_name}: {e}")
-        return {"error": str(e), "player_name": player_name}
+        # Security: Sanitize error message and player_name to prevent XSS
+        sanitized_error = html.escape(str(e))
+        sanitized_name = html.escape(player_name)
+        return {"error": sanitized_error, "player_name": sanitized_name}
 
 
 @app.get("/api/players")
@@ -1487,7 +1556,9 @@ async def get_logs():
             return Response(content="No logs available yet", media_type="text/plain")
     except Exception as e:
         logger.error(f"Error reading logs: {e}")
-        return Response(content=f"Error reading logs: {str(e)}", media_type="text/plain")
+        import html
+        escaped_error = html.escape(str(e))
+        return Response(content=f"Error reading logs: {escaped_error}", media_type="text/plain")
 
 
 @app.websocket("/ws")
