@@ -18,6 +18,7 @@ include .editorconfig
 
 # Images and assets
 recursive-include src/Images *.png
+include icons/reversi42.png
 
 # Opening book data
 recursive-include src/domain/knowledge/data *.txt *.json

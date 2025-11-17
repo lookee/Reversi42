@@ -41,7 +41,9 @@ jobs:
         sys.path.insert(0, os.path.join(os.getcwd(), 'src'))
         
         import time
+        from copy import deepcopy
         from Reversi.BitboardGame import BitboardGame
+        from Reversi.Game import Move
         
         # Benchmark move generation
         game = BitboardGame()
@@ -49,18 +51,27 @@ jobs:
         
         start = time.perf_counter()
         for _ in range(iterations):
-            moves = game.get_valid_moves(1)
+            moves = game.get_valid_moves()
         elapsed = (time.perf_counter() - start) / iterations * 1e9
         
-        print(f'Move generation: {elapsed:.1f} ns/op')
+        result = f'Move generation: {elapsed:.1f} ns/op\n'
+        print(result, end='')
         
-        # Benchmark make_move
+        # Benchmark make_move (using D3 = Move(4, 3))
+        test_move = Move(4, 3)
         start = time.perf_counter()
         for _ in range(iterations):
-            new_game = game.make_move(19)
+            test_game = deepcopy(game)
+            if test_game.valid_move(test_move):
+                test_game.move(test_move)
         elapsed = (time.perf_counter() - start) / iterations * 1e9
         
+        result += f'Make move: {elapsed:.1f} ns/op\n'
         print(f'Make move: {elapsed:.1f} ns/op')
+        
+        # Save to file
+        with open('benchmark_bitboard.txt', 'w') as f:
+            f.write(result)
         "
     
     - name: Run AI performance benchmarks
@@ -78,19 +89,26 @@ jobs:
         player = PlayerApocalyptron(depth=6, book_instant=True)
         
         # Benchmark AI move at depth 6
-        moves = game.get_valid_moves(1)
+        moves = game.get_move_list()
         
         start = time.perf_counter()
         move = player.get_move(game, moves, None)
         elapsed = time.perf_counter() - start
         
-        print(f'AI move (depth 6): {elapsed:.3f} seconds')
+        result = f'AI move (depth 6): {elapsed:.3f} seconds\n'
+        print(result, end='')
         
         # Should be under 1.0 seconds (CI-friendly threshold)
         if elapsed > 1.0:
+            result += '⚠️  Warning: AI slower than expected\n'
             print('⚠️  Warning: AI slower than expected')
         else:
+            result += '✅ AI performance within limits\n'
             print('✅ AI performance within limits')
+        
+        # Save to file
+        with open('benchmark_ai.txt', 'w') as f:
+            f.write(result)
         "
       timeout-minutes: 10
       env:
@@ -108,13 +126,21 @@ jobs:
         # Check game state size
         game = BitboardGame()
         size = sys.getsizeof(game)
-        print(f'BitboardGame size: {size} bytes')
+        
+        result = f'BitboardGame size: {size} bytes\n'
+        print(result, end='')
         
         # Should be under 1KB
         if size > 1024:
+            result += '⚠️  Warning: Game state larger than expected\n'
             print('⚠️  Warning: Game state larger than expected')
         else:
+            result += '✅ Memory usage optimal\n'
             print('✅ Memory usage optimal')
+        
+        # Save to file
+        with open('benchmark_memory.txt', 'w') as f:
+            f.write(result)
         "
     
     - name: Upload benchmark results
@@ -122,7 +148,9 @@ jobs:
       with:
         name: benchmark-results
         path: |
-          benchmark_*.txt
+          benchmark_bitboard.txt
+          benchmark_ai.txt
+          benchmark_memory.txt
         retention-days: 90
       if: always()
     

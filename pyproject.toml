@@ -60,6 +60,7 @@ Documentation = "https://github.com/lucaamore/reversi42/tree/main/docs"
 Repository = "https://github.com/lucaamore/reversi42"
 "Bug Tracker" = "https://github.com/lucaamore/reversi42/issues"
 Changelog = "https://github.com/lucaamore/reversi42/blob/main/CHANGELOG.md"
+Logo = "https://raw.githubusercontent.com/lucaamore/reversi42/main/icons/reversi42.png"
 
 [project.scripts]
 reversi42 = "webgui.cli:main"
