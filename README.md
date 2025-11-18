@@ -11,6 +11,12 @@
   <a href="https://github.com/lookee/Reversi42/actions/workflows/release.yml">
     <img src="https://github.com/lookee/Reversi42/actions/workflows/release.yml/badge.svg" alt="Release Status">
   </a>
+  <a href="https://github.com/lookee/Reversi42/actions/workflows/docs.yml">
+    <img src="https://github.com/lookee/Reversi42/actions/workflows/docs.yml/badge.svg" alt="Documentation Status">
+  </a>
+  <a href="https://github.com/lookee/Reversi42/actions/workflows/security.yml">
+    <img src="https://github.com/lookee/Reversi42/actions/workflows/security.yml/badge.svg" alt="Security Status">
+  </a>
   <a href="https://pypi.org/project/reversi42/">
     <img src="https://img.shields.io/pypi/v/reversi42.svg" alt="PyPI Version">
   </a>

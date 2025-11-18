@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reversi42"
-version = "7.0.5"
+version = "7.0.6"
 description = "Reversi42: Fast AI Reversi"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -159,7 +159,7 @@ strict_equality = true
 # ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-minversion = "6.1.0"
+minversion = "7.0.0"
 addopts = "-ra -q --strict-markers"
 testpaths = [
     "tests",
