@@ -5,35 +5,32 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lookee/Reversi42/actions/workflows/ci.yml">
-    <img src="https://github.com/lookee/Reversi42/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+  <a href="https://pypi.org/project/reversi42/">
+    <img src="https://img.shields.io/pypi/v/reversi42.svg?logo=pypi&logoColor=white" alt="PyPI Version">
   </a>
-  <a href="https://github.com/lookee/Reversi42/actions/workflows/release.yml">
-    <img src="https://github.com/lookee/Reversi42/actions/workflows/release.yml/badge.svg" alt="Release Status">
+  <a href="https://www.python.org/downloads/">
+    <img src="https://img.shields.io/badge/python-%3E%3D3.9-blue.svg?logo=python&logoColor=white" alt="Python >= 3.9">
   </a>
   <a href="https://pypi.org/project/reversi42/">
-    <img src="https://img.shields.io/pypi/v/reversi42.svg" alt="PyPI Version">
+    <img src="https://img.shields.io/pypi/dm/reversi42.svg?logo=pypi&logoColor=white" alt="PyPI Downloads">
   </a>
   <a href="https://pypi.org/project/reversi42/">
-    <img src="https://img.shields.io/pypi/pyversions/reversi42.svg" alt="Python Versions">
+    <img src="https://img.shields.io/pypi/status/reversi42.svg?logo=pypi&logoColor=white" alt="PyPI Status">
   </a>
   <a href="https://pypi.org/project/reversi42/">
-    <img src="https://img.shields.io/pypi/dm/reversi42.svg" alt="PyPI Downloads">
-  </a>
-  <a href="https://pypi.org/project/reversi42/">
-    <img src="https://img.shields.io/pypi/status/reversi42.svg" alt="PyPI Status">
-  </a>
-  <a href="https://pypi.org/project/reversi42/">
-    <img src="https://img.shields.io/pypi/format/reversi42.svg" alt="PyPI Format">
+    <img src="https://img.shields.io/pypi/format/reversi42.svg?logo=pypi&logoColor=white" alt="PyPI Format">
   </a>
   <a href="https://codecov.io/gh/lookee/Reversi42">
     <img src="https://codecov.io/gh/lookee/Reversi42/branch/master/graph/badge.svg" alt="Code Coverage">
   </a>
-  <a href="https://github.com/lookee/Reversi42/blob/master/COPYING">
-    <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg" alt="License">
+  <a href="https://github.com/lookee/Reversi42/actions/workflows/security.yml">
+    <img src="https://github.com/lookee/Reversi42/actions/workflows/security.yml/badge.svg" alt="Security">
   </a>
-  <a href="https://github.com/lookee/Reversi42">
-    <img src="https://img.shields.io/github/stars/lookee/Reversi42.svg?style=social&label=Star" alt="GitHub Stars">
+  <a href="https://github.com/lookee/Reversi42/actions/workflows/docs.yml">
+    <img src="https://github.com/lookee/Reversi42/actions/workflows/docs.yml/badge.svg" alt="Docs">
+  </a>
+  <a href="https://github.com/lookee/Reversi42/blob/master/COPYING">
+    <img src="https://img.shields.io/pypi/l/reversi42.svg?logo=gnu&logoColor=white" alt="License">
   </a>
 </p>
 

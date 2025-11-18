@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.8] - 2025-11-18
+
+### Changed
+- **📊 README Badges**
+  - Enhanced PyPI badges with logos for better visual presentation
+  - Added Python >= 3.9 requirement badge
+  - Added Security workflow badge
+  - Added Docs workflow badge
+  - Removed CI and Release workflow badges (workflows trigger on specific events)
+  - Removed PyPI Weekly Downloads badge
+  - Removed Implementation and Wheel badges (redundant information)
+  - Removed GitHub Stars badge
+  - Improved badge organization and visual consistency
+
 ## [7.0.7] - 2025-11-18
 
 ### Added
