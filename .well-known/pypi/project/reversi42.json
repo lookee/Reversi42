@@ -1,0 +1,10 @@
+{
+  "name": "reversi42",
+  "homepage": "https://www.lucaamore.com",
+  "documentation": "https://github.com/lookee/Reversi42/tree/master/docs",
+  "repository": "https://github.com/lookee/Reversi42",
+  "bug_tracker": "https://github.com/lookee/Reversi42/issues",
+  "changelog": "https://github.com/lookee/Reversi42/blob/master/CHANGELOG.md",
+  "logo": "https://raw.githubusercontent.com/lookee/Reversi42/master/icons/reversi42.png"
+}
+

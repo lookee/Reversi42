@@ -56,11 +56,11 @@ build = [
 
 [project.urls]
 Homepage = "https://www.lucaamore.com"
-Documentation = "https://github.com/lucaamore/reversi42/tree/master/docs"
-Repository = "https://github.com/lucaamore/reversi42"
-"Bug Tracker" = "https://github.com/lucaamore/reversi42/issues"
-Changelog = "https://github.com/lucaamore/reversi42/blob/master/CHANGELOG.md"
-Logo = "https://raw.githubusercontent.com/lucaamore/reversi42/master/icons/reversi42.png"
+Documentation = "https://github.com/lookee/Reversi42/tree/master/docs"
+Repository = "https://github.com/lookee/Reversi42"
+"Bug Tracker" = "https://github.com/lookee/Reversi42/issues"
+Changelog = "https://github.com/lookee/Reversi42/blob/master/CHANGELOG.md"
+Logo = "https://raw.githubusercontent.com/lookee/Reversi42/master/icons/reversi42.png"
 
 [project.scripts]
 reversi42 = "webgui.cli:main"
