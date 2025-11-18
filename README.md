@@ -17,6 +17,18 @@
   <a href="https://pypi.org/project/reversi42/">
     <img src="https://img.shields.io/pypi/pyversions/reversi42.svg" alt="Python Versions">
   </a>
+  <a href="https://pypi.org/project/reversi42/">
+    <img src="https://img.shields.io/pypi/dm/reversi42.svg" alt="PyPI Downloads">
+  </a>
+  <a href="https://pypi.org/project/reversi42/">
+    <img src="https://img.shields.io/pypi/status/reversi42.svg" alt="PyPI Status">
+  </a>
+  <a href="https://pypi.org/project/reversi42/">
+    <img src="https://img.shields.io/pypi/format/reversi42.svg" alt="PyPI Format">
+  </a>
+  <a href="https://codecov.io/gh/lookee/Reversi42">
+    <img src="https://codecov.io/gh/lookee/Reversi42/branch/master/graph/badge.svg" alt="Code Coverage">
+  </a>
   <a href="https://github.com/lookee/Reversi42/blob/master/COPYING">
     <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg" alt="License">
   </a>
