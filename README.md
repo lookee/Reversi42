@@ -188,7 +188,7 @@ Reversi42 includes 12 pre-configured AI players with varying skill levels and st
 | Blitz Demon | 1350 | Rapid Fire | 5 | Ultra-fast player optimized for speed |
 | Zen Master | 1250 | Balanced | 3 | Beginner-friendly balanced player |
 
-For detailed player profiles and configurations, see [EPIC_GLADIATORS.md](docs/EPIC_GLADIATORS.md).
+For detailed player profiles and configurations, see [EPIC_GLADIATORS.md](https://github.com/lookee/Reversi42/blob/master/docs/EPIC_GLADIATORS.md).
 
 ---
 
@@ -241,7 +241,7 @@ reversi42
 - Parity weight: ×2.0
 - Variable move time
 
-For comprehensive configuration documentation, see [CREATE_CUSTOM_PLAYER.md](docs/tutorials/CREATE_CUSTOM_PLAYER.md) and [AI_CONFIGURATION_SYSTEM.md](docs/AI_CONFIGURATION_SYSTEM.md).
+For comprehensive configuration documentation, see [CREATE_CUSTOM_PLAYER.md](https://github.com/lookee/Reversi42/blob/master/docs/tutorials/CREATE_CUSTOM_PLAYER.md) and [AI_CONFIGURATION_SYSTEM.md](https://github.com/lookee/Reversi42/blob/master/docs/AI_CONFIGURATION_SYSTEM.md).
 
 ---
 
@@ -271,9 +271,9 @@ For comprehensive configuration documentation, see [CREATE_CUSTOM_PLAYER.md](doc
 - **Opening Sequences**: 644 professional opening sequences
 
 For detailed technical documentation, see:
-- [Apocalyptron Engine Architecture](docs/architecture/apocalyptron-engine.md)
-- [Bitboard Implementation](docs/architecture/bitboard.md)
-- [System Architecture](docs/architecture/README.md)
+- [Apocalyptron Engine Architecture](https://github.com/lookee/Reversi42/blob/master/docs/architecture/apocalyptron-engine.md)
+- [Bitboard Implementation](https://github.com/lookee/Reversi42/blob/master/docs/architecture/bitboard.md)
+- [System Architecture](https://github.com/lookee/Reversi42/blob/master/docs/architecture/README.md)
 
 ---
 
@@ -302,12 +302,12 @@ Reversi42/
 
 Comprehensive documentation is available in the `docs/` directory:
 
-- **[User Guide](docs/user-guide/README.md)**: Getting started, game rules, strategies, and FAQ
-- **[API Reference](docs/api/README.md)**: Complete API documentation for BitboardGame, Player, and View classes
-- **[Architecture Documentation](docs/architecture/README.md)**: System design, engine architecture, and technical details
-- **[Tutorials](docs/tutorials/CREATE_CUSTOM_PLAYER.md)**: Step-by-step guides for creating custom AI players
-- **[Tournament System](tournament/README.md)**: Tournament configuration and usage
-- **[Development Guide](docs/development/README.md)**: Setup, testing, and contribution guidelines
+- **[User Guide](https://github.com/lookee/Reversi42/blob/master/docs/user-guide/README.md)**: Getting started, game rules, strategies, and FAQ
+- **[API Reference](https://github.com/lookee/Reversi42/blob/master/docs/api/README.md)**: Complete API documentation for BitboardGame, Player, and View classes
+- **[Architecture Documentation](https://github.com/lookee/Reversi42/blob/master/docs/architecture/README.md)**: System design, engine architecture, and technical details
+- **[Tutorials](https://github.com/lookee/Reversi42/blob/master/docs/tutorials/CREATE_CUSTOM_PLAYER.md)**: Step-by-step guides for creating custom AI players
+- **[Tournament System](https://github.com/lookee/Reversi42/blob/master/tournament/README.md)**: Tournament configuration and usage
+- **[Development Guide](https://github.com/lookee/Reversi42/blob/master/docs/development/README.md)**: Setup, testing, and contribution guidelines
 
 ---
 
@@ -326,7 +326,7 @@ pytest tests/apocalyptron/unit/ -v
 pytest --cov=src tests/
 ```
 
-The project includes 220+ tests covering unit, integration, and characterization scenarios. See [test documentation](tests/apocalyptron/README.md) for details.
+The project includes 220+ tests covering unit, integration, and characterization scenarios. See [test documentation](https://github.com/lookee/Reversi42/blob/master/tests/apocalyptron/README.md) for details.
 
 ---
 
@@ -338,7 +338,7 @@ Games are saved in **XOT** (eXtended Othello Transcript) format, a human-readabl
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 or later. See the [LICENSE](COPYING) file for details.
+This project is licensed under the GNU General Public License v3.0 or later. See the [LICENSE](https://github.com/lookee/Reversi42/blob/master/COPYING) file for details.
 
 ---
 
@@ -352,7 +352,7 @@ Reversi42 was developed using modern software engineering practices and AI-assis
 - Type hints and static analysis
 - CI/CD integration
 
-For development setup and contribution guidelines, see [Development Guide](docs/development/README.md).
+For development setup and contribution guidelines, see [Development Guide](https://github.com/lookee/Reversi42/blob/master/docs/development/README.md).
 
 ---
 
