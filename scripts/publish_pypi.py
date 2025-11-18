@@ -25,7 +25,26 @@ def publish_to_pypi():
     
     # Trova i file da pubblicare (solo versione specifica o ultima)
     import re
-    version = os.getenv('PUBLISH_VERSION', '7.0.0')  # Default alla versione corrente
+    
+    # Prova a rilevare la versione corrente dal codice
+    try:
+        sys.path.insert(0, str(project_root / "src"))
+        from __version__ import __version__ as current_version
+        version = os.getenv('PUBLISH_VERSION', current_version)
+    except ImportError:
+        # Fallback: leggi da pyproject.toml
+        try:
+            pyproject_path = project_root / "pyproject.toml"
+            if pyproject_path.exists():
+                with open(pyproject_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.strip().startswith("version"):
+                            version = line.split("=")[1].strip().strip('"').strip("'")
+                            break
+            else:
+                version = os.getenv('PUBLISH_VERSION', '7.0.5')
+        except Exception:
+            version = os.getenv('PUBLISH_VERSION', '7.0.5')
     
     wheel_files = [f for f in dist_dir.glob("*.whl") if version in f.name]
     sdist_files = [f for f in dist_dir.glob("*.tar.gz") if version in f.name]
