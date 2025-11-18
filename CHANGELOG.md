@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.7] - 2025-11-18
+
+### Added
+- **📸 Documentation**
+  - Added screenshot to README showcasing the web interface
+  - Improved visual presentation of the project
+- **🧹 Development Tools**
+  - Added `scripts/cleanup.sh` for post-release cleanup
+  - Automatically removes old distribution files, cache, and temporary files
+  - Configurable version retention (default: keep last 3 versions)
+  - Dry-run mode for safe preview
+
 ## [6.3.2] - 2025-11-16
 
 ### Fixed

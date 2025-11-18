@@ -148,4 +148,7 @@ echo "     https://github.com/lucaamore/reversi42/actions"
 echo ""
 echo -e "${BLUE}Release URL (when ready):${NC}"
 echo "https://github.com/lucaamore/reversi42/releases/tag/${TAG}"
+echo ""
+echo -e "${YELLOW}💡 Tip: After PyPI publication succeeds, run cleanup:${NC}"
+echo "   ./scripts/cleanup.sh --keep-versions=3"
 

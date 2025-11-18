@@ -52,6 +52,12 @@ A tournament-grade Reversi implementation featuring high-performance bitboard-ba
 
 ---
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/lookee/Reversi42/refs/heads/master/screen/reversi42-screen-1.png" alt="Reversi42 Screenshot" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+</p>
+
+---
+
 ## Overview
 
 Reversi42 is a Reversi implementation that combines classical game AI techniques with modern software engineering practices. The engine utilizes bitboard representation for optimal performance, achieving 50-100x speedup over standard implementations through efficient 64-bit integer operations.

@@ -11,6 +11,7 @@ Helper scripts for Reversi42 development and CI/CD.
 | **check_quality.sh** | Code quality checks | `./scripts/check_quality.sh` |
 | **benchmark.sh** | Performance benchmarks | `./scripts/benchmark.sh` |
 | **release.sh** | Create new release | `./scripts/release.sh <version>` |
+| **cleanup.sh** | Clean build artifacts | `./scripts/cleanup.sh [--keep-versions=N]` |
 
 ---
 
@@ -214,6 +215,83 @@ Helper scripts for Reversi42 development and CI/CD.
 
 ---
 
+## 🧹 cleanup.sh
+
+**Purpose**: Clean build artifacts and temporary files after PyPI release
+
+**What it cleans**:
+
+1. **Old Distribution Files** (`dist/`)
+   - Removes old versions from `dist/`
+   - Keeps last N versions (default: 3)
+   - Saves significant disk space (currently ~347MB)
+
+2. **Python Cache Files**
+   - Removes all `__pycache__/` directories
+   - Removes `.pyc`, `.pyo`, `.pyd` files
+
+3. **Build Artifacts**
+   - Removes `build/` directory
+   - Removes `*.egg-info/` directories
+
+4. **Coverage Files**
+   - Removes `.coverage`, `coverage.xml`
+   - Removes `htmlcov/`, `.pytest_cache/`
+
+5. **Temporary Files**
+   - Removes `*.tmp`, `*.bak`, `*.old`
+   - Removes editor swap files (`*.swp`, `*.swo`)
+   - Removes system files (`.DS_Store`)
+
+6. **Type Checker Cache**
+   - Removes `.mypy_cache/`
+
+**Usage**:
+
+```bash
+# Default: Keep last 3 versions
+./scripts/cleanup.sh
+
+# Keep last 5 versions
+./scripts/cleanup.sh --keep-versions=5
+
+# Dry run (see what would be deleted)
+./scripts/cleanup.sh --dry-run
+
+# Keep only current version
+./scripts/cleanup.sh --keep-versions=1
+```
+
+**When to run**:
+- ✅ After successful PyPI publication
+- ✅ Periodically to free disk space
+- ✅ Before creating new releases
+- ✅ When `dist/` folder gets too large
+
+**Safety**:
+- Only removes files that are already in `.gitignore`
+- Shows summary of what was removed
+- Reports space saved
+- Dry-run mode available for preview
+
+**Example Output**:
+```
+🧹 Reversi42 Cleanup Script
+======================================
+
+→ Cleaning old distribution files...
+   Current version: 7.0.6
+   Keeping last 3 versions
+   Removed: dist/reversi42-6.0.0-py3-none-any.whl
+   Removed: dist/reversi42-6.0.0.tar.gz
+   ...
+
+✅ Cleanup completed!
+   Total space saved: 250MB
+```
+
+---
+
 ## 🎯 Typical Workflows
 
 ### Daily Development
@@ -281,6 +359,9 @@ git push origin main
 
 # 5. Monitor GitHub Actions
 # https://github.com/lucaamore/reversi42/actions
+
+# 6. After PyPI publication succeeds, clean up old files
+./scripts/cleanup.sh --keep-versions=3
 ```
 
 ---
