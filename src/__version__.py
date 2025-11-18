@@ -5,7 +5,6 @@ This module provides version information for Reversi42.
 The version is read from pyproject.toml to maintain a single source of truth.
 """
 
-import os
 from pathlib import Path
 
 __version__ = "7.0.6"  # Fallback version (must match pyproject.toml)
