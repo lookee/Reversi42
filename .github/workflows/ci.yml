@@ -114,9 +114,10 @@ jobs:
       env:
         REVERSI42_VIEW: headless
     
-    - name: Verify coverage.xml exists and is valid
+    - name: Verify coverage.xml exists and is valid (Ubuntu)
       if: always() && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
       continue-on-error: true
+      shell: bash
       run: |
         set -e
         if [ ! -f coverage.xml ]; then
@@ -142,6 +143,79 @@ jobs:
         # Show first few lines to verify paths
         echo "First 20 lines of coverage.xml:"
         head -n 20 coverage.xml || echo "⚠️ Could not read coverage.xml"
+    
+    - name: Verify coverage.xml exists and is valid (Mac/Windows)
+      if: always() && matrix.os != 'ubuntu-latest' && matrix.python-version == '3.11'
+      continue-on-error: true
+      run: |
+        python -c "
+        import os
+        import sys
+        
+        if not os.path.exists('coverage.xml'):
+            print('❌ coverage.xml not found!')
+            print('Listing current directory:')
+            try:
+                for item in os.listdir('.'):
+                    print(f'  {item}')
+            except Exception as e:
+                print(f'Error listing directory: {e}')
+            
+            # Look for coverage files
+            import glob
+            coverage_files = glob.glob('**/*coverage*', recursive=True)
+            if coverage_files:
+                print('Found coverage-related files:')
+                for f in coverage_files[:10]:
+                    print(f'  {f}')
+            else:
+                print('No coverage files found')
+            sys.exit(1)
+        
+        print('✅ coverage.xml found')
+        file_size = os.path.getsize('coverage.xml')
+        print(f'File size: {file_size} bytes')
+        
+        # Verify the file contains coverage data
+        try:
+            with open('coverage.xml', 'r', encoding='utf-8') as f:
+                content = f.read(1000)
+                if '<coverage' not in content:
+                    print('❌ coverage.xml appears to be invalid or empty!')
+                    print('First 500 characters:')
+                    print(content[:500])
+                    sys.exit(1)
+        except Exception as e:
+            print(f'❌ Error reading coverage.xml: {e}')
+            sys.exit(1)
+        
+        print('✅ coverage.xml appears to be valid')
+        
+        # Show summary
+        try:
+            import xml.etree.ElementTree as ET
+            tree = ET.parse('coverage.xml')
+            root = tree.getroot()
+            classes = root.findall('.//class')
+            sources = root.findall('.//source')
+            print(f'Coverage file contains {len(classes)} classes')
+            print(f'Sources found: {len(sources)}')
+            for s in sources[:5]:
+                print(f'  - {s.text}')
+        except Exception as e:
+            print(f'⚠️ Could not parse coverage.xml summary: {e}')
+        
+        # Show first few lines
+        try:
+            with open('coverage.xml', 'r', encoding='utf-8') as f:
+                lines = [f.readline() for _ in range(20)]
+                print('First 20 lines of coverage.xml:')
+                for line in lines:
+                    if line:
+                        print(line.rstrip())
+        except Exception as e:
+            print(f'⚠️ Could not read coverage.xml: {e}')
+        "
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
