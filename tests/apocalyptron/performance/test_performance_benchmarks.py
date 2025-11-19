@@ -84,9 +84,9 @@ class TestPerformanceBaseline:
         nps = stats["search_stats"]["nodes"] / elapsed if elapsed > 0 else 0
 
         assert move is not None
-        # Increased threshold for CI environments (GitHub Actions can be slower)
-        assert elapsed < 10.0, f"Depth 8 midgame should be < 10s (CI-friendly), got {elapsed:.2f}s"
-        assert nps > 500, f"Should achieve >500 NPS, got {nps:.0f}"
+        # Increased threshold for CI environments (GitHub Actions macOS can be slower)
+        assert elapsed < 15.0, f"Depth 8 midgame should be < 15s (CI-friendly), got {elapsed:.2f}s"
+        assert nps > 400, f"Should achieve >400 NPS (CI-friendly), got {nps:.0f}"
 
     def test_shallow_search_is_fast(self):
         """Test that shallow searches (depth 1-3) are very fast."""
@@ -664,10 +664,10 @@ class TestRegressionPerformance:
         elapsed = time.perf_counter() - start
 
         assert move is not None
-        # Increased threshold for CI environments (GitHub Actions can be slower)
+        # Increased threshold for CI environments (GitHub Actions macOS can be slower)
         assert (
-            elapsed < 10.0
-        ), f"Regression: depth 8 took {elapsed:.2f}s (should be < 10s CI-friendly)"
+            elapsed < 15.0
+        ), f"Regression: depth 8 took {elapsed:.2f}s (should be < 15s CI-friendly)"
 
 
 if __name__ == "__main__":
