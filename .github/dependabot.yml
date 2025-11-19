@@ -55,7 +55,7 @@ updates:
       day: "monday"
     open-pull-requests-limit: 5
     reviewers:
-      - "lucaamore"
+      - "lookee"
     labels:
       - "dependencies"
       - "github-actions"
