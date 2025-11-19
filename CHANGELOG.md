@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.9] - 2025-11-19
+
+### Fixed
+- **🔒 Security & CI/CD Improvements**
+  - Fixed Bandit security check to always return exit code 0 (prevents CI failures on warnings)
+  - Updated Dependabot GitHub Actions reviewer to lookee
+  - Updated GitHub URLs from lucaamore to lookee organization
+  - Fixed mypy configuration issues
+
+### Changed
+- **📊 Code Quality & Testing**
+  - Improved Codecov configuration to resolve coverage upload issues
+  - Added cross-platform coverage verification for Mac and Windows
+  - Improved robustness of coverage verification step in CI
+  - Removed duplicate file/files parameter in Codecov upload step
+  - Formatted test_performance_benchmarks.py with black
+
 ## [7.0.8] - 2025-11-18
 
 ### Changed
