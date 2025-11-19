@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.10] - 2025-11-19
+
+### Fixed
+- **🔧 CI/CD Improvements**
+  - Fixed Playwright browser installation in GitHub Actions workflow
+  - Added automatic Chromium browser installation before E2E tests
+  - Resolves E2E test failures: `BrowserType.launch: Executable doesn't exist`
+
 ## [7.0.9] - 2025-11-19
 
 ### Fixed
