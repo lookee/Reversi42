@@ -3,6 +3,7 @@ codecov:
   bot: false
   ci:
     - GitHub Actions
+  require_ci_to_pass: false
 
 coverage:
   precision: 2
@@ -41,4 +42,8 @@ ignore:
   - "dist/"
   - "build/"
   - "*.pyc"
+
+# Path fixing - not needed if using relative_files in pytest.ini
+# fixes:
+#   - "::src/"
 

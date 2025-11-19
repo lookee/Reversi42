@@ -86,10 +86,24 @@ jobs:
     - name: Run unit tests (Python 3.10+ - Linux parallel, Windows/Mac sequential)
       if: matrix.python-version != '3.9' && matrix.os == 'ubuntu-latest'
       run: |
-        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term -n auto
+        # Clean any existing coverage files
+        rm -f .coverage coverage.xml htmlcov/.coverage.*
+        # Run tests with coverage
+        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html -n auto
+        # Verify coverage.xml was created
+        if [ ! -f coverage.xml ]; then
+          echo "⚠️ coverage.xml not found after pytest, checking for .coverage files..."
+          find . -name ".coverage*" -o -name "coverage.xml" 2>/dev/null || true
+          # Try to generate coverage.xml manually if .coverage exists
+          if [ -f .coverage ]; then
+            echo "Found .coverage file, attempting to generate coverage.xml..."
+            coverage xml || python -m coverage xml
+          fi
+        fi
       timeout-minutes: 30
       env:
         REVERSI42_VIEW: headless
+      continue-on-error: false
     
     - name: Run unit tests (Python 3.10+ - Windows/Mac sequential)
       if: matrix.python-version != '3.9' && matrix.os != 'ubuntu-latest'
@@ -99,9 +113,38 @@ jobs:
       env:
         REVERSI42_VIEW: headless
     
+    - name: Verify coverage.xml exists and is valid
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+      continue-on-error: false
+      run: |
+        if [ ! -f coverage.xml ]; then
+          echo "❌ coverage.xml not found!"
+          echo "Listing current directory:"
+          ls -la
+          echo "Looking for coverage files:"
+          find . -name "coverage.xml" -o -name "*.coverage" 2>/dev/null || true
+          exit 1
+        fi
+        echo "✅ coverage.xml found"
+        ls -lh coverage.xml
+        # Verify the file contains coverage data
+        if ! grep -q "<coverage" coverage.xml; then
+          echo "❌ coverage.xml appears to be invalid or empty!"
+          echo "File size: $(wc -c < coverage.xml) bytes"
+          head -n 50 coverage.xml || cat coverage.xml
+          exit 1
+        fi
+        echo "✅ coverage.xml appears to be valid"
+        # Show summary
+        python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(f'Coverage file contains {len(root.findall(\".//class\"))} classes'); sources = root.findall('.//source'); print(f'Sources found: {len(sources)}'); [print(f'  - {s.text}') for s in sources[:5]]"
+        # Show first few lines to verify paths
+        echo "First 20 lines of coverage.xml:"
+        head -n 20 coverage.xml
+    
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+      if: always() && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+      continue-on-error: true
       with:
         file: ./coverage.xml
         flags: unittests
@@ -109,6 +152,12 @@ jobs:
         fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
+        upload: true
+        slug: ${{ github.repository }}
+        branch: ${{ github.head_ref || github.ref_name }}
+        commit: ${{ github.event.pull_request.head.sha || github.sha }}
+        files:
+          - ./coverage.xml
 
   integration-tests:
     name: Integration Tests
