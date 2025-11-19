@@ -27,7 +27,7 @@ Yes, they're the same game with different names. "Othello" is a trademarked name
 ### How do I install Reversi42?
 
 ```bash
-git clone https://github.com/lucaamore/reversi42.git
+git clone https://github.com/lookee/Reversi42.git
 cd reversi42
 pip install -r requirements.txt
 ./reversi42
@@ -286,15 +286,15 @@ Yes! See [Adding Players](../../docs/ADDING_PLAYERS.md) for a guide on creating 
 
 ### Where's the source code?
 
-GitHub: https://github.com/lucaamore/reversi42
+GitHub: https://github.com/lookee/Reversi42
 
 ### How do I report bugs?
 
-Open an issue on [GitHub Issues](https://github.com/lucaamore/reversi42/issues) using the bug report template.
+Open an issue on [GitHub Issues](https://github.com/lookee/Reversi42/issues) using the bug report template.
 
 ### Can I suggest new features?
 
-Yes! Use the feature request template on [GitHub Issues](https://github.com/lucaamore/reversi42/issues).
+Yes! Use the feature request template on [GitHub Issues](https://github.com/lookee/Reversi42/issues).
 
 ## Performance & Optimization
 
@@ -341,7 +341,7 @@ Yes, under the terms of the GPL-3.0 license. See [COPYING](../../COPYING) for de
 ```
 Reversi42 v5.0.0 (2025)
 Luca Amore
-https://github.com/lucaamore/reversi42
+https://github.com/lookee/Reversi42
 ```
 
 ### Is there a mobile version?
@@ -356,7 +356,7 @@ Not yet, but network play is planned for a future release.
 
 - Check the [User Guide](README.md)
 - Read the [Documentation](../README.md)
-- Ask in [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions)
+- Ask in [GitHub Discussions](https://github.com/lookee/Reversi42/discussions)
 - Email: luca.amore@gmail.com
 
 ---

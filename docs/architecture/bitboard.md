@@ -542,5 +542,5 @@ bitboard >> 8  # Logical shift in Python
 **Document Version**: 1.0  
 **Last Updated**: 2025-10-20
 
-*For bitboard questions, see [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions).*
+*For bitboard questions, see [GitHub Discussions](https://github.com/lookee/Reversi42/discussions).*
 

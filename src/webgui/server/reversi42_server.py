@@ -1518,7 +1518,7 @@ async def get_version():
         return {
             "version": "6.2.1",
             "author": "Luca Amore",
-            "url": "https://github.com/lucaamore/reversi42",
+            "url": "https://github.com/lookee/Reversi42",
             "name": "Reversi42",
         }
 

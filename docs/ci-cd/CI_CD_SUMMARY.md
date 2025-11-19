@@ -168,7 +168,7 @@ Build Documentation
 Deploy to GitHub Pages
      │
      ▼
-https://lucaamore.github.io/reversi42/
+https://lookee.github.io/Reversi42/
 ```
 
 **Features**:
@@ -309,7 +309,7 @@ Container Security
 
 ```bash
 # Clone repository
-git clone https://github.com/lucaamore/reversi42.git
+git clone https://github.com/lookee/Reversi42.git
 cd reversi42
 
 # One-command setup
@@ -385,12 +385,12 @@ docker-compose up reversi42-dev
 
 ```bash
 # Pull published image (when available)
-docker pull lucaamore/reversi42:latest
+docker pull lookee/reversi42:latest
 
 # Run tournament
 docker run --rm \
   -v $(pwd)/tournament:/app/tournament \
-  lucaamore/reversi42:latest \
+  lookee/reversi42:latest \
   python tournament/tournament.py
 ```
 
@@ -401,8 +401,8 @@ Docker builds automatically on:
 - Push to main (latest tag)
 
 Images pushed to:
-- Docker Hub: `lucaamore/reversi42`
-- GitHub Container Registry: `ghcr.io/lucaamore/reversi42`
+- Docker Hub: `lookee/reversi42`
+- GitHub Container Registry: `ghcr.io/lookee/reversi42`
 
 ---
 
@@ -410,7 +410,7 @@ Images pushed to:
 
 ### GitHub Actions Dashboard
 
-**View at**: https://github.com/lucaamore/reversi42/actions
+**View at**: https://github.com/lookee/Reversi42/actions
 
 **Shows**:
 - Workflow runs (success/failure)
@@ -420,7 +420,7 @@ Images pushed to:
 
 ### Codecov Dashboard
 
-**View at**: https://codecov.io/gh/lucaamore/reversi42
+**View at**: https://codecov.io/gh/lookee/Reversi42
 
 **Shows**:
 - Coverage trends
@@ -762,10 +762,10 @@ pytest tests/
 
 ### Getting Help
 
-- Check [workflow logs](https://github.com/lucaamore/reversi42/actions)
+- Check [workflow logs](https://github.com/lookee/Reversi42/actions)
 - Review [GitHub Actions docs](https://docs.github.com/en/actions)
-- Open [issue](https://github.com/lucaamore/reversi42/issues)
-- Ask in [Discussions](https://github.com/lucaamore/reversi42/discussions)
+- Open [issue](https://github.com/lookee/Reversi42/issues)
+- Ask in [Discussions](https://github.com/lookee/Reversi42/discussions)
 
 ---
 
@@ -834,5 +834,5 @@ Meets or exceeds DevOps practices from:
 **Status**: Complete  
 **Next Review**: 2025-11-20
 
-*For questions about CI/CD, open a [Discussion](https://github.com/lucaamore/reversi42/discussions) or see [Implementation Guide](CI_CD_IMPLEMENTATION.md).*
+*For questions about CI/CD, open a [Discussion](https://github.com/lookee/Reversi42/discussions) or see [Implementation Guide](CI_CD_IMPLEMENTATION.md).*
 

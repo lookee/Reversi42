@@ -30,7 +30,7 @@ Reversi42 is a feature-rich implementation of the classic board game Reversi (al
 
 ```bash
 # Clone and install
-git clone https://github.com/lucaamore/reversi42.git
+git clone https://github.com/lookee/Reversi42.git
 cd reversi42
 pip install -r requirements.txt
 
@@ -320,8 +320,8 @@ See [AI Development Guide](../development/ai-development.md).
 
 ### Community
 
-- [GitHub Issues](https://github.com/lucaamore/reversi42/issues) - Bug reports
-- [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions) - Questions
+- [GitHub Issues](https://github.com/lookee/Reversi42/issues) - Bug reports
+- [GitHub Discussions](https://github.com/lookee/Reversi42/discussions) - Questions
 - Email: luca.amore@gmail.com
 
 ### External Resources
@@ -387,13 +387,13 @@ See [Advanced Strategies](strategies-advanced.md).
 
 Found a bug? Want a feature?
 
-- [Report bugs](https://github.com/lucaamore/reversi42/issues)
-- [Suggest features](https://github.com/lucaamore/reversi42/discussions)
+- [Report bugs](https://github.com/lookee/Reversi42/issues)
+- [Suggest features](https://github.com/lookee/Reversi42/discussions)
 - [Contribute code](../../CONTRIBUTING.md)
 
 ---
 
 **Enjoy playing Reversi42!** 🎮
 
-*Need more help? Check the [FAQ](faq.md) or ask in [Discussions](https://github.com/lucaamore/reversi42/discussions)*
+*Need more help? Check the [FAQ](faq.md) or ask in [Discussions](https://github.com/lookee/Reversi42/discussions)*
 

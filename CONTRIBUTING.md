@@ -25,7 +25,7 @@ This project and everyone participating in it is governed by the [Reversi42 Code
 
 ### Reporting Bugs
 
-Before creating bug reports, please check the [existing issues](https://github.com/lucaamore/reversi42/issues) as you might find out that you don't need to create one.
+Before creating bug reports, please check the [existing issues](https://github.com/lookee/Reversi42/issues) as you might find out that you don't need to create one.
 
 **When you are creating a bug report, please include as many details as possible:**
 
@@ -372,8 +372,8 @@ See docs/architecture/ for detailed component documentation.
 ### Getting Help
 
 - Check the [documentation](docs/)
-- Search [existing issues](https://github.com/lucaamore/reversi42/issues)
-- Ask in [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions)
+- Search [existing issues](https://github.com/lookee/Reversi42/issues)
+- Ask in [GitHub Discussions](https://github.com/lookee/Reversi42/discussions)
 
 ### Recognition
 

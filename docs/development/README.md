@@ -25,7 +25,7 @@ Complete guide for developing Reversi42.
 
 ```bash
 # Clone repository
-git clone https://github.com/lucaamore/reversi42.git
+git clone https://github.com/lookee/Reversi42.git
 cd reversi42
 
 # Create virtual environment
@@ -504,7 +504,7 @@ See [Commit Message Guide](commit-messages.md).
 ## Getting Help
 
 - Check the [FAQ](faq.md)
-- Ask in [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions)
+- Ask in [GitHub Discussions](https://github.com/lookee/Reversi42/discussions)
 - Read existing code and tests
 - Email: luca.amore@gmail.com
 

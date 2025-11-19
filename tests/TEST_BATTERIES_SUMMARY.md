@@ -414,7 +414,7 @@ open htmlcov/index.html
 - See [TEST_STRATEGY.md](TEST_STRATEGY.md)
 - See [tests/apocalyptron/README.md](README.md)
 - See [CONTRIBUTING.md](../../CONTRIBUTING.md)
-- Open [GitHub Discussion](https://github.com/lucaamore/reversi42/discussions)
+- Open [GitHub Discussion](https://github.com/lookee/Reversi42/discussions)
 
 ---
 

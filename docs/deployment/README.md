@@ -19,7 +19,7 @@ Complete guide for deploying and distributing Reversi42.
 
 ```bash
 # Clone repository
-git clone https://github.com/lucaamore/reversi42.git
+git clone https://github.com/lookee/Reversi42.git
 cd reversi42
 
 # Create virtual environment
@@ -44,7 +44,7 @@ reversi42
 
 ### Method 3: Pre-built Binary
 
-Download from [Releases](https://github.com/lucaamore/reversi42/releases):
+Download from [Releases](https://github.com/lookee/Reversi42/releases):
 
 - **macOS**: `reversi42-macos-x86_64-X.Y.Z.zip`
 - **Windows**: `reversi42-windows-x86_64-X.Y.Z.exe.zip`
@@ -97,7 +97,7 @@ chmod +x reversi42-linux.AppImage
 snap install reversi42
 
 # Or from source
-git clone https://github.com/lucaamore/reversi42.git
+git clone https://github.com/lookee/Reversi42.git
 cd reversi42
 pip install -r requirements.txt
 ./reversi42
@@ -173,7 +173,7 @@ See [Building Guide](building.md) for details.
 
 ```bash
 # Pull image (when available)
-docker pull lucaamore/reversi42:latest
+docker pull lookee/reversi42:latest
 
 # Or build locally
 docker build -t reversi42 .
@@ -298,7 +298,7 @@ scoop update reversi42
 
 ### From Binary
 
-Download latest version from [Releases](https://github.com/lucaamore/reversi42/releases).
+Download latest version from [Releases](https://github.com/lookee/Reversi42/releases).
 
 ## Uninstalling
 
@@ -389,8 +389,8 @@ See [Release Process](release-process.md) for:
 
 For deployment issues:
 - Check [Troubleshooting](troubleshooting.md)
-- Open an [Issue](https://github.com/lucaamore/reversi42/issues)
-- Ask in [Discussions](https://github.com/lucaamore/reversi42/discussions)
+- Open an [Issue](https://github.com/lookee/Reversi42/issues)
+- Ask in [Discussions](https://github.com/lookee/Reversi42/discussions)
 
 ---
 

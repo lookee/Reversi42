@@ -50,7 +50,7 @@ Configuration:
   Player configs: config/players/enabled/gladiators/*.yaml
   Game settings:  config/game.yaml
   
-Homepage: https://github.com/lucaamore/reversi42
+Homepage: https://github.com/lookee/Reversi42
         """,
     )
 

@@ -565,5 +565,5 @@ When in doubt, **simplicity and clarity win**.
 **Document Version**: 1.0  
 **Last Updated**: 2025-10-20  
 
-*These principles evolve as we learn. Suggestions welcome via [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions).*
+*These principles evolve as we learn. Suggestions welcome via [GitHub Discussions](https://github.com/lookee/Reversi42/discussions).*
 

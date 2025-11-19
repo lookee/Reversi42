@@ -233,7 +233,7 @@ Reversi42 now has a complete enterprise-grade CI/CD pipeline that:
     └──────────────┘
 ```
 
-**Output**: https://lucaamore.github.io/reversi42/
+**Output**: https://lookee.github.io/Reversi42/
 
 ### Workflow 4: Performance Benchmarks (benchmarks.yml)
 
@@ -396,7 +396,7 @@ git tag -a v3.2.0 -m "Release 3.2.0"
 git push origin v3.2.0
 
 # 6. Monitor GitHub Actions
-# https://github.com/lucaamore/reversi42/actions
+# https://github.com/lookee/Reversi42/actions
 ```
 
 **Release Timeline**:
@@ -443,8 +443,8 @@ docker-compose run tournament
 ### Pull from Docker Hub (When Published)
 
 ```bash
-docker pull lucaamore/reversi42:latest
-docker run --rm lucaamore/reversi42:latest
+docker pull lookee/reversi42:latest
+docker run --rm lookee/reversi42:latest
 ```
 
 ---
@@ -456,10 +456,10 @@ docker run --rm lucaamore/reversi42:latest
 Add to README.md:
 
 ```markdown
-[![CI](https://github.com/lucaamore/reversi42/workflows/CI/badge.svg)](https://github.com/lucaamore/reversi42/actions/workflows/ci.yml)
-[![Release](https://github.com/lucaamore/reversi42/workflows/Release/badge.svg)](https://github.com/lucaamore/reversi42/actions/workflows/release.yml)
-[![codecov](https://codecov.io/gh/lucaamore/reversi42/branch/main/graph/badge.svg)](https://codecov.io/gh/lucaamore/reversi42)
-[![Security](https://github.com/lucaamore/reversi42/workflows/Security/badge.svg)](https://github.com/lucaamore/reversi42/actions/workflows/security.yml)
+[![CI](https://github.com/lookee/Reversi42/workflows/CI/badge.svg)](https://github.com/lookee/Reversi42/actions/workflows/ci.yml)
+[![Release](https://github.com/lookee/Reversi42/workflows/Release/badge.svg)](https://github.com/lookee/Reversi42/actions/workflows/release.yml)
+[![codecov](https://codecov.io/gh/lookee/Reversi42/branch/main/graph/badge.svg)](https://codecov.io/gh/lookee/Reversi42)
+[![Security](https://github.com/lookee/Reversi42/workflows/Security/badge.svg)](https://github.com/lookee/Reversi42/actions/workflows/security.yml)
 ```
 
 ### External Services (Free for Open Source)
@@ -883,12 +883,12 @@ if: "!contains(github.event.head_commit.message, '[skip ci]')"
 ### CI/CD Issues
 
 - Check [GitHub Actions docs](https://docs.github.com/en/actions)
-- Review [workflow runs](https://github.com/lucaamore/reversi42/actions)
-- Open [issue](https://github.com/lucaamore/reversi42/issues)
+- Review [workflow runs](https://github.com/lookee/Reversi42/actions)
+- Open [issue](https://github.com/lookee/Reversi42/issues)
 
 ### Questions
 
-- [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions)
+- [GitHub Discussions](https://github.com/lookee/Reversi42/discussions)
 - Email: luca.amore@gmail.com
 
 ---

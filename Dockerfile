@@ -35,6 +35,6 @@ WORKDIR /app/src
 CMD ["python", "-m", "webgui.server.reversi42_server", "--port", "8000", "--host", "0.0.0.0", "--player", "DIVZERO.EXE"]
 
 # Metadata
-LABEL org.opencontainers.image.source="https://github.com/lookee/reversi42"
+LABEL org.opencontainers.image.source="https://github.com/lookee/Reversi42"
 LABEL org.opencontainers.image.description="Tournament-grade Reversi/Othello web game with AI"
 LABEL org.opencontainers.image.licenses="GPL-3.0"

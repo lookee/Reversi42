@@ -84,7 +84,7 @@ Il workflow crea:
 
 Dopo che il workflow completa:
 
-1. Vai alla [pagina Releases](https://github.com/lucaamore/reversi42/releases)
+1. Vai alla [pagina Releases](https://github.com/lookee/Reversi42/releases)
 2. Trova la release corrispondente
 3. Scarica l'eseguibile per la tua piattaforma:
    - Windows: `reversi42-windows-x86_64-X.Y.Z.exe.zip`

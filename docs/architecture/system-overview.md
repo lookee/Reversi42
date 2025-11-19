@@ -494,5 +494,5 @@ All changes will:
 **Last Updated**: 2025-11-02  
 **Status**: Current (v5.0.0 - WebGUI architecture)
 
-*For questions about system architecture, see [Architecture Guide](README.md) or open a [Discussion](https://github.com/lucaamore/reversi42/discussions).*
+*For questions about system architecture, see [Architecture Guide](README.md) or open a [Discussion](https://github.com/lookee/Reversi42/discussions).*
 

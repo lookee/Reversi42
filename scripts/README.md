@@ -358,7 +358,7 @@ git push origin main
 ./scripts/release.sh 3.2.0
 
 # 5. Monitor GitHub Actions
-# https://github.com/lucaamore/reversi42/actions
+# https://github.com/lookee/Reversi42/actions
 
 # 6. After PyPI publication succeeds, clean up old files
 ./scripts/cleanup.sh --keep-versions=3

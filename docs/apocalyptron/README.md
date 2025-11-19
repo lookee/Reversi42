@@ -160,8 +160,8 @@ See **[Epic Gladiators Guide](../EPIC_GLADIATORS.md)** for complete profiles.
 
 ## 📞 Support
 
-- **Documentation Issues**: [Open an issue](https://github.com/lucaamore/reversi42/issues)
-- **Questions**: [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions)
+- **Documentation Issues**: [Open an issue](https://github.com/lookee/Reversi42/issues)
+- **Questions**: [GitHub Discussions](https://github.com/lookee/Reversi42/discussions)
 - **Email**: luca.amore@gmail.com
 
 ---

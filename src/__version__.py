@@ -77,7 +77,7 @@ __version__ = get_version()
 __author__ = "Luca Amore"
 __email__ = "luca.amore@gmail.com"
 __license__ = "GPL-3.0-or-later"
-__url__ = "https://github.com/lucaamore/reversi42"
+__url__ = "https://github.com/lookee/Reversi42"
 
 
 if __name__ == "__main__":

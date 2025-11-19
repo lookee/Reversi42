@@ -20,12 +20,12 @@ Workflows are under .github/workflows/:
 
 ## Badges (add to README)
 
-[![CI](https://github.com/lucaamore/reversi42/actions/workflows/ci.yml/badge.svg)](https://github.com/lucaamore/reversi42/actions/workflows/ci.yml)
-[![Release](https://github.com/lucaamore/reversi42/actions/workflows/release.yml/badge.svg)](https://github.com/lucaamore/reversi42/actions/workflows/release.yml)
-[![Security](https://github.com/lucaamore/reversi42/actions/workflows/security.yml/badge.svg)](https://github.com/lucaamore/reversi42/actions/workflows/security.yml)
+[![CI](https://github.com/lookee/Reversi42/actions/workflows/ci.yml/badge.svg)](https://github.com/lookee/Reversi42/actions/workflows/ci.yml)
+[![Release](https://github.com/lookee/Reversi42/actions/workflows/release.yml/badge.svg)](https://github.com/lookee/Reversi42/actions/workflows/release.yml)
+[![Security](https://github.com/lookee/Reversi42/actions/workflows/security.yml/badge.svg)](https://github.com/lookee/Reversi42/actions/workflows/security.yml)
 
 (Optional)
-[![codecov](https://codecov.io/gh/lucaamore/reversi42/branch/main/graph/badge.svg)](https://codecov.io/gh/lucaamore/reversi42)
+[![codecov](https://codecov.io/gh/lookee/Reversi42/branch/main/graph/badge.svg)](https://codecov.io/gh/lookee/Reversi42)
 
 ## GitHub Secrets (required)
 
@@ -56,6 +56,6 @@ Add via GitHub → Settings → Secrets and variables → Actions.
 
 ## Support
 
-- Actions runs: https://github.com/lucaamore/reversi42/actions
-- Issues: https://github.com/lucaamore/reversi42/issues
-- Discussions: https://github.com/lucaamore/reversi42/discussions
+- Actions runs: https://github.com/lookee/Reversi42/actions
+- Issues: https://github.com/lookee/Reversi42/issues
+- Discussions: https://github.com/lookee/Reversi42/discussions

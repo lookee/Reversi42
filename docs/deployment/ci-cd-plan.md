@@ -25,7 +25,7 @@ Complete DevOps architecture for automated testing, building, and deployment of 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    GitHub Repository                     │
-│                  (lucaamore/reversi42)                   │
+│                  (lookee/Reversi42)                   │
 └────────────────────┬────────────────────────────────────┘
                      │
          ┌───────────┴───────────┐
@@ -298,8 +298,8 @@ steps:
 ```
 
 **Docker Images**:
-- `lucaamore/reversi42:latest`
-- `lucaamore/reversi42:3.1.0`
+- `lookee/reversi42:latest`
+- `lookee/reversi42:3.1.0`
 - Multi-arch: amd64, arm64
 
 ---
@@ -376,7 +376,7 @@ steps:
 ```
 
 **Documentation Site**:
-- **URL**: `https://lucaamore.github.io/reversi42/`
+- **URL**: `https://lookee.github.io/Reversi42/`
 - **Content**:
   - User guides
   - API reference
@@ -499,7 +499,7 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "lucaamore"
+      - "lookee"
     
   # GitHub Actions
   - package-ecosystem: "github-actions"

@@ -514,7 +514,7 @@ Created a great configuration? Share it!
 
 Questions? Issues? Suggestions?
 
-- GitHub: https://github.com/lucaamore/reversi42
+- GitHub: https://github.com/lookee/Reversi42
 - Docs: See `docs/` directory
 - Issues: GitHub issue tracker
 

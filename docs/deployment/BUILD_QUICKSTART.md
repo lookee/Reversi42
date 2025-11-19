@@ -29,7 +29,7 @@ pip install -e ".[build]"
    - ✅ Python wheel package
    - ✅ Docker image
 
-3. **Scarica dalla [pagina Releases](https://github.com/lucaamore/reversi42/releases)**
+3. **Scarica dalla [pagina Releases](https://github.com/lookee/Reversi42/releases)**
 
 ## 📋 Requisiti
 

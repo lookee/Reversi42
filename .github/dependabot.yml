@@ -9,9 +9,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 10
     reviewers:
-      - "lucaamore"
+      - "lookee"
     assignees:
-      - "lucaamore"
+      - "lookee"
     labels:
       - "dependencies"
       - "python"

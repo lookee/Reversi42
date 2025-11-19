@@ -474,7 +474,7 @@ All architecture changes will:
 ---
 
 For questions about architecture:
-- Open a [GitHub Discussion](https://github.com/lucaamore/reversi42/discussions)
+- Open a [GitHub Discussion](https://github.com/lookee/Reversi42/discussions)
 - Check [ADRs](adr/README.md) for context on decisions
 - Refer to code comments for implementation details
 

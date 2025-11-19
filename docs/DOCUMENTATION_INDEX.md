@@ -208,8 +208,8 @@ Features planned but not yet documented:
 
 1. Check the [FAQ](user-guide/faq.md)
 2. Search the [documentation](.)
-3. Ask in [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions)
-4. Open an [issue](https://github.com/lucaamore/reversi42/issues)
+3. Ask in [GitHub Discussions](https://github.com/lookee/Reversi42/discussions)
+4. Open an [issue](https://github.com/lookee/Reversi42/issues)
 5. Email: luca.amore@gmail.com
 
 ## 📚 Contributing to Documentation
@@ -231,5 +231,5 @@ See [Contributing Guide](../CONTRIBUTING.md) for how to:
 > 💡 **Note**: Reversi42 v5.0.0 removed legacy Pygame and Terminal views.  
 > The project now focuses on: **Web Interface** (interactive play), **Tournament Mode** (AI battles), and **Python Library** (programmatic use).
 
-*This index is maintained manually. If you find missing or outdated links, please [open an issue](https://github.com/lucaamore/reversi42/issues).*
+*This index is maintained manually. If you find missing or outdated links, please [open an issue](https://github.com/lookee/Reversi42/issues).*
 

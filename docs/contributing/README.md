@@ -32,7 +32,7 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) in the root directory for:
 ## Contribution Types
 
 ### 🐛 Bug Fixes
-- Find bugs in [Issues](https://github.com/lucaamore/reversi42/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+- Find bugs in [Issues](https://github.com/lookee/Reversi42/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 - Reproduce the bug locally
 - Write a failing test
 - Fix the bug
@@ -40,7 +40,7 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) in the root directory for:
 - Submit PR
 
 ### ✨ New Features
-- Discuss in [Discussions](https://github.com/lucaamore/reversi42/discussions) first
+- Discuss in [Discussions](https://github.com/lookee/Reversi42/discussions) first
 - Get approval from maintainers
 - Follow [Feature Development Guide](feature-development.md)
 - Include comprehensive tests
@@ -69,10 +69,10 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) in the root directory for:
 
 Check these labels for good first contributions:
 
-- [`good first issue`](https://github.com/lucaamore/reversi42/labels/good%20first%20issue) - Easy tasks for newcomers
-- [`help wanted`](https://github.com/lucaamore/reversi42/labels/help%20wanted) - We need help here!
-- [`documentation`](https://github.com/lucaamore/reversi42/labels/documentation) - Doc improvements
-- [`enhancement`](https://github.com/lucaamore/reversi42/labels/enhancement) - New features
+- [`good first issue`](https://github.com/lookee/Reversi42/labels/good%20first%20issue) - Easy tasks for newcomers
+- [`help wanted`](https://github.com/lookee/Reversi42/labels/help%20wanted) - We need help here!
+- [`documentation`](https://github.com/lookee/Reversi42/labels/documentation) - Doc improvements
+- [`enhancement`](https://github.com/lookee/Reversi42/labels/enhancement) - New features
 
 ## Development Workflow
 
@@ -116,7 +116,7 @@ Contributors are recognized in:
 ## Questions?
 
 - Check the [FAQ](faq.md)
-- Ask in [GitHub Discussions](https://github.com/lucaamore/reversi42/discussions)
+- Ask in [GitHub Discussions](https://github.com/lookee/Reversi42/discussions)
 - Read the [Development Guide](../development/)
 - Email: luca.amore@gmail.com
 

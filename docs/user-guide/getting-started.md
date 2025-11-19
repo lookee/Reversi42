@@ -8,7 +8,7 @@ Welcome to Reversi42! This guide will help you install and play your first game.
 
 ```bash
 # Clone the repository
-git clone https://github.com/lucaamore/reversi42.git
+git clone https://github.com/lookee/Reversi42.git
 cd reversi42
 
 # Install dependencies
@@ -42,7 +42,7 @@ pip install -r requirements.txt
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/lucaamore/reversi42.git
+git clone https://github.com/lookee/Reversi42.git
 cd reversi42
 
 # 2. Create virtual environment (recommended)
@@ -58,7 +58,7 @@ pip install -r requirements.txt
 
 ### Method 2: Direct Download
 
-1. Download ZIP from [GitHub](https://github.com/lucaamore/reversi42)
+1. Download ZIP from [GitHub](https://github.com/lookee/Reversi42)
 2. Extract to your preferred location
 3. Install dependencies: `pip install -r requirements.txt`
 4. Run: `./reversi42`
@@ -227,8 +227,8 @@ Now that you've played your first game:
 ## Getting Help
 
 - **Documentation**: See [User Guide](README.md)
-- **Issues**: [GitHub Issues](https://github.com/lucaamore/reversi42/issues)
-- **Source Code**: [GitHub Repository](https://github.com/lucaamore/reversi42)
+- **Issues**: [GitHub Issues](https://github.com/lookee/Reversi42/issues)
+- **Source Code**: [GitHub Repository](https://github.com/lookee/Reversi42)
 
 ---
 
