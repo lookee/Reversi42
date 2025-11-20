@@ -1,13 +1,13 @@
 """
 EnhancedOpeningBook - Advanced opening book with sophisticated move evaluation
 
-Retrocompatibile con OpeningBook ma con funzionalità avanzate:
-- Filtri parametrici per soglie di valutazione
-- Sistema di scoring multi-criterio
-- Modalità di selezione configurabili
-- Analisi statistica delle varianti
+Backward compatible with OpeningBook but with advanced features:
+- Parametric filters for evaluation thresholds
+- Multi-criteria scoring system
+- Configurable selection modes
+- Statistical analysis of variants
 
-Non utilizzato da giocatori esistenti - disponibile per future implementazioni.
+Not used by existing players - available for future implementations.
 """
 
 from dataclasses import dataclass
@@ -18,24 +18,24 @@ from domain.knowledge.opening_book import OpeningBook
 
 
 class SelectionMode(Enum):
-    """Modalità di selezione della mossa dall'opening book"""
+    """Move selection mode from opening book"""
 
-    BEST_SCORE = "best"  # Migliore punteggio assoluto
-    WEIGHTED_RANDOM = "weighted"  # Random pesato per punteggio
-    VARIETY_FIRST = "variety"  # Preferisce varietà (più continuazioni)
-    SAFE_FIRST = "safe"  # Preferisce mosse bilanciate (=)
-    AGGRESSIVE = "aggressive"  # Preferisce vantaggi forti (w++, b++)
+    BEST_SCORE = "best"  # Best absolute score
+    WEIGHTED_RANDOM = "weighted"  # Weighted random by score
+    VARIETY_FIRST = "variety"  # Prefers variety (more continuations)
+    SAFE_FIRST = "safe"  # Prefers balanced moves (=)
+    AGGRESSIVE = "aggressive"  # Prefers strong advantages (w++, b++)
 
 
 @dataclass
 class MoveEvaluation:
-    """Valutazione dettagliata di una mossa dall'opening book"""
+    """Detailed evaluation of a move from the opening book"""
 
     move: str
-    score: float  # Punteggio finale (weighted)
-    advantage_score: float  # Punteggio da advantage
-    variety_score: float  # Punteggio da varietà
-    count_continuations: int  # Numero di continuazioni disponibili
+    score: float  # Final score (weighted)
+    advantage_score: float  # Score from advantage
+    variety_score: float  # Score from variety
+    count_continuations: int  # Number of available continuations
     has_evaluation: bool  # Se ha dati di advantage
     advantage_symbol: Optional[str]  # Simbolo advantage (=, w, w+, etc.)
     is_above_threshold: bool  # Se supera la soglia configurata
@@ -43,18 +43,18 @@ class MoveEvaluation:
 
 class EnhancedOpeningBook(OpeningBook):
     """
-    Versione avanzata dell'opening book con sistema di scoring sofisticato.
+    Advanced version of the opening book with sophisticated scoring system.
 
-    RETROCOMPATIBILE con OpeningBook - può essere usato come drop-in replacement.
+    BACKWARD COMPATIBLE with OpeningBook - can be used as drop-in replacement.
 
-    Novità:
-    - Soglia configurabile per filtrare mosse (score_threshold)
-    - Filtro basato su media invece che solo valore assoluto
-    - Sistema multi-criterio (advantage + variety + safety)
-    - Modalità di selezione diverse
-    - Analisi statistica avanzata
+    New features:
+    - Configurable threshold to filter moves (score_threshold)
+    - Filter based on average instead of absolute value only
+    - Multi-criteria system (advantage + variety + safety)
+    - Different selection modes
+    - Advanced statistical analysis
 
-    Non utilizzato da giocatori esistenti - pronto per future estensioni.
+    Not used by existing players - ready for future extensions.
     """
 
     def __init__(
@@ -63,25 +63,25 @@ class EnhancedOpeningBook(OpeningBook):
         advantage_weight=0.2,
         variety_weight=0.1,
         only_evaluated_openings=True,
-        score_threshold=0.0,  # NEW: Soglia minima score (default: 0.0)
-        use_average_threshold=True,  # NEW: Usa media invece di valore assoluto
-        selection_mode=SelectionMode.BEST_SCORE,  # NEW: Modalità selezione
-        safety_weight=0.05,  # NEW: Peso per mosse sicure (=)
+        score_threshold=0.0,  # NEW: Minimum score threshold (default: 0.0)
+        use_average_threshold=True,  # NEW: Use average instead of absolute value
+        selection_mode=SelectionMode.BEST_SCORE,  # NEW: Selection mode
+        safety_weight=0.05,  # NEW: Weight for safe moves (=)
     ):
         """
-        Inizializza enhanced opening book.
+        Initialize enhanced opening book.
 
         Args:
-            book_path: Path al file opening book
-            advantage_weight: Peso per advantage evaluation (default: 0.2)
-            variety_weight: Peso per varietà (default: 0.1)
-            only_evaluated_openings: Solo aperture con advantage data
-            score_threshold: Soglia minima per accettare mosse (default: 0.0)
-            use_average_threshold: Se True, usa media delle mosse valide come soglia
-            selection_mode: Modalità di selezione (BEST_SCORE, WEIGHTED_RANDOM, etc.)
-            safety_weight: Peso bonus per mosse bilanciate '=' (default: 0.05)
+            book_path: Path to opening book file
+            advantage_weight: Weight for advantage evaluation (default: 0.2)
+            variety_weight: Weight for variety (default: 0.1)
+            only_evaluated_openings: Only openings with advantage data
+            score_threshold: Minimum threshold to accept moves (default: 0.0)
+            use_average_threshold: If True, use average of valid moves as threshold
+            selection_mode: Selection mode (BEST_SCORE, WEIGHTED_RANDOM, etc.)
+            safety_weight: Bonus weight for balanced moves '=' (default: 0.05)
         """
-        # Inizializza la classe base (retrocompatibilità)
+        # Initialize base class (backward compatibility)
         super().__init__(
             book_path=book_path,
             advantage_weight=advantage_weight,
@@ -99,49 +99,49 @@ class EnhancedOpeningBook(OpeningBook):
         self, move_str: str, game_history: str, available_moves: List
     ) -> MoveEvaluation:
         """
-        Valutazione dettagliata di una mossa dall'opening book.
+        Detailed evaluation of a move from the opening book.
 
         Args:
-            move_str: Mossa da valutare (es: "C4")
-            game_history: Storia partita corrente
-            available_moves: Tutte le mosse valide
+            move_str: Move to evaluate (e.g., "C4")
+            game_history: Current game history
+            available_moves: All valid moves
 
         Returns:
-            MoveEvaluation con scoring dettagliato
+            MoveEvaluation with detailed scoring
         """
-        # Test se questa mossa è nel book
+        # Test if this move is in the book
         test_sequence = game_history + move_str
         book_moves_after = self.get_book_moves(test_sequence)
 
-        # Conta continuazioni disponibili
+        # Count available continuations
         count_continuations = len(book_moves_after) if book_moves_after else 0
 
-        # Ottieni advantage per questa sequenza
+        # Get advantage for this sequence
         advantage = None
         for seq, adv in self.opening_advantages.items():
             if seq.upper().startswith(test_sequence.upper()):
-                # Trova il primo advantage che matcha
+                # Find the first matching advantage
                 advantage = adv
                 break
 
-        # Calcola scores
+        # Calculate scores
         advantage_score = 0.0
         variety_score = 0.0
         safety_bonus = 0.0
         has_evaluation = advantage is not None
 
         if advantage:
-            # Interpreta advantage
+            # Interpret advantage
             _, numeric_value = self.interpret_advantage(advantage)
             advantage_score = numeric_value * self.advantage_weight
 
-            # Bonus per mosse sicure (=)
+            # Bonus for safe moves (=)
             if advantage == "=":
                 safety_bonus = self.safety_weight
 
-        # Variety score (più continuazioni = meglio)
+        # Variety score (more continuations = better)
         if count_continuations > 0:
-            # Normalizza: log scale per evitare che numeri alti dominino
+            # Normalize: log scale to avoid high numbers dominating
             import math
 
             variety_score = math.log(1 + count_continuations) * self.variety_weight
@@ -165,14 +165,14 @@ class EnhancedOpeningBook(OpeningBook):
 
     def get_ranked_moves(self, game_history: str, available_moves: List) -> List[MoveEvaluation]:
         """
-        Ottieni tutte le mosse rankkate con valutazioni dettagliate.
+        Get all ranked moves with detailed evaluations.
 
         Args:
-            game_history: Storia partita corrente
-            available_moves: Mosse valide
+            game_history: Current game history
+            available_moves: Valid moves
 
         Returns:
-            Lista di MoveEvaluation ordinate per score (decrescente)
+            List of MoveEvaluation sorted by score (descending)
         """
         evaluations = []
 
@@ -181,7 +181,7 @@ class EnhancedOpeningBook(OpeningBook):
             eval_result = self.evaluate_move_detailed(move_str, game_history, available_moves)
             evaluations.append(eval_result)
 
-        # Ordina per score (decrescente - migliore prima)
+        # Sort by score (descending - best first)
         evaluations.sort(key=lambda e: e.score, reverse=True)
 
         return evaluations
@@ -190,37 +190,37 @@ class EnhancedOpeningBook(OpeningBook):
         self, game_history: str, available_moves: List, apply_threshold=True
     ) -> List[MoveEvaluation]:
         """
-        Ottieni mosse filtrate in base ai criteri configurati.
+        Get filtered moves based on configured criteria.
 
         Args:
-            game_history: Storia partita
-            available_moves: Mosse valide
-            apply_threshold: Se True, applica score_threshold
+            game_history: Game history
+            available_moves: Valid moves
+            apply_threshold: If True, apply score_threshold
 
         Returns:
-            Lista di MoveEvaluation filtrate e ordinate
+            List of filtered and sorted MoveEvaluation
         """
-        # Ottieni tutte le valutazioni
+        # Get all evaluations
         all_evals = self.get_ranked_moves(game_history, available_moves)
 
         if not apply_threshold:
             return all_evals
 
-        # Determina soglia effettiva
+        # Determine effective threshold
         effective_threshold = self.score_threshold
 
         if self.use_average_threshold and all_evals:
-            # Usa media come soglia se configurato
+            # Use average as threshold if configured
             scores = [e.score for e in all_evals if e.has_evaluation]
             if scores:
                 average_score = sum(scores) / len(scores)
-                # Usa il maggiore tra score_threshold e average
+                # Use the maximum between score_threshold and average
                 effective_threshold = max(self.score_threshold, average_score)
 
-        # Filtra mosse sopra soglia
+        # Filter moves above threshold
         filtered = [e for e in all_evals if e.score >= effective_threshold]
 
-        # Se il filtro elimina tutto, ritorna almeno la migliore
+        # If filter removes everything, return at least the best one
         if not filtered and all_evals:
             filtered = [all_evals[0]]
 
@@ -230,35 +230,35 @@ class EnhancedOpeningBook(OpeningBook):
         self, game_history: str, available_moves: List, mode: Optional[SelectionMode] = None
     ) -> Optional[str]:
         """
-        Seleziona la migliore mossa secondo la modalità configurata.
+        Select the best move according to the configured mode.
 
         Args:
-            game_history: Storia partita
-            available_moves: Mosse valide
-            mode: Modalità selezione (None = usa self.selection_mode)
+            game_history: Game history
+            available_moves: Valid moves
+            mode: Selection mode (None = use self.selection_mode)
 
         Returns:
-            Stringa mossa selezionata o None
+            Selected move string or None
         """
         if mode is None:
             mode = self.selection_mode
 
-        # Ottieni mosse filtrate
+        # Get filtered moves
         filtered_moves = self.get_filtered_moves(game_history, available_moves)
 
         if not filtered_moves:
             return None
 
-        # Selezione basata su modalità
+        # Selection based on mode
         if mode == SelectionMode.BEST_SCORE:
-            # Migliore punteggio assoluto
+            # Best absolute score
             return filtered_moves[0].move
 
         elif mode == SelectionMode.WEIGHTED_RANDOM:
-            # Random pesato per score
+            # Weighted random by score
             import random
 
-            weights = [max(0.1, e.score + 1.0) for e in filtered_moves]  # +1 per evitare negativi
+            weights = [max(0.1, e.score + 1.0) for e in filtered_moves]  # +1 to avoid negatives
             total_weight = sum(weights)
             # Security: Using random.random() is appropriate here - not for cryptographic purposes
             # This is for game move selection, not security-sensitive operations
@@ -273,26 +273,26 @@ class EnhancedOpeningBook(OpeningBook):
             return filtered_moves[0].move  # Fallback
 
         elif mode == SelectionMode.VARIETY_FIRST:
-            # Preferisce mosse con più continuazioni
+            # Prefers moves with more continuations
             sorted_by_variety = sorted(
                 filtered_moves, key=lambda e: e.count_continuations, reverse=True
             )
             return sorted_by_variety[0].move
 
         elif mode == SelectionMode.SAFE_FIRST:
-            # Preferisce mosse bilanciate (=)
+            # Prefers balanced moves (=)
             safe_moves = [e for e in filtered_moves if e.advantage_symbol == "="]
             if safe_moves:
                 return safe_moves[0].move
-            return filtered_moves[0].move  # Fallback alla migliore
+            return filtered_moves[0].move  # Fallback to best
 
         elif mode == SelectionMode.AGGRESSIVE:
-            # Preferisce vantaggi forti (w++, w+)
+            # Prefers strong advantages (w++, w+)
             aggressive_moves = [
                 e for e in filtered_moves if e.advantage_symbol in ["w++", "w+", "b++", "b+"]
             ]
             if aggressive_moves:
-                # Ordina per advantage score
+                # Sort by advantage score
                 aggressive_moves.sort(key=lambda e: abs(e.advantage_score), reverse=True)
                 return aggressive_moves[0].move
             return filtered_moves[0].move  # Fallback
@@ -303,10 +303,10 @@ class EnhancedOpeningBook(OpeningBook):
 
     def get_move_statistics(self, game_history: str, available_moves: List) -> Dict:
         """
-        Ottieni statistiche dettagliate sulle mosse disponibili.
+        Get detailed statistics on available moves.
 
         Returns:
-            Dict con statistiche complete per debug/analysis
+            Dict with complete statistics for debug/analysis
         """
         all_evals = self.get_ranked_moves(game_history, available_moves)
         filtered_evals = self.get_filtered_moves(game_history, available_moves)
@@ -330,30 +330,30 @@ def get_enhanced_opening_book(
     score_threshold=0.0, use_average_threshold=True, selection_mode=SelectionMode.BEST_SCORE
 ):
     """
-    Factory per creare EnhancedOpeningBook con configurazione default.
+    Factory to create EnhancedOpeningBook with default configuration.
 
     Args:
-        score_threshold: Soglia minima score (default: 0.0 - accetta solo positive)
-        use_average_threshold: Usa media come soglia dinamica
-        selection_mode: Modalità di selezione
+        score_threshold: Minimum score threshold (default: 0.0 - accepts only positive)
+        use_average_threshold: Use average as dynamic threshold
+        selection_mode: Selection mode
 
     Returns:
-        EnhancedOpeningBook configurato e pronto all'uso
+        Configured EnhancedOpeningBook ready to use
     """
     import os
 
-    # Determina path ai file opening book
+    # Determine path to opening book files
     current_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(current_dir, "data")
 
-    # Cerca file opening book
+    # Search for opening book files
     book_files = []
     if os.path.exists(data_dir):
         for filename in sorted(os.listdir(data_dir)):
             if filename.endswith(".txt") and "opening" in filename.lower():
                 book_files.append(os.path.join(data_dir, filename))
 
-    # Crea enhanced book (usa primo file o None)
+    # Create enhanced book (use first file or None)
     book_path = book_files[0] if book_files else None
 
     enhanced_book = EnhancedOpeningBook(
@@ -367,7 +367,7 @@ def get_enhanced_opening_book(
         safety_weight=0.05,
     )
 
-    # Carica eventuali file addizionali
+    # Load any additional files
     for additional_file in book_files[1:]:
         enhanced_book.load_additional_book(additional_file)
 
