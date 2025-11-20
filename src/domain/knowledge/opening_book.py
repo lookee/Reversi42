@@ -673,6 +673,8 @@ class OpeningBook:
 
         # Find best score
         if not evaluations:
+            # Security: Using random.choice() is appropriate here - not for cryptographic purposes
+            # This is for game move selection, not security-sensitive operations
             return random.choice(available_moves) if available_moves else None
 
         best_score = max(eval_data["score"] for eval_data in evaluations.values())
@@ -684,6 +686,8 @@ class OpeningBook:
             if evaluations[str(move).upper()]["score"] == best_score
         ]
 
+        # Security: Using random.choice() is appropriate here - not for cryptographic purposes
+        # This is for game move selection, not security-sensitive operations
         return random.choice(best_moves) if best_moves else random.choice(available_moves)
 
     def get_statistics(self):

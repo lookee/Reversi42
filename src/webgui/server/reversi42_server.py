@@ -1058,10 +1058,14 @@ app = FastAPI(
 )
 
 # CORS middleware
+# Security: Cannot use allow_credentials=True with allow_origins=["*"]
+# For local development, credentials are not needed
+# For production, specify explicit origins via CORS_ORIGINS env var
+cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_credentials=False if "*" in cors_origins else True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -1578,7 +1582,20 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # Receive message
             data = await websocket.receive_text()
-            message = json.loads(data)
+            
+            # Security: Limit message size to prevent DoS (max 1MB)
+            MAX_MESSAGE_SIZE = 1024 * 1024  # 1MB
+            if len(data) > MAX_MESSAGE_SIZE:
+                logger.warning(f"Message too large: {len(data)} bytes (max: {MAX_MESSAGE_SIZE})")
+                await websocket.send_json({"error": "Message too large"})
+                continue
+            
+            try:
+                message = json.loads(data)
+            except json.JSONDecodeError as e:
+                logger.warning(f"Invalid JSON received: {e}")
+                await websocket.send_json({"error": "Invalid JSON format"})
+                continue
 
             # Handle message
             await handle_message(websocket, session_id, message)

@@ -260,6 +260,8 @@ class EnhancedOpeningBook(OpeningBook):
 
             weights = [max(0.1, e.score + 1.0) for e in filtered_moves]  # +1 per evitare negativi
             total_weight = sum(weights)
+            # Security: Using random.random() is appropriate here - not for cryptographic purposes
+            # This is for game move selection, not security-sensitive operations
             r = random.random() * total_weight
 
             cumulative = 0
