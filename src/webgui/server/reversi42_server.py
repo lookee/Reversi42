@@ -14,6 +14,7 @@ import signal
 import sys
 import tempfile
 import traceback
+import uuid
 from datetime import datetime
 from typing import Dict, Optional, Tuple
 
@@ -31,9 +32,10 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Dict, Optional, Set
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from Players.PlayerFactory import PlayerFactory
 
@@ -60,8 +62,22 @@ logger = logging.getLogger(__name__)
 
 # Global variables for graceful shutdown
 app_instance = None
-active_connections = set()
+active_connections: Dict[str, WebSocket] = (
+    {}
+)  # Changed from set() to dict for session_id -> websocket mapping
 shutdown_event = asyncio.Event()
+server_start_time = datetime.now()
+
+
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Middleware to add Request ID to all requests for better debugging"""
+
+    async def dispatch(self, request: Request, call_next):
+        request_id = str(uuid.uuid4())[:8]
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
 
 
 def signal_handler(signum, frame):
@@ -75,7 +91,7 @@ def cleanup_on_exit():
     """Cleanup function called on exit"""
     logger.info("Backend server shutting down...")
     # Close all active WebSocket connections
-    for websocket in active_connections.copy():
+    for websocket in active_connections.values():
         try:
             asyncio.create_task(websocket.close())
         except Exception as e:
@@ -1057,6 +1073,9 @@ app = FastAPI(
     license_info={"name": "GPL-3.0-or-later", "url": "https://www.gnu.org/licenses/gpl-3.0.html"},
 )
 
+# Request ID middleware (add first to track all requests)
+app.add_middleware(RequestIDMiddleware)
+
 # CORS middleware
 # Security: Cannot use allow_credentials=True with allow_origins=["*"]
 # For local development, credentials are not needed
@@ -1527,14 +1546,91 @@ async def get_version():
         }
 
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring and load balancers"""
+    try:
+        # Basic health check - server is running
+        uptime_seconds = (datetime.now() - server_start_time).total_seconds()
+
+        # Check if we can access game components
+        from Players.PlayerFactory import PlayerFactory
+
+        available_players = PlayerFactory.get_available_players()
+
+        health_status = {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "version": __version__,
+            "uptime_seconds": int(uptime_seconds),
+            "uptime_formatted": _format_uptime(uptime_seconds),
+            "active_sessions": len(sessions),
+            "active_connections": len(active_connections),
+            "available_players": len(available_players),
+        }
+
+        return JSONResponse(content=health_status, status_code=200)
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JSONResponse(
+            content={
+                "status": "unhealthy",
+                "timestamp": datetime.now().isoformat(),
+                "error": str(e),
+            },
+            status_code=503,
+        )
+
+
+@app.get("/healthz")
+async def healthz():
+    """Kubernetes-style health check endpoint (alias for /health)"""
+    return await health_check()
+
+
+def _format_uptime(seconds: float) -> str:
+    """Format uptime in human-readable format"""
+    days = int(seconds // 86400)
+    hours = int((seconds % 86400) // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+
+    parts = []
+    if days > 0:
+        parts.append(f"{days}d")
+    if hours > 0:
+        parts.append(f"{hours}h")
+    if minutes > 0:
+        parts.append(f"{minutes}m")
+    if secs > 0 or not parts:
+        parts.append(f"{secs}s")
+
+    return " ".join(parts)
+
+
 @app.get("/stats")
 async def get_stats():
-    """Get server statistics"""
+    """Get detailed server statistics"""
+    uptime_seconds = (datetime.now() - server_start_time).total_seconds()
+
+    # Count games in progress
+    games_in_progress = sum(1 for s in sessions.values() if not s.game_over)
+
+    # Get player statistics
+    from Players.PlayerFactory import PlayerFactory
+
+    available_players = PlayerFactory.get_available_players()
+
     return {
         "version": __version__,
+        "server_start_time": server_start_time.isoformat(),
+        "uptime_seconds": int(uptime_seconds),
+        "uptime_formatted": _format_uptime(uptime_seconds),
         "active_sessions": len(sessions),
         "active_connections": len(active_connections),
-        "uptime": "N/A",  # Could implement uptime tracking
+        "games_in_progress": games_in_progress,
+        "available_players": len(available_players),
+        "player_names": list(available_players),
     }
 
 
@@ -1582,14 +1678,14 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # Receive message
             data = await websocket.receive_text()
-            
+
             # Security: Limit message size to prevent DoS (max 1MB)
             MAX_MESSAGE_SIZE = 1024 * 1024  # 1MB
             if len(data) > MAX_MESSAGE_SIZE:
                 logger.warning(f"Message too large: {len(data)} bytes (max: {MAX_MESSAGE_SIZE})")
                 await websocket.send_json({"error": "Message too large"})
                 continue
-            
+
             try:
                 message = json.loads(data)
             except json.JSONDecodeError as e:
@@ -2291,6 +2387,20 @@ async def handle_get_state(websocket: WebSocket, session: GameSession):
     except Exception as e:
         logger.error(f"Error in handle_get_state: {e}")
         session.handle_error(e, "handle_get_state")
+
+
+async def send_error(
+    websocket: WebSocket, message: str, error_type: str = "error", request_id: str = None
+):
+    """Send standardized error message to WebSocket connection"""
+    error_response = {
+        "type": error_type,
+        "message": message,
+        "timestamp": datetime.now().isoformat(),
+    }
+    if request_id:
+        error_response["request_id"] = request_id
+    await send_to_connection(websocket, error_response)
 
 
 async def send_to_connection(websocket: WebSocket, message: dict):
