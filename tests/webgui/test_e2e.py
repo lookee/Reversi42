@@ -172,7 +172,7 @@ class TestWebSocketCommunication:
         await page.wait_for_timeout(2000)
         # Check if WebSocket is connected via JavaScript
         ws_ready = await page.evaluate(
-        """
+            """
         () => {
             return window.ws && window.ws.readyState === WebSocket.OPEN;
         }
@@ -376,6 +376,7 @@ class TestBrowserCompatibility:
             board = await page.query_selector("#board")
             assert board is not None
             await browser.close()
+
     async def test_webkit_compatibility(self, webgui_server):
         """Test page works in WebKit (Safari)"""
         async with async_playwright() as p:
@@ -387,9 +388,12 @@ class TestBrowserCompatibility:
             board = await page.query_selector("#board")
             assert board is not None
             await browser.close()
+
+
 @pytest.mark.asyncio
 class TestCompleteGameFlow:
     """Test complete game scenarios from start to finish"""
+
     async def test_play_several_moves(self, page: Page, webgui_server):
         """Test playing multiple moves in sequence"""
         await page.goto(webgui_server, timeout=TIMEOUT)

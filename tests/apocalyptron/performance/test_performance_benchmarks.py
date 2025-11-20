@@ -345,7 +345,9 @@ class TestNodesPerSecond:
             if nodes_midgame == 0:
                 # If no nodes were generated, the position might be terminal or TT hit everything
                 # Skip NPS assertion but verify search completed successfully
-                print(f"\n   ⚠️  Midgame search very fast (elapsed: {elapsed_midgame*1000:.3f}ms, nodes: {nodes_midgame})")
+                print(
+                    f"\n   ⚠️  Midgame search very fast (elapsed: {elapsed_midgame*1000:.3f}ms, nodes: {nodes_midgame})"
+                )
                 print("   This may indicate TT hits or terminal position - skipping NPS check")
                 effective_elapsed_midgame = min_elapsed_time
                 min_nps_threshold = 0  # Skip NPS check for this case

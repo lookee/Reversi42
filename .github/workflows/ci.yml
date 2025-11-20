@@ -103,7 +103,8 @@ jobs:
         rm -f .coverage coverage.xml
         rm -rf htmlcov/.coverage.* 2>/dev/null || true
         # Run tests with coverage
-        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html -n auto
+        # Limit parallel workers to 4 to avoid resource exhaustion on CI
+        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html -n 4
         # Verify coverage.xml was created
         if [ ! -f coverage.xml ]; then
           echo "⚠️ coverage.xml not found after pytest, checking for .coverage files..."
@@ -114,7 +115,7 @@ jobs:
             coverage xml || python -m coverage xml
           fi
         fi
-      timeout-minutes: 30
+      timeout-minutes: 45
       env:
         REVERSI42_VIEW: headless
       continue-on-error: false
@@ -230,6 +231,21 @@ jobs:
             print(f'⚠️ Could not read coverage.xml: {e}')
         "
     
+    - name: Fix coverage paths for Codecov
+      if: always() && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+      continue-on-error: true
+      shell: bash
+      run: |
+        if [ -f coverage.xml ]; then
+          echo "Fixing paths in coverage.xml..."
+          # Replace absolute paths with relative paths
+          sed -i 's|/home/runner/work/[^/]*/[^/]*/||g' coverage.xml || true
+          sed -i 's|/Users/[^/]*/[^/]*/[^/]*/||g' coverage.xml || true
+          # Ensure source paths are relative
+          sed -i 's|<source>.*src</source>|<source>src</source>|g' coverage.xml || true
+          echo "✅ Paths fixed in coverage.xml"
+        fi
+    
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       if: always() && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -241,10 +257,6 @@ jobs:
         fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
-        upload: true
-        slug: ${{ github.repository }}
-        branch: ${{ github.head_ref || github.ref_name }}
-        commit: ${{ github.event.pull_request.head.sha || github.sha }}
 
   integration-tests:
     name: Integration Tests

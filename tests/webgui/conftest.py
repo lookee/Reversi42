@@ -168,25 +168,25 @@ def event_loop():
 def webgui_server():
     """
     Start the WebGUI server for E2E tests.
-    
+
     This fixture starts the server in a subprocess and waits for it to be ready.
     The server is automatically stopped after all tests complete.
     """
     server_url = os.getenv("TEST_SERVER_URL", "http://localhost:8000")
     port = int(server_url.split(":")[-1].rstrip("/"))
-    
+
     # Check if server is already running
     if _is_server_running(server_url):
         print(f"✓ Server already running at {server_url}, reusing it")
         yield server_url
         return
-    
+
     # Start server in subprocess
     print(f"🚀 Starting WebGUI server on port {port}...")
-    
+
     # Get Python executable
     python_exe = sys.executable
-    
+
     # Start server process
     server_process = subprocess.Popen(
         [
@@ -202,12 +202,12 @@ def webgui_server():
         stderr=subprocess.PIPE,
         cwd=project_root,
     )
-    
+
     # Wait for server to be ready (max 30 seconds)
     max_wait = 30
     wait_interval = 0.5
     waited = 0
-    
+
     while waited < max_wait:
         if _is_server_running(server_url):
             print(f"✓ Server is ready at {server_url}")
@@ -219,12 +219,12 @@ def webgui_server():
             raise RuntimeError(error_msg)
         time.sleep(wait_interval)
         waited += wait_interval
-    
+
     if not _is_server_running(server_url):
         server_process.terminate()
         server_process.wait(timeout=5)
         raise RuntimeError(f"Server failed to start within {max_wait} seconds")
-    
+
     try:
         yield server_url
     finally:

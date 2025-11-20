@@ -182,6 +182,7 @@ omit = [
     "*/__pycache__/*",
     "*/site-packages/*",
 ]
+relative_files = true
 
 [tool.coverage.report]
 exclude_lines = [

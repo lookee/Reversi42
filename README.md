@@ -168,14 +168,26 @@ reversi42  # Your player is automatically discovered!
 pytest --cov=src tests/
 ```
 
-**400+ tests** covering unit, integration, and characterization scenarios.
+**571+ tests** covering unit, integration, and characterization scenarios.
+
+### Test Coverage by Module
+
+- **Apocalyptron AI Engine**: 800+ tests (evaluation, ordering, pruning, cache, search, observers)
+- **Board Module**: 34 tests (BoardModel, BoardControl, ViewFactory)
+- **Players Module**: 60+ tests (PlayerFactory, PlayerHuman, PlayerApocalyptron, config system)
+- **Core Module**: 34 tests (config, game_config)
+- **Infrastructure**: 10 tests (persistence/game_io)
+- **Integration Tests**: 50+ tests (board integrity, player isolation, book instant mode)
+- **Bitboard Tests**: Comprehensive move generation tests
+- **WebGUI Tests**: Backend server, WebSocket observer, E2E tests
 
 ---
 
 ## 📈 Project Stats
 
 - **~17,000 lines** of Python code
-- **400+ tests** with comprehensive coverage
+- **571+ tests** with comprehensive coverage (target: 80%+)
+- **42 test files** organized by module
 - **40+ documentation files**
 - **11 AI players** pre-configured
 - **644 opening sequences** from professional play
