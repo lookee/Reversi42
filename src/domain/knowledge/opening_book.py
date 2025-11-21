@@ -806,7 +806,8 @@ def get_default_opening_book(
     print(f"\n📖 Loaded {total_files} opening book file(s):\n")
 
     for i, stat in enumerate(file_stats, 1):
-        advantages = int(stat["advantages"])
+        advantages_val = stat["advantages"]
+        advantages = int(advantages_val) if isinstance(advantages_val, (int, float)) else 0
         advantage_info = (
             f", {advantages} with evaluations" if advantages > 0 else ""
         )
