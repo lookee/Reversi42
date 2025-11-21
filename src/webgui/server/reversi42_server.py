@@ -16,7 +16,7 @@ import tempfile
 import traceback
 import uuid
 from datetime import datetime
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 # Add src to path
 current_dir = os.path.dirname(os.path.abspath(__file__))  # src/webgui/server
@@ -109,12 +109,12 @@ class GameState:
     """Represents the current game state"""
 
     game: Game
-    ai_player: any  # Player instance
+    ai_player: Any  # Player instance
     player_name: str
     ai_name: str
     current_turn: str  # 'B' or 'W'
     game_over: bool = False
-    winner: str = None
+    winner: Optional[str] = None
 
 
 class GameSession:
@@ -129,10 +129,10 @@ class GameSession:
             # Backwards-compat shadow (used in some logs)
             self.ai_player_name = ai_player_name
             self.game = Game(8)
-            self.last_ai_stats = {}  # Store last AI analysis
+            self.last_ai_stats: Dict[str, Any] = {}  # Store last AI analysis
             self.error_count = 0  # Track consecutive errors
             self.max_errors = 5  # Max errors before session reset
-            self.last_error_time = None
+            self.last_error_time: Optional[datetime] = None
             self.game_over = False  # Track if game is finished
             self.winner = None  # Track winner ('B', 'W', or None)
 

@@ -352,7 +352,7 @@ class PlayerRegistry:
                 players.append(name)
         return sorted(players)
 
-    def clear_instance_cache(self, player_name: str = None):
+    def clear_instance_cache(self, player_name: Optional[str] = None):
         """
         Clear cached player instances.
 

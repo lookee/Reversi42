@@ -201,11 +201,11 @@ class ApocalyptronConfigBuilder:
         from AI.Apocalyptron.core.config import EvaluatorConfig
 
         # If evaluators is still default, clear it first (avoid duplicates)
-        if (
-            self._config.evaluators
-            == self._config.__class__.__dataclass_fields__["evaluators"].default_factory()
-        ):
-            self._config.evaluators = []
+        default_factory = self._config.__class__.__dataclass_fields__["evaluators"].default_factory
+        if default_factory is not None and callable(default_factory):
+            default_evaluators = default_factory()
+            if self._config.evaluators == default_evaluators:
+                self._config.evaluators = []
 
         self._config.evaluators.append(EvaluatorConfig(eval_type, weight, custom_weights))
         return self

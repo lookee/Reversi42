@@ -588,8 +588,8 @@ class OpeningBook:
 
         # Second pass: calculate HYBRID score (AVERAGE + VARIETY_BONUS)
         for move_str, data in temp_data.items():
-            evaluated = data["evaluated"]
-            total_sum = data["sum"]
+            evaluated = int(data["evaluated"])
+            total_sum = float(data["sum"])
 
             # Calculate AVERAGE
             avg_score = total_sum / evaluated if evaluated > 0 else 0.0
@@ -597,7 +597,7 @@ class OpeningBook:
             # Calculate VARIETY_BONUS (normalized by max openings across all moves)
             variety_bonus = 0.0
             if max_evaluated > 0:
-                normalized = evaluated / max_evaluated
+                normalized = float(evaluated) / float(max_evaluated)
                 variety_bonus = normalized * self.variety_weight
 
             # HYBRID SCORE = AVERAGE + VARIETY_BONUS
@@ -804,8 +804,9 @@ def get_default_opening_book(
     print(f"\n📖 Loaded {total_files} opening book file(s):\n")
 
     for i, stat in enumerate(file_stats, 1):
+        advantages = int(stat["advantages"])
         advantage_info = (
-            f", {stat['advantages']} with evaluations" if stat["advantages"] > 0 else ""
+            f", {advantages} with evaluations" if advantages > 0 else ""
         )
         print(f"  {i}. {stat['filename']:<35} {stat['openings']:>4} openings{advantage_info}")
 
