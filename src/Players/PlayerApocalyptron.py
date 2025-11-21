@@ -182,7 +182,7 @@ class PlayerApocalyptron(Player):
         print(f"     • Pruning: 80-90% (vs 50-70% standard)")
         print(f"{'='*80}\n")
 
-    def get_move(self, game, moves, control):
+    def get_move(self, game, move_list: List[Move], control=None) -> Optional[Move]:
         """
         Get move using advanced Apocalyptron strategy.
 
@@ -434,7 +434,7 @@ class PlayerApocalyptron(Player):
         print(f"{'='*80}")
 
         # Calculate scores for all book moves
-        book_move_scores = []
+        book_move_scores: List[Dict[str, Any]] = []
         for move in book_moves:
             move_str = str(move).upper()
 
@@ -478,13 +478,13 @@ class PlayerApocalyptron(Player):
         book_move_scores.sort(key=lambda x: x["score"], reverse=True)
 
         # Calculate average score for threshold
-        scores_only = [m["score"] for m in book_move_scores]
+        scores_only: List[float] = [float(m["score"]) for m in book_move_scores]
         avg_score = sum(scores_only) / len(scores_only) if scores_only else 0.0
         threshold = max(0.0, avg_score)  # Use average as threshold
 
         # Separate into priority (on top) and filtered out
-        priority_moves = [m for m in book_move_scores if m["score"] >= threshold]
-        filtered_out = [m for m in book_move_scores if m["score"] < threshold]
+        priority_moves = [m for m in book_move_scores if float(m["score"]) >= threshold]
+        filtered_out = [m for m in book_move_scores if float(m["score"]) < threshold]
 
         # Print priority moves (ON TOP for evaluation)
         if priority_moves:
