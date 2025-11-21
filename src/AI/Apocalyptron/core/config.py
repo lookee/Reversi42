@@ -5,7 +5,7 @@ Centralized configuration for all engine parameters.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from AI.Apocalyptron.weights.evaluation_weights import EvaluationWeights
 
@@ -53,7 +53,7 @@ class ApocalyptronConfig:
 
     # Parallelization
     use_parallel: bool = True
-    num_workers: int = None  # None = auto-detect
+    num_workers: Optional[int] = None  # None = auto-detect
     parallel_threshold_depth: int = 7
     parallel_threshold_moves: int = 4
 

@@ -19,6 +19,7 @@ class StatisticsObserver(SearchObserver):
 
     def __init__(self):
         """Initialize statistics collector"""
+        self.current_iteration: Dict[str, Any] = {}
         self.reset()
 
     def reset(self):
@@ -161,8 +162,9 @@ class StatisticsObserver(SearchObserver):
     def get_total_nodes(self) -> int:
         """Get total nodes evaluated"""
         if "statistics" in self.search_data:
-            return self.search_data["statistics"].get("nodes", 0)
-        return sum(m["nodes"] for m in self.moves_evaluated)
+            nodes = self.search_data["statistics"].get("nodes", 0)
+            return int(nodes) if nodes is not None else 0
+        return sum(int(m["nodes"]) for m in self.moves_evaluated)
 
     def get_best_move(self) -> Optional[str]:
         """Get best move found"""

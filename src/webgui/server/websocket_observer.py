@@ -45,7 +45,7 @@ class WebSocketSearchObserver(SearchObserver):
         """
         self.websocket = websocket
         self.session_id = session_id
-        self.current_stats = {
+        self.current_stats: Dict[str, Any] = {
             "depth": 0,
             "nodes_searched": 0,
             "nodes_pruned": 0,
@@ -53,18 +53,19 @@ class WebSocketSearchObserver(SearchObserver):
             "best_value": 0,
             "search_time": 0.0,
         }
-        self.loop = None
-        self.search_start_time = None
-        self.player_name = None
+        self.loop: Optional[asyncio.AbstractEventLoop] = None
+        self.search_start_time: Optional[datetime] = None
+        self.player_name: Optional[str] = None
         self.aspiration_hits = 0
         self.aspiration_fails = 0
         # Track history for sparklines and charts
-        self.depth_history = []  # [(depth, time, nodes, value), ...]
-        self.move_evaluations = []  # [(move, value, nodes), ...]
+        self.depth_history: List[Dict[str, Any]] = []  # [(depth, time, nodes, value), ...]
+        self.move_evaluations: List[Dict[str, Any]] = []  # [(move, value, nodes), ...]
         # Parallel search tracking
         self.parallel_results_count = 0
         self.parallel_total_moves = 0
-        self.last_parallel_update = None
+        self.parallel_start_time: Optional[datetime] = None
+        self.last_parallel_update: Optional[float] = None
         import time as time_module
 
         self.time_module = time_module
@@ -74,7 +75,7 @@ class WebSocketSearchObserver(SearchObserver):
         try:
             # ALWAYS use run_coroutine_threadsafe for thread safety
             # This is crucial for parallel search which runs in worker threads
-            if self.loop and self.loop.is_running():
+            if self.loop is not None and self.loop.is_running():
                 # Use run_coroutine_threadsafe to schedule from ANY thread
                 future = asyncio.run_coroutine_threadsafe(self._send(message), self.loop)
                 # Don't wait - let messages queue up and send asynchronously
@@ -98,7 +99,7 @@ class WebSocketSearchObserver(SearchObserver):
         except Exception:
             pass
 
-    def _send_ai_log(self, log_type: str, message: str, data: dict = None):
+    def _send_ai_log(self, log_type: str, message: str, data: Optional[Dict[str, Any]] = None):
         """Send AI reasoning log to frontend"""
         timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
         log_message = {
@@ -267,9 +268,9 @@ class WebSocketSearchObserver(SearchObserver):
 
         # Track iteration data for charts
         # IMPORTANT: These are CUMULATIVE values across all iterations so far
-        nodes = self.current_stats.get("nodes_searched", 0)
-        pruned = self.current_stats.get("nodes_pruned", 0)
-        nps = (nodes / (iteration_time / 1000.0)) if iteration_time > 0 else 0
+        nodes = self.current_stats.get("nodes_searched", 0) or 0
+        pruned = self.current_stats.get("nodes_pruned", 0) or 0
+        nps = (float(nodes) / (iteration_time / 1000.0)) if iteration_time > 0 else 0.0
 
         self.depth_history.append(
             {
@@ -333,7 +334,7 @@ class WebSocketSearchObserver(SearchObserver):
         statistics: Dict,
         total_time: float,
         opening_book: Any = None,
-        game_history: str = None,
+        game_history: Optional[str] = None,
         game: Any = None,
     ):
         """Search completed"""
@@ -555,10 +556,10 @@ class WebSocketSearchObserver(SearchObserver):
         # Calculate current stats from Phase 1
         nodes = self.current_stats.get("nodes_searched", 0)
         pruned = self.current_stats.get("nodes_pruned", 0)
-        elapsed_time = 0
+        elapsed_time: float = 0.0
         nps = 0
         if self.search_start_time:
-            elapsed_time = (datetime.now() - self.search_start_time).total_seconds() * 1000
+            elapsed_time = (datetime.now() - self.search_start_time).total_seconds() * 1000.0
             nps = int((nodes * 1000) / elapsed_time) if elapsed_time > 0 else 0
 
         message = {
@@ -607,9 +608,9 @@ class WebSocketSearchObserver(SearchObserver):
         best_marker = " ⭐ BEST" if is_best else ""
 
         # Calculate elapsed time for PARALLEL PHASE ONLY
-        parallel_elapsed = 0
+        parallel_elapsed: float = 0.0
         if hasattr(self, "parallel_start_time") and self.parallel_start_time:
-            parallel_elapsed = (datetime.now() - self.parallel_start_time).total_seconds() * 1000
+            parallel_elapsed = (datetime.now() - self.parallel_start_time).total_seconds() * 1000.0
 
         # Calculate NPS for parallel phase
         nps = int((nodes * 1000) / parallel_elapsed) if parallel_elapsed > 0 else 0

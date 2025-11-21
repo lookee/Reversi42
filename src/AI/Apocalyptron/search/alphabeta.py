@@ -65,7 +65,7 @@ class AlphaBetaSearch(SearchAlgorithm):
         self.nodes = 0
         self.pruning = 0
         self.tt_hits = 0
-        self.start_time = 0
+        self.start_time: float = 0.0
 
     def search(self, context: SearchContext) -> SearchResult:
         """
@@ -158,11 +158,11 @@ class AlphaBetaSearch(SearchAlgorithm):
         self.nodes += 1
 
         # Transposition table lookup
-        if self.use_tt:
+        if self.use_tt and self.zobrist is not None and self.tt is not None:
             pos_hash = self.zobrist.hash_position(game)
             entry = self.tt.lookup(pos_hash)
 
-            if entry and entry.is_usable(depth):
+            if entry is not None and entry.is_usable(depth):
                 self.tt_hits += 1
                 if entry.flag == "exact":
                     return entry.value
@@ -210,12 +210,12 @@ class AlphaBetaSearch(SearchAlgorithm):
             if alpha >= beta:
                 self.pruning += 1
                 # Store in TT
-                if self.use_tt:
+                if self.use_tt and self.tt is not None:
                     self.tt.store(pos_hash, depth, beta, "lower", move)
                 return beta
 
         # Store in TT
-        if self.use_tt:
+        if self.use_tt and self.tt is not None:
             if best_value <= original_alpha:
                 self.tt.store(pos_hash, depth, best_value, "upper")
             else:

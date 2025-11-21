@@ -23,7 +23,7 @@ class ConsoleObserver(SearchObserver):
 
     def __init__(self):
         """Initialize console observer"""
-        self.iteration_start_time = 0
+        self.iteration_start_time: float = 0.0
 
     def on_search_start(
         self, depth: int, player_name: Optional[str], game: Any, mode: str = "sequential"
@@ -295,7 +295,7 @@ class ConsoleObserver(SearchObserver):
 
         # Check if we have book moves for THIS position (before the move)
         # We want to show which moves WERE prioritized for evaluation
-        book_moves = []
+        book_moves: list[str] = []
         if hasattr(opening_book, "get_book_moves") and game_history is not None:
             book_moves = opening_book.get_book_moves(game_history) or []
 

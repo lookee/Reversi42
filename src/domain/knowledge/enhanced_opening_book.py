@@ -264,7 +264,7 @@ class EnhancedOpeningBook(OpeningBook):
             # This is for game move selection, not security-sensitive operations
             r = random.random() * total_weight
 
-            cumulative = 0
+            cumulative: float = 0.0
             for eval_result, weight in zip(filtered_moves, weights):
                 cumulative += weight
                 if r <= cumulative:

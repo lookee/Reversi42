@@ -49,4 +49,6 @@ class GamePhaseDetector:
 
     def get_piece_count(self, game) -> int:
         """Get total piece count on board"""
-        return game.black_cnt + game.white_cnt
+        black = getattr(game, "black_cnt", 0)
+        white = getattr(game, "white_cnt", 0)
+        return int(black) + int(white)

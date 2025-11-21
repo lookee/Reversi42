@@ -13,7 +13,7 @@ import copy
 import sys
 import time
 from multiprocessing import Pool, cpu_count
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from AI.Apocalyptron.observers.interfaces import SearchObserver
 
@@ -128,7 +128,7 @@ class ParallelSearch:
         self.observers = observers if observers is not None else base_search.observers
 
         # Worker pool (lazy init)
-        self._pool = None
+        self._pool: Optional[Pool] = None
 
     def _get_pool(self):
         """Get or create worker pool"""

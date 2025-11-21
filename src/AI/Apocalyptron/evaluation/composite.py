@@ -75,7 +75,7 @@ class CompositeEvaluator(PositionEvaluator):
         Returns:
             dict: {evaluator_name: score} for each evaluator
         """
-        breakdown = {}
+        breakdown: Dict[str, Any] = {}
 
         for evaluator, weight in self.evaluators:
             score = evaluator.evaluate(game)
@@ -86,8 +86,10 @@ class CompositeEvaluator(PositionEvaluator):
                 "weighted_score": weighted_score,
             }
 
-        breakdown["total"] = sum(
-            e["weighted_score"] for e in breakdown.values() if isinstance(e, dict)
+        breakdown["total"] = float(
+            sum(
+                e["weighted_score"] for e in breakdown.values() if isinstance(e, dict)
+            )
         )
 
         return breakdown

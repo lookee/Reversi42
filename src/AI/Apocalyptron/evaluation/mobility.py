@@ -59,8 +59,8 @@ class MobilityEvaluator(PositionEvaluator):
 
         # Apply phase-specific weight
         if phase == GamePhase.OPENING:
-            return mobility_diff * self.weights.mobility_opening
+            return int(mobility_diff * self.weights.mobility_opening)
         elif phase == GamePhase.MIDGAME:
-            return mobility_diff * self.weights.mobility_midgame
+            return int(mobility_diff * self.weights.mobility_midgame)
         else:  # ENDGAME
-            return mobility_diff * self.weights.mobility_endgame
+            return int(mobility_diff * self.weights.mobility_endgame)
