@@ -588,8 +588,10 @@ class OpeningBook:
 
         # Second pass: calculate HYBRID score (AVERAGE + VARIETY_BONUS)
         for move_str, data in temp_data.items():
-            evaluated = int(data["evaluated"])
-            total_sum = float(data["sum"])
+            evaluated_val = data["evaluated"]
+            total_sum_val = data["sum"]
+            evaluated = int(evaluated_val) if isinstance(evaluated_val, (int, float)) else 0
+            total_sum = float(total_sum_val) if isinstance(total_sum_val, (int, float)) else 0.0
 
             # Calculate AVERAGE
             avg_score = total_sum / evaluated if evaluated > 0 else 0.0
