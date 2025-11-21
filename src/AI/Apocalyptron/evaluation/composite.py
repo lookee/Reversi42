@@ -5,7 +5,7 @@ Combines multiple evaluation strategies using weighted sum.
 Implements Composite Pattern for flexible evaluation composition.
 """
 
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from AI.Apocalyptron.evaluation.interfaces import PositionEvaluator
 
