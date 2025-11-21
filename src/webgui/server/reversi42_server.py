@@ -1619,7 +1619,7 @@ async def get_stats():
     # Get player statistics
     from Players.PlayerFactory import PlayerFactory
 
-    available_players = PlayerFactory.get_available_players()
+    available_players = PlayerFactory.get_available_player_types()
 
     return {
         "version": __version__,
