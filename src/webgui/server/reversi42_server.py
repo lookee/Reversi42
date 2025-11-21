@@ -345,7 +345,7 @@ class GameSession:
                 )
 
                 # VERIFY player name
-                if hasattr(self.ai_black, "name"):
+                if self.ai_black is not None and hasattr(self.ai_black, "name"):
                     actual_name = self.ai_black.name
                     logger.info(f"   Player.name: {actual_name!r}")
                     if actual_name != self.ai_black_name:
@@ -354,8 +354,10 @@ class GameSession:
                         logger.error(f"      Got: {actual_name!r}")
 
                 # IMMEDIATE VERIFICATION for Black
-                if hasattr(self.ai_black, "bitboard_engine") and hasattr(
-                    self.ai_black.bitboard_engine, "config"
+                if (
+                    self.ai_black is not None
+                    and hasattr(self.ai_black, "bitboard_engine")
+                    and hasattr(self.ai_black.bitboard_engine, "config")
                 ):
                     cfg = self.ai_black.bitboard_engine.config
                     logger.info(f"")
