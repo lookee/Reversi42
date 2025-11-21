@@ -14,7 +14,7 @@ Uses:
 This is the fully refactored version with SOLID architecture.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from Reversi.Game import Move
 from Players.Player import Player
@@ -304,7 +304,7 @@ class PlayerApocalyptron(Player):
                         else:
                             print()
 
-                    return chosen_move
+                    return cast(Optional[Move], chosen_move)
                 else:
                     chosen_move = book_moves[0]
                     # Show selected opening and advantage even for single move
@@ -326,7 +326,7 @@ class PlayerApocalyptron(Player):
                             else:
                                 print(f"📖 Playing {chosen_move}: {opening_name}\n")
 
-                    return chosen_move
+                    return cast(Optional[Move], chosen_move)
 
             else:
                 # NEW MODE: Book moves prioritized but evaluated
@@ -377,7 +377,7 @@ class PlayerApocalyptron(Player):
                     game_history=game_history,
                 )
                 if move and game.valid_move(move):
-                    return move
+                    return cast(Optional[Move], move)
 
                 # Fallback: if engine returns None or invalid move, use first valid move
                 if move_list:
