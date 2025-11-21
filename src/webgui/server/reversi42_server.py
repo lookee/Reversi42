@@ -1741,7 +1741,7 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
         
         # Ensure data is not None
         if data is None:
-            data = {}  
+            data = {}
         
         # Ensure msg_type is a string
         msg_type_str = str(msg_type) if msg_type is not None else ""
