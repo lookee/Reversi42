@@ -1734,7 +1734,9 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
             return
         if data is None:
             data = {}
-        await process_message_by_type(websocket, session, msg_type, data)
+        # Ensure msg_type is a string
+        msg_type_str = str(msg_type) if msg_type is not None else ""
+        await process_message_by_type(websocket, session, msg_type_str, data)
         logger.info(f"Message type '{msg_type}' processed successfully")
 
     except Exception as e:
