@@ -354,19 +354,17 @@ class GameSession:
                         logger.error(f"      Got: {actual_name!r}")
 
                 # IMMEDIATE VERIFICATION for Black
-                if (
-                    self.ai_black is not None
-                    and hasattr(self.ai_black, "bitboard_engine")
-                    and hasattr(self.ai_black.bitboard_engine, "config")
-                ):
-                    cfg = self.ai_black.bitboard_engine.config
-                    logger.info(f"")
-                    logger.info(f"   🔍 BLACK AI ENGINE CONFIG VERIFICATION:")
-                    logger.info(f"      Depth: {cfg.depth}")
-                    logger.info(f"      Strategy: {cfg.search_strategy}")
-                    logger.info(f"      Transposition Table: {cfg.use_transposition_table}")
-                    logger.info(f"      Parallel: {cfg.use_parallel}")
-                    logger.info(f"      Aspiration: {cfg.use_aspiration_windows}")
+                if self.ai_black is not None:
+                    if hasattr(self.ai_black, "bitboard_engine"):
+                        if hasattr(self.ai_black.bitboard_engine, "config"):
+                            cfg = self.ai_black.bitboard_engine.config
+                            logger.info(f"")
+                            logger.info(f"   🔍 BLACK AI ENGINE CONFIG VERIFICATION:")
+                            logger.info(f"      Depth: {cfg.depth}")
+                            logger.info(f"      Strategy: {cfg.search_strategy}")
+                            logger.info(f"      Transposition Table: {cfg.use_transposition_table}")
+                            logger.info(f"      Parallel: {cfg.use_parallel}")
+                            logger.info(f"      Aspiration: {cfg.use_aspiration_windows}")
 
                     # Expected values for DIVZERO.EXE
                     if self.ai_black_name == "DIVZERO.EXE":
@@ -1001,8 +999,8 @@ class GameSession:
                 # Check if opening book is shared with other AI
                 if side == "W" and self.ai_black is not None:
                     if hasattr(self.ai_black, "opening_book") and self.ai_black.opening_book:
-                    black_book_id = id(self.ai_black.opening_book)
-                    if book_id == black_book_id:
+                        black_book_id = id(self.ai_black.opening_book)
+                        if book_id == black_book_id:
                         logger.error(
                             f"   ❌ CRITICAL: White and Black AI share the same opening book!"
                         )
