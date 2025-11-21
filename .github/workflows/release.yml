@@ -3,8 +3,8 @@ name: Release
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'  # Match: 5.0.0, 4.1.16, etc.
-      - 'v[0-9]+.[0-9]+.[0-9]+' # Match: v5.0.0 (supporto opzionale)
+      - '*.*.*'  # Match semantic versions: 5.0.0, 4.1.16, etc.
+      - 'v*.*.*' # Match semantic versions with v prefix: v5.0.0
   workflow_dispatch:
     inputs:
       version:
@@ -244,25 +244,25 @@ jobs:
         fetch-depth: 0
     
     - name: Download Python package artifacts
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v4
       with:
         name: python-package
         path: dist/
     
     - name: Download executable artifacts
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v4
       with:
         name: executable-linux-x86_64
         path: dist/executables/linux/
         if-no-files-found: ignore
     - name: Download macOS executable
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v4
       with:
         name: executable-macos-x86_64
         path: dist/executables/macos/
         if-no-files-found: ignore
     - name: Download Windows executable
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v4
       with:
         name: executable-windows-x86_64
         path: dist/executables/windows/
@@ -364,7 +364,7 @@ jobs:
     
     steps:
     - name: Download package
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v4
       with:
         name: python-package
         path: dist/
@@ -390,7 +390,7 @@ jobs:
     
     steps:
     - name: Download package
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v4
       with:
         name: python-package
         path: dist/
