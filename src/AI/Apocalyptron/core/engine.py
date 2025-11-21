@@ -12,6 +12,7 @@ This is the full refactored version that uses:
 """
 
 import time
+from typing import Optional
 
 from AI.Apocalyptron.core.config import ApocalyptronConfig
 from AI.Apocalyptron.evaluation import (
@@ -194,9 +195,9 @@ class ApocalyptronEngine:
         self,
         game,
         depth: int,
-        player_name: str = None,
+        player_name: Optional[str] = None,
         opening_book=None,
-        game_history: str = None,
+        game_history: Optional[str] = None,
         observer=None,
     ):
         """

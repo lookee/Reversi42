@@ -158,9 +158,9 @@ class ParallelSearch:
         self,
         game,
         target_depth: int,
-        player_name: str = None,
+        player_name: Optional[str] = None,
         opening_book=None,
-        game_history: str = None,
+        game_history: Optional[str] = None,
     ):
         """
         Get best move with optional parallelization.

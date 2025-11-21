@@ -6,7 +6,7 @@ Immutability ensures thread safety and makes debugging easier.
 """
 
 from dataclasses import dataclass, field, replace
-from typing import Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -28,7 +28,7 @@ class SearchContext:
     """
 
     # Game state
-    game: any  # BitboardGame instance
+    game: Any  # BitboardGame instance
 
     # Search parameters
     depth: int
@@ -40,11 +40,11 @@ class SearchContext:
     ply_from_root: int = 0
 
     # Heuristic data (immutable snapshots)
-    killer_moves: Tuple = field(default_factory=tuple)
-    history_table: Dict = field(default_factory=dict)
+    killer_moves: Tuple[Any, ...] = field(default_factory=tuple)
+    history_table: Dict[Any, Any] = field(default_factory=dict)
 
     # Move list cache (to avoid recomputing)
-    move_list: Tuple = field(default=None)
+    move_list: Optional[Tuple[Any, ...]] = field(default=None)
 
     def with_reduced_depth(self, reduction: int) -> "SearchContext":
         """

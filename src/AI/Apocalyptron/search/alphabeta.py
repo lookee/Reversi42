@@ -9,7 +9,7 @@ Clean implementation that uses:
 """
 
 import time
-from typing import List
+from typing import List, Optional
 
 from AI.Apocalyptron.cache.transposition_table import TranspositionTable
 from AI.Apocalyptron.cache.zobrist_hash import ZobristHasher
@@ -40,7 +40,7 @@ class AlphaBetaSearch(SearchAlgorithm):
         self,
         evaluator: CompositeEvaluator,
         orderer: CompositeOrderer,
-        pruning_strategies: List = None,
+        pruning_strategies: Optional[List] = None,
         use_transposition_table: bool = True,
     ):
         """

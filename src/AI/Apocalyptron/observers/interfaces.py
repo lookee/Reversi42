@@ -103,7 +103,7 @@ class SearchObserver(ABC):
         statistics: Dict,
         total_time: float,
         opening_book: Any = None,
-        game_history: str = None,
+        game_history: Optional[str] = None,
         game: Any = None,
     ):
         """

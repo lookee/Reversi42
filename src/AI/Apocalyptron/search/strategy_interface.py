@@ -21,7 +21,7 @@ class SearchStrategy(ABC):
 
     @abstractmethod
     def get_best_move(
-        self, game, depth: int, player_name: str = None, opening_book=None, game_history: str = None
+        self, game, depth: int, player_name: Optional[str] = None, opening_book=None, game_history: Optional[str] = None
     ):
         """
         Execute search and return best move.

@@ -5,7 +5,7 @@ Stores previously evaluated positions to avoid redundant searches.
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 
 @dataclass
@@ -19,7 +19,7 @@ class TTEntry:
     depth: int  # Depth at which position was evaluated
     value: int  # Evaluation score
     flag: str  # 'exact', 'lower' (beta cutoff), 'upper' (alpha cutoff)
-    best_move: any = None  # Best move found (optional)
+    best_move: Optional[Any] = None  # Best move found (optional)
 
     def is_usable(self, search_depth: int) -> bool:
         """Check if this entry can be used for current search depth"""
@@ -52,13 +52,13 @@ class TranspositionTable:
         Args:
             max_size: Maximum number of entries (default: 1M)
         """
-        self.table = {}
+        self.table: dict[int, TTEntry] = {}
         self.max_size = max_size
         self.hits = 0
         self.misses = 0
         self.stores = 0
 
-    def store(self, zobrist_hash: int, depth: int, value: int, flag: str, best_move=None):
+    def store(self, zobrist_hash: int, depth: int, value: int, flag: str, best_move: Optional[Any] = None):
         """
         Store position evaluation.
 

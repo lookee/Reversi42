@@ -4,6 +4,8 @@ Custom exceptions for the AI Player Configuration System.
 Following best practices for exception hierarchy and error handling.
 """
 
+from typing import Optional
+
 
 class PlayerConfigError(Exception):
     """Base exception for all player configuration errors."""
@@ -14,7 +16,7 @@ class PlayerConfigError(Exception):
 class PlayerNotFoundError(PlayerConfigError):
     """Raised when a requested player cannot be found."""
 
-    def __init__(self, player_name: str, available_players: list = None):
+    def __init__(self, player_name: str, available_players: Optional[list] = None):
         self.player_name = player_name
         self.available_players = available_players or []
 
@@ -28,7 +30,7 @@ class PlayerNotFoundError(PlayerConfigError):
 class InvalidConfigError(PlayerConfigError):
     """Raised when a configuration file is invalid."""
 
-    def __init__(self, config_path: str, reason: str, details: dict = None):
+    def __init__(self, config_path: str, reason: str, details: Optional[dict] = None):
         self.config_path = config_path
         self.reason = reason
         self.details = details or {}
