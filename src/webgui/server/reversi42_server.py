@@ -468,15 +468,21 @@ class GameSession:
         """Return opening_book from active AI (prefer current turn), if any."""
         try:
             ai = None
-            if self.game.turn == "W" and self.ai_white and hasattr(self.ai_white, "opening_book"):
-                ai = self.ai_white
-            elif self.game.turn == "B" and self.ai_black and hasattr(self.ai_black, "opening_book"):
-                ai = self.ai_black
-            elif self.ai_white and hasattr(self.ai_white, "opening_book"):
-                ai = self.ai_white
-            elif self.ai_black and hasattr(self.ai_black, "opening_book"):
-                ai = self.ai_black
-            return ai.opening_book if ai else None
+            current_turn = self.game.turn
+            if current_turn == "W" and self.ai_white is not None:
+                if hasattr(self.ai_white, "opening_book"):
+                    ai = self.ai_white
+            elif current_turn == "B" and self.ai_black is not None:
+                if hasattr(self.ai_black, "opening_book"):
+                    ai = self.ai_black
+            
+            if ai is None:
+                if self.ai_white is not None and hasattr(self.ai_white, "opening_book"):
+                    ai = self.ai_white
+                elif self.ai_black is not None and hasattr(self.ai_black, "opening_book"):
+                    ai = self.ai_black
+            
+            return ai.opening_book if ai is not None else None
         except Exception:
             return None
 
@@ -993,12 +999,8 @@ class GameSession:
                 logger.info(f"   Opening book ID: {book_id}")
 
                 # Check if opening book is shared with other AI
-                if (
-                    side == "W"
-                    and self.ai_black is not None
-                    and hasattr(self.ai_black, "opening_book")
-                    and self.ai_black.opening_book
-                ):
+                if side == "W" and self.ai_black is not None:
+                    if hasattr(self.ai_black, "opening_book") and self.ai_black.opening_book:
                     black_book_id = id(self.ai_black.opening_book)
                     if book_id == black_book_id:
                         logger.error(
@@ -1991,9 +1993,11 @@ async def handle_load_history(websocket: WebSocket, session: GameSession, data: 
                 await handle_game_over(websocket, session, "Both players passed")
                 return
         side = session.game.turn
-        ai_present = (session.ai_white is not None and side == "W") or (
-            session.ai_black is not None and side == "B"
-        )
+        ai_present = False
+        if side == "W" and session.ai_white is not None:
+            ai_present = True
+        elif side == "B" and session.ai_black is not None:
+            ai_present = True
         if ai_present:
             ai_ml = session.game.get_move_list()
             if not ai_ml:
@@ -2366,9 +2370,11 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
 
         # Check if AI should make first move (if it's AI's turn to start)
         current_turn = session.game.turn
-        ai_present = (session.ai_white is not None and current_turn == "W") or (
-            session.ai_black is not None and current_turn == "B"
-        )
+        ai_present = False
+        if current_turn == "W" and session.ai_white is not None:
+            ai_present = True
+        elif current_turn == "B" and session.ai_black is not None:
+            ai_present = True
 
         if ai_present:
             logger.info(f"AI should move immediately (turn: {current_turn})")
