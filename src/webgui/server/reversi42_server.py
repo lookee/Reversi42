@@ -880,7 +880,8 @@ class GameSession:
                         else:
                             self.ai_black = PlayerFactory.create_player(ai_name)
                             ai = self.ai_black
-                        logger.info(f"   ✅ Recreated AI instance: {ai.name!r} @ {id(ai)}")
+                        if ai is not None:
+                            logger.info(f"   ✅ Recreated AI instance: {ai.name!r} @ {id(ai)}")
                     except Exception as e:
                         logger.error(f"   ❌ Failed to recreate AI instance: {e}")
                         raise
@@ -1728,6 +1729,11 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
         logger.info(f"Handling message type '{msg_type}' for session {session_id}")
 
         # Process message based on type
+        if session is None:
+            logger.error(f"Session {session_id} not found")
+            return
+        if data is None:
+            data = {}
         await process_message_by_type(websocket, session, msg_type, data)
         logger.info(f"Message type '{msg_type}' processed successfully")
 
@@ -1758,7 +1764,8 @@ async def process_message_by_type(
             await handle_human_move(websocket, session, data)
         elif msg_type == "ai_move_request":
             # Optional: side parameter for explicit requests
-            await handle_ai_move_request(websocket, session, data.get("side"))
+            side_param = data.get("side") if data else None
+            await handle_ai_move_request(websocket, session, side_param)
         elif msg_type == "init":
             logger.info("Calling handle_init_message")
             await handle_init_message(websocket, session, data)
@@ -2000,7 +2007,7 @@ async def handle_load_history(websocket: WebSocket, session: GameSession, data: 
         )
 
 
-async def handle_ai_move_request(websocket: WebSocket, session: GameSession, side: str = None):
+async def handle_ai_move_request(websocket: WebSocket, session: GameSession, side: Optional[str] = None):
     """Handle AI move request with robust error handling"""
     try:
         logger.info("AI turn - requesting move...")
@@ -2394,7 +2401,7 @@ async def handle_get_state(websocket: WebSocket, session: GameSession):
 
 
 async def send_error(
-    websocket: WebSocket, message: str, error_type: str = "error", request_id: str = None
+    websocket: WebSocket, message: str, error_type: str = "error", request_id: Optional[str] = None
 ):
     """Send standardized error message to WebSocket connection"""
     error_response = {
