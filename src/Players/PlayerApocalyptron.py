@@ -196,7 +196,7 @@ class PlayerApocalyptron(Player):
         """
         self.total_moves += 1
 
-        if len(moves) == 0:
+        if len(move_list) == 0:
             return None
 
         # Get game history
@@ -207,7 +207,7 @@ class PlayerApocalyptron(Player):
 
         if book_moves:
             # Filter to valid moves only
-            valid_book_moves = [m for m in book_moves if m in moves]
+            valid_book_moves = [m for m in book_moves if m in move_list]
             book_moves = valid_book_moves
 
         if book_moves:
@@ -331,7 +331,7 @@ class PlayerApocalyptron(Player):
             else:
                 # NEW MODE: Book moves prioritized but evaluated
                 if self.show_book_options:
-                    self._print_book_evaluation_mode(book_moves, game_history, game.turn, moves)
+                    self._print_book_evaluation_mode(book_moves, game_history, game.turn, move_list)
 
                 # Continue to engine evaluation with reordered moves (book moves first)
                 # Fall through to engine code below...
@@ -380,15 +380,15 @@ class PlayerApocalyptron(Player):
                     return move
 
                 # Fallback: if engine returns None or invalid move, use first valid move
-                if moves:
-                    print(f"⚠️  Engine returned invalid move, using fallback: {moves[0]}")
-                    return moves[0]
+                if move_list:
+                    print(f"⚠️  Engine returned invalid move, using fallback: {move_list[0]}")
+                    return move_list[0]
         except Exception as e:
             print(f"❌ Apocalyptron error: {e}")
             # Fallback on exception: return first valid move if available
-            if moves:
-                print(f"⚠️  Exception fallback: using {moves[0]}")
-                return moves[0]
+            if move_list:
+                print(f"⚠️  Exception fallback: using {move_list[0]}")
+                return move_list[0]
             raise  # Only raise if no moves available
 
     def _get_game_history(self, game):
