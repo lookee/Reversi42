@@ -1001,9 +1001,10 @@ class GameSession:
 
                 # Check if opening book is shared with other AI
                 if side == "W" and self.ai_black is not None:
-                    if hasattr(self.ai_black, "opening_book") and self.ai_black.opening_book:
-                        black_book_id = id(self.ai_black.opening_book)
-                        if book_id == black_book_id:
+                    if hasattr(self.ai_black, "opening_book"):
+                        if self.ai_black.opening_book:
+                            black_book_id = id(self.ai_black.opening_book)
+                            if book_id == black_book_id:
                             logger.error(
                                 f"   ❌ CRITICAL: White and Black AI share the same opening book!"
                             )
