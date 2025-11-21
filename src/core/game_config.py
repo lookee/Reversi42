@@ -306,8 +306,11 @@ class GameConfigLoader:
             input_provider = MockInputProvider([Move(3, 3)], auto_exit=False)
             black_player = PlayerHuman(input_provider, name=config.black_player.name)
         else:
-            logger.info(f"🤖 Creating AI player: {config.black_player.ai_player}")
-            black_player = registry.create_player(config.black_player.ai_player)
+            ai_player_name = config.black_player.ai_player
+            if ai_player_name is None:
+                raise ValueError("AI player name is required for AI player type")
+            logger.info(f"🤖 Creating AI player: {ai_player_name}")
+            black_player = registry.create_player(ai_player_name)
 
         # Create white player
         if config.white_player.player_type == "human":
@@ -315,8 +318,11 @@ class GameConfigLoader:
             input_provider = MockInputProvider([Move(3, 3)], auto_exit=False)
             white_player = PlayerHuman(input_provider, name=config.white_player.name)
         else:
-            logger.info(f"🤖 Creating AI player: {config.white_player.ai_player}")
-            white_player = registry.create_player(config.white_player.ai_player)
+            ai_player_name = config.white_player.ai_player
+            if ai_player_name is None:
+                raise ValueError("AI player name is required for AI player type")
+            logger.info(f"🤖 Creating AI player: {ai_player_name}")
+            white_player = registry.create_player(ai_player_name)
 
         logger.info(f"✅ Players created successfully\n")
 
