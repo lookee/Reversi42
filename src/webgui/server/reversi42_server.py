@@ -345,8 +345,9 @@ class GameSession:
                 )
 
                 # VERIFY player name
-                if self.ai_black is not None and hasattr(self.ai_black, "name"):
-                    actual_name = self.ai_black.name
+                if self.ai_black is not None:
+                    if hasattr(self.ai_black, "name"):
+                        actual_name = self.ai_black.name
                     logger.info(f"   Player.name: {actual_name!r}")
                     if actual_name != self.ai_black_name:
                         logger.error(f"   ❌ CRITICAL: Player name mismatch!")
@@ -475,10 +476,12 @@ class GameSession:
                     ai = self.ai_black
             
             if ai is None:
-                if self.ai_white is not None and hasattr(self.ai_white, "opening_book"):
-                    ai = self.ai_white
-                elif self.ai_black is not None and hasattr(self.ai_black, "opening_book"):
-                    ai = self.ai_black
+                if self.ai_white is not None:
+                    if hasattr(self.ai_white, "opening_book"):
+                        ai = self.ai_white
+                if ai is None and self.ai_black is not None:
+                    if hasattr(self.ai_black, "opening_book"):
+                        ai = self.ai_black
             
             return ai.opening_book if ai is not None else None
         except Exception:
@@ -1734,8 +1737,11 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
         if session is None:
             logger.error(f"Session {session_id} not found")
             return
+        
+        # Ensure data is not None
         if data is None:
             data = {}
+        
         # Ensure msg_type is a string
         msg_type_str = str(msg_type) if msg_type is not None else ""
         await process_message_by_type(websocket, session, msg_type_str, data)
