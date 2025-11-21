@@ -1735,7 +1735,8 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
         logger.info(f"Handling message type '{msg_type}' for session {session_id}")
 
         # Process message based on type
-        if session is None:
+        # Allow "init" messages to proceed even if session is None (they create the session)
+        if session is None and msg_type != "init":
             logger.error(f"Session {session_id} not found")
             return
         
@@ -1766,19 +1767,26 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
 
 
 async def process_message_by_type(
-    websocket: WebSocket, session: GameSession, msg_type: str, data: dict
+    websocket: WebSocket, session: Optional[GameSession], msg_type: str, data: dict
 ):
     """Process message based on type with individual error handling"""
     try:
         logger.info(f"Processing message type: {msg_type}")
         if msg_type == "human_move":
+            if session is None:
+                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                return
             await handle_human_move(websocket, session, data)
         elif msg_type == "ai_move_request":
+            if session is None:
+                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                return
             # Optional: side parameter for explicit requests
             side_param = data.get("side") if data else None
             await handle_ai_move_request(websocket, session, side_param)
         elif msg_type == "init":
             logger.info("Calling handle_init_message")
+            # init can handle None session (it creates a new one)
             await handle_init_message(websocket, session, data)
             logger.info("handle_init_message completed")
         elif msg_type == "set_players":
@@ -2235,7 +2243,7 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
         )
 
 
-async def handle_init_message(websocket: WebSocket, session: GameSession, data: dict):
+async def handle_init_message(websocket: WebSocket, session: Optional[GameSession], data: dict):
     """Handle init message - create new session"""
     try:
         # ALWAYS load default AI from game configuration
