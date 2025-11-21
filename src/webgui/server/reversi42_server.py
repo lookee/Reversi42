@@ -16,7 +16,7 @@ import tempfile
 import traceback
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 # Add src to path
 current_dir = os.path.dirname(os.path.abspath(__file__))  # src/webgui/server
@@ -860,6 +860,7 @@ class GameSession:
                 return None
 
             # VERIFY: Check that the AI instance has the correct name
+            # ai is guaranteed to be not None here (checked above)
             if hasattr(ai, "name"):
                 actual_ai_name = ai.name
                 logger.info(f"   AI instance name: {actual_ai_name!r}")
@@ -887,7 +888,8 @@ class GameSession:
                     logger.info(f"   ✅ AI instance name matches expected name")
 
             # VERIFY: Check engine config matches expected
-            if hasattr(ai, "bitboard_engine") and hasattr(ai.bitboard_engine, "config"):
+            # ai is guaranteed to be not None here (checked above)
+            if ai is not None and hasattr(ai, "bitboard_engine") and hasattr(ai.bitboard_engine, "config"):
                 cfg = ai.bitboard_engine.config
                 cfg_id = id(cfg)
                 logger.info(f"   Engine config:")
@@ -983,14 +985,14 @@ class GameSession:
                     )
 
             # CRITICAL: Check if opening book is shared
-            if hasattr(ai, "opening_book") and ai.opening_book:
+            if ai is not None and hasattr(ai, "opening_book") and ai.opening_book:
                 book_id = id(ai.opening_book)
                 logger.info(f"   Opening book ID: {book_id}")
 
                 # Check if opening book is shared with other AI
                 if (
                     side == "W"
-                    and self.ai_black
+                    and self.ai_black is not None
                     and hasattr(self.ai_black, "opening_book")
                     and self.ai_black.opening_book
                 ):
@@ -1058,7 +1060,7 @@ class GameSession:
 
 # Global session storage
 sessions: Dict[str, GameSession] = {}
-active_connections: Dict[str, WebSocket] = {}
+# active_connections already defined above (line 65)
 
 # FastAPI app
 app = FastAPI(
