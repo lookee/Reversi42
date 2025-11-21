@@ -16,7 +16,7 @@ import tempfile
 import traceback
 import uuid
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # Add src to path
 current_dir = os.path.dirname(os.path.abspath(__file__))  # src/webgui/server
@@ -583,7 +583,7 @@ class GameSession:
                 current_opening = None
 
             # Names reachable from here
-            names_at_position = []
+            names_at_position: List[str] = []
             try:
                 names_at_position = book.get_remaining_openings(history) or []
             except Exception:
@@ -790,14 +790,14 @@ class GameSession:
 
             # Make the move
             self.game.move(move)
-            return True, None
+            return True, ""
 
         except Exception as e:
             logger.error(f"Error making move {move_coord}: {e}")
             logger.error(traceback.format_exc())
             return False, str(e)
 
-    async def get_ai_move(self, side: str, websocket: WebSocket = None) -> Move:
+    async def get_ai_move(self, side: str, websocket: WebSocket = None) -> Optional[Move]:
         """Get AI move for side 'B' or 'W' - runs in separate thread to avoid blocking event loop"""
         try:
             move_list = self.game.get_move_list()
