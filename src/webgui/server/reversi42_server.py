@@ -1041,6 +1041,8 @@ class GameSession:
             # Run AI search in separate thread to avoid blocking event loop
             # This allows WebSocket messages to be sent in real-time
             # Use run_in_executor for Python 3.8 compatibility (asyncio.to_thread requires 3.9+)
+            if ai is None:
+                return None
             loop = asyncio.get_event_loop()
             ai_move = await loop.run_in_executor(None, ai.get_move, self.game, move_list, observer)
 
@@ -1050,7 +1052,7 @@ class GameSession:
             else:
                 logger.warning(f"⚠️  {side_emoji} {ai_name} returned no move")
 
-            return ai_move
+            return cast(Optional[Move], ai_move)
 
         except Exception as e:
             logger.error(f"❌ Error getting AI move for {side_emoji} {ai_name}: {e}")
@@ -1637,8 +1639,8 @@ async def get_stats():
 
 
 @app.get("/version")
-async def get_version():
-    """Get server version"""
+async def get_version_legacy():
+    """Get server version (legacy endpoint, duplicate of /api/version)"""
     return {
         "version": __version__,
         "name": "Reversi42",
