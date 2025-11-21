@@ -348,11 +348,11 @@ class GameSession:
                 if self.ai_black is not None:
                     if hasattr(self.ai_black, "name"):
                         actual_name = self.ai_black.name
-                    logger.info(f"   Player.name: {actual_name!r}")
-                    if actual_name != self.ai_black_name:
-                        logger.error(f"   ❌ CRITICAL: Player name mismatch!")
-                        logger.error(f"      Expected: {self.ai_black_name!r}")
-                        logger.error(f"      Got: {actual_name!r}")
+                        logger.info(f"   Player.name: {actual_name!r}")
+                        if actual_name != self.ai_black_name:
+                            logger.error(f"   ❌ CRITICAL: Player name mismatch!")
+                            logger.error(f"      Expected: {self.ai_black_name!r}")
+                            logger.error(f"      Got: {actual_name!r}")
 
                 # IMMEDIATE VERIFICATION for Black
                 if self.ai_black is not None:
