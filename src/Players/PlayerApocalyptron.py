@@ -14,6 +14,9 @@ Uses:
 This is the fully refactored version with SOLID architecture.
 """
 
+from typing import Any, Dict, List, Optional
+
+from Reversi.Game import Move
 from Players.Player import Player
 
 
