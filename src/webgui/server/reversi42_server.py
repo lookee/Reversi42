@@ -2101,12 +2101,12 @@ async def handle_ai_move_request(websocket: WebSocket, session: GameSession, sid
                 # Get AI analysis data
                 ai_eval = getattr(ai_move, "evaluation", None)
                 ai_obj = session.ai_white if side == "W" else session.ai_black
-                ai_depth = getattr(ai_obj, "last_depth", None)
+                ai_depth = getattr(ai_obj, "last_depth", None) if ai_obj is not None else None
 
                 # Get detailed statistics from engine
                 engine_stats = {}
                 try:
-                    if hasattr(ai_obj, "bitboard_engine"):
+                    if ai_obj is not None and hasattr(ai_obj, "bitboard_engine"):
                         stats = ai_obj.bitboard_engine.get_statistics()
                         if stats:
                             engine_stats["total_searches"] = stats.get("searches_performed", 0)
