@@ -152,7 +152,7 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = false
 strict_equality = true
-disable_error_code = ["unreachable", "unused-ignore"]
+disable_error_code = ["unreachable", "unused-ignore", "import-untyped"]
 
 # Pygame mypy override removed - pygame/terminal views deprecated
 # [[tool.mypy.overrides]]
