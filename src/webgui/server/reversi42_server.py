@@ -1556,7 +1556,7 @@ async def health_check():
         # Check if we can access game components
         from Players.PlayerFactory import PlayerFactory
 
-        available_players = PlayerFactory.get_available_players()
+        available_players = PlayerFactory.get_available_player_types()
 
         health_status = {
             "status": "healthy",

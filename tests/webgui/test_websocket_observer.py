@@ -106,7 +106,7 @@ class TestObserverNotifications:
             move=move, value=50, is_best=True, nodes=1000, pruning=200, elapsed_time=100.0
         )
 
-        assert observer.current_stats["best_move"] == move
+        assert observer.current_stats["best_move"] == "C4"
         assert observer.current_stats["best_value"] == 50
         assert observer.current_stats["nodes_searched"] == 1000
         assert observer.current_stats["nodes_pruned"] == 200
@@ -188,7 +188,7 @@ class TestObserverNotifications:
 
         observer.on_parallel_result(move=move, value=50, is_best=True, nodes=1000, pruning=200)
 
-        assert observer.current_stats["best_move"] == move
+        assert observer.current_stats["best_move"] == "C4"
         assert observer.current_stats["best_value"] == 50
 
     async def test_on_phase1_complete(self, observer_with_websocket):

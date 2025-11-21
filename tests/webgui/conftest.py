@@ -188,6 +188,10 @@ def webgui_server():
     python_exe = sys.executable
 
     # Start server process
+    # Set PYTHONPATH to include src directory so webgui module can be found
+    env = os.environ.copy()
+    env["PYTHONPATH"] = src_dir + os.pathsep + env.get("PYTHONPATH", "")
+    
     server_process = subprocess.Popen(
         [
             python_exe,
@@ -201,6 +205,7 @@ def webgui_server():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=project_root,
+        env=env,
     )
 
     # Wait for server to be ready (max 30 seconds)
