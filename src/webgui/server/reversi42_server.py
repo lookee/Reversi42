@@ -1001,15 +1001,15 @@ class GameSession:
                     if hasattr(self.ai_black, "opening_book") and self.ai_black.opening_book:
                         black_book_id = id(self.ai_black.opening_book)
                         if book_id == black_book_id:
-                        logger.error(
-                            f"   ❌ CRITICAL: White and Black AI share the same opening book!"
-                        )
-                        logger.error(f"      White book ID: {book_id}")
-                        logger.error(f"      Black book ID: {black_book_id}")
-                    else:
-                        logger.info(
-                            f"   ✅ Opening books are different (White@{book_id} != Black@{black_book_id})"
-                        )
+                            logger.error(
+                                f"   ❌ CRITICAL: White and Black AI share the same opening book!"
+                            )
+                            logger.error(f"      White book ID: {book_id}")
+                            logger.error(f"      Black book ID: {black_book_id}")
+                        else:
+                            logger.info(
+                                f"   ✅ Opening books are different (White@{book_id} != Black@{black_book_id})"
+                            )
                 elif (
                     side == "B"
                     and self.ai_white
