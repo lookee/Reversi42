@@ -15,6 +15,8 @@
 #    along with Reversi42.  If not, see <http://www.gnu.org/licenses/>.
 # ------------------------------------------------------------------------
 
+from typing import Any, Dict, List, Optional, Type, cast
+
 from Players.Player import Player
 from Players.PlayerApocalyptron import PlayerApocalyptron
 from Players.PlayerHuman import PlayerHuman
@@ -41,7 +43,11 @@ class PlayerFactory:
     ]
 
     # Build legacy registry
-    PLAYER_TYPES = {cls.PLAYER_METADATA["display_name"]: cls for cls in LEGACY_PLAYER_CLASSES}
+    PLAYER_TYPES: Dict[str, Type[Player]] = {
+        getattr(cls, "PLAYER_METADATA", {}).get("display_name", cls.__name__): cls
+        for cls in LEGACY_PLAYER_CLASSES
+        if hasattr(cls, "PLAYER_METADATA")
+    }
 
     # NEW: PlayerRegistry integration
     _registry = None
@@ -275,8 +281,9 @@ class PlayerFactory:
 
         # Legacy players
         for player_class in cls.LEGACY_PLAYER_CLASSES:
-            if player_class.PLAYER_METADATA.get("enabled", False):
-                available.append(player_class.PLAYER_METADATA["display_name"])
+            metadata = getattr(player_class, "PLAYER_METADATA", {})
+            if metadata.get("enabled", False):
+                available.append(metadata.get("display_name", player_class.__name__))
 
         # Config-based players from registry
         try:
@@ -322,7 +329,9 @@ class PlayerFactory:
             dict: Player metadata
         """
         if player_type in cls.PLAYER_TYPES:
-            return cls.PLAYER_TYPES[player_type].PLAYER_METADATA
+            player_class = cls.PLAYER_TYPES[player_type]
+            metadata = getattr(player_class, "PLAYER_METADATA", None)
+            return cast(Optional[Dict[str, Any]], metadata)
         return None
 
     @classmethod
@@ -333,9 +342,13 @@ class PlayerFactory:
         Returns:
             dict: Dictionary mapping player type names to their metadata
         """
+        # Use LEGACY_PLAYER_CLASSES instead of ALL_PLAYER_CLASSES (which doesn't exist)
         return {
-            player_class.PLAYER_METADATA["display_name"]: player_class.PLAYER_METADATA
-            for player_class in cls.ALL_PLAYER_CLASSES
+            getattr(player_class, "PLAYER_METADATA", {}).get("display_name", player_class.__name__): getattr(
+                player_class, "PLAYER_METADATA", {}
+            )
+            for player_class in cls.LEGACY_PLAYER_CLASSES
+            if hasattr(player_class, "PLAYER_METADATA")
         }
 
     @classmethod
