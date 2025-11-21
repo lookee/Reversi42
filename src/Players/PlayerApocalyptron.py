@@ -383,14 +383,19 @@ class PlayerApocalyptron(Player):
                 if move_list:
                     print(f"⚠️  Engine returned invalid move, using fallback: {move_list[0]}")
                     return move_list[0]
+            else:
+                # No moves available from bitboard engine
+                if move_list:
+                    return move_list[0]
         except Exception as e:
             print(f"❌ Apocalyptron error: {e}")
             # Fallback on exception: return first valid move if available
             if move_list:
                 print(f"⚠️  Exception fallback: using {move_list[0]}")
                 return move_list[0]
-            # No moves available - return None
-            return None
+        
+        # Final fallback: return None if no moves available
+        return None
 
     def _get_game_history(self, game):
         """Extract game move history"""
