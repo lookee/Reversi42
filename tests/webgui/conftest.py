@@ -197,7 +197,7 @@ def webgui_server():
         env["PYTHONPATH"] = src_dir_abs + os.pathsep + existing_pythonpath
     else:
         env["PYTHONPATH"] = src_dir_abs
-    
+
     server_process = subprocess.Popen(
         [
             python_exe,

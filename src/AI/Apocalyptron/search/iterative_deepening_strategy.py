@@ -50,7 +50,12 @@ class IterativeDeepeningStrategy(SearchStrategy):
         self.alphabeta = alphabeta
 
     def get_best_move(
-        self, game, depth: int, player_name: Optional[str] = None, opening_book=None, game_history: Optional[str] = None
+        self,
+        game,
+        depth: int,
+        player_name: Optional[str] = None,
+        opening_book=None,
+        game_history: Optional[str] = None,
     ):
         """
         Get best move using iterative deepening (1→depth).

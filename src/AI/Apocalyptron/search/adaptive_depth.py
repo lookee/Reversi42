@@ -66,7 +66,12 @@ class AdaptiveDepthStrategy(SearchStrategy):
             raise ValueError(f"depth_config must include: {required_phases}")
 
     def get_best_move(
-        self, game, depth: int, player_name: Optional[str] = None, opening_book=None, game_history: Optional[str] = None
+        self,
+        game,
+        depth: int,
+        player_name: Optional[str] = None,
+        opening_book=None,
+        game_history: Optional[str] = None,
     ):
         """
         Get best move using adaptive depth.

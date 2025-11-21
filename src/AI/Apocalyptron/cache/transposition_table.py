@@ -58,7 +58,9 @@ class TranspositionTable:
         self.misses = 0
         self.stores = 0
 
-    def store(self, zobrist_hash: int, depth: int, value: int, flag: str, best_move: Optional[Any] = None):
+    def store(
+        self, zobrist_hash: int, depth: int, value: int, flag: str, best_move: Optional[Any] = None
+    ):
         """
         Store position evaluation.
 
