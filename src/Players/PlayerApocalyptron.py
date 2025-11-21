@@ -389,7 +389,8 @@ class PlayerApocalyptron(Player):
             if move_list:
                 print(f"⚠️  Exception fallback: using {move_list[0]}")
                 return move_list[0]
-            raise  # Only raise if no moves available
+            # No moves available - return None
+            return None
 
     def _get_game_history(self, game):
         """Extract game move history"""
