@@ -1790,23 +1790,43 @@ async def process_message_by_type(
             await handle_init_message(websocket, session, data)
             logger.info("handle_init_message completed")
         elif msg_type == "set_players":
+            if session is None:
+                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                return
             await handle_set_players(websocket, session, data)
         elif msg_type == "reset_game":
+            if session is None:
+                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                return
             await handle_reset_game(websocket, session)
         elif msg_type == "get_state":
+            if session is None:
+                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                return
             await handle_get_state(websocket, session)
         elif msg_type == "undo":
+            if session is None:
+                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                return
             await handle_undo(websocket, session)
         elif msg_type == "redo":
+            if session is None:
+                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                return
             await handle_redo(websocket, session)
         elif msg_type == "load_history":
+            if session is None:
+                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                return
             await handle_load_history(websocket, session, data)
         else:
             await send_to_connection(
                 websocket, {"type": "error", "message": f"Unknown message type: {msg_type}"}
             )
     except Exception as e:
-        session.handle_error(e, f"process_message_by_type({msg_type})")
+        logger.error(f"Error processing message type {msg_type}: {e}")
+        if session is not None:
+            session.handle_error(e, f"process_message_by_type({msg_type})")
         raise
 
 
