@@ -37,10 +37,10 @@ class AbstractBoardView(ABC):
         self.height = height
 
         # Common state
-        self.cursorX = None
-        self.cursorY = None
-        self.last_move_x = None
-        self.last_move_y = None
+        self.cursorX: Optional[int] = None
+        self.cursorY: Optional[int] = None
+        self.last_move_x: Optional[int] = None
+        self.last_move_y: Optional[int] = None
 
         # Player information
         self.black_player_name = "Black"

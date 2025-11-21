@@ -47,6 +47,11 @@ class HeadlessBoardView(AbstractBoardView):
 
         # Minimal state tracking
         self.initialized = False
+        # Initialize cursor and move tracking variables with proper types
+        self.cursorX: Optional[int] = None
+        self.cursorY: Optional[int] = None
+        self.last_move_x: Optional[int] = None
+        self.last_move_y: Optional[int] = None
 
     def initialize(self):
         """Initialize (no-op for headless)"""
