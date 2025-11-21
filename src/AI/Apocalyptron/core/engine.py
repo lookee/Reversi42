@@ -50,7 +50,7 @@ class ApocalyptronEngine:
     - Parallel: ParallelSearch (multi-core at final depth)
     """
 
-    def __init__(self, config: ApocalyptronConfig = None, weights: EvaluationWeights = None):
+    def __init__(self, config: Optional[ApocalyptronConfig] = None, weights: Optional[EvaluationWeights] = None):
         """
         Initialize standalone Apocalyptron engine.
 

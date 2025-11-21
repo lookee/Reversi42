@@ -13,7 +13,7 @@ Architecture:
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import yaml
 
@@ -161,7 +161,8 @@ class ConfigLoader:
         Returns:
             Metadata dictionary
         """
-        return config.get("metadata", {})
+        metadata = config.get("metadata", {})
+        return cast(Dict[str, Any], metadata)
 
     def get_player_name(self, config: Dict[str, Any]) -> str:
         """
@@ -179,4 +180,4 @@ class ConfigLoader:
         metadata = self.get_metadata(config)
         if "name" not in metadata:
             raise KeyError("Player name not found in configuration metadata")
-        return metadata["name"]
+        return cast(str, metadata["name"])

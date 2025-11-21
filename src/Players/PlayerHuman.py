@@ -103,5 +103,3 @@ class PlayerHuman(Player):
             elif move:
                 print(f"Move {move} is not valid!")
                 # Continue loop to get another move
-
-        return None

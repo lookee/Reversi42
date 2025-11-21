@@ -89,7 +89,13 @@ class AlphaBetaSearchComplete(SearchAlgorithm):
 
     def search(self, context: SearchContext) -> SearchResult:
         """Search from context (not used - use get_best_move)"""
-        return self.get_best_move(context.game, context.depth)
+        best_move = self.get_best_move(context.game, context.depth)
+        return SearchResult(
+            best_move=best_move,
+            value=0,  # Value not tracked in get_best_move
+            nodes_searched=self.nodes,
+            time_elapsed=0.0,  # Time not tracked in get_best_move
+        )
 
     def get_best_move(self, game, depth: int, **kwargs):
         """

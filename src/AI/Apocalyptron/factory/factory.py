@@ -4,6 +4,8 @@ Factory for creating Apocalyptron engines.
 Provides convenient methods for creating pre-configured engines.
 """
 
+from typing import Optional
+
 from AI.Apocalyptron.core.config import ApocalyptronConfig
 from AI.Apocalyptron.core.engine import ApocalyptronEngine
 from AI.Apocalyptron.factory.builder import ApocalyptronConfigBuilder
@@ -18,7 +20,7 @@ class ApocalyptronFactory:
     """
 
     @staticmethod
-    def create_engine(config: ApocalyptronConfig = None) -> ApocalyptronEngine:
+    def create_engine(config: Optional[ApocalyptronConfig] = None) -> ApocalyptronEngine:
         """
         Create engine from configuration.
 

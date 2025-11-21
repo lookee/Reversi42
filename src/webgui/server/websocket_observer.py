@@ -7,7 +7,7 @@ Sends search progress updates to frontend during AI thinking.
 import asyncio
 import json
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from AI.Apocalyptron.observers.interfaces import SearchObserver
 
