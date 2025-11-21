@@ -49,14 +49,14 @@ class PVMoveOrderer(MoveOrderer):
         Returns:
             List of (score, move) tuples
         """
-        scored_moves = []
+        scored_moves: List[Tuple[float, Any]] = []
 
         for move in moves:
-            score = 0
+            score: float = 0.0
 
             # PV move gets maximum priority
             if self.pv_move and move == self.pv_move:
-                score = self.PV_MOVE_SCORE
+                score = float(self.PV_MOVE_SCORE)
 
             scored_moves.append((score, move))
 

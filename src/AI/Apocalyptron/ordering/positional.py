@@ -53,10 +53,10 @@ class PositionalOrderer(MoveOrderer):
         Returns:
             List of (score, move) tuples
         """
-        scored_moves = []
+        scored_moves: List[Tuple[float, Any]] = []
 
         for move in moves:
-            score = 0
+            score: float = 0.0
 
             # Get bit position
             if isinstance(move, str):
@@ -72,13 +72,13 @@ class PositionalOrderer(MoveOrderer):
 
             # 1. Corner: Maximum priority
             if bit_mask & self.CORNER_MASK:
-                score += self.weights.move_order_corner
+                score += float(self.weights.move_order_corner)
             # 2. Stable edge: High priority
             elif bit_mask & self.STABLE_EDGE_MASK:
-                score += self.weights.move_order_edge
+                score += float(self.weights.move_order_edge)
             # 3. Center control: Medium priority
             elif bit_mask & self.CENTER_MASK:
-                score += self.weights.move_order_center
+                score += float(self.weights.move_order_center)
 
             scored_moves.append((score, move))
 

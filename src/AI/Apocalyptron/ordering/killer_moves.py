@@ -65,17 +65,17 @@ class KillerMoveOrderer(MoveOrderer):
         Returns:
             List of (score, move) tuples
         """
-        scored_moves = []
+        scored_moves: List[Tuple[float, Any]] = []
 
         # Get killers for current depth
         killers = self.killer_moves.get(self.current_depth, [])
 
         for move in moves:
-            score = 0
+            score: float = 0.0
 
             # Check if this is a killer move
             if move in killers:
-                score = self.KILLER_MOVE_SCORE
+                score = float(self.KILLER_MOVE_SCORE)
 
             scored_moves.append((score, move))
 

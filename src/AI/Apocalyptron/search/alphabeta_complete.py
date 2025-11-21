@@ -14,7 +14,7 @@ Extracted and refactored from GrandmasterEngine.alphabeta (lines 299-495).
 """
 
 import time
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from AI.Apocalyptron.cache.transposition_table import TranspositionTable
 from AI.Apocalyptron.cache.zobrist_hash import ZobristHasher
@@ -181,7 +181,7 @@ class AlphaBetaSearchComplete(SearchAlgorithm):
             can_prune, cutoff_value = self.futility.can_prune_futile(
                 game, depth, alpha, beta, move_list
             )
-            if can_prune:
+            if can_prune and cutoff_value is not None:
                 return cutoff_value
 
         # NULL MOVE PRUNING
@@ -293,9 +293,9 @@ class AlphaBetaSearchComplete(SearchAlgorithm):
 
         return best_value
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> Dict[str, Any]:
         """Get search statistics"""
-        stats = {
+        stats: Dict[str, Any] = {
             "nodes": self.nodes,
             "pruning": self.pruning,
             "tt_hits": self.tt.hits,
