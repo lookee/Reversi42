@@ -366,16 +366,16 @@ class GameSession:
                             logger.info(f"      Parallel: {cfg.use_parallel}")
                             logger.info(f"      Aspiration: {cfg.use_aspiration_windows}")
 
-                    # Expected values for DIVZERO.EXE
-                    if self.ai_black_name == "DIVZERO.EXE":
-                        if cfg.depth != 12:
-                            logger.error(
-                                f"   ❌ CRITICAL: DIVZERO.EXE has wrong depth! Expected 12, got {cfg.depth}"
-                            )
-                        if cfg.search_strategy != "adaptive":
-                            logger.error(
-                                f"   ❌ CRITICAL: DIVZERO.EXE has wrong strategy! Expected adaptive, got {cfg.search_strategy}"
-                            )
+                            # Expected values for DIVZERO.EXE
+                            if self.ai_black_name == "DIVZERO.EXE":
+                                if cfg.depth != 12:
+                                    logger.error(
+                                        f"   ❌ CRITICAL: DIVZERO.EXE has wrong depth! Expected 12, got {cfg.depth}"
+                                    )
+                                if cfg.search_strategy != "adaptive":
+                                    logger.error(
+                                        f"   ❌ CRITICAL: DIVZERO.EXE has wrong strategy! Expected adaptive, got {cfg.search_strategy}"
+                                    )
                 logger.info(f"")
             else:
                 logger.info(f"   👤 Black is Human")
