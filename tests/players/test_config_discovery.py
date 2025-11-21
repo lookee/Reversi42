@@ -27,7 +27,9 @@ class TestPlayerDiscovery:
     def test_init_custom_config_dir(self):
         """Test PlayerDiscovery with custom config directory."""
         discovery = PlayerDiscovery(config_dir="custom/path")
-        assert "custom/path" in str(discovery.config_dir)
+        # Normalize path for cross-platform compatibility (Windows uses backslashes)
+        config_dir_str = str(discovery.config_dir).replace("\\", "/")
+        assert "custom/path" in config_dir_str
 
     def test_init_custom_pattern(self):
         """Test PlayerDiscovery with custom pattern."""

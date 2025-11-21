@@ -189,8 +189,14 @@ def webgui_server():
 
     # Start server process
     # Set PYTHONPATH to include src directory so webgui module can be found
+    # Use absolute path and proper path separator for cross-platform compatibility
     env = os.environ.copy()
-    env["PYTHONPATH"] = src_dir + os.pathsep + env.get("PYTHONPATH", "")
+    src_dir_abs = os.path.abspath(src_dir)
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    if existing_pythonpath:
+        env["PYTHONPATH"] = src_dir_abs + os.pathsep + existing_pythonpath
+    else:
+        env["PYTHONPATH"] = src_dir_abs
     
     server_process = subprocess.Popen(
         [

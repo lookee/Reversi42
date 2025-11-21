@@ -235,7 +235,7 @@ def test_not_used_by_existing_players():
     player_files = glob.glob("src/Players/**/*.py", recursive=True)
 
     for player_file in player_files:
-        with open(player_file, "r") as f:
+        with open(player_file, "r", encoding="utf-8") as f:
             content = f.read()
 
             # EnhancedOpeningBook NON deve apparire
