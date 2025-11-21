@@ -2335,9 +2335,9 @@ async def handle_set_players(websocket: WebSocket, session: GameSession, data: d
             else:
                 logger.info(f"   ✅ Black player '{black_normalized}' found in registry")
 
-        # Set normalized names
-        session.ai_white_name = white_normalized
-        session.ai_black_name = black_normalized
+        # Set normalized names (can be None for human players)
+        session.ai_white_name = white_normalized if white_normalized is not None else None
+        session.ai_black_name = black_normalized if black_normalized is not None else None
 
         logger.info(f"")
         logger.info(f"   ✅ FINAL Configuration:")
