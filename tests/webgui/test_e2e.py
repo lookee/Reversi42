@@ -138,6 +138,7 @@ async def page(browser_context):
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestBasicPageLoad:
     """Test basic page loading and initialization"""
 
@@ -168,6 +169,7 @@ class TestBasicPageLoad:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestUIElements:
     """Test UI elements and their visibility"""
 
@@ -219,6 +221,7 @@ class TestUIElements:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestGamePlay:
     """Test actual gameplay scenarios"""
 
@@ -259,6 +262,7 @@ class TestGamePlay:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestWebSocketCommunication:
     """Test WebSocket communication"""
 
@@ -298,6 +302,7 @@ class TestWebSocketCommunication:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestJSONEditor:
     """Test JSON editor functionality"""
 
@@ -355,6 +360,7 @@ class TestJSONEditor:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestHistoryNavigation:
     """Test history navigation features"""
 
@@ -388,6 +394,7 @@ class TestHistoryNavigation:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestResponsiveDesign:
     """Test responsive design and mobile compatibility"""
 
@@ -414,6 +421,7 @@ class TestResponsiveDesign:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestPerformance:
     """Test performance characteristics"""
 
@@ -439,6 +447,7 @@ class TestPerformance:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestErrorHandling:
     """Test error handling and edge cases"""
 
@@ -483,6 +492,7 @@ class TestErrorHandling:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestAccessibility:
     """Test accessibility features"""
 
@@ -510,6 +520,7 @@ class TestAccessibility:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestBrowserCompatibility:
     """Test cross-browser compatibility"""
 
@@ -557,6 +568,7 @@ class TestBrowserCompatibility:
 
 
 @pytest.mark.asyncio
+@pytest.mark.e2e
 class TestCompleteGameFlow:
     """Test complete game scenarios from start to finish"""
 

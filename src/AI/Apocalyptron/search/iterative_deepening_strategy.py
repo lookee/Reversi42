@@ -5,7 +5,7 @@ Wrapper around IterativeDeepeningSearch to implement SearchStrategy interface.
 Provides backward compatibility while enabling strategy pattern.
 """
 
-from typing import List, Optional, cast
+from typing import List, Optional
 
 from AI.Apocalyptron.observers.interfaces import SearchObserver
 from AI.Apocalyptron.search.alphabeta_complete import AlphaBetaSearchComplete

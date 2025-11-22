@@ -14,7 +14,7 @@ Architecture:
 import copy
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Optional
 
 from .exceptions import PlayerCreationError
 
@@ -31,7 +31,7 @@ class PlayerFactory:
 
     def __init__(self):
         """Initialize the player factory."""
-        self._creation_stats: Dict[str, Any] = {"total_created": 0, "failed": 0, "by_category": {}}
+        self._creation_stats = {"total_created": 0, "failed": 0, "by_category": {}}
 
     def create_player(self, config: Dict[str, Any], config_path: Optional[Path] = None) -> Any:
         """
@@ -317,7 +317,7 @@ class PlayerFactory:
                 self.total_moves = 0
 
             def get_name(self) -> str:
-                return cast(str, self.name)
+                return self.name
 
             def get_move(self, game, moves, control=None):
                 """Get next move using configuration-based strategy."""

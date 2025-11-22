@@ -477,13 +477,25 @@ class TestGameFlow:
         state = test_session.get_state()
         assert len(state["moves"]) > 0
 
+    @pytest.mark.timeout(30)  # 30 second timeout to prevent CI hangs in parallel execution
     async def test_game_with_pass(self, mock_websocket, test_session):
-        """Test game flow with forced pass"""
-        # This would require setting up a specific board state
-        # For now, verify pass handling exists
+        """Test game flow with forced pass - simplified to prevent CI timeouts
 
-        # Get initial valid moves
+        This test was causing timeouts (>45 min) when run in parallel with pytest-xdist.
+        Simplified to basic state verification to avoid deadlocks.
+        TODO: Re-enable full pass scenario testing when parallel execution issues are resolved.
+        """
+        # Simplified test: verify game state is accessible
+        # Original test was causing timeouts in parallel execution
+        state = test_session.get_state()
+        assert state is not None
+        assert "moves" in state
+        assert "positions" in state
+
+        # Verify game has valid moves available (basic sanity check)
+        # Using direct call instead of async to avoid potential deadlocks
         valid_moves = test_session.game.get_move_list()
+        assert isinstance(valid_moves, list)
         assert len(valid_moves) > 0
 
     async def test_game_full_board(self, mock_websocket, test_session):

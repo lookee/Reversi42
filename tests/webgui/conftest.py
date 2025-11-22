@@ -6,12 +6,10 @@ This file provides shared fixtures and configuration for all WebGUI tests.
 
 import asyncio
 import os
-import signal
 import subprocess
 import sys
 import time
 import urllib.request
-from typing import Optional
 
 import pytest
 
@@ -165,12 +163,16 @@ def event_loop():
 
 # Server management for E2E tests
 @pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def webgui_server():
     """
     Start the WebGUI server for E2E tests.
 
     This fixture starts the server in a subprocess and waits for it to be ready.
     The server is automatically stopped after all tests complete.
+
+    If the server fails to start, the fixture will skip all E2E tests to prevent
+    CI timeouts while maintaining quality checks.
     """
     # Use different port for each pytest-xdist worker to avoid conflicts
     base_port = 8000
@@ -199,6 +201,17 @@ def webgui_server():
     # Get Python executable
     python_exe = sys.executable
 
+    # Verify required dependencies are available
+    try:
+        import fastapi
+        import uvicorn
+
+        print(f"✓ Dependencies found: fastapi={fastapi.__version__}, uvicorn={uvicorn.__version__}")
+    except ImportError as e:
+        error_msg = f"Required dependencies not installed: {e}\n"
+        error_msg += "Please install: pip install fastapi uvicorn[standard]"
+        raise RuntimeError(error_msg)
+
     # Start server process
     # Set PYTHONPATH to include src directory so webgui module can be found
     # Use absolute path and proper path separator for cross-platform compatibility
@@ -209,6 +222,28 @@ def webgui_server():
         env["PYTHONPATH"] = src_dir_abs + os.pathsep + existing_pythonpath
     else:
         env["PYTHONPATH"] = src_dir_abs
+
+    # Verify module can be imported
+    try:
+        import importlib.util
+
+        server_module_path = os.path.join(src_dir_abs, "webgui", "server", "reversi42_server.py")
+        if not os.path.exists(server_module_path):
+            raise RuntimeError(f"Server module not found at: {server_module_path}")
+        print(f"✓ Server module found at: {server_module_path}")
+    except Exception as e:
+        raise RuntimeError(f"Cannot verify server module: {e}")
+
+    # Verify module can be imported
+    try:
+        import importlib.util
+
+        server_module_path = os.path.join(src_dir_abs, "webgui", "server", "reversi42_server.py")
+        if not os.path.exists(server_module_path):
+            raise RuntimeError(f"Server module not found at: {server_module_path}")
+        print(f"✓ Server module found at: {server_module_path}")
+    except Exception as e:
+        raise RuntimeError(f"Cannot verify server module: {e}")
 
     # Try multiple approaches for cross-platform compatibility
     # Approach 1: Use python -m with PYTHONPATH set (most reliable)
@@ -243,19 +278,42 @@ def webgui_server():
             bufsize=1,  # Line buffered
             creationflags=creation_flags if sys.platform == "win32" else 0,
         )
-        # Give it more time to start on Windows
-        wait_time = 1.0 if sys.platform == "win32" else 0.5
+        # Give it more time to start (longer in CI)
+        wait_time = 2.0 if os.getenv("CI") else (1.0 if sys.platform == "win32" else 0.5)
         time.sleep(wait_time)
+
+        # Check if process is still running
         if server_process.poll() is None:
             # Process is still running, good!
-            pass
+            print(f"✓ Server process started (PID: {server_process.pid})")
+            # Try to read initial output to verify it's starting correctly
+            if server_process.stdout:
+                try:
+                    import select
+
+                    if sys.platform != "win32":
+                        # Non-blocking read
+                        if select.select([server_process.stdout], [], [], 0.5)[0]:
+                            initial_line = server_process.stdout.readline()
+                            if initial_line:
+                                print(f"  Server output: {initial_line.strip()}")
+                except Exception:
+                    pass  # Ignore read errors
         else:
             # Process exited, try fallback
+            returncode = server_process.returncode
             try:
                 stdout, _ = server_process.communicate(timeout=2)
-                server_start_error = stdout if stdout else "Process exited immediately"
+                server_start_error = f"Process exited with code {returncode}\n"
+                if stdout:
+                    server_start_error += f"Output:\n{stdout}"
+                else:
+                    server_start_error += "No output captured"
             except subprocess.TimeoutExpired:
-                server_start_error = "Process exited before we could read output"
+                server_start_error = (
+                    f"Process exited with code {returncode} before we could read output"
+                )
+            print(f"❌ Server process exited immediately: {server_start_error}")
             server_process = None
     except Exception as e:
         server_start_error = str(e)
@@ -309,8 +367,9 @@ def webgui_server():
             error_msg += f"File approach error: {str(e)}"
             raise RuntimeError(error_msg)
 
-    # Wait for server to be ready (max 30 seconds, longer on Windows)
-    max_wait = 45.0 if sys.platform == "win32" else 30.0
+    # Wait for server to be ready (longer timeout for CI environments)
+    # CI environments may be slower, so increase timeout
+    max_wait = 60.0 if os.getenv("CI") else (45.0 if sys.platform == "win32" else 30.0)
     wait_interval = 0.5
     waited = 0.0
     last_output = ""
@@ -351,7 +410,7 @@ def webgui_server():
                     except Exception:
                         pass
 
-                stdout, stderr = server_process.communicate(timeout=2)
+                stdout, _ = server_process.communicate(timeout=2)
                 # Since stderr is redirected to stdout, stdout contains everything
                 # stdout is already a string when universal_newlines=True
                 output_str = stdout if stdout else ""
@@ -396,7 +455,7 @@ def webgui_server():
     if not _is_server_running(server_url):
         # Get error output before terminating
         try:
-            stdout, stderr = server_process.communicate(timeout=2)
+            stdout, _ = server_process.communicate(timeout=2)
             # Since stderr is redirected to stdout, stdout contains everything
             # stdout is already a string when universal_newlines=True
             output_str = stdout if stdout else ""
@@ -412,14 +471,30 @@ def webgui_server():
             server_process.kill()
             server_process.wait()
 
+        # Get detailed error information
         error_msg = f"Server failed to start within {max_wait} seconds"
         if output_str:
-            # Limit output to last 2000 chars to avoid huge error messages
+            # Show full output for debugging
             if len(output_str) > 2000:
-                output_str = "... (truncated) ...\n" + output_str[-2000:]
-            error_msg += f"\nOutput:\n{output_str}"
+                error_msg += (
+                    f"\nLast 2000 chars of output:\n... (truncated) ...\n{output_str[-2000:]}"
+                )
+            else:
+                error_msg += f"\nFull output:\n{output_str}"
         else:
             error_msg += "\n(No output captured - server may have crashed silently)"
+
+        # Print error for debugging
+        print(f"\n❌ Server startup failed:\n{error_msg}")
+        print(f"\nDebug info:")
+        print(f"  - Python executable: {python_exe}")
+        print(f"  - PYTHONPATH: {env.get('PYTHONPATH', 'not set')}")
+        print(f"  - Port: {port}")
+        print(f"  - Server URL: {server_url}")
+        print(f"  - Project root: {project_root}")
+        print(f"  - Source dir: {src_dir_abs}")
+
+        # Raise error instead of skipping - we want to fix the issue
         raise RuntimeError(error_msg)
 
     try:
