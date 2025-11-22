@@ -199,7 +199,17 @@ def webgui_server():
         env["PYTHONPATH"] = src_dir_abs
 
     # Use direct path to the server file instead of module path
+    # Normalize path for cross-platform compatibility
     server_file = os.path.join(src_dir_abs, "webgui", "server", "reversi42_server.py")
+    server_file = os.path.normpath(server_file)
+    
+    # Verify file exists before starting
+    if not os.path.exists(server_file):
+        raise RuntimeError(
+            f"Server file not found: {server_file}\n"
+            f"src_dir_abs: {src_dir_abs}\n"
+            f"project_root: {project_root}"
+        )
     
     server_process = subprocess.Popen(
         [
