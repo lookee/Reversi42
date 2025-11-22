@@ -37,6 +37,21 @@ sys.path.insert(0, src_dir)
 TIMEOUT = 30000  # 30 seconds
 
 
+async def close_initial_setup_screen(page: Page):
+    """Helper function to close the initial setup screen if present"""
+    initial_screen = await page.query_selector("#initialSetupScreen")
+    if initial_screen:
+        is_hidden = await initial_screen.evaluate("el => el.classList.contains('hidden')")
+        if not is_hidden:
+            # Click start button to close the initial setup screen
+            start_btn = await page.query_selector("#initialStartGameBtn")
+            if start_btn:
+                await start_btn.click()
+                await page.wait_for_timeout(1000)  # Wait for screen to close and game to start
+                # Wait for board to be ready
+                await page.wait_for_selector("#board", timeout=TIMEOUT)
+
+
 @pytest.fixture
 async def browser_context():
     """Create browser context"""
@@ -63,6 +78,7 @@ class TestBasicPageLoad:
     async def test_page_loads(self, page: Page, webgui_server):
         """Test that the page loads successfully"""
         response = await page.goto(webgui_server, timeout=TIMEOUT)
+        assert response is not None
         assert response.status == 200
 
     async def test_page_title(self, page: Page, webgui_server):
@@ -100,6 +116,7 @@ class TestUIElements:
     async def test_turn_indicator_visible(self, page: Page, webgui_server):
         """Test turn indicator is visible"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         turn_text = await page.query_selector("#turnText")
         turn_dot = await page.query_selector("#turnDot")
         assert turn_text is not None
@@ -131,6 +148,7 @@ class TestGamePlay:
     async def test_initial_board_state(self, page: Page, webgui_server):
         """Test initial board has correct setup"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         await page.wait_for_selector(".disc", timeout=TIMEOUT)
         # Should have 4 initial discs
         discs = await page.query_selector_all(".disc")
@@ -139,6 +157,7 @@ class TestGamePlay:
     async def test_valid_moves_highlighted(self, page: Page, webgui_server):
         """Test valid moves are highlighted"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         await page.wait_for_selector(".valid", timeout=TIMEOUT)
         # Should have valid move indicators
         valid_moves = await page.query_selector_all(".valid")
@@ -147,6 +166,7 @@ class TestGamePlay:
     async def test_click_valid_move(self, page: Page, webgui_server):
         """Test clicking a valid move"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         await page.wait_for_selector(".valid", timeout=TIMEOUT)
         # Get initial disc count
         initial_discs = await page.query_selector_all(".disc")
@@ -185,6 +205,7 @@ class TestWebSocketCommunication:
     async def test_board_updates_received(self, page: Page, webgui_server):
         """Test board updates are received and processed"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         await page.wait_for_selector(".disc", timeout=TIMEOUT)
         # Board should render
         discs = await page.query_selector_all(".disc")
@@ -198,27 +219,15 @@ class TestJSONEditor:
     async def test_json_editor_toggle(self, page: Page, webgui_server):
         """Test JSON editor can be opened"""
         await page.goto(webgui_server, timeout=TIMEOUT)
-        # Wait for initial setup screen to be handled (either closed or start button clicked)
-        # Check if initial setup screen exists and close it if needed
-        initial_screen = await page.query_selector("#initialSetupScreen")
-        if initial_screen:
-            # Check if it's visible
-            is_hidden = await initial_screen.evaluate("el => el.classList.contains('hidden')")
-            if not is_hidden:
-                # Click start button to close the initial setup screen
-                start_btn = await page.query_selector("#initialStartGameBtn")
-                if start_btn:
-                    await start_btn.click()
-                    await page.wait_for_timeout(500)
-        
+        await close_initial_setup_screen(page)
+
         # Wait for templates to load (dev-tools-panel.html)
         await page.wait_for_timeout(1000)
-        
+
         # Find and click JSON editor toggle
         toggle_btn = await page.query_selector("#toggleJsonEditor")
         if toggle_btn:
-            # Use force=True to click even if element is covered
-            await toggle_btn.click(force=True)
+            await toggle_btn.click()
             await page.wait_for_timeout(500)
             # Editor should be visible
             editor_wrapper = await page.query_selector("#jsonEditorWrapper")
@@ -229,25 +238,16 @@ class TestJSONEditor:
     async def test_json_editor_contains_data(self, page: Page, webgui_server):
         """Test JSON editor shows current game data"""
         await page.goto(webgui_server, timeout=TIMEOUT)
-        # Wait for initial setup screen to be handled
-        initial_screen = await page.query_selector("#initialSetupScreen")
-        if initial_screen:
-            is_hidden = await initial_screen.evaluate("el => el.classList.contains('hidden')")
-            if not is_hidden:
-                start_btn = await page.query_selector("#initialStartGameBtn")
-                if start_btn:
-                    await start_btn.click()
-                    await page.wait_for_timeout(500)
-        
+        await close_initial_setup_screen(page)
+
         # Wait for game to initialize
-        await page.wait_for_selector("#board", timeout=TIMEOUT)
         await page.wait_for_timeout(500)
-        
+
         # Get game data from the page state (via WebSocket or DOM)
         # Since reversi-data script tag doesn't exist, verify the board exists instead
         board = await page.query_selector("#board")
         assert board is not None
-        
+
         # Verify game state is accessible via JavaScript
         game_state = await page.evaluate(
             """
@@ -323,6 +323,7 @@ class TestPerformance:
     async def test_render_performance(self, page: Page, webgui_server):
         """Test board renders quickly"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         start_time = time.time()
         await page.wait_for_selector(".disc", timeout=TIMEOUT)
         render_time = time.time() - start_time
@@ -403,49 +404,45 @@ class TestBrowserCompatibility:
 
     async def test_firefox_compatibility(self, webgui_server):
         """Test page works in Firefox"""
-        async with async_playwright() as p:
-            browser = await p.firefox.launch(headless=True)
-            context = await browser.new_context()
-            page = await context.new_page()
-            response = await page.goto(webgui_server, timeout=TIMEOUT)
-            assert response.status == 200
-            # Handle initial setup screen if present
-            initial_screen = await page.query_selector("#initialSetupScreen")
-            if initial_screen:
-                is_hidden = await initial_screen.evaluate("el => el.classList.contains('hidden')")
-                if not is_hidden:
-                    start_btn = await page.query_selector("#initialStartGameBtn")
-                    if start_btn:
-                        await start_btn.click()
-                        await page.wait_for_timeout(500)
-            # Wait for board to be visible
-            await page.wait_for_selector("#board", timeout=TIMEOUT)
-            board = await page.query_selector("#board")
-            assert board is not None
-            await browser.close()
+        try:
+            async with async_playwright() as p:
+                browser = await p.firefox.launch(headless=True)
+                context = await browser.new_context()
+                page = await context.new_page()
+                response = await page.goto(webgui_server, timeout=TIMEOUT)
+                assert response is not None
+                assert response.status == 200
+                await close_initial_setup_screen(page)
+                # Wait for board to be visible
+                board = await page.query_selector("#board")
+                assert board is not None
+                await browser.close()
+        except Exception as e:
+            # Skip if Firefox is not installed
+            if "Executable doesn't exist" in str(e) or "BrowserType.launch" in str(e):
+                pytest.skip(f"Firefox browser not available: {e}")
+            raise
 
     async def test_webkit_compatibility(self, webgui_server):
         """Test page works in WebKit (Safari)"""
-        async with async_playwright() as p:
-            browser = await p.webkit.launch(headless=True)
-            context = await browser.new_context()
-            page = await context.new_page()
-            response = await page.goto(webgui_server, timeout=TIMEOUT)
-            assert response.status == 200
-            # Handle initial setup screen if present
-            initial_screen = await page.query_selector("#initialSetupScreen")
-            if initial_screen:
-                is_hidden = await initial_screen.evaluate("el => el.classList.contains('hidden')")
-                if not is_hidden:
-                    start_btn = await page.query_selector("#initialStartGameBtn")
-                    if start_btn:
-                        await start_btn.click()
-                        await page.wait_for_timeout(500)
-            # Wait for board to be visible
-            await page.wait_for_selector("#board", timeout=TIMEOUT)
-            board = await page.query_selector("#board")
-            assert board is not None
-            await browser.close()
+        try:
+            async with async_playwright() as p:
+                browser = await p.webkit.launch(headless=True)
+                context = await browser.new_context()
+                page = await context.new_page()
+                response = await page.goto(webgui_server, timeout=TIMEOUT)
+                assert response is not None
+                assert response.status == 200
+                await close_initial_setup_screen(page)
+                # Wait for board to be visible
+                board = await page.query_selector("#board")
+                assert board is not None
+                await browser.close()
+        except Exception as e:
+            # Skip if WebKit is not installed
+            if "Executable doesn't exist" in str(e) or "BrowserType.launch" in str(e):
+                pytest.skip(f"WebKit browser not available: {e}")
+            raise
 
 
 @pytest.mark.asyncio
@@ -455,6 +452,7 @@ class TestCompleteGameFlow:
     async def test_play_several_moves(self, page: Page, webgui_server):
         """Test playing multiple moves in sequence"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         await page.wait_for_selector(".valid", timeout=TIMEOUT)
         # Play 3 moves
         for i in range(3):
@@ -469,6 +467,7 @@ class TestCompleteGameFlow:
     async def test_game_state_persistence(self, page: Page, webgui_server):
         """Test game state is maintained"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         await page.wait_for_selector(".disc", timeout=TIMEOUT)
         # Get initial state
         initial_count = len(await page.query_selector_all(".disc"))
