@@ -203,7 +203,7 @@ def webgui_server():
     # This works better on Windows where direct file execution can have issues
     server_process = None
     server_start_error = None
-    
+
     # First try: python -m webgui.server.reversi42_server
     try:
         server_process = subprocess.Popen(
@@ -239,12 +239,12 @@ def webgui_server():
     except Exception as e:
         server_start_error = str(e)
         server_process = None
-    
+
     # Fallback: Use direct file path if module approach failed
     if server_process is None:
         server_file = os.path.join(src_dir_abs, "webgui", "server", "reversi42_server.py")
         server_file = os.path.normpath(server_file)
-        
+
         # Verify file exists before starting
         if not os.path.exists(server_file):
             error_msg = f"Server file not found: {server_file}\n"
@@ -253,7 +253,7 @@ def webgui_server():
             if server_start_error:
                 error_msg += f"Previous attempt error: {server_start_error}"
             raise RuntimeError(error_msg)
-        
+
         try:
             server_process = subprocess.Popen(
                 [
@@ -291,11 +291,17 @@ def webgui_server():
             try:
                 stdout, stderr = server_process.communicate(timeout=2)
                 # Since stderr is redirected to stdout, stdout contains everything
-                output_str = stdout if isinstance(stdout, str) else (stdout.decode(errors='replace') if stdout else "")
+                output_str = (
+                    stdout
+                    if isinstance(stdout, str)
+                    else (stdout.decode(errors="replace") if stdout else "")
+                )
             except subprocess.TimeoutExpired:
                 output_str = ""
-            
-            error_msg = f"Server process exited unexpectedly (returncode: {server_process.returncode})"
+
+            error_msg = (
+                f"Server process exited unexpectedly (returncode: {server_process.returncode})"
+            )
             if output_str:
                 # Limit output to last 2000 chars to avoid huge error messages
                 if len(output_str) > 2000:
@@ -312,17 +318,21 @@ def webgui_server():
         try:
             stdout, stderr = server_process.communicate(timeout=2)
             # Since stderr is redirected to stdout, stdout contains everything
-            output_str = stdout if isinstance(stdout, str) else (stdout.decode(errors='replace') if stdout else "")
+            output_str = (
+                stdout
+                if isinstance(stdout, str)
+                else (stdout.decode(errors="replace") if stdout else "")
+            )
         except subprocess.TimeoutExpired:
             output_str = ""
-        
+
         server_process.terminate()
         try:
             server_process.wait(timeout=5)
         except subprocess.TimeoutExpired:
             server_process.kill()
             server_process.wait()
-        
+
         error_msg = f"Server failed to start within {max_wait} seconds"
         if output_str:
             # Limit output to last 2000 chars to avoid huge error messages
