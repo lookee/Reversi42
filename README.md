@@ -9,7 +9,10 @@
     <img src="https://img.shields.io/pypi/v/reversi42.svg?logo=pypi&logoColor=white" alt="PyPI Version">
   </a>
   <a href="https://www.python.org/downloads/">
-    <img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg?logo=python&logoColor=white" alt="Python 3.9 | 3.10 | 3.11 | 3.12">
+    <img src="https://img.shields.io/badge/python-%3E%3D3.9-blue.svg?logo=python&logoColor=white" alt="Python >= 3.9">
+  </a>
+  <a href="https://www.python.org/downloads/">
+    <img src="https://img.shields.io/badge/tested-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-green.svg?logo=python&logoColor=white" alt="Tested: Python 3.9, 3.10, 3.11, 3.12">
   </a>
   <a href="https://pypi.org/project/reversi42/">
     <img src="https://img.shields.io/pypi/dm/reversi42.svg?logo=pypi&logoColor=white" alt="PyPI Downloads">
