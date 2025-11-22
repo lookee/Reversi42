@@ -163,7 +163,6 @@ def event_loop():
 
 # Server management for E2E tests
 @pytest.fixture(scope="session")
-@pytest.fixture(scope="session")
 def webgui_server():
     """
     Start the WebGUI server for E2E tests.
