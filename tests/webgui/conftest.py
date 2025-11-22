@@ -226,9 +226,22 @@ def webgui_server():
             print(f"✓ Server is ready at {server_url}")
             break
         if server_process.poll() is not None:
-            # Process exited unexpectedly
-            stdout, stderr = server_process.communicate()
-            error_msg = f"Server process exited unexpectedly:\nSTDOUT: {stdout.decode()}\nSTDERR: {stderr.decode()}"
+            # Process exited unexpectedly - get error output immediately
+            try:
+                stdout, stderr = server_process.communicate(timeout=2)
+                stdout_str = stdout.decode(errors='replace') if stdout else ""
+                stderr_str = stderr.decode(errors='replace') if stderr else ""
+            except subprocess.TimeoutExpired:
+                stdout_str = ""
+                stderr_str = ""
+            
+            error_msg = f"Server process exited unexpectedly (returncode: {server_process.returncode})"
+            if stdout_str:
+                error_msg += f"\nSTDOUT:\n{stdout_str}"
+            if stderr_str:
+                error_msg += f"\nSTDERR:\n{stderr_str}"
+            if not stdout_str and not stderr_str:
+                error_msg += "\n(No output captured)"
             raise RuntimeError(error_msg)
         time.sleep(wait_interval)
         waited += wait_interval
@@ -237,8 +250,8 @@ def webgui_server():
         # Get error output before terminating
         try:
             stdout, stderr = server_process.communicate(timeout=2)
-            stdout_str = stdout.decode() if stdout else ""
-            stderr_str = stderr.decode() if stderr else ""
+            stdout_str = stdout.decode(errors='replace') if stdout else ""
+            stderr_str = stderr.decode(errors='replace') if stderr else ""
         except subprocess.TimeoutExpired:
             stdout_str = ""
             stderr_str = ""
@@ -251,8 +264,12 @@ def webgui_server():
             server_process.wait()
         
         error_msg = f"Server failed to start within {max_wait} seconds"
-        if stdout_str or stderr_str:
-            error_msg += f"\nSTDOUT:\n{stdout_str}\nSTDERR:\n{stderr_str}"
+        if stdout_str:
+            error_msg += f"\nSTDOUT:\n{stdout_str}"
+        if stderr_str:
+            error_msg += f"\nSTDERR:\n{stderr_str}"
+        if not stdout_str and not stderr_str:
+            error_msg += "\n(No output captured - server may have crashed silently)"
         raise RuntimeError(error_msg)
 
     try:
