@@ -808,9 +808,7 @@ def get_default_opening_book(
     for i, stat in enumerate(file_stats, 1):
         advantages_val = stat["advantages"]
         advantages = int(advantages_val) if isinstance(advantages_val, (int, float)) else 0
-        advantage_info = (
-            f", {advantages} with evaluations" if advantages > 0 else ""
-        )
+        advantage_info = f", {advantages} with evaluations" if advantages > 0 else ""
         print(f"  {i}. {stat['filename']:<35} {stat['openings']:>4} openings{advantage_info}")
 
     print(f"\n{'─'*80}")

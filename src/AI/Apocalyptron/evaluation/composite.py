@@ -87,9 +87,7 @@ class CompositeEvaluator(PositionEvaluator):
             }
 
         breakdown["total"] = float(
-            sum(
-                e["weighted_score"] for e in breakdown.values() if isinstance(e, dict)
-            )
+            sum(e["weighted_score"] for e in breakdown.values() if isinstance(e, dict))
         )
 
         return breakdown

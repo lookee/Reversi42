@@ -16,7 +16,7 @@ import tempfile
 import traceback
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
 # Add src to path
 current_dir = os.path.dirname(os.path.abspath(__file__))  # src/webgui/server
@@ -30,7 +30,6 @@ import argparse
 import asyncio
 import json
 from dataclasses import asdict, dataclass
-from typing import Dict, Optional, Set
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -474,7 +473,7 @@ class GameSession:
             elif current_turn == "B" and self.ai_black is not None:
                 if hasattr(self.ai_black, "opening_book"):
                     ai = self.ai_black
-            
+
             if ai is None:
                 if self.ai_white is not None:
                     if hasattr(self.ai_white, "opening_book"):
@@ -482,7 +481,7 @@ class GameSession:
                 if ai is None and self.ai_black is not None:
                     if hasattr(self.ai_black, "opening_book"):
                         ai = self.ai_black
-            
+
             return ai.opening_book if ai is not None else None
         except Exception:
             return None
@@ -806,7 +805,7 @@ class GameSession:
             logger.error(traceback.format_exc())
             return False, str(e)
 
-    async def get_ai_move(self, side: str, websocket: WebSocket = None) -> Optional[Move]:
+    async def get_ai_move(self, side: str, websocket: Optional[WebSocket] = None) -> Optional[Move]:
         """Get AI move for side 'B' or 'W' - runs in separate thread to avoid blocking event loop"""
         try:
             move_list = self.game.get_move_list()
@@ -899,7 +898,11 @@ class GameSession:
 
             # VERIFY: Check engine config matches expected
             # ai is guaranteed to be not None here (checked above)
-            if ai is not None and hasattr(ai, "bitboard_engine") and hasattr(ai.bitboard_engine, "config"):
+            if (
+                ai is not None
+                and hasattr(ai, "bitboard_engine")
+                and hasattr(ai.bitboard_engine, "config")
+            ):
                 cfg = ai.bitboard_engine.config
                 cfg_id = id(cfg)
                 logger.info(f"   Engine config:")
@@ -1739,11 +1742,11 @@ async def handle_message(websocket: WebSocket, session_id: str, data: dict):
         if session is None and msg_type != "init":
             logger.error(f"Session {session_id} not found")
             return
-        
+
         # Ensure data is not None
         if data is None:
             data = {}
-        
+
         # Ensure msg_type is a string
         msg_type_str = str(msg_type) if msg_type is not None else ""
         await process_message_by_type(websocket, session, msg_type_str, data)
@@ -1774,12 +1777,16 @@ async def process_message_by_type(
         logger.info(f"Processing message type: {msg_type}")
         if msg_type == "human_move":
             if session is None:
-                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                await send_to_connection(
+                    websocket, {"type": "error", "message": "Session not found"}
+                )
                 return
             await handle_human_move(websocket, session, data)
         elif msg_type == "ai_move_request":
             if session is None:
-                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                await send_to_connection(
+                    websocket, {"type": "error", "message": "Session not found"}
+                )
                 return
             # Optional: side parameter for explicit requests
             side_param = data.get("side") if data else None
@@ -1791,32 +1798,44 @@ async def process_message_by_type(
             logger.info("handle_init_message completed")
         elif msg_type == "set_players":
             if session is None:
-                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                await send_to_connection(
+                    websocket, {"type": "error", "message": "Session not found"}
+                )
                 return
             await handle_set_players(websocket, session, data)
         elif msg_type == "reset_game":
             if session is None:
-                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                await send_to_connection(
+                    websocket, {"type": "error", "message": "Session not found"}
+                )
                 return
             await handle_reset_game(websocket, session)
         elif msg_type == "get_state":
             if session is None:
-                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                await send_to_connection(
+                    websocket, {"type": "error", "message": "Session not found"}
+                )
                 return
             await handle_get_state(websocket, session)
         elif msg_type == "undo":
             if session is None:
-                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                await send_to_connection(
+                    websocket, {"type": "error", "message": "Session not found"}
+                )
                 return
             await handle_undo(websocket, session)
         elif msg_type == "redo":
             if session is None:
-                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                await send_to_connection(
+                    websocket, {"type": "error", "message": "Session not found"}
+                )
                 return
             await handle_redo(websocket, session)
         elif msg_type == "load_history":
             if session is None:
-                await send_to_connection(websocket, {"type": "error", "message": "Session not found"})
+                await send_to_connection(
+                    websocket, {"type": "error", "message": "Session not found"}
+                )
                 return
             await handle_load_history(websocket, session, data)
         else:
@@ -2048,7 +2067,9 @@ async def handle_load_history(websocket: WebSocket, session: GameSession, data: 
         )
 
 
-async def handle_ai_move_request(websocket: WebSocket, session: GameSession, side: Optional[str] = None):
+async def handle_ai_move_request(
+    websocket: WebSocket, session: GameSession, side: Optional[str] = None
+):
     """Handle AI move request with robust error handling"""
     try:
         logger.info("AI turn - requesting move...")

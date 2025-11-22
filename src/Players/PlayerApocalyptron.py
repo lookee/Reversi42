@@ -16,8 +16,8 @@ This is the fully refactored version with SOLID architecture.
 
 from typing import Any, Dict, List, Optional, cast
 
-from Reversi.Game import Move
 from Players.Player import Player
+from Reversi.Game import Move
 
 
 class PlayerApocalyptron(Player):
@@ -393,7 +393,7 @@ class PlayerApocalyptron(Player):
             if move_list:
                 print(f"⚠️  Exception fallback: using {move_list[0]}")
                 return move_list[0]
-        
+
         # Final fallback: return None if no moves available
         return None
 

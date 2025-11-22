@@ -344,9 +344,9 @@ class PlayerFactory:
         """
         # Use LEGACY_PLAYER_CLASSES instead of ALL_PLAYER_CLASSES (which doesn't exist)
         return {
-            getattr(player_class, "PLAYER_METADATA", {}).get("display_name", player_class.__name__): getattr(
-                player_class, "PLAYER_METADATA", {}
-            )
+            getattr(player_class, "PLAYER_METADATA", {}).get(
+                "display_name", player_class.__name__
+            ): getattr(player_class, "PLAYER_METADATA", {})
             for player_class in cls.LEGACY_PLAYER_CLASSES
             if hasattr(player_class, "PLAYER_METADATA")
         }

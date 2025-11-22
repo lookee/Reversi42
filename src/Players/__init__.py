@@ -5,4 +5,4 @@ All player implementations for Reversi42.
 UI-agnostic player implementations.
 """
 
-__all__ = []
+__all__: list[str] = []

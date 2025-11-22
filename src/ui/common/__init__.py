@@ -6,12 +6,10 @@ These are framework-agnostic utilities (can be used with any UI).
 """
 
 from .event_bus import EventBus
-from .layout import LayoutManager
 from .theme import ColorPalette, Theme
 
 __all__ = [
     "Theme",
     "ColorPalette",
-    "LayoutManager",
     "EventBus",
 ]
