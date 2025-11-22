@@ -181,8 +181,10 @@ class TestUIElements:
 
     async def test_turn_indicator_visible(self, page: Page, webgui_server):
         """Test turn indicator is visible"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
+        # Wait for board to be present first
+        await page.wait_for_selector("#board", timeout=TIMEOUT)
         # Wait for turn indicator elements to be present
         try:
             await page.wait_for_selector("#turnText", timeout=5000)
@@ -231,7 +233,7 @@ class TestGamePlay:
 
     async def test_valid_moves_highlighted(self, page: Page, webgui_server):
         """Test valid moves are highlighted"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         await page.wait_for_selector(".valid", timeout=TIMEOUT)
         # Should have valid move indicators
@@ -240,7 +242,7 @@ class TestGamePlay:
 
     async def test_click_valid_move(self, page: Page, webgui_server):
         """Test clicking a valid move"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         await page.wait_for_selector(".valid", timeout=TIMEOUT)
         # Get initial disc count
@@ -262,7 +264,7 @@ class TestWebSocketCommunication:
 
     async def test_websocket_connection(self, page: Page, webgui_server):
         """Test WebSocket connection establishes"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         # Wait for WebSocket to be ready
         await page.wait_for_timeout(2000)
@@ -280,7 +282,7 @@ class TestWebSocketCommunication:
 
     async def test_board_updates_received(self, page: Page, webgui_server):
         """Test board updates are received and processed"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         await page.wait_for_selector(".disc", timeout=TIMEOUT)
         # Board should render
@@ -294,7 +296,7 @@ class TestJSONEditor:
 
     async def test_json_editor_toggle(self, page: Page, webgui_server):
         """Test JSON editor can be opened"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
 
         # Wait for templates to load (dev-tools-panel.html)
@@ -313,7 +315,7 @@ class TestJSONEditor:
 
     async def test_json_editor_contains_data(self, page: Page, webgui_server):
         """Test JSON editor shows current game data"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
 
         # Wait for game to initialize
@@ -346,7 +348,7 @@ class TestHistoryNavigation:
 
     async def test_undo_button_initially_disabled(self, page: Page, webgui_server):
         """Test undo button is disabled at start"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         undo_btn = await page.query_selector("#undoBtn")
         if undo_btn:
@@ -355,7 +357,7 @@ class TestHistoryNavigation:
 
     async def test_move_history_list(self, page: Page, webgui_server):
         """Test move history list is present"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         moves_list = await page.query_selector("#movesOl")
         assert moves_list is not None
@@ -369,7 +371,7 @@ class TestResponsiveDesign:
         """Test page works on mobile viewport"""
         page = await browser_context.new_page()
         await page.set_viewport_size({"width": 375, "height": 667})
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         # Board should still be visible
         board = await page.query_selector("#board")
@@ -380,7 +382,7 @@ class TestResponsiveDesign:
         """Test page works on tablet viewport"""
         page = await browser_context.new_page()
         await page.set_viewport_size({"width": 768, "height": 1024})
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         board = await page.query_selector("#board")
         assert board is not None
@@ -394,7 +396,7 @@ class TestPerformance:
     async def test_page_load_time(self, page: Page, webgui_server):
         """Test page loads in reasonable time"""
         start_time = time.time()
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         await page.wait_for_selector("#board", timeout=TIMEOUT)
         load_time = time.time() - start_time
@@ -403,7 +405,7 @@ class TestPerformance:
 
     async def test_render_performance(self, page: Page, webgui_server):
         """Test board renders quickly"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         start_time = time.time()
         await page.wait_for_selector(".disc", timeout=TIMEOUT)
@@ -418,7 +420,7 @@ class TestErrorHandling:
 
     async def test_handles_invalid_json(self, page: Page, webgui_server):
         """Test page handles invalid JSON data gracefully"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         # Try to set invalid JSON
         result = await page.evaluate(
@@ -439,7 +441,7 @@ class TestErrorHandling:
 
     async def test_handles_missing_elements(self, page: Page, webgui_server):
         """Test page handles missing DOM elements"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         # Remove an element and verify no crash
         await page.evaluate(
@@ -462,7 +464,7 @@ class TestAccessibility:
 
     async def test_board_has_aria_label(self, page: Page, webgui_server):
         """Test board has accessible label"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         board = await page.query_selector("#board")
         if board:
@@ -472,7 +474,7 @@ class TestAccessibility:
 
     async def test_keyboard_navigation(self, page: Page, webgui_server):
         """Test keyboard navigation works"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         # Try keyboard shortcuts
         await page.keyboard.press("ArrowLeft")
@@ -536,7 +538,7 @@ class TestCompleteGameFlow:
 
     async def test_play_several_moves(self, page: Page, webgui_server):
         """Test playing multiple moves in sequence"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         await page.wait_for_selector(".valid", timeout=TIMEOUT)
         # Play 3 moves
@@ -551,7 +553,7 @@ class TestCompleteGameFlow:
 
     async def test_game_state_persistence(self, page: Page, webgui_server):
         """Test game state is maintained"""
-        await page.goto(webgui_server, timeout=TIMEOUT)
+        await goto_with_retry(page, webgui_server)
         await close_initial_setup_screen(page)
         await page.wait_for_selector(".disc", timeout=TIMEOUT)
         # Get initial state
