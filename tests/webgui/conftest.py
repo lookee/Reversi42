@@ -198,11 +198,13 @@ def webgui_server():
     else:
         env["PYTHONPATH"] = src_dir_abs
 
+    # Use direct path to the server file instead of module path
+    server_file = os.path.join(src_dir_abs, "webgui", "server", "reversi42_server.py")
+    
     server_process = subprocess.Popen(
         [
             python_exe,
-            "-m",
-            "webgui.server.reversi42_server",
+            server_file,
             "--port",
             str(port),
             "--host",
@@ -232,9 +234,26 @@ def webgui_server():
         waited += wait_interval
 
     if not _is_server_running(server_url):
+        # Get error output before terminating
+        try:
+            stdout, stderr = server_process.communicate(timeout=2)
+            stdout_str = stdout.decode() if stdout else ""
+            stderr_str = stderr.decode() if stderr else ""
+        except subprocess.TimeoutExpired:
+            stdout_str = ""
+            stderr_str = ""
+        
         server_process.terminate()
-        server_process.wait(timeout=5)
-        raise RuntimeError(f"Server failed to start within {max_wait} seconds")
+        try:
+            server_process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            server_process.kill()
+            server_process.wait()
+        
+        error_msg = f"Server failed to start within {max_wait} seconds"
+        if stdout_str or stderr_str:
+            error_msg += f"\nSTDOUT:\n{stdout_str}\nSTDERR:\n{stderr_str}"
+        raise RuntimeError(error_msg)
 
     try:
         yield server_url
@@ -254,7 +273,7 @@ def webgui_server():
 def _is_server_running(url: str, timeout: float = 2.0) -> bool:
     """Check if server is running by making a request"""
     try:
-        req = urllib.request.Request(url, method="HEAD")
+        req = urllib.request.Request(url, method="GET")
         urllib.request.urlopen(req, timeout=timeout)
         return True
     except (urllib.error.URLError, OSError, TimeoutError):

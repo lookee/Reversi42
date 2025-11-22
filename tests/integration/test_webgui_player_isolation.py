@@ -222,18 +222,17 @@ def test_webgui_simulation():
         for error in errors:
             print(f"   - {error}")
         print("=" * 80)
-        return False
+        assert False, f"Test failed with {len(errors)} error(s): {errors}"
     else:
         print("✅ ALL TESTS PASSED!")
         print("   Players maintained correct configurations throughout the game")
         print("=" * 80)
-        return True
 
 
 if __name__ == "__main__":
     try:
-        success = test_webgui_simulation()
-        sys.exit(0 if success else 1)
+        test_webgui_simulation()
+        sys.exit(0)
     except Exception as e:
         import traceback
 

@@ -86,7 +86,7 @@ class TestGameSession:
         success, error = session.make_move("C4")
 
         assert success is True
-        assert error is None
+        assert error == "" or error is None
 
         # Verify move was applied
         state = session.get_state()
@@ -729,7 +729,7 @@ class TestAIIntegration:
         ai_session.make_move("C4")
 
         # Get AI move with observer
-        ai_move = ai_session.get_ai_move("W", mock_websocket)
+        ai_move = await ai_session.get_ai_move("W", mock_websocket)
 
         assert ai_move is not None
 

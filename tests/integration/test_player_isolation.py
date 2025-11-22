@@ -174,7 +174,7 @@ def test_player_creation():
         print(f"   ❌ CRITICAL: Both players share the same instance!")
         print(f"      Player1 ID: {player1_id}")
         print(f"      Player2 ID: {player2_id}")
-        return False
+        assert False, "Both players share the same instance"
     else:
         print(f"   ✅ Instances are different:")
         print(f"      Player1 ID: {player1_id}")
@@ -192,7 +192,7 @@ def test_player_creation():
         print(f"   ❌ CRITICAL: Both players have the same depth!")
         print(f"      Player1 depth: {cfg1.depth}")
         print(f"      Player2 depth: {cfg2.depth}")
-        return False
+        assert False, "Both players have the same depth"
     else:
         print(f"   ✅ Configurations are different:")
         print(f"      Player1 depth: {cfg1.depth}")
@@ -202,7 +202,7 @@ def test_player_creation():
         print(f"   ❌ CRITICAL: Both players have the same strategy!")
         print(f"      Player1 strategy: {cfg1.search_strategy}")
         print(f"      Player2 strategy: {cfg2.search_strategy}")
-        return False
+        assert False, "Both players have the same strategy"
     else:
         print(f"   ✅ Strategies are different:")
         print(f"      Player1 strategy: {cfg1.search_strategy}")
@@ -215,7 +215,7 @@ def test_player_creation():
         print(f"   ❌ CRITICAL: Both players share the same config object!")
         print(f"      Config1 ID: {cfg1_id}")
         print(f"      Config2 ID: {cfg2_id}")
-        return False
+        assert False, "Both players share the same config object"
     else:
         print(f"   ✅ Config objects are different:")
         print(f"      Config1 ID: {cfg1_id}")
@@ -225,13 +225,12 @@ def test_player_creation():
     print("=" * 80)
     print("✅ ALL TESTS PASSED!")
     print("=" * 80)
-    return True
 
 
 if __name__ == "__main__":
     try:
-        success = test_player_creation()
-        sys.exit(0 if success else 1)
+        test_player_creation()
+        sys.exit(0)
     except Exception as e:
         import traceback
 
