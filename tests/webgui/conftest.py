@@ -221,9 +221,11 @@ def webgui_server():
             "127.0.0.1",  # Use localhost instead of 0.0.0.0 for tests
         ],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.STDOUT,  # Merge stderr into stdout for easier debugging
         cwd=project_root,
         env=env,
+        universal_newlines=True,  # Text mode for better cross-platform handling
+        bufsize=1,  # Line buffered
     )
 
     # Wait for server to be ready (max 30 seconds)
@@ -239,19 +241,19 @@ def webgui_server():
             # Process exited unexpectedly - get error output immediately
             try:
                 stdout, stderr = server_process.communicate(timeout=2)
-                stdout_str = stdout.decode(errors='replace') if stdout else ""
-                stderr_str = stderr.decode(errors='replace') if stderr else ""
+                # Since stderr is redirected to stdout, stdout contains everything
+                output_str = stdout if isinstance(stdout, str) else (stdout.decode(errors='replace') if stdout else "")
             except subprocess.TimeoutExpired:
-                stdout_str = ""
-                stderr_str = ""
+                output_str = ""
             
             error_msg = f"Server process exited unexpectedly (returncode: {server_process.returncode})"
-            if stdout_str:
-                error_msg += f"\nSTDOUT:\n{stdout_str}"
-            if stderr_str:
-                error_msg += f"\nSTDERR:\n{stderr_str}"
-            if not stdout_str and not stderr_str:
-                error_msg += "\n(No output captured)"
+            if output_str:
+                # Limit output to last 2000 chars to avoid huge error messages
+                if len(output_str) > 2000:
+                    output_str = "... (truncated) ...\n" + output_str[-2000:]
+                error_msg += f"\nOutput:\n{output_str}"
+            else:
+                error_msg += "\n(No output captured - server may have crashed silently)"
             raise RuntimeError(error_msg)
         time.sleep(wait_interval)
         waited += wait_interval
@@ -260,11 +262,10 @@ def webgui_server():
         # Get error output before terminating
         try:
             stdout, stderr = server_process.communicate(timeout=2)
-            stdout_str = stdout.decode(errors='replace') if stdout else ""
-            stderr_str = stderr.decode(errors='replace') if stderr else ""
+            # Since stderr is redirected to stdout, stdout contains everything
+            output_str = stdout if isinstance(stdout, str) else (stdout.decode(errors='replace') if stdout else "")
         except subprocess.TimeoutExpired:
-            stdout_str = ""
-            stderr_str = ""
+            output_str = ""
         
         server_process.terminate()
         try:
@@ -274,11 +275,12 @@ def webgui_server():
             server_process.wait()
         
         error_msg = f"Server failed to start within {max_wait} seconds"
-        if stdout_str:
-            error_msg += f"\nSTDOUT:\n{stdout_str}"
-        if stderr_str:
-            error_msg += f"\nSTDERR:\n{stderr_str}"
-        if not stdout_str and not stderr_str:
+        if output_str:
+            # Limit output to last 2000 chars to avoid huge error messages
+            if len(output_str) > 2000:
+                output_str = "... (truncated) ...\n" + output_str[-2000:]
+            error_msg += f"\nOutput:\n{output_str}"
+        else:
             error_msg += "\n(No output captured - server may have crashed silently)"
         raise RuntimeError(error_msg)
 
