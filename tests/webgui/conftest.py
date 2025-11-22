@@ -172,8 +172,20 @@ def webgui_server():
     This fixture starts the server in a subprocess and waits for it to be ready.
     The server is automatically stopped after all tests complete.
     """
-    server_url = os.getenv("TEST_SERVER_URL", "http://localhost:8000")
-    port = int(server_url.split(":")[-1].rstrip("/"))
+    # Use different port for each pytest-xdist worker to avoid conflicts
+    base_port = 8000
+    worker_id = os.getenv("PYTEST_XDIST_WORKER", "")
+    if worker_id:
+        # Extract worker number from worker ID (e.g., "gw0" -> 0, "gw1" -> 1)
+        try:
+            worker_num = int(worker_id.replace("gw", ""))
+            port = base_port + worker_num
+        except ValueError:
+            port = base_port
+    else:
+        port = base_port
+
+    server_url = os.getenv("TEST_SERVER_URL", f"http://localhost:{port}")
 
     # Check if server is already running
     if _is_server_running(server_url):
