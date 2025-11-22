@@ -39,25 +39,48 @@ TIMEOUT = 30000  # 30 seconds
 
 async def close_initial_setup_screen(page: Page):
     """Helper function to close the initial setup screen if present"""
-    initial_screen = await page.query_selector("#initialSetupScreen")
-    if initial_screen:
-        is_hidden = await initial_screen.evaluate("el => el.classList.contains('hidden')")
-        if not is_hidden:
-            # Click start button to close the initial setup screen
-            start_btn = await page.query_selector("#initialStartGameBtn")
-            if start_btn:
-                await start_btn.click()
-                # Wait for screen to close
-                await page.wait_for_timeout(500)
-                # Wait for screen to be hidden
-                await page.wait_for_function(
-                    "() => { const el = document.getElementById('initialSetupScreen'); return el && el.classList.contains('hidden'); }",
-                    timeout=TIMEOUT,
-                )
-                # Wait for board to be ready and game to initialize
-                await page.wait_for_selector("#board", timeout=TIMEOUT)
-                # Wait a bit more for game state to be ready
-                await page.wait_for_timeout(1000)
+    try:
+        # Wait a bit for page to be ready
+        await page.wait_for_timeout(500)
+
+        initial_screen = await page.query_selector("#initialSetupScreen")
+        if initial_screen:
+            is_hidden = await initial_screen.evaluate("el => el.classList.contains('hidden')")
+            if not is_hidden:
+                # Click start button to close the initial setup screen
+                start_btn = await page.query_selector("#initialStartGameBtn")
+                if start_btn:
+                    # Wait for button to be clickable
+                    await start_btn.wait_for_element_state("visible", timeout=5000)
+                    await start_btn.click()
+                    # Wait for screen to close
+                    await page.wait_for_timeout(500)
+                    # Wait for screen to be hidden with a shorter timeout
+                    try:
+                        await page.wait_for_function(
+                            "() => { const el = document.getElementById('initialSetupScreen'); return el && el.classList.contains('hidden'); }",
+                            timeout=10000,
+                        )
+                    except Exception:
+                        # If wait_for_function fails, check if screen is already hidden
+                        is_hidden_now = await initial_screen.evaluate(
+                            "el => el.classList.contains('hidden')"
+                        )
+                        if not is_hidden_now:
+                            # Try clicking again
+                            await start_btn.click()
+                            await page.wait_for_timeout(1000)
+
+        # Always wait for board to be ready
+        await page.wait_for_selector("#board", timeout=TIMEOUT)
+        # Wait a bit more for game state to be ready
+        await page.wait_for_timeout(500)
+    except Exception:
+        # If anything fails, at least ensure board is visible
+        try:
+            await page.wait_for_selector("#board", timeout=TIMEOUT)
+        except Exception:
+            pass  # Let the test handle the failure
 
 
 @pytest.fixture
@@ -373,6 +396,7 @@ class TestErrorHandling:
     async def test_handles_missing_elements(self, page: Page, webgui_server):
         """Test page handles missing DOM elements"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         # Remove an element and verify no crash
         await page.evaluate(
             """
@@ -395,6 +419,7 @@ class TestAccessibility:
     async def test_board_has_aria_label(self, page: Page, webgui_server):
         """Test board has accessible label"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         board = await page.query_selector("#board")
         if board:
             aria_label = await board.get_attribute("aria-label")
