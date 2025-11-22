@@ -303,6 +303,7 @@ class TestResponsiveDesign:
         page = await browser_context.new_page()
         await page.set_viewport_size({"width": 375, "height": 667})
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         # Board should still be visible
         board = await page.query_selector("#board")
         assert board is not None
@@ -313,6 +314,7 @@ class TestResponsiveDesign:
         page = await browser_context.new_page()
         await page.set_viewport_size({"width": 768, "height": 1024})
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         board = await page.query_selector("#board")
         assert board is not None
         await page.close()
@@ -326,6 +328,7 @@ class TestPerformance:
         """Test page loads in reasonable time"""
         start_time = time.time()
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         await page.wait_for_selector("#board", timeout=TIMEOUT)
         load_time = time.time() - start_time
         # Should load in under 5 seconds
@@ -349,6 +352,7 @@ class TestErrorHandling:
     async def test_handles_invalid_json(self, page: Page, webgui_server):
         """Test page handles invalid JSON data gracefully"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         # Try to set invalid JSON
         result = await page.evaluate(
             """
