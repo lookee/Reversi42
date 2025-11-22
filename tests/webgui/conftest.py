@@ -206,6 +206,13 @@ def webgui_server():
 
     # First try: python -m webgui.server.reversi42_server
     try:
+        # On Windows, use CREATE_NO_WINDOW flag to avoid console window
+        creation_flags = 0
+        if sys.platform == "win32":
+            import subprocess as subprocess_module
+
+            creation_flags = subprocess_module.CREATE_NO_WINDOW
+
         server_process = subprocess.Popen(
             [
                 python_exe,
@@ -222,16 +229,18 @@ def webgui_server():
             env=env,
             universal_newlines=True,  # Text mode for better cross-platform handling
             bufsize=1,  # Line buffered
+            creationflags=creation_flags if sys.platform == "win32" else 0,
         )
-        # Give it a moment to see if it starts successfully
-        time.sleep(0.5)
+        # Give it more time to start on Windows
+        wait_time = 1.0 if sys.platform == "win32" else 0.5
+        time.sleep(wait_time)
         if server_process.poll() is None:
             # Process is still running, good!
             pass
         else:
             # Process exited, try fallback
             try:
-                stdout, _ = server_process.communicate(timeout=1)
+                stdout, _ = server_process.communicate(timeout=2)
                 server_start_error = stdout if stdout else "Process exited immediately"
             except subprocess.TimeoutExpired:
                 server_start_error = "Process exited before we could read output"
@@ -255,6 +264,13 @@ def webgui_server():
             raise RuntimeError(error_msg)
 
         try:
+            # On Windows, use CREATE_NO_WINDOW flag to avoid console window
+            creation_flags = 0
+            if sys.platform == "win32":
+                import subprocess as subprocess_module
+
+                creation_flags = subprocess_module.CREATE_NO_WINDOW
+
             server_process = subprocess.Popen(
                 [
                     python_exe,
@@ -270,17 +286,36 @@ def webgui_server():
                 env=env,
                 universal_newlines=True,  # Text mode for better cross-platform handling
                 bufsize=1,  # Line buffered
+                creationflags=creation_flags if sys.platform == "win32" else 0,
             )
+            # Give it more time to start on Windows
+            wait_time = 1.0 if sys.platform == "win32" else 0.5
+            time.sleep(wait_time)
         except Exception as e:
             error_msg = f"Failed to start server with both approaches:\n"
             error_msg += f"Module approach error: {server_start_error}\n"
             error_msg += f"File approach error: {str(e)}"
             raise RuntimeError(error_msg)
 
-    # Wait for server to be ready (max 30 seconds)
-    max_wait = 30
+    # Wait for server to be ready (max 30 seconds, longer on Windows)
+    max_wait = 45.0 if sys.platform == "win32" else 30.0
     wait_interval = 0.5
-    waited = 0
+    waited = 0.0
+    last_output = ""
+
+    # Try to read initial output to catch early errors
+    if server_process.stdout:
+        try:
+            # Non-blocking read attempt
+            import select
+
+            if sys.platform != "win32":  # select doesn't work with pipes on Windows
+                if select.select([server_process.stdout], [], [], 0.1)[0]:
+                    line = server_process.stdout.readline()
+                    if line:
+                        last_output += line
+        except Exception:
+            pass  # Ignore errors in non-blocking read
 
     while waited < max_wait:
         if _is_server_running(server_url):
@@ -289,15 +324,31 @@ def webgui_server():
         if server_process.poll() is not None:
             # Process exited unexpectedly - get error output immediately
             try:
+                # Try to read remaining output
+                remaining_output = ""
+                if server_process.stdout:
+                    try:
+                        import select
+
+                        if sys.platform != "win32":
+                            while select.select([server_process.stdout], [], [], 0.1)[0]:
+                                line = server_process.stdout.readline()
+                                if not line:
+                                    break
+                                remaining_output += line
+                    except Exception:
+                        pass
+
                 stdout, stderr = server_process.communicate(timeout=2)
                 # Since stderr is redirected to stdout, stdout contains everything
-                output_str = (
-                    stdout
-                    if isinstance(stdout, str)
-                    else (stdout.decode(errors="replace") if stdout else "")
-                )
+                # stdout is already a string when universal_newlines=True
+                output_str = stdout if stdout else ""
+                if remaining_output:
+                    output_str = remaining_output + output_str
+                if last_output:
+                    output_str = last_output + output_str
             except subprocess.TimeoutExpired:
-                output_str = ""
+                output_str = last_output if last_output else ""
 
             error_msg = (
                 f"Server process exited unexpectedly (returncode: {server_process.returncode})"
@@ -310,6 +361,23 @@ def webgui_server():
             else:
                 error_msg += "\n(No output captured - server may have crashed silently)"
             raise RuntimeError(error_msg)
+
+        # Try to read output periodically to catch errors early
+        if server_process.stdout and waited % 2 == 0:  # Every 1 second
+            try:
+                import select
+
+                if sys.platform != "win32":
+                    if select.select([server_process.stdout], [], [], 0.1)[0]:
+                        line = server_process.stdout.readline()
+                        if line:
+                            last_output += line
+                            # Keep only last 1000 chars
+                            if len(last_output) > 1000:
+                                last_output = last_output[-1000:]
+            except Exception:
+                pass
+
         time.sleep(wait_interval)
         waited += wait_interval
 
@@ -318,13 +386,12 @@ def webgui_server():
         try:
             stdout, stderr = server_process.communicate(timeout=2)
             # Since stderr is redirected to stdout, stdout contains everything
-            output_str = (
-                stdout
-                if isinstance(stdout, str)
-                else (stdout.decode(errors="replace") if stdout else "")
-            )
+            # stdout is already a string when universal_newlines=True
+            output_str = stdout if stdout else ""
+            if last_output:
+                output_str = last_output + output_str
         except subprocess.TimeoutExpired:
-            output_str = ""
+            output_str = last_output if last_output else ""
 
         server_process.terminate()
         try:
