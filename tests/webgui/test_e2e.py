@@ -47,9 +47,17 @@ async def close_initial_setup_screen(page: Page):
             start_btn = await page.query_selector("#initialStartGameBtn")
             if start_btn:
                 await start_btn.click()
-                await page.wait_for_timeout(1000)  # Wait for screen to close and game to start
-                # Wait for board to be ready
+                # Wait for screen to close
+                await page.wait_for_timeout(500)
+                # Wait for screen to be hidden
+                await page.wait_for_function(
+                    "() => { const el = document.getElementById('initialSetupScreen'); return el && el.classList.contains('hidden'); }",
+                    timeout=TIMEOUT,
+                )
+                # Wait for board to be ready and game to initialize
                 await page.wait_for_selector("#board", timeout=TIMEOUT)
+                # Wait a bit more for game state to be ready
+                await page.wait_for_timeout(1000)
 
 
 @pytest.fixture
@@ -188,6 +196,7 @@ class TestWebSocketCommunication:
     async def test_websocket_connection(self, page: Page, webgui_server):
         """Test WebSocket connection establishes"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         # Wait for WebSocket to be ready
         await page.wait_for_timeout(2000)
         # Check if WebSocket is connected via JavaScript
@@ -271,6 +280,7 @@ class TestHistoryNavigation:
     async def test_undo_button_initially_disabled(self, page: Page, webgui_server):
         """Test undo button is disabled at start"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         undo_btn = await page.query_selector("#undoBtn")
         if undo_btn:
             is_disabled = await undo_btn.evaluate("el => el.disabled")
@@ -279,6 +289,7 @@ class TestHistoryNavigation:
     async def test_move_history_list(self, page: Page, webgui_server):
         """Test move history list is present"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         moves_list = await page.query_selector("#movesOl")
         assert moves_list is not None
 
