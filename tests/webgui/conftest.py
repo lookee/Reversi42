@@ -198,35 +198,84 @@ def webgui_server():
     else:
         env["PYTHONPATH"] = src_dir_abs
 
-    # Use direct path to the server file instead of module path
-    # Normalize path for cross-platform compatibility
-    server_file = os.path.join(src_dir_abs, "webgui", "server", "reversi42_server.py")
-    server_file = os.path.normpath(server_file)
+    # Try multiple approaches for cross-platform compatibility
+    # Approach 1: Use python -m with PYTHONPATH set (most reliable)
+    # This works better on Windows where direct file execution can have issues
+    server_process = None
+    server_start_error = None
     
-    # Verify file exists before starting
-    if not os.path.exists(server_file):
-        raise RuntimeError(
-            f"Server file not found: {server_file}\n"
-            f"src_dir_abs: {src_dir_abs}\n"
-            f"project_root: {project_root}"
+    # First try: python -m webgui.server.reversi42_server
+    try:
+        server_process = subprocess.Popen(
+            [
+                python_exe,
+                "-m",
+                "webgui.server.reversi42_server",
+                "--port",
+                str(port),
+                "--host",
+                "127.0.0.1",  # Use localhost instead of 0.0.0.0 for tests
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,  # Merge stderr into stdout for easier debugging
+            cwd=project_root,
+            env=env,
+            universal_newlines=True,  # Text mode for better cross-platform handling
+            bufsize=1,  # Line buffered
         )
+        # Give it a moment to see if it starts successfully
+        time.sleep(0.5)
+        if server_process.poll() is None:
+            # Process is still running, good!
+            pass
+        else:
+            # Process exited, try fallback
+            try:
+                stdout, _ = server_process.communicate(timeout=1)
+                server_start_error = stdout if stdout else "Process exited immediately"
+            except subprocess.TimeoutExpired:
+                server_start_error = "Process exited before we could read output"
+            server_process = None
+    except Exception as e:
+        server_start_error = str(e)
+        server_process = None
     
-    server_process = subprocess.Popen(
-        [
-            python_exe,
-            server_file,
-            "--port",
-            str(port),
-            "--host",
-            "127.0.0.1",  # Use localhost instead of 0.0.0.0 for tests
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,  # Merge stderr into stdout for easier debugging
-        cwd=project_root,
-        env=env,
-        universal_newlines=True,  # Text mode for better cross-platform handling
-        bufsize=1,  # Line buffered
-    )
+    # Fallback: Use direct file path if module approach failed
+    if server_process is None:
+        server_file = os.path.join(src_dir_abs, "webgui", "server", "reversi42_server.py")
+        server_file = os.path.normpath(server_file)
+        
+        # Verify file exists before starting
+        if not os.path.exists(server_file):
+            error_msg = f"Server file not found: {server_file}\n"
+            error_msg += f"src_dir_abs: {src_dir_abs}\n"
+            error_msg += f"project_root: {project_root}\n"
+            if server_start_error:
+                error_msg += f"Previous attempt error: {server_start_error}"
+            raise RuntimeError(error_msg)
+        
+        try:
+            server_process = subprocess.Popen(
+                [
+                    python_exe,
+                    server_file,
+                    "--port",
+                    str(port),
+                    "--host",
+                    "127.0.0.1",  # Use localhost instead of 0.0.0.0 for tests
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,  # Merge stderr into stdout for easier debugging
+                cwd=project_root,
+                env=env,
+                universal_newlines=True,  # Text mode for better cross-platform handling
+                bufsize=1,  # Line buffered
+            )
+        except Exception as e:
+            error_msg = f"Failed to start server with both approaches:\n"
+            error_msg += f"Module approach error: {server_start_error}\n"
+            error_msg += f"File approach error: {str(e)}"
+            raise RuntimeError(error_msg)
 
     # Wait for server to be ready (max 30 seconds)
     max_wait = 30
