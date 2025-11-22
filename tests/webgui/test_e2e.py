@@ -51,10 +51,15 @@ async def close_initial_setup_screen(page: Page):
                 start_btn = await page.query_selector("#initialStartGameBtn")
                 if start_btn:
                     # Wait for button to be clickable
-                    await start_btn.wait_for_element_state("visible", timeout=5000)
+                    try:
+                        await start_btn.wait_for_element_state("visible", timeout=5000)
+                    except Exception:
+                        pass  # Button might already be visible
+
                     await start_btn.click()
                     # Wait for screen to close
                     await page.wait_for_timeout(500)
+
                     # Wait for screen to be hidden with a shorter timeout
                     try:
                         await page.wait_for_function(
@@ -63,18 +68,29 @@ async def close_initial_setup_screen(page: Page):
                         )
                     except Exception:
                         # If wait_for_function fails, check if screen is already hidden
-                        is_hidden_now = await initial_screen.evaluate(
-                            "el => el.classList.contains('hidden')"
-                        )
-                        if not is_hidden_now:
-                            # Try clicking again
-                            await start_btn.click()
-                            await page.wait_for_timeout(1000)
+                        try:
+                            is_hidden_now = await initial_screen.evaluate(
+                                "el => el.classList.contains('hidden')"
+                            )
+                            if not is_hidden_now:
+                                # Try clicking again
+                                await start_btn.click()
+                                await page.wait_for_timeout(1000)
+                        except Exception:
+                            pass  # Screen might have been closed already
 
         # Always wait for board to be ready
         await page.wait_for_selector("#board", timeout=TIMEOUT)
-        # Wait a bit more for game state to be ready
-        await page.wait_for_timeout(500)
+        # Wait for game to be initialized (discs or valid moves should be visible)
+        try:
+            # Try to wait for either discs or valid moves to appear
+            await page.wait_for_function(
+                "() => { const discs = document.querySelectorAll('.disc'); const valid = document.querySelectorAll('.valid'); return discs.length > 0 || valid.length > 0; }",
+                timeout=10000,
+            )
+        except Exception:
+            # If that fails, just wait a bit more
+            await page.wait_for_timeout(1000)
     except Exception:
         # If anything fails, at least ensure board is visible
         try:
@@ -429,6 +445,7 @@ class TestAccessibility:
     async def test_keyboard_navigation(self, page: Page, webgui_server):
         """Test keyboard navigation works"""
         await page.goto(webgui_server, timeout=TIMEOUT)
+        await close_initial_setup_screen(page)
         # Try keyboard shortcuts
         await page.keyboard.press("ArrowLeft")
         await page.wait_for_timeout(200)
