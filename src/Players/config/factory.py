@@ -31,7 +31,11 @@ class PlayerFactory:
 
     def __init__(self):
         """Initialize the player factory."""
-        self._creation_stats = {"total_created": 0, "failed": 0, "by_category": {}}
+        self._creation_stats: Dict[str, Any] = {
+            "total_created": 0,
+            "failed": 0,
+            "by_category": {},
+        }
 
     def create_player(self, config: Dict[str, Any], config_path: Optional[Path] = None) -> Any:
         """
@@ -291,7 +295,7 @@ class PlayerFactory:
         class ConfiguredPlayer:
             def __init__(self):
                 metadata = config.get("metadata", {})
-                self.name = metadata.get("name", "ConfiguredAI")
+                self.name: str = str(metadata.get("name", "ConfiguredAI"))
                 self.metadata = metadata
                 self.config = config
 

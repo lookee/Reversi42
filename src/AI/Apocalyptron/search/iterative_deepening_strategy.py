@@ -95,7 +95,7 @@ class IterativeDeepeningStrategy(SearchStrategy):
         return self.search.observers
 
     @observers.setter
-    def observers(self, value):
+    def observers(self, value: List[SearchObserver]):
         """Set observers list (for ParallelSearch compatibility)"""
         self.search.observers = value
 

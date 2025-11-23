@@ -41,7 +41,7 @@ class IterativeDeepeningSearch:
 
         # Setup observers
         if observers is None:
-            self.observers = [ConsoleObserver()]
+            self.observers: List[SearchObserver] = [ConsoleObserver()]
         elif observers == []:
             from AI.Apocalyptron.observers.quiet import QuietObserver
 
