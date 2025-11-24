@@ -157,3 +157,6 @@ logs/*.log
 *.tmp
 *.bak
 *.old
+
+# Performance calibration files (machine-specific)
+tests/_performance/.performance_baseline.json

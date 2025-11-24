@@ -10,6 +10,7 @@ Helper scripts for Reversi42 development and CI/CD.
 | **run_tests.sh** | Run test suite | `./scripts/run_tests.sh [--fast\|--coverage\|--all]` |
 | **check_quality.sh** | Code quality checks | `./scripts/check_quality.sh` |
 | **benchmark.sh** | Performance benchmarks | `./scripts/benchmark.sh` |
+| **calibrate_performance.py** | Calibrate performance thresholds | `python scripts/calibrate_performance.py` |
 | **release.sh** | Create new release | `./scripts/release.sh <version>` |
 | **cleanup.sh** | Clean build artifacts | `./scripts/cleanup.sh [--keep-versions=N]` |
 
@@ -169,6 +170,76 @@ Helper scripts for Reversi42 development and CI/CD.
 - Before submitting performance-related PRs
 - After optimization changes
 - Regular performance tracking
+
+---
+
+## 🎯 calibrate_performance.py
+
+**Purpose**: Calibrate performance thresholds for the current machine
+
+**What it does**:
+
+1. **Runs Performance Benchmarks**
+   - Initial position depth 6 search
+   - Midgame position depth 8 search
+   - Depth 5 baseline
+   - Opening vs midgame NPS comparison
+
+2. **Calculates Thresholds**
+   - Measures average elapsed time and NPS
+   - Calculates minimum NPS thresholds (70% of measured minimum)
+   - Calculates maximum elapsed time thresholds (150% of measured average)
+
+3. **Saves Baseline File**
+   - Creates `tests/_performance/.performance_baseline.json`
+   - Stores calibration date and machine info
+   - Contains raw data and calculated thresholds
+
+**Usage**:
+```bash
+python scripts/calibrate_performance.py
+```
+
+**Output**: 
+- Performance calibration results
+- Summary of thresholds calculated
+- Path to saved baseline file
+
+**When to run**:
+- ✅ First time setting up on a new machine
+- ✅ After hardware upgrades
+- ✅ When performance tests fail unexpectedly
+- ✅ To establish local performance baselines
+
+**How it works**:
+1. Runs each benchmark test 3 times
+2. Calculates averages and ranges
+3. Applies safety margins (70% for NPS, 150% for timing)
+4. Saves thresholds to JSON file
+5. Performance tests automatically use calibrated thresholds if available
+
+**Example Output**:
+```
+============================================================
+Performance Calibration for Reversi42
+============================================================
+
+Running calibration tests:
+------------------------------------------------------------
+  Running Initial position depth 6... ... Done (1.23s, 1250 NPS)
+  Running Midgame position depth 8... ... Done (12.45s, 450 NPS)
+  ...
+
+Calibration complete!
+Results saved to: tests/_performance/.performance_baseline.json
+```
+
+**Integration with Tests**:
+- Performance tests automatically detect and use calibrated thresholds
+- Falls back to default values if baseline file doesn't exist
+- CI environments skip performance assertions regardless of baseline
+
+**Note**: The baseline file is gitignored (machine-specific)
 
 ---
 

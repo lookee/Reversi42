@@ -29,6 +29,24 @@ from Reversi.Game import Move
 # Import CI helpers from central conftest
 from tests.conftest import IS_CI, get_ci_timeout, skip_performance_assertions_in_ci
 
+# Import performance baseline loader
+try:
+    from tests._performance.performance_baseline import (
+        get_baseline_info,
+        get_threshold,
+        has_baseline,
+    )
+except ImportError:
+    # Fallback if baseline module not available
+    def get_threshold(test_name, threshold_type, default_value):
+        return default_value
+
+    def has_baseline():
+        return False
+
+    def get_baseline_info():
+        return None
+
 
 class TestPerformanceBaseline:
     """Baseline performance tests for Apocalyptron."""
@@ -58,8 +76,13 @@ class TestPerformanceBaseline:
 
         assert move is not None
 
-        # Time assertion: relaxed in CI
-        max_elapsed = get_ci_timeout(2.0) if IS_CI else 2.0
+        # Time assertion: use calibrated baseline if available
+        default_max_elapsed = 2.0
+        max_elapsed = (
+            get_ci_timeout(default_max_elapsed)
+            if IS_CI
+            else get_threshold("initial_position_depth_6", "max_elapsed", default_max_elapsed)
+        )
         assert elapsed < max_elapsed, f"Depth 6 should be < {max_elapsed:.1f}s, got {elapsed:.2f}s"
 
         # NPS assertion: skip or relax in CI (hardware-dependent)
@@ -69,7 +92,16 @@ class TestPerformanceBaseline:
             if IS_CI:
                 print(f"   [CI] NPS {nps:.0f} (threshold check skipped in CI)")
         else:
-            assert nps > 1000, f"Should achieve >1000 NPS, got {nps:.0f}"
+            # Use calibrated baseline if available
+            default_min_nps = 1000
+            min_nps = get_threshold("initial_position_depth_6", "min_nps", default_min_nps)
+            assert nps > min_nps, f"Should achieve >{min_nps:.0f} NPS, got {nps:.0f}"
+            if has_baseline():
+                baseline_info = get_baseline_info()
+                if baseline_info:
+                    print(
+                        f"   [CALIBRATED] Using baseline from {baseline_info.get('calibration_date', 'unknown')}"
+                    )
 
     @pytest.mark.slow
     def test_midgame_position_depth_8_speed(self):
@@ -102,8 +134,13 @@ class TestPerformanceBaseline:
 
         assert move is not None
 
-        # Time assertion: much more relaxed in CI (30s instead of 15s)
-        max_elapsed = get_ci_timeout(15.0) if IS_CI else 15.0
+        # Time assertion: use calibrated baseline if available
+        default_max_elapsed = 15.0
+        max_elapsed = (
+            get_ci_timeout(default_max_elapsed)
+            if IS_CI
+            else get_threshold("midgame_position_depth_8", "max_elapsed", default_max_elapsed)
+        )
         assert (
             elapsed < max_elapsed
         ), f"Depth 8 midgame should be < {max_elapsed:.1f}s, got {elapsed:.2f}s"
@@ -115,7 +152,10 @@ class TestPerformanceBaseline:
             if IS_CI:
                 print(f"   [CI] NPS {nps:.0f} (threshold check skipped in CI)")
         else:
-            assert nps > 400, f"Should achieve >400 NPS, got {nps:.0f}"
+            # Use calibrated baseline if available
+            default_min_nps = 400
+            min_nps = get_threshold("midgame_position_depth_8", "min_nps", default_min_nps)
+            assert nps > min_nps, f"Should achieve >{min_nps:.0f} NPS, got {nps:.0f}"
 
     def test_shallow_search_is_fast(self):
         """Test that shallow searches (depth 1-3) are very fast."""
@@ -328,8 +368,10 @@ class TestNodesPerSecond:
             if IS_CI:
                 print(f"\n   [CI] Performance {nps:.0f} nodes/sec (threshold check skipped in CI)")
         else:
-            # Bitboard dovrebbe raggiungere almeno 1000 NPS anche su hardware lento
-            assert nps > 1000, f"NPS too low: {nps:.0f}"
+            # Use calibrated baseline if available
+            default_min_nps = 1000
+            min_nps = get_threshold("depth_5_baseline", "min_nps", default_min_nps)
+            assert nps > min_nps, f"NPS too low: {nps:.0f} (threshold: {min_nps:.0f})"
             # Su hardware moderno dovrebbe essere 10k-100k NPS
             print(f"\n   [PERF] Performance: {nps:.0f} nodes/sec")
 
@@ -418,13 +460,30 @@ class TestNodesPerSecond:
                     f"Midgame NPS: {nps_midgame:.0f} (threshold checks skipped)"
                 )
         else:
-            # Entrambi dovrebbero avere NPS ragionevoli
-            assert nps_opening > 500, f"Opening NPS too low: {nps_opening:.0f}"
+            # Use calibrated baseline if available
+            baseline_data = None
+            try:
+                from tests._performance.performance_baseline import load_baseline
+
+                baseline_data = load_baseline()
+            except ImportError:
+                pass
+
+            if baseline_data and "nps_opening_vs_midgame" in baseline_data:
+                opening_min = baseline_data["nps_opening_vs_midgame"].get("opening_min_nps", 500)
+                midgame_min = baseline_data["nps_opening_vs_midgame"].get("midgame_min_nps", 500)
+            else:
+                opening_min = 500
+                midgame_min = min_nps_threshold if min_nps_threshold > 0 else 500
+
+            assert (
+                nps_opening > opening_min
+            ), f"Opening NPS too low: {nps_opening:.0f} (threshold: {opening_min:.0f})"
             if min_nps_threshold > 0:
                 elapsed_ms = elapsed_midgame * 1000
-                assert nps_midgame > min_nps_threshold, (
+                assert nps_midgame > midgame_min, (
                     f"Midgame NPS too low: {nps_midgame:.0f} "
-                    f"(elapsed: {elapsed_ms:.3f}ms, nodes: {nodes_midgame})"
+                    f"(threshold: {midgame_min:.0f}, elapsed: {elapsed_ms:.3f}ms, nodes: {nodes_midgame})"
                 )
 
             print(f"\n   [PERF] Opening NPS: {nps_opening:.0f}")
@@ -701,8 +760,13 @@ class TestRegressionPerformance:
 
         assert move is not None
 
-        # Time assertion: relaxed in CI
-        max_elapsed = get_ci_timeout(1.5) if IS_CI else 1.5
+        # Time assertion: use calibrated baseline if available
+        default_max_elapsed = 1.5
+        max_elapsed = (
+            get_ci_timeout(default_max_elapsed)
+            if IS_CI
+            else get_threshold("depth_5_baseline", "max_elapsed", default_max_elapsed)
+        )
         assert (
             elapsed < max_elapsed
         ), f"Regression: depth 5 took {elapsed:.2f}s (should be < {max_elapsed:.1f}s)"
@@ -714,7 +778,10 @@ class TestRegressionPerformance:
             if IS_CI:
                 print(f"   [CI] NPS {nps:.0f} (threshold check skipped in CI)")
         else:
-            assert nps > 1000, f"Regression: NPS {nps:.0f} (should be > 1000)"
+            # Use calibrated baseline if available
+            default_min_nps = 1000
+            min_nps = get_threshold("depth_5_baseline", "min_nps", default_min_nps)
+            assert nps > min_nps, f"Regression: NPS {nps:.0f} (should be > {min_nps:.0f})"
 
     @pytest.mark.slow
     def test_depth_8_baseline(self):
