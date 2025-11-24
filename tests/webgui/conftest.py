@@ -155,16 +155,12 @@ def pytest_collection_modifyitems(config, items):
     """
     Automatically skip e2e tests in CI if SKIP_E2E_TESTS is set or if we're in CI
     and the server dependencies might not be available.
-    """
-    skip_e2e = os.getenv("SKIP_E2E_TESTS") == "1"
-    in_ci = os.getenv("CI") == "true"
 
-    # Skip e2e tests if explicitly requested or in CI with potential issues
-    if skip_e2e or (in_ci and os.getenv("SKIP_E2E_IN_CI") == "1"):
-        skip_marker = pytest.mark.skip(reason="E2E tests skipped via environment variable")
-        for item in items:
-            if "e2e" in item.keywords:
-                item.add_marker(skip_marker)
+    Note: This is handled by the central conftest.py, but kept for backward compatibility.
+    """
+    # Delegate to central conftest.py logic - this is now handled there
+    # Keep this function for backward compatibility but don't duplicate logic
+    pass
 
 
 # Async test configuration

@@ -107,7 +107,13 @@ def pytest_collection_modifyitems(config, items):  # pylint: disable=unused-argu
                 item.add_marker(skip_marker)
 
         # Auto-mark and skip E2E tests in CI unless explicitly requested
-        if "e2e" in item.keywords or "/test_e2e.py" in str(item.fspath):
+        # Check by file path (more reliable than keywords)
+        is_e2e_test = (
+            "/test_e2e.py" in str(item.fspath)
+            or item.get_closest_marker("e2e") is not None
+            or "e2e" in str(item.fspath).lower()
+        )
+        if is_e2e_test:
             item.add_marker(pytest.mark.e2e)
             # Skip E2E tests in CI unless explicitly requested
             if IS_CI and not run_e2e_in_ci:
