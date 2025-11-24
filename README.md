@@ -23,6 +23,9 @@
   <a href="https://pypi.org/project/reversi42/">
     <img src="https://img.shields.io/pypi/format/reversi42.svg?logo=pypi&logoColor=white" alt="PyPI Format">
   </a>
+  <a href="https://github.com/lookee/Reversi42/actions/workflows/ci.yml">
+    <img src="https://github.com/lookee/Reversi42/actions/workflows/ci.yml/badge.svg" alt="CI">
+  </a>
   <a href="https://codecov.io/gh/lookee/Reversi42">
     <img src="https://codecov.io/gh/lookee/Reversi42/branch/master/graph/badge.svg" alt="Code Coverage">
   </a>
