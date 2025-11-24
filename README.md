@@ -5,6 +5,9 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/lookee/Reversi42/releases">
+    <img src="https://img.shields.io/github/v/release/lookee/Reversi42.svg?logo=github&logoColor=white" alt="GitHub Release">
+  </a>
   <a href="https://pypi.org/project/reversi42/">
     <img src="https://img.shields.io/pypi/v/reversi42.svg?logo=pypi&logoColor=white" alt="PyPI Version">
   </a>
