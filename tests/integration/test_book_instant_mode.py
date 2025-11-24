@@ -164,7 +164,7 @@ def test_book_instant_in_tournament_config():
     assert parsed["players"][0]["parameters"]["book_instant"] == False
     assert parsed["players"][1]["parameters"]["book_instant"] == True
 
-    print("\n✅ Tournament configuration example:")
+    print("\n[OK] Tournament configuration example:")
     print(json_str)
 
 

@@ -632,7 +632,7 @@ def test_complete_forward_backward_sequence():
     assert len(game.board_position_stack) == 0, "Lo stack deve essere vuoto"
 
     print(f"\n{'='*80}")
-    print("✅ TEST RIGOROSO COMPLETATO!")
+    print("[OK] TEST RIGOROSO COMPLETATO!")
     print(f"   - {moves_played} mosse giocate (forward)")
     print(f"   - {stack_size} undo verificati (backward, inclusi {stack_size - moves_played} pass)")
     print(f"   - OGNI invariante verificato corretto")

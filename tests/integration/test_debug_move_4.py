@@ -69,7 +69,7 @@ def test_move_4_debug():
     """Test approfondito per la mossa 4"""
 
     print("=" * 80)
-    print("🔍 DEBUG TEST: Move 4 Problem Investigation")
+    print("[DEBUG] DEBUG TEST: Move 4 Problem Investigation")
     print("=" * 80)
 
     # Clear cache
@@ -123,7 +123,7 @@ def test_move_4_debug():
         current_white_cfg_id = id(white.bitboard_engine.config)
         current_black_cfg_id = id(black.bitboard_engine.config)
 
-        print(f"\n🔍 INSTANCE CHECK:")
+        print(f"\n[CHECK] INSTANCE CHECK:")
         print(
             f"   White instance: {current_white_id} (initial: {white_id_initial}) {'✅' if current_white_id == white_id_initial else '❌ CHANGED!'}"
         )
@@ -141,30 +141,30 @@ def test_move_4_debug():
         white_cfg = white.bitboard_engine.config
         black_cfg = black.bitboard_engine.config
 
-        print(f"\n🔍 CONFIGURATION CHECK:")
+        print(f"\n[CHECK] CONFIGURATION CHECK:")
         print(
             f"   White depth: {white_cfg.depth} (expected: 4) {'✅' if white_cfg.depth == 4 else '❌ WRONG!'}"
         )
         print(
-            f"   White strategy: {white_cfg.search_strategy} (expected: fixed_depth) {'✅' if white_cfg.search_strategy == 'fixed_depth' else '❌ WRONG!'}"
+            f"   White strategy: {white_cfg.search_strategy} (expected: fixed_depth) {'[OK]' if white_cfg.search_strategy == 'fixed_depth' else '[ERROR] WRONG!'}"
         )
         print(
             f"   Black depth: {black_cfg.depth} (expected: 12) {'✅' if black_cfg.depth == 12 else '❌ WRONG!'}"
         )
         print(
-            f"   Black strategy: {black_cfg.search_strategy} (expected: adaptive) {'✅' if black_cfg.search_strategy == 'adaptive' else '❌ WRONG!'}"
+            f"   Black strategy: {black_cfg.search_strategy} (expected: adaptive) {'[OK]' if black_cfg.search_strategy == 'adaptive' else '[ERROR] WRONG!'}"
         )
 
         # Check if configs are shared
         if id(white_cfg) == id(black_cfg):
-            print(f"\n❌ CRITICAL: Configs are SHARED!")
+            print(f"\n[ERROR] CRITICAL: Configs are SHARED!")
         else:
-            print(f"\n✅ Configs are separate")
+            print(f"\n[OK] Configs are separate")
 
         # Deep inspection at move 4
         if move_num == 4:
             print(f"\n{'='*80}")
-            print(f"🔍 DEEP INSPECTION AT MOVE 4")
+            print(f"[INSPECT] DEEP INSPECTION AT MOVE 4")
             print(f"{'='*80}")
             deep_inspect_player(white, "WHITE AT MOVE 4")
             deep_inspect_player(black, "BLACK AT MOVE 4")
@@ -185,20 +185,20 @@ def test_move_4_debug():
                 ai_move = player.get_move(game, moves)
             if ai_move:
                 coord = f"{chr(64+ai_move.x)}{ai_move.y}"
-                print(f"\n✅ Move selected: {coord}")
+                print(f"\n[OK] Move selected: {coord}")
                 game.move(ai_move)
             else:
                 print("No move returned")
                 game.pass_turn()
         except Exception as e:
-            print(f"\n❌ Error getting move: {e}")
+            print(f"\n[ERROR] Error getting move: {e}")
             import traceback
 
             traceback.print_exc()
             break
 
         # Check again AFTER move
-        print(f"\n🔍 POST-MOVE CHECK:")
+        print(f"\n[CHECK] POST-MOVE CHECK:")
         white_cfg_after = white.bitboard_engine.config
         black_cfg_after = black.bitboard_engine.config
         print(f"   White config ID after: {id(white_cfg_after)}")
@@ -207,13 +207,13 @@ def test_move_4_debug():
         print(f"   Black depth after: {black_cfg_after.depth}")
 
         if id(white_cfg_after) != white_cfg_id_initial:
-            print(f"   ⚠️  White config ID changed!")
+            print(f"   [WARN] White config ID changed!")
         if id(black_cfg_after) != black_cfg_id_initial:
-            print(f"   ⚠️  Black config ID changed!")
+            print(f"   [WARN] Black config ID changed!")
         if white_cfg_after.depth != 4:
-            print(f"   ❌ White depth changed from 4 to {white_cfg_after.depth}!")
+            print(f"   [ERROR] White depth changed from 4 to {white_cfg_after.depth}!")
         if black_cfg_after.depth != 12:
-            print(f"   ❌ Black depth changed from 12 to {black_cfg_after.depth}!")
+            print(f"   [ERROR] Black depth changed from 12 to {black_cfg_after.depth}!")
 
     print("\n" + "=" * 80)
     print("TEST COMPLETE")

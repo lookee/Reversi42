@@ -88,7 +88,7 @@ def test_webgui_simulation():
     """Test player isolation in WebGUI-like scenario"""
 
     print("=" * 80)
-    print("🧪 TEST: WebGUI Server Player Isolation Simulation")
+    print("[TEST] WebGUI Server Player Isolation Simulation")
     print("=" * 80)
     print()
 
@@ -103,13 +103,13 @@ def test_webgui_simulation():
     white_cfg = session.ai_white.bitboard_engine.config
     black_cfg = session.ai_black.bitboard_engine.config
 
-    print(f"⚪ White (LIGHTNING STRIKE):")
+    print(f"[WHITE] White (LIGHTNING STRIKE):")
     print(f"   Instance ID: {id(session.ai_white)}")
     print(f"   Config ID: {id(white_cfg)}")
     print(f"   Depth: {white_cfg.depth} (expected: 4)")
     print(f"   Strategy: {white_cfg.search_strategy} (expected: fixed_depth)")
 
-    print(f"⚫ Black (DIVZERO.EXE):")
+    print(f"[BLACK] Black (DIVZERO.EXE):")
     print(f"   Instance ID: {id(session.ai_black)}")
     print(f"   Config ID: {id(black_cfg)}")
     print(f"   Depth: {black_cfg.depth} (expected: 12)")
@@ -141,12 +141,12 @@ def test_webgui_simulation():
         # CRITICAL: Verify instances haven't changed
         if id(session.ai_white) != initial_white_id:
             error_msg = f"Move {move_count}: White instance changed! Initial: {initial_white_id}, Current: {id(session.ai_white)}"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             errors.append(error_msg)
 
         if id(session.ai_black) != initial_black_id:
             error_msg = f"Move {move_count}: Black instance changed! Initial: {initial_black_id}, Current: {id(session.ai_black)}"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             errors.append(error_msg)
 
         # CRITICAL: Verify configs haven't changed
@@ -155,12 +155,12 @@ def test_webgui_simulation():
 
         if id(current_white_cfg) != initial_white_cfg_id:
             error_msg = f"Move {move_count}: White config changed! Initial: {initial_white_cfg_id}, Current: {id(current_white_cfg)}"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             errors.append(error_msg)
 
         if id(current_black_cfg) != initial_black_cfg_id:
             error_msg = f"Move {move_count}: Black config changed! Initial: {initial_black_cfg_id}, Current: {id(current_black_cfg)}"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             errors.append(error_msg)
 
         # Get AI move (this will verify config internally)
@@ -168,19 +168,19 @@ def test_webgui_simulation():
             ai_move = session.get_ai_move(current_side)
             if ai_move:
                 coord = f"{chr(64+ai_move.x)}{ai_move.y}"
-                print(f"   ✅ Move: {coord}")
+                print(f"   [OK] Move: {coord}")
                 session.game.move(ai_move)
             else:
                 print("   No move, passing...")
                 session.game.pass_turn()
         except ValueError as e:
             error_msg = f"Move {move_count}: Configuration error: {e}"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             errors.append(error_msg)
             break
         except Exception as e:
             error_msg = f"Move {move_count}: Error: {e}"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             errors.append(error_msg)
             import traceback
 
@@ -190,7 +190,7 @@ def test_webgui_simulation():
         # Special check at move 4
         if move_count == 4:
             print()
-            print("   🔍 SPECIAL CHECK AT MOVE 4:")
+            print("   [CHECK] SPECIAL CHECK AT MOVE 4:")
             print(f"      White instance ID: {id(session.ai_white)}")
             print(f"      Black instance ID: {id(session.ai_black)}")
             print(f"      White config ID: {id(session.ai_white.bitboard_engine.config)}")
@@ -206,25 +206,25 @@ def test_webgui_simulation():
 
             if session.ai_white.bitboard_engine.config.depth != 4:
                 error_msg = "Move 4: White lost its configuration!"
-                print(f"      ❌ {error_msg}")
+                print(f"      [ERROR] {error_msg}")
                 errors.append(error_msg)
 
             if session.ai_black.bitboard_engine.config.depth != 12:
                 error_msg = "Move 4: Black lost its configuration!"
-                print(f"      ❌ {error_msg}")
+                print(f"      [ERROR] {error_msg}")
                 errors.append(error_msg)
 
     print()
     print("=" * 80)
     if errors:
-        print("❌ TEST FAILED!")
+        print("[ERROR] TEST FAILED!")
         print(f"   Found {len(errors)} error(s):")
         for error in errors:
             print(f"   - {error}")
         print("=" * 80)
         assert False, f"Test failed with {len(errors)} error(s): {errors}"
     else:
-        print("✅ ALL TESTS PASSED!")
+        print("[OK] ALL TESTS PASSED!")
         print("   Players maintained correct configurations throughout the game")
         print("=" * 80)
 
@@ -236,6 +236,6 @@ if __name__ == "__main__":
     except Exception as e:
         import traceback
 
-        print(f"❌ TEST FAILED with exception:")
+        print(f"[ERROR] TEST FAILED with exception:")
         print(traceback.format_exc())
         sys.exit(1)

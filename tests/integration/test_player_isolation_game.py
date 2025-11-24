@@ -24,15 +24,15 @@ def simulate_game_and_verify():
     """Simulate a game and verify player isolation at each move."""
 
     print("=" * 80)
-    print("🧪 TEST: Player Isolation During Game Simulation")
+    print("[TEST] Player Isolation During Game Simulation")
     print("=" * 80)
     print()
 
     # Clear registry cache first
-    print("🧹 Clearing registry cache...")
+    print("[CLEAR] Clearing registry cache...")
     registry = PlayerFactory._get_registry()
     registry.clear_instance_cache()
-    print("✅ Cache cleared")
+    print("[OK] Cache cleared")
     print()
 
     # Create players
@@ -43,19 +43,19 @@ def simulate_game_and_verify():
     player_black_name = "DIVZERO.EXE"
     player_white_name = "LIGHTNING STRIKE"
 
-    print(f"Creating ⚫ Black: {player_black_name}")
+    print(f"Creating [BLACK] Black: {player_black_name}")
     player_black = PlayerFactory.create_player(player_black_name)
     black_id = id(player_black)
-    print(f"✅ Created: {type(player_black).__name__} @ {black_id}")
+    print(f"[OK] Created: {type(player_black).__name__} @ {black_id}")
 
-    print(f"Creating ⚪ White: {player_white_name}")
+    print(f"Creating [WHITE] White: {player_white_name}")
     player_white = PlayerFactory.create_player(player_white_name)
     white_id = id(player_white)
-    print(f"✅ Created: {type(player_white).__name__} @ {white_id}")
+    print(f"[OK] Created: {type(player_white).__name__} @ {white_id}")
 
     # Verify instances are different
     if black_id == white_id:
-        print(f"❌ CRITICAL: Both players share the same instance!")
+        print(f"[ERROR] CRITICAL: Both players share the same instance!")
         return False
 
     print()
@@ -67,13 +67,13 @@ def simulate_game_and_verify():
     black_cfg = player_black.bitboard_engine.config
     white_cfg = player_white.bitboard_engine.config
 
-    print(f"⚫ {player_black_name}:")
+    print(f"[BLACK] {player_black_name}:")
     print(f"   Depth: {black_cfg.depth} (expected: 12)")
     print(f"   Strategy: {black_cfg.search_strategy} (expected: adaptive)")
     print(f"   TT: {black_cfg.use_transposition_table} (expected: True)")
     print(f"   Config ID: {id(black_cfg)}")
 
-    print(f"⚪ {player_white_name}:")
+    print(f"[WHITE] {player_white_name}:")
     print(f"   Depth: {white_cfg.depth} (expected: 4)")
     print(f"   Strategy: {white_cfg.search_strategy} (expected: fixed_depth)")
     print(f"   TT: {white_cfg.use_transposition_table} (expected: False)")
@@ -81,7 +81,7 @@ def simulate_game_and_verify():
 
     # Verify configs are different
     if id(black_cfg) == id(white_cfg):
-        print(f"❌ CRITICAL: Both players share the same config object!")
+        print(f"[ERROR] CRITICAL: Both players share the same config object!")
         return False
 
     # Store initial config IDs
@@ -145,48 +145,48 @@ def simulate_game_and_verify():
                 # DIVZERO.EXE should have adaptive depths: opening=6, midgame=12, endgame=12
                 if adaptive_depths.get("midgame", 0) != 12:
                     error_msg = f"Move {move_count}: {current_player_name} has wrong adaptive midgame depth! Expected 12, got {adaptive_depths.get('midgame', 0)}"
-                    print(f"   ❌ {error_msg}")
+                    print(f"   [ERROR] {error_msg}")
                     errors.append(error_msg)
         else:
             # For fixed_depth, depth must match exactly
             if current_cfg.depth != expected_depth:
                 error_msg = f"Move {move_count}: {current_player_name} has wrong depth! Expected {expected_depth}, got {current_cfg.depth}"
-                print(f"   ❌ {error_msg}")
+                print(f"   [ERROR] {error_msg}")
                 errors.append(error_msg)
 
         if current_cfg.search_strategy != expected_strategy:
             error_msg = f"Move {move_count}: {current_player_name} has wrong strategy! Expected {expected_strategy}, got {current_cfg.search_strategy}"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             errors.append(error_msg)
 
         # CRITICAL: Verify config object hasn't changed
         if current_turn == "B":
             if current_cfg_id != initial_black_cfg_id:
                 error_msg = f"Move {move_count}: Black config object changed! Initial: {initial_black_cfg_id}, Current: {current_cfg_id}"
-                print(f"   ❌ {error_msg}")
+                print(f"   [ERROR] {error_msg}")
                 errors.append(error_msg)
         else:
             if current_cfg_id != initial_white_cfg_id:
                 error_msg = f"Move {move_count}: White config object changed! Initial: {initial_white_cfg_id}, Current: {current_cfg_id}"
-                print(f"   ❌ {error_msg}")
+                print(f"   [ERROR] {error_msg}")
                 errors.append(error_msg)
 
         # CRITICAL: Verify instances haven't swapped
         if current_turn == "B":
             if id(current_player) != black_id:
                 error_msg = f"Move {move_count}: Black player instance changed! Initial: {black_id}, Current: {id(current_player)}"
-                print(f"   ❌ {error_msg}")
+                print(f"   [ERROR] {error_msg}")
                 errors.append(error_msg)
         else:
             if id(current_player) != white_id:
                 error_msg = f"Move {move_count}: White player instance changed! Initial: {white_id}, Current: {id(current_player)}"
-                print(f"   ❌ {error_msg}")
+                print(f"   [ERROR] {error_msg}")
                 errors.append(error_msg)
 
         # CRITICAL: Verify configs are still different
         if id(black_cfg) == id(white_cfg):
             error_msg = f"Move {move_count}: Configs became shared!"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             errors.append(error_msg)
 
         # Get move from AI
@@ -194,14 +194,14 @@ def simulate_game_and_verify():
             ai_move = current_player.get_move(game, move_list)
             if ai_move:
                 coord = f"{chr(64+ai_move.x)}{ai_move.y}"
-                print(f"   ✅ Selected move: {coord}")
+                print(f"   [OK] Selected move: {coord}")
                 game.move(ai_move)
             else:
                 print("   No move returned, passing...")
                 game.pass_turn()
         except Exception as e:
             error_msg = f"Move {move_count}: Error getting move: {e}"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             errors.append(error_msg)
             import traceback
 
@@ -211,7 +211,7 @@ def simulate_game_and_verify():
         # Special check at move 4
         if move_count == 4:
             print()
-            print("   🔍 SPECIAL CHECK AT MOVE 4:")
+            print("   [CHECK] SPECIAL CHECK AT MOVE 4:")
             print(f"      Black instance ID: {id(player_black)}")
             print(f"      White instance ID: {id(player_white)}")
             print(f"      Black config ID: {id(player_black.bitboard_engine.config)}")
@@ -221,25 +221,25 @@ def simulate_game_and_verify():
 
             if player_black.bitboard_engine.config.depth != 12:
                 error_msg = "Move 4: Black lost its configuration!"
-                print(f"      ❌ {error_msg}")
+                print(f"      [ERROR] {error_msg}")
                 errors.append(error_msg)
 
             if player_white.bitboard_engine.config.depth != 4:
                 error_msg = "Move 4: White lost its configuration!"
-                print(f"      ❌ {error_msg}")
+                print(f"      [ERROR] {error_msg}")
                 errors.append(error_msg)
 
     print()
     print("=" * 80)
     if errors:
-        print("❌ TEST FAILED!")
+        print("[ERROR] TEST FAILED!")
         print(f"   Found {len(errors)} error(s):")
         for error in errors:
             print(f"   - {error}")
         print("=" * 80)
         return False
     else:
-        print("✅ ALL TESTS PASSED!")
+        print("[OK] ALL TESTS PASSED!")
         print("   Players maintained correct configurations throughout the game")
         print("=" * 80)
         return True
@@ -252,6 +252,6 @@ if __name__ == "__main__":
     except Exception as e:
         import traceback
 
-        print(f"❌ TEST FAILED with exception:")
+        print(f"[ERROR] TEST FAILED with exception:")
         print(traceback.format_exc())
         sys.exit(1)
