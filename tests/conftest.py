@@ -96,8 +96,13 @@ def pytest_collection_modifyitems(config, items):  # pylint: disable=unused-argu
     run_e2e_in_ci = os.getenv("RUN_E2E_TESTS") == "1"
 
     for item in items:
-        # Auto-mark performance tests
-        if "/performance/" in str(item.fspath):
+        # Auto-mark performance tests (check both old and new location)
+        is_performance_test = (
+            "/performance/" in str(item.fspath)
+            or "/_performance/" in str(item.fspath)
+            or item.get_closest_marker("performance") is not None
+        )
+        if is_performance_test:
             item.add_marker(pytest.mark.performance)
             # Skip performance tests in CI unless explicitly requested
             if IS_CI and not run_performance_in_ci:
