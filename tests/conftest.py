@@ -83,16 +83,26 @@ def pytest_collection_modifyitems(config, items):  # pylint: disable=unused-argu
     """
     Modify test collection to handle CI-specific behavior.
 
+    - Performance tests are automatically skipped in CI unless RUN_PERFORMANCE_TESTS is set
     - Performance tests marked with 'ci_skip_performance' will have relaxed assertions in CI
 
     Args:
         config: pytest config object (required by pytest hook signature)
         items: list of test items to modify
     """
+    # Check if performance tests should run in CI
+    run_performance_in_ci = os.getenv("RUN_PERFORMANCE_TESTS") == "1"
+
     for item in items:
         # Auto-mark performance tests
         if "/performance/" in str(item.fspath):
             item.add_marker(pytest.mark.performance)
+            # Skip performance tests in CI unless explicitly requested
+            if IS_CI and not run_performance_in_ci:
+                skip_marker = pytest.mark.skip(
+                    reason="Performance tests skipped in CI (set RUN_PERFORMANCE_TESTS=1 to run)"
+                )
+                item.add_marker(skip_marker)
 
         # Auto-mark slow tests by name
         if "performance" in item.name.lower() or "benchmark" in item.name.lower():
