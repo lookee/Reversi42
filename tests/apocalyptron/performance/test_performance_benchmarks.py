@@ -21,18 +21,13 @@ import pytest
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "src"))
 
-# Import CI helpers from central conftest
-from tests.conftest import (
-    IS_CI,
-    get_ci_nps_threshold,
-    get_ci_timeout,
-    skip_performance_assertions_in_ci,
-)
-
 from AI.Apocalyptron.factory.factory import ApocalyptronFactory
 from Players.PlayerApocalyptron import PlayerApocalyptron
 from Reversi.BitboardGame import BitboardGame
 from Reversi.Game import Move
+
+# Import CI helpers from central conftest
+from tests.conftest import IS_CI, get_ci_timeout, skip_performance_assertions_in_ci
 
 
 class TestPerformanceBaseline:
@@ -62,17 +57,17 @@ class TestPerformanceBaseline:
         nps = stats["search_stats"]["nodes"] / elapsed if elapsed > 0 else 0
 
         assert move is not None
-        
+
         # Time assertion: relaxed in CI
         max_elapsed = get_ci_timeout(2.0) if IS_CI else 2.0
         assert elapsed < max_elapsed, f"Depth 6 should be < {max_elapsed:.1f}s, got {elapsed:.2f}s"
-        
+
         # NPS assertion: skip or relax in CI (hardware-dependent)
         if skip_performance_assertions_in_ci():
             # In CI, just verify search completed and NPS is positive
             assert nps > 0, f"Search should generate nodes, got {nps:.0f} NPS"
             if IS_CI:
-                print(f"   ℹ️  CI: NPS {nps:.0f} (threshold check skipped in CI)")
+                print(f"   [CI] NPS {nps:.0f} (threshold check skipped in CI)")
         else:
             assert nps > 1000, f"Should achieve >1000 NPS, got {nps:.0f}"
 
@@ -106,17 +101,19 @@ class TestPerformanceBaseline:
         nps = stats["search_stats"]["nodes"] / elapsed if elapsed > 0 else 0
 
         assert move is not None
-        
+
         # Time assertion: much more relaxed in CI (30s instead of 15s)
         max_elapsed = get_ci_timeout(15.0) if IS_CI else 15.0
-        assert elapsed < max_elapsed, f"Depth 8 midgame should be < {max_elapsed:.1f}s, got {elapsed:.2f}s"
-        
+        assert (
+            elapsed < max_elapsed
+        ), f"Depth 8 midgame should be < {max_elapsed:.1f}s, got {elapsed:.2f}s"
+
         # NPS assertion: skip or relax in CI (hardware-dependent)
         if skip_performance_assertions_in_ci():
             # In CI, just verify search completed and NPS is positive
             assert nps > 0, f"Search should generate nodes, got {nps:.0f} NPS"
             if IS_CI:
-                print(f"   ℹ️  CI: NPS {nps:.0f} (threshold check skipped in CI)")
+                print(f"   [CI] NPS {nps:.0f} (threshold check skipped in CI)")
         else:
             assert nps > 400, f"Should achieve >400 NPS, got {nps:.0f}"
 
@@ -323,18 +320,18 @@ class TestNodesPerSecond:
         nps = nodes / elapsed if elapsed > 0 else 0
 
         assert move is not None
-        
+
         # NPS assertion: skip or relax in CI (hardware-dependent)
         if skip_performance_assertions_in_ci():
             # In CI, just verify search completed and NPS is positive
             assert nps > 0, f"Search should generate nodes, got {nps:.0f} NPS"
             if IS_CI:
-                print(f"\n   ℹ️  CI: Performance {nps:.0f} nodes/sec (threshold check skipped in CI)")
+                print(f"\n   [CI] Performance {nps:.0f} nodes/sec (threshold check skipped in CI)")
         else:
             # Bitboard dovrebbe raggiungere almeno 1000 NPS anche su hardware lento
             assert nps > 1000, f"NPS too low: {nps:.0f}"
             # Su hardware moderno dovrebbe essere 10k-100k NPS
-            print(f"\n   📊 Performance: {nps:.0f} nodes/sec")
+            print(f"\n   [PERF] Performance: {nps:.0f} nodes/sec")
 
     @pytest.mark.slow
     def test_nps_midgame_vs_opening(self):
@@ -385,8 +382,10 @@ class TestNodesPerSecond:
             if nodes_midgame == 0:
                 # If no nodes were generated, the position might be terminal or TT hit everything
                 # Skip NPS assertion but verify search completed successfully
+                elapsed_ms = elapsed_midgame * 1000
                 print(
-                    f"\n   ⚠️  Midgame search very fast (elapsed: {elapsed_midgame*1000:.3f}ms, nodes: {nodes_midgame})"
+                    f"\n   [WARN] Midgame search very fast "
+                    f"(elapsed: {elapsed_ms:.3f}ms, nodes: {nodes_midgame})"
                 )
                 print("   This may indicate TT hits or terminal position - skipping NPS check")
                 effective_elapsed_midgame = min_elapsed_time
@@ -406,21 +405,30 @@ class TestNodesPerSecond:
         # NPS assertions: skip or relax in CI (hardware-dependent)
         if skip_performance_assertions_in_ci():
             # In CI, just verify searches completed and NPS is positive
-            assert nps_opening > 0, f"Opening search should generate nodes, got {nps_opening:.0f} NPS"
+            assert (
+                nps_opening > 0
+            ), f"Opening search should generate nodes, got {nps_opening:.0f} NPS"
             if min_nps_threshold > 0:
-                assert nps_midgame > 0, f"Midgame search should generate nodes, got {nps_midgame:.0f} NPS"
+                assert (
+                    nps_midgame > 0
+                ), f"Midgame search should generate nodes, got {nps_midgame:.0f} NPS"
             if IS_CI:
-                print(f"\n   ℹ️  CI: Opening NPS: {nps_opening:.0f}, Midgame NPS: {nps_midgame:.0f} (threshold checks skipped)")
+                print(
+                    f"\n   [CI] Opening NPS: {nps_opening:.0f}, "
+                    f"Midgame NPS: {nps_midgame:.0f} (threshold checks skipped)"
+                )
         else:
             # Entrambi dovrebbero avere NPS ragionevoli
             assert nps_opening > 500, f"Opening NPS too low: {nps_opening:.0f}"
             if min_nps_threshold > 0:
-                assert (
-                    nps_midgame > min_nps_threshold
-                ), f"Midgame NPS too low: {nps_midgame:.0f} (elapsed: {elapsed_midgame*1000:.3f}ms, nodes: {nodes_midgame})"
+                elapsed_ms = elapsed_midgame * 1000
+                assert nps_midgame > min_nps_threshold, (
+                    f"Midgame NPS too low: {nps_midgame:.0f} "
+                    f"(elapsed: {elapsed_ms:.3f}ms, nodes: {nodes_midgame})"
+                )
 
-            print(f"\n   📊 Opening NPS: {nps_opening:.0f}")
-            print(f"   📊 Midgame NPS: {nps_midgame:.0f}")
+            print(f"\n   [PERF] Opening NPS: {nps_opening:.0f}")
+            print(f"   [PERF] Midgame NPS: {nps_midgame:.0f}")
 
 
 class TestOptimizationImpact:
@@ -502,7 +510,7 @@ class TestPruningPerformance:
             # Success rate dovrebbe essere ragionevole (20-60%)
             if attempts > 0:
                 success_rate = cutoffs / attempts * 100
-                print(f"\n   📊 Null move: {cutoffs}/{attempts} cutoffs ({success_rate:.1f}%)")
+                print(f"\n   [PERF] Null move: {cutoffs}/{attempts} cutoffs ({success_rate:.1f}%)")
 
     def test_late_move_reduction_impact(self):
         """Test impact of late move reduction."""
@@ -528,7 +536,8 @@ class TestPruningPerformance:
                 re_search_rate = re_searches / reductions * 100
                 assert re_search_rate < 50, f"Re-search rate too high: {re_search_rate:.1f}%"
                 print(
-                    f"\n   📊 LMR: {reductions} reductions, {re_searches} re-searches ({re_search_rate:.1f}%)"
+                    f"\n   [PERF] LMR: {reductions} reductions, "
+                    f"{re_searches} re-searches ({re_search_rate:.1f}%)"
                 )
 
 
@@ -580,7 +589,7 @@ class TestTranspositionTablePerformance:
         assert tt_size <= nodes, "TT size should not exceed nodes searched"
 
         storage_efficiency = (tt_size / nodes * 100) if nodes > 0 else 0
-        print(f"\n   📊 TT storage efficiency: {storage_efficiency:.1f}% ({tt_size}/{nodes})")
+        print(f"\n   [PERF] TT storage efficiency: {storage_efficiency:.1f}% ({tt_size}/{nodes})")
 
 
 class TestPlayerApocalyptronPerformance:
@@ -634,7 +643,7 @@ class TestPlayerApocalyptronPerformance:
         # Increased threshold for CI environments (GitHub Actions can be slower)
         assert elapsed < 30.0, f"Depth 9 should be < 30s (CI-friendly), got {elapsed:.2f}s"
 
-        print(f"\n   📊 Depth 9 midgame: {elapsed:.2f}s")
+        print(f"\n   [PERF] Depth 9 midgame: {elapsed:.2f}s")
 
 
 class TestParallelPerformance:
@@ -661,9 +670,8 @@ class TestParallelPerformance:
         elapsed = time.perf_counter() - start
 
         assert move is not None
-        print(
-            f"\n   📊 Parallel search (depth 8): {elapsed:.2f}s with {player.bitboard_engine.num_workers} workers"
-        )
+        workers = player.bitboard_engine.num_workers
+        print(f"\n   [PERF] Parallel search (depth 8): {elapsed:.2f}s " f"with {workers} workers")
 
 
 class TestRegressionPerformance:
@@ -692,19 +700,19 @@ class TestRegressionPerformance:
         nps = stats["search_stats"]["nodes"] / elapsed if elapsed > 0 else 0
 
         assert move is not None
-        
+
         # Time assertion: relaxed in CI
         max_elapsed = get_ci_timeout(1.5) if IS_CI else 1.5
         assert (
             elapsed < max_elapsed
         ), f"Regression: depth 5 took {elapsed:.2f}s (should be < {max_elapsed:.1f}s)"
-        
+
         # NPS assertion: skip or relax in CI (hardware-dependent)
         if skip_performance_assertions_in_ci():
             # In CI, just verify search completed and NPS is positive
             assert nps > 0, f"Search should generate nodes, got {nps:.0f} NPS"
             if IS_CI:
-                print(f"   ℹ️  CI: NPS {nps:.0f} (threshold check skipped in CI)")
+                print(f"   [CI] NPS {nps:.0f} (threshold check skipped in CI)")
         else:
             assert nps > 1000, f"Regression: NPS {nps:.0f} (should be > 1000)"
 
@@ -735,7 +743,8 @@ class TestRegressionPerformance:
         elapsed = time.perf_counter() - start
 
         assert move is not None
-        # Increased threshold for CI environments (GitHub Actions can be slower, especially on macOS)
+        # Increased threshold for CI environments
+        # (GitHub Actions can be slower, especially on macOS)
         assert (
             elapsed < 25.0
         ), f"Regression: depth 8 took {elapsed:.2f}s (should be < 25s CI-friendly)"

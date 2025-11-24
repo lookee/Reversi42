@@ -17,14 +17,12 @@ Run with:
     pytest tests/webgui/test_e2e.py -v
 """
 
-import asyncio
-import json
 import os
 import sys
 import time
 
 import pytest
-from playwright.async_api import Page, async_playwright, expect
+from playwright.async_api import Page, async_playwright
 
 # Add src to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -39,8 +37,10 @@ try:
 except ImportError:
     # Fallback if conftest not available
     IS_CI = os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
+
     def get_ci_timeout(base_timeout):
         return base_timeout * 2.0 if IS_CI else base_timeout
+
 
 # Configuration
 # Use longer timeout in CI environments
@@ -50,13 +50,13 @@ TIMEOUT = get_ci_timeout(30000)  # 30 seconds locally, 60 seconds in CI
 async def goto_with_retry(page: Page, url: str, max_retries: int = 3):
     """
     Helper function to navigate to URL with retry logic.
-    
+
     In CI environments, uses longer timeouts and more retries.
     """
     last_error = None
     # More retries in CI
     actual_retries = max_retries * 2 if IS_CI else max_retries
-    
+
     for attempt in range(actual_retries):
         try:
             # Use longer timeout in CI
@@ -90,14 +90,14 @@ async def goto_with_retry(page: Page, url: str, max_retries: int = 3):
 async def close_initial_setup_screen(page: Page, max_retries: int = 3):
     """
     Helper function to close the initial setup screen if present.
-    
+
     This function handles the overlay that intercepts pointer events by:
     1. Waiting for the screen to be ready
     2. Checking if overlay elements are blocking
     3. Removing or hiding blocking elements if needed
     4. Clicking the start button with retry logic
     5. Verifying the screen is actually closed
-    
+
     Args:
         page: Playwright Page object
         max_retries: Maximum number of retry attempts
@@ -123,7 +123,7 @@ async def close_initial_setup_screen(page: Page, max_retries: int = 3):
         # Screen is visible, need to close it
         # First, check for blocking overlay elements
         blocking_elements = await page.query_selector_all("#initialWhiteCard, #initialBlackCard")
-        
+
         # Remove pointer-events blocking by setting CSS
         if blocking_elements:
             await page.evaluate(
@@ -142,40 +142,42 @@ async def close_initial_setup_screen(page: Page, max_retries: int = 3):
         start_btn = await page.query_selector("#initialStartGameBtn")
         if not start_btn:
             # Try alternative selectors
-            start_btn = await page.query_selector("button:has-text('Start'), button:has-text('Play')")
-        
+            start_btn = await page.query_selector(
+                "button:has-text('Start'), button:has-text('Play')"
+            )
+
         if start_btn:
             for attempt in range(max_retries):
                 try:
                     # Ensure button is visible and not blocked
                     await start_btn.wait_for_element_state("visible", timeout=5000)
-                    
+
                     # Scroll into view if needed
                     await start_btn.scroll_into_view_if_needed()
                     await page.wait_for_timeout(200)
-                    
+
                     # Try to click with force if needed (bypasses pointer-events)
                     try:
                         await start_btn.click(timeout=5000, force=False)
                     except Exception:
                         # If normal click fails, try force click
                         await start_btn.click(timeout=5000, force=True)
-                    
+
                     # Wait a bit for the click to process
                     await page.wait_for_timeout(500)
-                    
+
                     # Verify screen is closed
                     is_hidden_now = await initial_screen.evaluate(
                         "el => el.classList.contains('hidden')"
                     )
-                    
+
                     if is_hidden_now:
                         break  # Success!
-                    
+
                     # If still visible and not last attempt, wait longer and retry
                     if attempt < max_retries - 1:
                         await page.wait_for_timeout(1000 * (attempt + 1))
-                    
+
                 except Exception as e:
                     if attempt == max_retries - 1:
                         # Last attempt failed, try JavaScript click as fallback
@@ -196,10 +198,11 @@ async def close_initial_setup_screen(page: Page, max_retries: int = 3):
 
         # Wait for screen to be hidden (with longer timeout in CI)
         try:
-            await page.wait_for_function(
-                "() => { const el = document.getElementById('initialSetupScreen'); return el && el.classList.contains('hidden'); }",
-                timeout=get_ci_timeout(10000),
+            js_check = (
+                "() => { const el = document.getElementById('initialSetupScreen'); "
+                "return el && el.classList.contains('hidden'); }"
             )
+            await page.wait_for_function(js_check, timeout=get_ci_timeout(10000))
         except Exception:
             # If wait_for_function fails, check one more time
             try:
@@ -222,23 +225,25 @@ async def close_initial_setup_screen(page: Page, max_retries: int = 3):
 
         # Always wait for board to be ready
         await page.wait_for_selector("#board", timeout=TIMEOUT)
-        
+
         # Wait for game to be initialized (discs or valid moves should be visible)
         # Use longer timeout in CI
         game_init_timeout = get_ci_timeout(10000)
         try:
             # Try to wait for either discs or valid moves to appear
-            await page.wait_for_function(
-                "() => { const discs = document.querySelectorAll('.disc'); const valid = document.querySelectorAll('.valid'); return discs.length > 0 || valid.length > 0; }",
-                timeout=game_init_timeout,
+            js_check = (
+                "() => { const discs = document.querySelectorAll('.disc'); "
+                "const valid = document.querySelectorAll('.valid'); "
+                "return discs.length > 0 || valid.length > 0; }"
             )
+            await page.wait_for_function(js_check, timeout=game_init_timeout)
         except Exception:
             # If that fails, wait a bit more and check if board is at least present
             await page.wait_for_timeout(1000)
             board = await page.query_selector("#board")
             if not board:
                 raise Exception("Board element not found after closing initial screen")
-                
+
     except Exception as e:
         # If anything fails, at least ensure board is visible
         try:
@@ -400,7 +405,7 @@ class TestGamePlay:
             await valid_move.wait_for_element_state("visible", timeout=5000)
             await valid_move.scroll_into_view_if_needed()
             await page.wait_for_timeout(200)
-            
+
             # Try clicking with retry
             for attempt in range(3):
                 try:
@@ -416,7 +421,7 @@ class TestGamePlay:
                             await page.evaluate("(el) => el.click()", valid_move)
                     else:
                         await page.wait_for_timeout(500)
-            
+
             # Wait for move to process (longer in CI)
             await page.wait_for_timeout(get_ci_timeout(1000))
             # Should have more discs after move
@@ -490,7 +495,7 @@ class TestJSONEditor:
             await toggle_btn.wait_for_element_state("visible", timeout=5000)
             await toggle_btn.scroll_into_view_if_needed()
             await page.wait_for_timeout(200)
-            
+
             # Try clicking with retry
             for attempt in range(3):
                 try:
@@ -503,10 +508,14 @@ class TestJSONEditor:
                             await toggle_btn.click(timeout=5000, force=True)
                         except Exception:
                             # Fallback: JavaScript click
-                            await page.evaluate("() => { const btn = document.getElementById('toggleJsonEditor'); if (btn) btn.click(); }")
+                            js_click = (
+                                "() => { const btn = document.getElementById('toggleJsonEditor'); "
+                                "if (btn) btn.click(); }"
+                            )
+                            await page.evaluate(js_click)
                     else:
                         await page.wait_for_timeout(500)
-            
+
             await page.wait_for_timeout(500)
             # Editor should be visible
             editor_wrapper = await page.query_selector("#jsonEditorWrapper")
