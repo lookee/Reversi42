@@ -1896,9 +1896,7 @@ async def handle_human_move(websocket: WebSocket, session: GameSession, data: di
 
         # Security: Validate move format before parsing
         if not isinstance(move_coord, str) or len(move_coord) != 2:
-            await send_to_connection(
-                websocket, {"type": "error", "message": "Invalid move format"}
-            )
+            await send_to_connection(websocket, {"type": "error", "message": "Invalid move format"})
             return
 
         # Validate characters are valid (A-H, 1-8)
