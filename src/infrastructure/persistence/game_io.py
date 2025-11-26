@@ -67,10 +67,25 @@ class GameIO:
         # Get saves directory (creates if needed)
         saves_dir = GameIO.get_saves_directory()
 
+        # Security: Prevent path traversal - sanitize filename
+        # Remove any directory separators and path components
+        filename = os.path.basename(filename)
+        if not filename or ".." in filename or "/" in filename or "\\" in filename:
+            raise ValueError(f"Security: Invalid filename '{filename}' - path traversal detected")
+
         # Full path
         if not filename.endswith(".xot"):
             filename += ".xot"
         filepath = os.path.join(saves_dir, filename)
+
+        # Security: Ensure resolved path is within saves directory
+        filepath = os.path.abspath(filepath)
+        saves_dir_abs = os.path.abspath(saves_dir)
+        if not filepath.startswith(saves_dir_abs):
+            raise ValueError(
+                f"Security: File path outside saves directory. "
+                f"Requested: {filepath}, Allowed: {saves_dir_abs}"
+            )
 
         # Generate XOT content
         content = []
@@ -213,6 +228,15 @@ class GameIO:
         """
         if directory is None:
             directory = GameIO.get_saves_directory()
+        else:
+            # Security: Ensure directory is within saves directory
+            directory = os.path.abspath(directory)
+            saves_dir_abs = os.path.abspath(GameIO.get_saves_directory())
+            if not directory.startswith(saves_dir_abs):
+                raise ValueError(
+                    f"Security: Directory path outside saves directory. "
+                    f"Requested: {directory}, Allowed: {saves_dir_abs}"
+                )
 
         if not os.path.exists(directory):
             return []
