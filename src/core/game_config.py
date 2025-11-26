@@ -108,7 +108,19 @@ class GameConfigLoader:
         """
         # Determine config file path
         if config_path:
+            # Security: Prevent path traversal - resolve relative to project root
             path = Path(config_path)
+            if not path.is_absolute():
+                path = self.project_root / path
+            else:
+                # For absolute paths, ensure they're within project root
+                path_abs = path.resolve()
+                project_root_abs = self.project_root.resolve()
+                if not str(path_abs).startswith(str(project_root_abs)):
+                    raise ValueError(
+                        f"Security: Config path outside project root. "
+                        f"Requested: {path_abs}, Allowed: {project_root_abs}"
+                    )
         else:
             path = self.project_root / self.DEFAULT_CONFIG_PATH
 

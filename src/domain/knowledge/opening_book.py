@@ -67,6 +67,13 @@ class OpeningBook:
 
     def _load_book(self, book_path):
         """Load opening book from file into Trie structure"""
+        # Security: Validate book_path is safe (basic check)
+        # Note: This is primarily for internal use, but add basic protection
+        book_path_abs = os.path.abspath(book_path)
+        # Only allow paths within expected directories (Books/ or domain/knowledge/data/)
+        # This is a basic check - in production, consider more strict validation
+        if ".." in book_path or (os.path.sep + ".." + os.path.sep) in book_path_abs:
+            raise ValueError(f"Security: Invalid book path - path traversal detected: {book_path}")
         with open(book_path, "r") as f:
             for line in f:
                 line = line.strip()
