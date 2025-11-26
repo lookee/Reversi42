@@ -108,7 +108,7 @@ jobs:
         pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html -n 4
         # Verify coverage.xml was created
         if [ ! -f coverage.xml ]; then
-          echo "⚠️ coverage.xml not found after pytest, checking for .coverage files..."
+          echo "[WARNING] coverage.xml not found after pytest, checking for .coverage files..."
           find . -name ".coverage*" -o -name "coverage.xml" 2>/dev/null || true
           # Try to generate coverage.xml manually if .coverage exists
           if [ -f .coverage ]; then
@@ -136,25 +136,25 @@ jobs:
       run: |
         set -e
         if [ ! -f coverage.xml ]; then
-          echo "❌ coverage.xml not found!"
+          echo "[ERROR] coverage.xml not found!"
           echo "Listing current directory:"
           ls -la || true
           echo "Looking for coverage files:"
           find . -name "coverage.xml" -o -name "*.coverage" 2>/dev/null || true
           exit 1
         fi
-        echo "✅ coverage.xml found"
+        echo "[OK] coverage.xml found"
         ls -lh coverage.xml
         # Verify the file contains coverage data
         if ! grep -q "<coverage" coverage.xml; then
-          echo "❌ coverage.xml appears to be invalid or empty!"
+          echo "[ERROR] coverage.xml appears to be invalid or empty!"
           echo "File size: $(wc -c < coverage.xml) bytes"
           head -n 50 coverage.xml || cat coverage.xml
           exit 1
         fi
-        echo "✅ coverage.xml appears to be valid"
+        echo "[OK] coverage.xml appears to be valid"
         # Show summary (with error handling)
-        python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(f'Coverage file contains {len(root.findall(\".//class\"))} classes'); sources = root.findall('.//source'); print(f'Sources found: {len(sources)}'); [print(f'  - {s.text}') for s in sources[:5]]" || echo "⚠️ Could not parse coverage.xml summary"
+        python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(f'Coverage file contains {len(root.findall(\".//class\"))} classes'); sources = root.findall('.//source'); print(f'Sources found: {len(sources)}'); [print(f'  - {s.text}') for s in sources[:5]]" || echo "[WARNING] Could not parse coverage.xml summary"
         # Show first few lines to verify paths
         echo "First 20 lines of coverage.xml:"
         head -n 20 coverage.xml || echo "⚠️ Could not read coverage.xml"
@@ -166,9 +166,14 @@ jobs:
         python -c "
         import os
         import sys
+        import io
+        
+        # Set UTF-8 encoding for stdout on Windows
+        if sys.platform == 'win32':
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
         
         if not os.path.exists('coverage.xml'):
-            print('❌ coverage.xml not found!')
+            print('[ERROR] coverage.xml not found!')
             print('Listing current directory:')
             try:
                 for item in os.listdir('.'):
@@ -187,7 +192,7 @@ jobs:
                 print('No coverage files found')
             sys.exit(1)
         
-        print('✅ coverage.xml found')
+        print('[OK] coverage.xml found')
         file_size = os.path.getsize('coverage.xml')
         print(f'File size: {file_size} bytes')
         
@@ -196,15 +201,15 @@ jobs:
             with open('coverage.xml', 'r', encoding='utf-8') as f:
                 content = f.read(1000)
                 if '<coverage' not in content:
-                    print('❌ coverage.xml appears to be invalid or empty!')
+                    print('[ERROR] coverage.xml appears to be invalid or empty!')
                     print('First 500 characters:')
                     print(content[:500])
                     sys.exit(1)
         except Exception as e:
-            print(f'❌ Error reading coverage.xml: {e}')
+            print(f'[ERROR] Error reading coverage.xml: {e}')
             sys.exit(1)
         
-        print('✅ coverage.xml appears to be valid')
+        print('[OK] coverage.xml appears to be valid')
         
         # Show summary
         try:
@@ -218,7 +223,7 @@ jobs:
             for s in sources[:5]:
                 print(f'  - {s.text}')
         except Exception as e:
-            print(f'⚠️ Could not parse coverage.xml summary: {e}')
+            print(f'[WARNING] Could not parse coverage.xml summary: {e}')
         
         # Show first few lines
         try:
@@ -229,7 +234,7 @@ jobs:
                     if line:
                         print(line.rstrip())
         except Exception as e:
-            print(f'⚠️ Could not read coverage.xml: {e}')
+            print(f'[WARNING] Could not read coverage.xml: {e}')
         "
     
     - name: Fix coverage paths for Codecov
@@ -244,7 +249,7 @@ jobs:
           sed -i 's|/Users/[^/]*/[^/]*/[^/]*/||g' coverage.xml || true
           # Ensure source paths are relative
           sed -i 's|<source>.*src</source>|<source>src</source>|g' coverage.xml || true
-          echo "✅ Paths fixed in coverage.xml"
+          echo "[OK] Paths fixed in coverage.xml"
         fi
     
     - name: Upload coverage to Codecov
@@ -340,9 +345,9 @@ jobs:
            [ "${{ needs.test.result }}" != "success" ] || \
            [ "${{ needs.integration-tests.result }}" != "success" ] || \
            [ "${{ needs.build-check.result }}" != "success" ]; then
-          echo "❌ CI checks failed"
+          echo "[ERROR] CI checks failed"
           exit 1
         else
-          echo "✅ All CI checks passed"
+          echo "[OK] All CI checks passed"
         fi
 
