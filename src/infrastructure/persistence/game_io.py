@@ -128,6 +128,14 @@ class GameIO:
 
         # Normalize path
         filepath = os.path.abspath(filepath)
+        saves_dir_abs = os.path.abspath(GameIO.get_saves_directory())
+
+        # Security: Prevent path traversal - ensure resolved path is within saves directory
+        if not filepath.startswith(saves_dir_abs):
+            raise ValueError(
+                f"Security: File path outside saves directory. "
+                f"Requested: {filepath}, Allowed: {saves_dir_abs}"
+            )
 
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"Save file not found: {filepath}")

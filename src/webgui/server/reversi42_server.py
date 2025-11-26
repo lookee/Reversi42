@@ -1894,9 +1894,29 @@ async def handle_human_move(websocket: WebSocket, session: GameSession, data: di
             await send_to_connection(websocket, {"type": "error", "message": "No move provided"})
             return
 
+        # Security: Validate move format before parsing
+        if not isinstance(move_coord, str) or len(move_coord) != 2:
+            await send_to_connection(
+                websocket, {"type": "error", "message": "Invalid move format"}
+            )
+            return
+
+        # Validate characters are valid (A-H, 1-8)
+        move_coord_upper = move_coord.upper()
+        if not (
+            move_coord_upper[0].isalpha()
+            and move_coord_upper[0] in "ABCDEFGH"
+            and move_coord_upper[1].isdigit()
+            and move_coord_upper[1] in "12345678"
+        ):
+            await send_to_connection(
+                websocket, {"type": "error", "message": "Invalid move coordinates"}
+            )
+            return
+
         # Make move
-        logger.info(f"Making human move: {move_coord}")
-        success, error = session.make_move(move_coord)
+        logger.info(f"Making human move: {move_coord_upper}")
+        success, error = session.make_move(move_coord_upper)
 
         if not success:
             logger.warning(f"Move failed: {error}")
