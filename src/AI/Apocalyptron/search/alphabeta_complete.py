@@ -49,6 +49,7 @@ class AlphaBetaSearchComplete(SearchAlgorithm):
         enable_futility: bool = True,
         enable_lmr: bool = True,
         enable_multi_cut: bool = True,
+        temperature: float = 0.0,
     ):
         """
         Initialize complete alpha-beta search.
@@ -60,9 +61,11 @@ class AlphaBetaSearchComplete(SearchAlgorithm):
             enable_futility: Enable futility pruning
             enable_lmr: Enable late move reduction
             enable_multi_cut: Enable multi-cut pruning
+            temperature: Temperature for move variety (0.0 = deterministic, 1.0 = max variety)
         """
         self.evaluator = evaluator
         self.orderer = orderer
+        self.temperature = temperature
 
         # Optimization strategies
         self.null_move = NullMovePruning() if enable_null_move else None
@@ -119,7 +122,8 @@ class AlphaBetaSearchComplete(SearchAlgorithm):
         # Order moves
         ordered_moves = self.orderer.order_moves(game, move_list)
 
-        # Search each move
+        # Search each move and collect values
+        moves_with_values = []
         best_move = None
         best_value = -INFINITY
         alpha = -INFINITY
@@ -130,12 +134,22 @@ class AlphaBetaSearchComplete(SearchAlgorithm):
             value = -self.alphabeta(game, depth - 1, -beta, -alpha, allow_null_move=True)
             game.undo_move()
 
+            moves_with_values.append((move, value))
+
             if value > best_value or best_move is None:
                 best_value = value
                 best_move = move
 
             if value > alpha:
                 alpha = value
+
+        # Apply temperature-based selection if enabled
+        if self.temperature > 0.0:
+            from AI.Apocalyptron.randomization import apply_temperature_selection
+
+            # Sort moves by value descending
+            moves_with_values.sort(key=lambda x: x[1], reverse=True)
+            best_move = apply_temperature_selection(moves_with_values, self.temperature)
 
         return best_move
 

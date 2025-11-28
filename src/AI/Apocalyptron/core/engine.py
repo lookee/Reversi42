@@ -79,6 +79,7 @@ class ApocalyptronEngine:
             enable_futility=self.config.enable_futility_pruning,
             enable_lmr=self.config.enable_late_move_reduction,
             enable_multi_cut=self.config.enable_multi_cut_pruning,
+            temperature=self.config.temperature,
         )
 
         # Setup observers based on config

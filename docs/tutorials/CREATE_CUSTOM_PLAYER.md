@@ -102,6 +102,29 @@ pruning:
     enabled: true              # 15-25% speedup
 ```
 
+#### Step 5.5: Configure Move Variety (Optional)
+
+Control how deterministic your AI plays using temperature:
+
+```yaml
+behavior:
+  randomization:
+    enabled: true              # Enable temperature-based selection
+    temperature: 0.2           # 0.0 = deterministic, 1.0 = max variety
+```
+
+**Temperature Guidelines:**
+- `0.0` - Always plays best move (deterministic, expert players)
+- `0.05-0.15` - Low variety, mostly best moves (advanced players)
+- `0.2-0.3` - Moderate variety (intermediate players)
+- `0.4-0.5` - High variety (beginner players, more unpredictable)
+
+**Auto-calculation**: If `enabled: false` or omitted, temperature is automatically calculated based on depth:
+- Depth 1-3: ~0.4-0.5 (high variety)
+- Depth 4-6: ~0.2-0.3 (moderate variety)
+- Depth 7-9: ~0.05-0.15 (low variety)
+- Depth 10+: ~0.0-0.05 (minimal variety)
+
 #### Step 6: Test Your AI
 
 ```bash
@@ -137,6 +160,11 @@ evaluation:
 
 pruning:
   # All disabled for simplicity
+
+behavior:
+  randomization:
+    enabled: true
+    temperature: 0.3           # High variety for unpredictable gameplay
 ```
 
 #### Example 2: Defensive Wall

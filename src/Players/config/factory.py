@@ -229,6 +229,23 @@ class PlayerFactory:
         else:
             logger.info(f"   ❌ Aspiration Windows DISABLED")
 
+        # Configure temperature/randomization
+        behavior_config = config.get("behavior", {})
+        randomization_config = behavior_config.get("randomization", {})
+        if randomization_config.get("enabled", False):
+            temperature = randomization_config.get("temperature", 0.0)
+            builder.with_temperature(temperature)
+            logger.info(f"   🌡️  Temperature: {temperature} (randomization enabled)")
+        else:
+            # Auto-calculate temperature from depth if not explicitly set
+            from AI.Apocalyptron.core.config import calculate_default_temperature
+
+            auto_temperature = calculate_default_temperature(base_depth)
+            builder.with_temperature(auto_temperature)
+            logger.info(
+                f"   🌡️  Temperature: {auto_temperature} (auto-calculated from depth {base_depth})"
+            )
+
         return builder.build()
 
     def _configure_evaluation(self, builder, eval_config: Dict[str, Any]):
@@ -341,8 +358,18 @@ class PlayerFactory:
                         if valid_book_moves:
                             self.book_hits += 1
                             if self.book_instant:
+                                # Get temperature from engine config
+                                temperature = (
+                                    self.bitboard_engine.config.temperature
+                                    if hasattr(self.bitboard_engine, "config")
+                                    else 0.0
+                                )
                                 return self.opening_book.get_best_opening_move(
-                                    game_history, valid_book_moves, game.turn, show_details=False
+                                    game_history,
+                                    valid_book_moves,
+                                    game.turn,
+                                    show_details=False,
+                                    temperature=temperature,
                                 )
 
                 # Engine search

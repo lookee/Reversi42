@@ -233,7 +233,7 @@ Each player configuration includes:
 - **Pruning:** Null move, futility, LMR, multi-cut optimizations
 - **Move Ordering:** PV, killer moves, history heuristic
 - **Opening Book:** Strategy (instant/evaluated), display options
-- **Behavior:** Logging level, think delays, randomization
+- **Behavior:** Logging level, think delays, randomization (temperature-based move variety)
 - **Advanced:** Experimental features
 
 Total: **~200 lines per player**, heavily documented

@@ -76,6 +76,7 @@ class PlayerApocalyptron(Player):
         search_strategy="iterative_deepening",  # NEW parameter
         config_builder=None,  # NEW parameter for full control
         book_instant=False,  # NEW: If False, book moves are evaluated (not instant)
+        temperature=None,  # NEW: Temperature for variety (None = auto-calculate from depth)
     ):
         """
         Initialize Apocalyptron AI.
@@ -87,6 +88,7 @@ class PlayerApocalyptron(Player):
             search_strategy: 'fixed_depth', 'iterative_deepening', 'adaptive' (NEW!)
             config_builder: Custom ApocalyptronConfigBuilder for advanced control (NEW!)
             book_instant: If False, book moves are prioritized but evaluated (default: False)
+            temperature: Temperature for move variety (None = auto from depth, 0.0 = deterministic)
         """
         # Don't call super().__init__() to avoid double initialization message
         # Instead, initialize directly (same as AIPlayerGrandmaster but with Apocalyptron branding)
@@ -128,6 +130,13 @@ class PlayerApocalyptron(Player):
             # Override weights if provided
             if weights:
                 builder.with_weights(weights)
+
+            # Set temperature (auto-calculate from depth if not provided)
+            if temperature is None:
+                from AI.Apocalyptron.core.config import calculate_default_temperature
+
+                temperature = calculate_default_temperature(depth)
+            builder.with_temperature(temperature)
 
             engine_config = builder.build()
 
@@ -280,9 +289,19 @@ class PlayerApocalyptron(Player):
 
                 # Use intelligent selection based on opening evaluation
                 if len(book_moves) > 1:
-                    # Evaluate and choose best move
+                    # Get temperature from engine config
+                    temperature = (
+                        self.bitboard_engine.config.temperature
+                        if hasattr(self.bitboard_engine, "config")
+                        else 0.0
+                    )
+                    # Evaluate and choose best move with temperature
                     chosen_move = self.opening_book.get_best_opening_move(
-                        game_history, book_moves, game.turn, show_details=self.show_book_options
+                        game_history,
+                        book_moves,
+                        game.turn,
+                        show_details=self.show_book_options,
+                        temperature=temperature,
                     )
                     if self.show_book_options:
                         # Show selected opening and advantage

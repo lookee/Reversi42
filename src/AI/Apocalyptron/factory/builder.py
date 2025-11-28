@@ -45,6 +45,18 @@ class ApocalyptronConfigBuilder:
         self._config.num_workers = num_workers
         return self
 
+    def with_temperature(self, temperature: float) -> "ApocalyptronConfigBuilder":
+        """
+        Set temperature for move variety.
+
+        Args:
+            temperature: Temperature value (0.0 = deterministic, 1.0 = maximum variety)
+        """
+        if temperature < 0.0 or temperature > 1.0:
+            raise ValueError("temperature must be between 0.0 and 1.0")
+        self._config.temperature = temperature
+        return self
+
     def enable_iterative_deepening(self, enabled: bool = True) -> "ApocalyptronConfigBuilder":
         """Enable/disable iterative deepening"""
         self._config.use_iterative_deepening = enabled

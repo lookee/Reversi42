@@ -73,11 +73,13 @@ Open `http://localhost:8000` in your browser and start playing!
 - **Bitboard architecture** - 50-100x faster than traditional implementations
 - **Advanced AI algorithms** - Alpha-beta pruning, transposition tables, parallel search
 - **Configurable depth** - From beginner (3 ply) to expert (16 ply)
+- **Temperature-based variety** - Probabilistic move selection for more diverse gameplay
 
 ### 🤖 **11 AI Opponents**
 - **ELO ratings**: 1250-1880 (beginner to expert)
 - **Unique strategies**: Adaptive, defensive, aggressive, tactical, chaotic
 - **YAML-based configuration** - Create custom AI players without coding
+- **Move variety** - Lower-level players use temperature-based selection for more varied gameplay
 
 ### 📚 **Professional Opening Book**
 - **644 tournament sequences** - Derived from professional play
@@ -143,6 +145,12 @@ cp config/players/00_AI_CONFIG_TEMPLATE.yaml config/players/enabled/my_ai.yaml
 # Edit the configuration file
 reversi42  # Your player is automatically discovered!
 ```
+
+**Move Variety (Temperature)**: Control how deterministic your AI plays:
+- `temperature: 0.0` - Always plays the best move (deterministic)
+- `temperature: 0.1-0.3` - Mostly best moves, occasional variety
+- `temperature: 0.4-0.5` - High variety for more unpredictable gameplay
+- Auto-calculated based on depth (lower depth = higher temperature)
 
 📚 [Configuration Guide →](https://github.com/lookee/Reversi42/blob/master/docs/tutorials/CREATE_CUSTOM_PLAYER.md)
 

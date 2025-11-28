@@ -625,7 +625,7 @@ class OpeningBook:
         return evaluations
 
     def get_best_opening_move(
-        self, game_history, available_moves, player_color, show_details=False
+        self, game_history, available_moves, player_color, show_details=False, temperature=0.0
     ):
         """
         Get the best move based on opening evaluation.
@@ -635,9 +635,10 @@ class OpeningBook:
             available_moves: List of Move objects
             player_color: 'B' for Black, 'W' for White
             show_details: If True, print evaluation details
+            temperature: Temperature for probabilistic selection (0.0 = deterministic, 1.0 = max variety)
 
         Returns:
-            Best Move object (or random choice if tie)
+            Best Move object (selected probabilistically based on temperature)
         """
         import random
 
@@ -686,6 +687,21 @@ class OpeningBook:
             # This is for game move selection, not security-sensitive operations
             return random.choice(available_moves) if available_moves else None
 
+        # Apply temperature-based selection if enabled
+        if temperature > 0.0:
+            # Build list of (move, score) tuples
+            moves_with_scores = [
+                (move, evaluations[str(move).upper()]["score"]) for move in available_moves
+            ]
+            # Sort by score descending
+            moves_with_scores.sort(key=lambda x: x[1], reverse=True)
+
+            # Use temperature-based selection
+            from AI.Apocalyptron.randomization import apply_temperature_selection
+
+            return apply_temperature_selection(moves_with_scores, temperature)
+
+        # Deterministic selection (temperature = 0.0)
         best_score = max(eval_data["score"] for eval_data in evaluations.values())
 
         # Get all moves with best score (handle ties)

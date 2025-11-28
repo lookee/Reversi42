@@ -339,12 +339,15 @@ class ParallelSearch:
         best_value = -999999
         total_nodes = 0
         total_pruning = 0
+        moves_with_values = []  # Collect all moves with values for temperature selection
 
         move_count = 0
         for move, value, nodes, pruning in pool.imap_unordered(_evaluate_move_worker, work_items):
             total_nodes += nodes
             total_pruning += pruning
             move_count += 1
+
+            moves_with_values.append((move, value))
 
             is_best = value > best_value or best_move is None
 
@@ -355,6 +358,21 @@ class ParallelSearch:
             if value > best_value or best_move is None:
                 best_value = value
                 best_move = move
+
+        # Apply temperature-based selection if enabled
+        # Get temperature from base_search if available
+        temperature = 0.0
+        if hasattr(self.base_search, "alphabeta") and hasattr(
+            self.base_search.alphabeta, "temperature"
+        ):
+            temperature = self.base_search.alphabeta.temperature
+
+        if temperature > 0.0:
+            from AI.Apocalyptron.randomization import apply_temperature_selection
+
+            # Sort moves by value descending
+            moves_with_values.sort(key=lambda x: x[1], reverse=True)
+            best_move = apply_temperature_selection(moves_with_values, temperature)
 
         parallel_time = time.perf_counter() - parallel_start
         time_total = time.perf_counter() - time_start

@@ -258,7 +258,33 @@ opening_book:
 behavior:
   logging:
     level: "normal"
+  randomization:
+    enabled: true              # Enable temperature-based move variety
+    temperature: 0.2           # 0.0 = deterministic, 1.0 = max variety
 ```
+
+### Temperature-Based Move Variety
+
+The `behavior.randomization` section controls move variety using temperature-based probabilistic selection:
+
+- **`enabled`**: Enable/disable temperature-based selection
+- **`temperature`**: Controls variety (0.0 = deterministic, 1.0 = maximum variety)
+
+**How it works:**
+- Uses softmax probability distribution over move evaluations
+- Better moves have higher probability but aren't always selected
+- Applied to both engine moves and opening book moves
+
+**Auto-calculation**: If `enabled: false` or omitted, temperature is automatically calculated based on depth:
+- Depth 1-3: ~0.4-0.5 (high variety for beginners)
+- Depth 4-6: ~0.2-0.3 (moderate variety)
+- Depth 7-9: ~0.05-0.15 (low variety)
+- Depth 10+: ~0.0-0.05 (minimal variety, highly consistent)
+
+**Use cases:**
+- Lower-level players: Higher temperature for more varied gameplay
+- Expert players: Lower temperature for consistent, optimal play
+- Training: Medium temperature to explore different strategies
 
 ## 🔧 Directory Structure
 

@@ -37,6 +37,39 @@ def _default_evaluators() -> List[EvaluatorConfig]:
     ]
 
 
+def calculate_default_temperature(depth: int) -> float:
+    """
+    Calculate default temperature based on depth level.
+
+    Lower depth players (weaker AI) get higher temperature for more variety.
+    Higher depth players (stronger AI) get lower temperature for consistency.
+
+    Args:
+        depth: Search depth (1-20)
+
+    Returns:
+        Temperature value between 0.0 and 1.0
+
+    Examples:
+        depth 1-3:  0.4-0.5 (high variety for beginners)
+        depth 4-6:  0.2-0.3 (moderate variety)
+        depth 7-9:  0.05-0.15 (low variety, more consistent)
+        depth 10+:  0.0-0.05 (minimal variety, highly consistent)
+    """
+    if depth <= 3:
+        # Beginner level: high variety
+        return 0.4 + (depth - 1) * 0.05  # 0.4-0.5
+    elif depth <= 6:
+        # Intermediate level: moderate variety
+        return 0.2 + (depth - 4) * 0.033  # 0.2-0.3
+    elif depth <= 9:
+        # Advanced level: low variety
+        return 0.05 + (depth - 7) * 0.033  # 0.05-0.15
+    else:
+        # Expert level: minimal variety
+        return max(0.0, 0.05 - (depth - 10) * 0.01)  # 0.05-0.0
+
+
 @dataclass
 class ApocalyptronConfig:
     """
@@ -90,6 +123,9 @@ class ApocalyptronConfig:
     show_statistics: bool = True
     verbose: bool = False
 
+    # Randomization / Temperature for move variety
+    temperature: float = 0.0  # 0.0 = deterministic, 1.0 = maximum variety
+
     def __post_init__(self):
         """Validate configuration after initialization"""
         if self.depth < 1:
@@ -100,6 +136,9 @@ class ApocalyptronConfig:
 
         if self.num_workers is not None and self.num_workers < 1:
             raise ValueError("num_workers must be >= 1 or None")
+
+        if self.temperature < 0.0 or self.temperature > 1.0:
+            raise ValueError("temperature must be between 0.0 and 1.0")
 
     def to_dict(self) -> dict:
         """Export configuration as dictionary"""
@@ -118,4 +157,5 @@ class ApocalyptronConfig:
             "search_strategy": self.search_strategy,
             "adaptive_depths": self.adaptive_depths,
             "evaluators": [{"type": e.evaluator_type, "weight": e.weight} for e in self.evaluators],
+            "temperature": self.temperature,
         }
