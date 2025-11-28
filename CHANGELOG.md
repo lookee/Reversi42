@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.13] - 2025-11-28
+
+### Added
+- **🧪 Comprehensive Test Coverage for Temperature-Based Move Variety**
+  - Added 16 unit tests for randomization module (`test_randomization.py`)
+    - Test deterministic selection with temperature=0.0
+    - Test probabilistic selection with various temperature values
+    - Test probability distribution and variety
+    - Test edge cases and error handling
+    - Test `get_top_moves_with_similar_values` helper function
+  - Added 8 integration tests for temperature functionality (`test_temperature_integration.py`)
+    - Test temperature config passed to engine
+    - Test default temperature calculation based on depth
+    - Test PlayerApocalyptron with explicit and auto temperature
+    - Test deterministic behavior with temperature=0.0
+    - Test variety with temperature > 0
+    - Test integration with opening book and parallel search
+
+### Changed
+- **📊 Updated Test Statistics**
+  - Total tests: 571+ → 572+
+  - Test files: 42 → 44
+  - Documented new randomization and temperature integration test suites
+
 ## [7.0.10] - 2025-11-19
 
 ### Fixed
