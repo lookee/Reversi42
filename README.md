@@ -185,7 +185,7 @@ reversi42  # Your player is automatically discovered!
 pytest --cov=src tests/
 ```
 
-**571+ tests** covering unit, integration, and characterization scenarios.
+**572+ tests** covering unit, integration, and characterization scenarios.
 
 ### Test Coverage by Module
 
@@ -203,8 +203,8 @@ pytest --cov=src tests/
 ## 📈 Project Stats
 
 - **~17,000 lines** of Python code
-- **571+ tests** with comprehensive coverage (target: 80%+)
-- **42 test files** organized by module
+- **572+ tests** with comprehensive coverage (target: 80%+)
+- **44 test files** organized by module
 - **40+ documentation files**
 - **11 AI players** pre-configured
 - **644 opening sequences** from professional play

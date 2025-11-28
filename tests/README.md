@@ -4,16 +4,16 @@ Comprehensive test suite for the Reversi42 project.
 
 ## 📊 Test Statistics
 
-- **Total Tests**: 571+
-- **Test Files**: 42
+- **Total Tests**: 572+
+- **Test Files**: 44
 - **Coverage Target**: 80%+
 - **Test Categories**: Unit, Integration, Characterization, Performance, E2E
 
 ## 🧪 Test Organization
 
 ### Apocalyptron AI Engine (`tests/apocalyptron/`)
-- **Unit Tests**: 750+ tests covering evaluation, ordering, pruning, cache, search, observers
-- **Integration Tests**: 50+ tests for complete engine functionality
+- **Unit Tests**: 750+ tests covering evaluation, ordering, pruning, cache, search, observers, randomization
+- **Integration Tests**: 50+ tests for complete engine functionality (including temperature-based move variety)
 - **Characterization Tests**: Known position verification
 - **Performance Tests**: Benchmarks and speed tests
 
@@ -49,6 +49,12 @@ Comprehensive test suite for the Reversi42 project.
 
 ### Domain Tests (`tests/domain/`)
 - **test_enhanced_opening_book.py**: Enhanced opening book functionality
+
+### Randomization Tests (`tests/apocalyptron/unit/`)
+- **test_randomization.py**: 16 tests - Temperature-based move selection and probabilistic move variety
+
+### Temperature Integration Tests (`tests/apocalyptron/integration/`)
+- **test_temperature_integration.py**: 8 tests - Temperature functionality integrated with engine, player, opening book, and parallel search
 
 ### WebGUI Tests (`tests/webgui/`)
 - **test_backend_server.py**: Backend server tests
