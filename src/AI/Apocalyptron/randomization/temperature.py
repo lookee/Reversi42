@@ -7,13 +7,13 @@ to AI play while maintaining quality.
 
 import math
 import random
-from typing import List, Tuple, TypeVar
+from typing import List, Tuple, TypeVar, Union
 
 Move = TypeVar("Move")
 
 
 def apply_temperature_selection(
-    moves_with_values: List[Tuple[Move, float]], temperature: float
+    moves_with_values: List[Tuple[Move, Union[int, float]]], temperature: float
 ) -> Move:
     """
     Select a move probabilistically based on temperature.
@@ -48,7 +48,8 @@ def apply_temperature_selection(
 
     # Extract moves and values
     moves = [m for m, _ in moves_with_values]
-    values = [v for _, v in moves_with_values]
+    # Convert values to float for softmax calculation
+    values = [float(v) for _, v in moves_with_values]
 
     # Normalize values to avoid overflow in softmax
     # Shift values so max is 0 (prevents exp overflow)
@@ -71,8 +72,8 @@ def apply_temperature_selection(
 
 
 def get_top_moves_with_similar_values(
-    moves_with_values: List[Tuple[Move, float]], threshold: float = 0.05
-) -> List[Tuple[Move, float]]:
+    moves_with_values: List[Tuple[Move, Union[int, float]]], threshold: float = 0.05
+) -> List[Tuple[Move, Union[int, float]]]:
     """
     Get moves with values within threshold of the best move.
 
