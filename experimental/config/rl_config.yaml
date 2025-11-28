@@ -1,0 +1,37 @@
+# RL Player Training Configuration - M1 Optimized
+# Ottimizzazioni per velocizzare training su M1 MacBook Pro
+
+training:
+  batch_size: 4096              # Aumentato per M1 (può gestire batch più grandi)
+  learning_rate: 0.001
+  weight_decay: 1e-4
+  optimizer: "AdamW"
+  scheduler: "CosineAnnealingLR"
+  max_iterations: 1000000
+  
+mcts:
+  simulations: 400               # RIDOTTO da 800 (2x più veloce, qualità ancora buona)
+  c_puct: 1.0
+  dirichlet_alpha: 0.3
+  dirichlet_epsilon: 0.25
+  
+self_play:
+  games_per_iteration: 50       # RIDOTTO da 100 (2x più veloce per iterazione)
+  temperature: 1.0
+  temperature_decay: 0.99
+  
+replay_buffer:
+  capacity: 1000000
+  min_size: 5000                # RIDOTTO da 10000 (inizia training prima)
+  
+evaluation:
+  eval_frequency: 50            # RIDOTTO da 100 (valuta più spesso ma veloce)
+  eval_games: 10                # RIDOTTO da 20 (valutazione più veloce)
+  win_threshold: 0.55
+  
+checkpoint:
+  save_frequency: 10             # Ogni 10 iterazioni
+  keep_last_n: 5
+  config_save_frequency: 10
+  save_config_with_checkpoint: true
+

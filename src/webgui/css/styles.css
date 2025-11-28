@@ -1713,12 +1713,53 @@ body.initial-setup-active .modalOverlay{
 .ws-status-indicator.connecting .ws-status-dot{
   background: #f59e0b;
 }
+.ws-status-indicator.disconnected{
+  /* Make disconnected/reconnecting state very visible */
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+  font-weight: 600;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+  animation: wsReconnectingPulse 1.5s ease-in-out infinite;
+}
+.ws-status-indicator.disconnected .ws-status-dot{
+  background: #ef4444;
+  animation: wsReconnectingBlink 0.8s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+.ws-status-indicator.disconnected .ws-status-text{
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 .ws-status-indicator.ws-active .ws-status-dot{
   animation: wsActivityFlash 0.4s ease-out;
 }
 @keyframes wsPulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(1.2); }
+}
+@keyframes wsReconnectingPulse {
+  0%, 100% { 
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    transform: scale(1.02);
+  }
+}
+@keyframes wsReconnectingBlink {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+  }
+  50% { 
+    opacity: 0.4; 
+    transform: scale(1.3);
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.9);
+  }
 }
 @keyframes wsActivityFlash {
   0% { 

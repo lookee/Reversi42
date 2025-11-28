@@ -205,19 +205,75 @@ def serve(
 
         server = uvicorn.Server(config)
 
-        # Graceful shutdown handler
+        # Track Ctrl+C presses for forced exit
+        shutdown_count = [0]
+        shutdown_initiated = [False]
+
+        # Graceful shutdown handler for Ctrl+C
         def signal_handler(sig, frame):
-            print("\n\n⚠️  Shutting down gracefully...")
+            if shutdown_initiated[0]:
+                # Already shutting down, force exit immediately
+                print("\n⚠️  Force exit (Ctrl+C during shutdown)")
+                import os
+                os._exit(130)
+            
+            shutdown_count[0] += 1
+            shutdown_initiated[0] = True
+            count = shutdown_count[0]
+            
+            print(f"\n\n⚠️  Received shutdown signal (Ctrl+C) - Press #{count}")
+            print("Closing connections and cleaning up...")
+            
+            # Set shutdown flag
             server.should_exit = True
+            
+            # Try aggressive shutdown
+            try:
+                if hasattr(server, 'shutdown'):
+                    server.shutdown()
+            except:
+                pass
+            
+            # Force exit on second Ctrl+C
+            if count >= 2:
+                print("⚠️  Force shutdown (Ctrl+C pressed twice)")
+                import os
+                os._exit(130)
+            
+            # Set timeout - force exit if server doesn't stop
+            import threading
+            def force_exit_timeout():
+                import time
+                time.sleep(2)
+                if shutdown_initiated[0]:
+                    print("\n⚠️  Server not responding, forcing exit...")
+                    import os
+                    os._exit(130)
+            
+            timeout_thread = threading.Thread(target=force_exit_timeout, daemon=True)
+            timeout_thread.start()
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
 
         # Start server
-        server.run()
-
-        print("\n✅ Server stopped cleanly")
-        return 0
+        try:
+            print("Press Ctrl+C to stop the server...")
+            server.run()
+            print("\n✅ Server stopped cleanly")
+            return 0
+        except KeyboardInterrupt:
+            # This should be caught by signal handler, but just in case
+            print("\n\n⚠️  Interrupted by user (KeyboardInterrupt)")
+            shutdown_initiated[0] = True
+            server.should_exit = True
+            try:
+                if hasattr(server, 'shutdown'):
+                    server.shutdown()
+            except:
+                pass
+            print("✅ Server stopped cleanly")
+            return 130
 
     except KeyboardInterrupt:
         print("\n\n⚠️  Interrupted by user")

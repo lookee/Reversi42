@@ -80,7 +80,9 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
 
 def signal_handler(signum, frame):
-    """Handle shutdown signals gracefully"""
+    """Handle shutdown signals gracefully - DEPRECATED: Use handler in run_server() instead"""
+    # This handler is NOT registered - signal handlers are registered in run_server()
+    # Keeping this function for reference only
     logger.info(f"Received signal {signum}, initiating graceful shutdown...")
     logger.info(f"Active connections: {len(active_connections)}, Active sessions: {len(sessions)}")
     shutdown_event.set()
@@ -89,17 +91,21 @@ def signal_handler(signum, frame):
 def cleanup_on_exit():
     """Cleanup function called on exit"""
     logger.info("Backend server shutting down...")
+    logger.info(f"Closing {len(active_connections)} active WebSocket connections...")
     # Close all active WebSocket connections
-    for websocket in active_connections.values():
+    for session_id, websocket in list(active_connections.items()):
         try:
-            asyncio.create_task(websocket.close())
+            # Try to close gracefully
+            if websocket.client_state.name != "DISCONNECTED":
+                asyncio.create_task(websocket.close())
+            logger.debug(f"Closed WebSocket for session {session_id}")
         except Exception as e:
-            logger.error(f"Error closing WebSocket: {e}")
+            logger.error(f"Error closing WebSocket for session {session_id}: {e}")
+    logger.info("✅ Cleanup completed")
 
 
-# Register signal handlers and cleanup
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
+# Register cleanup on exit (but NOT signal handlers here - they'll be registered in run_server)
+# Signal handlers are registered in run_server() to have full control over shutdown
 atexit.register(cleanup_on_exit)
 
 
@@ -1234,6 +1240,10 @@ async def get_avatar(filename: str):
         # Then check config/players/enabled/gladiators/avatars/ (for AI avatars)
         os.path.join(
             project_root, "config", "players", "enabled", "gladiators", "avatars", filename
+        ),
+        # Also check config/players/enabled/neural/avatars/ (for neural network players)
+        os.path.join(
+            project_root, "config", "players", "enabled", "neural", "avatars", filename
         ),
     ]
 
@@ -2544,7 +2554,134 @@ def main():
 
     import uvicorn
 
-    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+    # Use Server instance for better signal handling
+    config = uvicorn.Config(
+        app,
+        host=args.host,
+        port=args.port,
+        log_level="info",
+    )
+    
+    server = uvicorn.Server(config)
+    # Disable uvicorn's default signal handlers - we'll handle them ourselves
+    server.install_signal_handlers = False
+    
+    # Track Ctrl+C presses for forced exit
+    _shutdown_count = [0]
+    _force_exit = [False]
+    _shutdown_initiated = [False]
+    
+    # Aggressive shutdown handler for Ctrl+C
+    def graceful_shutdown(sig, frame):
+        if _shutdown_initiated[0]:
+            # Already shutting down, force exit immediately
+            print("\n⚠️  Force exit (Ctrl+C during shutdown)")
+            cleanup_on_exit()
+            import os
+            os._exit(130)
+        
+        _shutdown_count[0] += 1
+        count = _shutdown_count[0]
+        _shutdown_initiated[0] = True
+        
+        # Print immediately
+        print(f"\n⚠️  Received shutdown signal (Ctrl+C) - Press #{count}")
+        logger.info(f"⚠️  Received shutdown signal (Ctrl+C) - Press #{count}")
+        logger.info(f"Active connections: {len(active_connections)}, Active sessions: {len(sessions)}")
+        
+        # Set shutdown flags
+        shutdown_event.set()
+        server.should_exit = True
+        
+        # Force exit immediately - no waiting
+        print("⚠️  Shutting down server immediately...")
+        logger.info("Shutting down server immediately...")
+        
+        # Try to stop event loop immediately
+        try:
+            import asyncio
+            try:
+                loop = asyncio.get_running_loop()
+                if loop.is_running():
+                    loop.call_soon_threadsafe(loop.stop)
+            except RuntimeError:
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        loop.stop()
+                except:
+                    pass
+        except Exception as e:
+            logger.debug(f"Error stopping event loop: {e}")
+        
+        # Force exit on second Ctrl+C
+        if count >= 2:
+            print("⚠️  Force shutdown (Ctrl+C pressed twice)")
+            logger.warning("⚠️  Force shutdown (Ctrl+C pressed twice)")
+            _force_exit[0] = True
+            cleanup_on_exit()
+            import os
+            os._exit(130)
+        
+        # Very short timeout - force exit if server doesn't stop quickly
+        import threading
+        def force_exit_after_delay():
+            import time
+            time.sleep(0.3)  # 300ms timeout
+            if _shutdown_initiated[0] and not _force_exit[0]:
+                print("\n⚠️  Server not responding, forcing exit...")
+                logger.warning("Server not responding to shutdown, forcing exit")
+                _force_exit[0] = True
+                cleanup_on_exit()
+                import os
+                os._exit(130)
+        
+        timeout_thread = threading.Thread(target=force_exit_after_delay, daemon=True)
+        timeout_thread.start()
+    
+    # Register signal handlers (these override any previous handlers)
+    signal.signal(signal.SIGINT, graceful_shutdown)
+    signal.signal(signal.SIGTERM, graceful_shutdown)
+    
+    try:
+        # Start server (this blocks until shutdown)
+        print("Press Ctrl+C to stop the server...")
+        logger.info("Starting server... Press Ctrl+C to stop.")
+        
+        # Start server in main thread (uvicorn needs main thread for signals)
+        # Use server.run() which handles signals properly
+        server.run()
+        
+        if not _force_exit[0]:
+            logger.info("✅ Server stopped cleanly")
+            print("✅ Server stopped cleanly")
+            
+    except KeyboardInterrupt:
+        # This should be caught by signal handler, but handle it anyway
+        logger.info("\n⚠️  Interrupted by user (KeyboardInterrupt)")
+        print("\n⚠️  Interrupted by user (KeyboardInterrupt)")
+        shutdown_event.set()
+        server.should_exit = True
+        try:
+            # Try to stop the event loop
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.stop()
+        except:
+            pass
+        try:
+            if hasattr(server, 'shutdown'):
+                server.shutdown()
+        except:
+            pass
+        cleanup_on_exit()
+        logger.info("✅ Server stopped cleanly")
+        print("✅ Server stopped cleanly")
+    except Exception as e:
+        logger.error(f"❌ Server error: {e}")
+        print(f"❌ Server error: {e}")
+        cleanup_on_exit()
+        raise
 
 
 if __name__ == "__main__":

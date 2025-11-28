@@ -14,3 +14,18 @@ PyYAML>=6.0.2
 
 # Optional: for better performance
 # orjson>=3.9.0
+
+# Optional: RL Player dependencies (install if you want to use RL Player)
+# For full RL training dependencies, see: experimental/requirements-rl.txt
+
+# RL Player - Lightweight inference (ONNX Runtime)
+# ONNX Runtime is lightweight (~50MB) and doesn't require PyTorch
+# For MCTS or training, install PyTorch: pip install torch>=2.0.0
+onnxruntime>=1.16.0              # Lightweight inference for RL Player (ONNX models)
+
+# NumPy compatibility (required for ONNX Runtime and PyTorch)
+# PyTorch 2.2.2 requires NumPy < 2.0, ONNX Runtime also compatible
+numpy>=1.24.0,<2.0.0             # NumPy (compatible with PyTorch and ONNX Runtime)
+
+# Optional: Full PyTorch (only if you need MCTS or want to train)
+# torch>=2.0.0                    # PyTorch (required for MCTS and training)

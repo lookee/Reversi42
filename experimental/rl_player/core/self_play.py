@@ -1,0 +1,211 @@
+"""
+Self-Play Module
+
+Plays games against itself to generate training data.
+"""
+
+import torch
+import numpy as np
+import copy
+import time
+from typing import List, Tuple, Optional
+from tqdm import tqdm
+
+from Reversi.BitboardGame import BitboardGame
+from Reversi.Game import Move
+from ..core.mcts import MCTS
+from ..core.neural_network import NeuralNetwork
+from ..utils.state_encoder import encode_state
+from ..data.replay_buffer import ReplayBuffer
+
+
+class SelfPlay:
+    """
+    Self-play engine that generates training data.
+    """
+    
+    def __init__(
+        self,
+        neural_network: NeuralNetwork,
+        mcts: MCTS,
+        temperature: float = 1.0,
+    ):
+        """
+        Initialize self-play engine.
+        
+        Args:
+            neural_network: Neural network to use for play
+            mcts: MCTS instance
+            temperature: Temperature for move selection during self-play
+        """
+        self.neural_network = neural_network
+        self.mcts = mcts
+        self.temperature = temperature
+    
+    def play_game(self, verbose: bool = False) -> List[Tuple]:
+        """
+        Play a single game and return training data.
+        
+        Args:
+            verbose: Whether to print game progress
+            
+        Returns:
+            List of (state, policy, value) tuples for training
+        """
+        game = BitboardGame()
+        training_data = []
+        move_history = []
+        
+        current_player = "B"
+        move_count = 0
+        
+        max_moves = 100  # Safety limit
+        start_time = time.time()
+        
+        while move_count < max_moves and not game.is_finish():
+            legal_moves = game.get_move_list()
+            
+            if len(legal_moves) == 0:
+                # No legal moves - pass turn
+                print(f"Move {move_count}: {current_player} passes")
+                game.pass_turn()
+                current_player = game.turn
+                move_count += 1
+                continue
+            
+            # Perform MCTS search (this can take time - 800 simulations per move)
+            move_start_time = time.time()
+            print(f"\nMove {move_count + 1}: {current_player} thinking... (MCTS: {self.mcts.num_simulations} simulations)")
+            
+            root = self.mcts.search(game, current_player, add_noise=True)
+            
+            move_time = time.time() - move_start_time
+            print(f"  ✓ Move {move_count + 1} completed in {move_time:.1f}s")
+            
+            # Get visit distribution
+            visit_dist = root.get_visit_distribution(temperature=self.temperature)
+            
+            # Select move
+            if visit_dist:
+                moves = list(visit_dist.keys())
+                probs = list(visit_dist.values())
+                selected_move = moves[np.random.choice(len(moves), p=probs)]
+            else:
+                # Fallback to random move
+                selected_move = legal_moves[0]
+            
+            # Encode state from current player's perspective
+            state = encode_state(
+                game,
+                current_player,
+                use_advanced_features=True,
+                use_opening_book=True,
+                device=self.neural_network.device
+            )
+            
+            # Convert visit distribution to policy array (65 elements: 64 positions + pass)
+            policy_array = torch.zeros(65)
+            for move, prob in visit_dist.items():
+                row = move.get_y() - 1
+                col = move.get_x() - 1
+                idx = row * 8 + col
+                policy_array[idx] = prob
+            
+            # Store training data (value will be set at end of game)
+            training_data.append((state, policy_array, None))
+            move_history.append((current_player, selected_move))
+            
+            # Make move
+            game.move(selected_move)
+            current_player = game.turn
+            move_count += 1
+            
+            # Show board state every 10 moves
+            if move_count % 10 == 0:
+                black_count = bin(game.black).count('1')
+                white_count = bin(game.white).count('1')
+                print(f"  Board state: Black={black_count}, White={white_count}, Moves={move_count}")
+        
+        # Assign final values based on game outcome
+        black_count = bin(game.black).count('1')
+        white_count = bin(game.white).count('1')
+        total_time = time.time() - start_time
+        
+        if black_count > white_count:
+            final_value_black = 1.0
+            final_value_white = -1.0
+            winner = "Black"
+        elif white_count > black_count:
+            final_value_black = -1.0
+            final_value_white = 1.0
+            winner = "White"
+        else:
+            final_value_black = 0.0
+            final_value_white = 0.0
+            winner = "Draw"
+        
+        print(f"\n🏁 Game finished!")
+        print(f"  Winner: {winner} (Black: {black_count}, White: {white_count})")
+        print(f"  Total moves: {move_count}")
+        print(f"  Total time: {total_time:.1f}s ({total_time/60:.1f} minutes)")
+        print(f"  Training positions: {len(training_data)}")
+        
+        # Assign values to training data
+        result_data = []
+        for i, (state, policy, _) in enumerate(training_data):
+            player_color = move_history[i][0]
+            value = final_value_black if player_color == "B" else final_value_white
+            result_data.append((state, policy, value))
+        
+        return result_data
+    
+    def generate_games(
+        self,
+        num_games: int,
+        verbose: bool = False,
+        progress_bar: bool = True
+    ) -> List[Tuple]:
+        """
+        Generate multiple games.
+        
+        Args:
+            num_games: Number of games to play
+            verbose: Whether to print game details
+            progress_bar: Whether to show progress bar
+            
+        Returns:
+            List of all training samples from all games
+        """
+        all_training_data = []
+        
+        iterator = range(num_games)
+        if progress_bar:
+            iterator = tqdm(iterator, desc="Self-play games", unit="game")
+        
+        for game_idx in iterator:
+            game_start_time = time.time()
+            
+            if game_idx == 0:
+                print(f"\n{'='*70}")
+                print(f"🎮 Starting game {game_idx + 1}/{num_games}")
+                print(f"{'='*70}")
+                print(f"MCTS simulations per move: {self.mcts.num_simulations}")
+                print(f"Estimated time per game: ~5-10 minutes")
+                print(f"{'='*70}\n")
+            else:
+                print(f"\n🎮 Starting game {game_idx + 1}/{num_games}...")
+            
+            game_data = self.play_game(verbose=True)  # Always verbose for progress
+            all_training_data.extend(game_data)
+            
+            game_time = time.time() - game_start_time
+            print(f"\n✓ Game {game_idx + 1} completed in {game_time/60:.1f} minutes")
+            print(f"  Positions collected: {len(game_data)}")
+            print(f"  Total positions so far: {len(all_training_data)}")
+            
+            # Update progress bar if available
+            if progress_bar and hasattr(iterator, 'set_description'):
+                iterator.set_description(f"Games: {game_idx + 1}/{num_games}, Positions: {len(all_training_data)}")
+        
+        return all_training_data
+

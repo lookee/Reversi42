@@ -1,0 +1,23 @@
+# RL Player Dependencies
+# Install with: pip install -r experimental/requirements-rl.txt
+
+# Deep Learning
+torch>=2.0.0                    # PyTorch with MPS support
+torchvision>=0.15.0
+torchaudio>=2.0.0
+onnx>=1.14.0                    # Required for ONNX export (torch.onnx needs this)
+
+# Utilities
+numpy>=1.24.0,<2.0.0  # PyTorch 2.2.2 requires NumPy < 2.0
+tqdm>=4.65.0                    # Progress bars
+tensorboard>=2.13.0             # Training visualization
+wandb>=0.15.0                   # Optional: experiment tracking
+
+# Data
+h5py>=3.9.0                     # For saving replay buffer
+pyyaml>=6.0                      # Configurations (already present)
+
+# Testing
+pytest>=7.0.0                   # Already present
+pytest-benchmark>=4.0.0         # Performance testing
+

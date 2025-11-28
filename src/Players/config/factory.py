@@ -61,6 +61,19 @@ class PlayerFactory:
             logger.info(f"   Player name from metadata: {player_name}")
             logger.info(f"   Config file path: {config_path}")
 
+            # Check player type from metadata FIRST (before building engine config)
+            metadata = config.get("metadata", {})
+            player_type = metadata.get("type", "apocalyptron")  # Default to apocalyptron
+            
+            if player_type == "rl":
+                # Create RL player (skip engine config)
+                player = self._create_rl_player(config)
+                self._update_stats(config, success=True)
+                logger.info(f"✅ Successfully created RL player: {player_name} @ {id(player)}")
+                logger.info(f"╚══════════════════════════════════════════════════════════════╝")
+                logger.info(f"")
+                return player
+
             # Log key configuration details FROM YAML
             engine_config_dict = config.get("engine", {})
             depth_config = engine_config_dict.get("depth", {})
@@ -424,6 +437,39 @@ class PlayerFactory:
                 return bitboard
 
         return ConfiguredPlayer()
+    
+    def _create_rl_player(self, config: Dict[str, Any]) -> Any:
+        """
+        Create an RL player instance from configuration.
+        
+        Args:
+            config: Full configuration dictionary
+            
+        Returns:
+            PlayerRL instance
+        """
+        from Players.PlayerRL import PlayerRL
+        
+        metadata = config.get("metadata", {})
+        rl_config = config.get("rl", {})
+        
+        # Get RL-specific parameters
+        model_path = rl_config.get("model_path", "experimental/checkpoints/latest.pth")
+        use_mcts = rl_config.get("use_mcts", True)
+        mcts_simulations = rl_config.get("mcts_simulations", 400)
+        temperature = rl_config.get("temperature", 0.1)
+        name = metadata.get("name", "Neural Prime")
+        
+        # Create RL player
+        player = PlayerRL(
+            model_path=model_path,
+            use_mcts=use_mcts,
+            mcts_simulations=mcts_simulations,
+            temperature=temperature,
+            name=name
+        )
+        
+        return player
 
     def _update_stats(self, config: Dict[str, Any], success: bool):
         """Update creation statistics."""

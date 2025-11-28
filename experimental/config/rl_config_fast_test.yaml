@@ -1,0 +1,37 @@
+# RL Player Training Configuration - FAST TEST VERSION
+# Use this for quick testing - reduces MCTS simulations and games
+
+training:
+  batch_size: 512              # Smaller batch for faster training
+  learning_rate: 0.001
+  weight_decay: 1e-4
+  optimizer: "AdamW"
+  scheduler: "CosineAnnealingLR"
+  max_iterations: 1000000
+  
+mcts:
+  simulations: 100               # REDUCED from 800 for faster testing
+  c_puct: 1.0
+  dirichlet_alpha: 0.3
+  dirichlet_epsilon: 0.25
+  
+self_play:
+  games_per_iteration: 10        # REDUCED from 100 for faster testing
+  temperature: 1.0
+  temperature_decay: 0.99
+  
+replay_buffer:
+  capacity: 1000000
+  min_size: 1000                  # REDUCED from 10000 for faster start
+  
+evaluation:
+  eval_frequency: 100
+  eval_games: 20
+  win_threshold: 0.55
+  
+checkpoint:
+  save_frequency: 10              # REDUCED from 1000 for testing
+  keep_last_n: 5
+  config_save_frequency: 10       # REDUCED from 1000 for testing
+  save_config_with_checkpoint: true
+

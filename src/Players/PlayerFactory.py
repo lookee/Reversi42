@@ -41,6 +41,14 @@ class PlayerFactory:
         PlayerHuman,  # Human player
         PlayerApocalyptron,  # Apocalyptron AI
     ]
+    
+    # Try to import RL Player (optional, may not be available)
+    try:
+        from Players.PlayerRL import PlayerRL
+        LEGACY_PLAYER_CLASSES.append(PlayerRL)
+    except ImportError:
+        # RL Player not available (dependencies not installed)
+        pass
 
     # Build legacy registry
     PLAYER_TYPES: Dict[str, Type[Player]] = {

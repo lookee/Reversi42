@@ -619,11 +619,19 @@ function handleServerMessage(message){
         const aiMovedSide = aiMoveSide; // Already calculated above
         const aiMovedName = aiPlayerName; // Already calculated above
         updateAIAnalysis({...message.data, title: aiMovedName, side: aiMovedSide});
+        
+        // Also update quick stats panel (new UI) - force final update for move completion
+        scheduleStatsUpdate({...message.data, title: aiMovedName, side: aiMovedSide}, true);
       }
       console.log('AI move completed, waiting for board_update');
       break;
       
     case 'ai_thinking':
+      // Process AI statistics from thinking message
+      if(message.data && (message.data.nodes_searched || message.data.nodes || message.data.depth_reached || message.data.status)){
+        scheduleStatsUpdate(message.data, false);
+      }
+      
       // Show "Searching..." state ONLY on first message (no stats yet AND panel not visible)
       const hasStats = message.data && ((message.data.nodes_searched || message.data.nodes || 0) > 0);
       if(!hasStats && !statsCurrentlyVisible){
@@ -3087,12 +3095,15 @@ function updateAIQuickStats(stats, isFinal = false){
   // Extract values (support multiple key names for compatibility)
   const nodes = stats.nodes_searched || stats.nodes || 0;
   const pruned = stats.nodes_pruned || stats.pruning || 0;
-  const depth = stats.depth_reached || (typeof stats.depth === 'number' ? stats.depth : 0);
+  // Depth can be a number or a string (e.g., "MCTS", "Opening Book", "Direct Policy")
+  const depth = stats.depth_reached || stats.depth || 0;
+  const depthNum = typeof depth === 'number' ? depth : 0;
+  const depthStr = typeof depth === 'string' ? depth : null;
   const timeMs = stats.search_time_ms || stats.time_ms || stats.total_time_ms || 0;
   const nps = stats.nodes_per_second || (timeMs > 0 ? Math.floor((nodes * 1000) / timeMs) : 0);
   
-  // Skip ONLY if absolutely no data (initial message)
-  if(nodes === 0 && depth === 0 && !isFinal) return;
+  // Skip ONLY if absolutely no data (initial message) - but allow string depths
+  if(nodes === 0 && depthNum === 0 && !depthStr && !isFinal) return;
   
   // Update timestamp
   lastQuickStatsUpdate = Date.now();
@@ -3142,8 +3153,16 @@ function updateAIQuickStats(stats, isFinal = false){
   const pruneElem = document.getElementById('aiQuickPrune');
   const timeElem = document.getElementById('aiQuickTime');
   
-  // Depth: show number if > 0, otherwise show '--'
-  if(depthElem) depthElem.textContent = depth > 0 ? depth.toString() : '--';
+  // Depth: show string if available, otherwise number if > 0, otherwise '--'
+  if(depthElem) {
+    if(depthStr) {
+      depthElem.textContent = depthStr;
+    } else if(depthNum > 0) {
+      depthElem.textContent = depthNum.toString();
+    } else {
+      depthElem.textContent = '--';
+    }
+  }
   if(nodesElem) nodesElem.textContent = formatNumber(nodes);
   if(npsElem) npsElem.textContent = formatNPS(nps);
   if(pruneElem) pruneElem.textContent = `${prunePercent.toFixed(1)}%`;

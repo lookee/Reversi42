@@ -1,0 +1,13 @@
+Collecting torch
+  Using cached torch-2.2.2-cp38-none-macosx_10_9_x86_64.whl.metadata (25 kB)
+Requirement already satisfied: filelock in /Users/lucaamore/opt/anaconda3/lib/python3.8/site-packages (from torch) (3.0.12)
+Requirement already satisfied: typing-extensions>=4.8.0 in /Users/lucaamore/.local/lib/python3.8/site-packages (from torch) (4.13.2)
+Requirement already satisfied: sympy in /Users/lucaamore/opt/anaconda3/lib/python3.8/site-packages (from torch) (1.6.2)
+Requirement already satisfied: networkx in /Users/lucaamore/opt/anaconda3/lib/python3.8/site-packages (from torch) (2.5)
+Requirement already satisfied: jinja2 in /Users/lucaamore/opt/anaconda3/lib/python3.8/site-packages (from torch) (2.11.2)
+Requirement already satisfied: fsspec in /Users/lucaamore/opt/anaconda3/lib/python3.8/site-packages (from torch) (0.8.3)
+Requirement already satisfied: MarkupSafe>=0.23 in /Users/lucaamore/opt/anaconda3/lib/python3.8/site-packages (from jinja2->torch) (1.1.1)
+Requirement already satisfied: decorator>=4.3.0 in /Users/lucaamore/opt/anaconda3/lib/python3.8/site-packages (from networkx->torch) (4.4.2)
+Requirement already satisfied: mpmath>=0.19 in /Users/lucaamore/opt/anaconda3/lib/python3.8/site-packages (from sympy->torch) (1.1.0)
+Using cached torch-2.2.2-cp38-none-macosx_10_9_x86_64.whl (150.6 MB)
+Installing collected packages: torch
