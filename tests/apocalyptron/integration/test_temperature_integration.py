@@ -73,7 +73,10 @@ class TestTemperatureIntegration:
         expected_temp_high = calculate_default_temperature(9)
 
         assert abs(player_high.bitboard_engine.config.temperature - expected_temp_high) < 0.01
-        assert player_high.bitboard_engine.config.temperature < player.bitboard_engine.config.temperature
+        assert (
+            player_high.bitboard_engine.config.temperature
+            < player.bitboard_engine.config.temperature
+        )
 
     def test_temperature_zero_deterministic(self):
         """Test that temperature=0.0 produces deterministic moves."""
@@ -139,4 +142,3 @@ class TestTemperatureIntegration:
 
         # Temperature should be accessible
         assert engine.config.temperature == 0.2
-

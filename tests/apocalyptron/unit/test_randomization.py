@@ -197,15 +197,14 @@ class TestTopMovesWithSimilarValues:
         moves_with_values = [
             ("move1", 50.0),  # Best value
             ("move2", 49.0),  # Close to best
-            ("move3", 0.0),   # Too far (uses absolute threshold)
+            ("move3", 0.0),  # Too far (uses absolute threshold)
         ]
         # Sort descending
         moves_with_values.sort(key=lambda x: x[1], reverse=True)
-        
+
         # Should use absolute threshold when best value is near zero
         # But with best=50, threshold=0.05 means 2.5 points difference
         result = get_top_moves_with_similar_values(moves_with_values, threshold=0.05)
         # move1 and move2 should be included (within 2.5 points)
         assert len(result) >= 2
         assert ("move1", 50.0) in result
-
