@@ -178,7 +178,9 @@ class PlayerApocalyptron(Player):
         print(f"     ✅ Parallel Bitboard Search")
         print(f"     ✅ Opening Book Integration")
         print(
-            f"     ✅ HYBRID Opening Evaluation (adv={self.opening_book.advantage_weight}, var={self.opening_book.variety_weight})"
+            f"     ✅ HYBRID Opening Evaluation "
+            f"(adv={self.opening_book.advantage_weight}, "
+            f"var={self.opening_book.variety_weight})"
         )
         print(f"     ✅ Iterative Deepening")
         print(f"     ✅ Null Move Pruning")
@@ -240,7 +242,8 @@ class PlayerApocalyptron(Player):
                         desc, _ = self.opening_book.interpret_advantage(advantage)
                         sign = "+" if eval_score >= 0 else ""
                         print(
-                            f"Current opening: {current_opening} [{advantage}] - {desc} ({sign}{eval_score:.2f})"
+                            f"Current opening: {current_opening} [{advantage}] - "
+                            f"{desc} ({sign}{eval_score:.2f})"
                         )
                     else:
                         print(f"Current opening: {current_opening}")
@@ -340,7 +343,8 @@ class PlayerApocalyptron(Player):
                             if advantage:
                                 desc, value = self.opening_book.interpret_advantage(advantage)
                                 print(
-                                    f"📖 Playing {chosen_move}: {opening_name} [{advantage}] - {desc}\n"
+                                    f"📖 Playing {chosen_move}: {opening_name} "
+                                    f"[{advantage}] - {desc}\n"
                                 )
                             else:
                                 print(f"📖 Playing {chosen_move}: {opening_name}\n")

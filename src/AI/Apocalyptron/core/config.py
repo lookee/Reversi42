@@ -59,15 +59,14 @@ def calculate_default_temperature(depth: int) -> float:
     if depth <= 3:
         # Beginner level: high variety
         return 0.4 + (depth - 1) * 0.05  # 0.4-0.5
-    elif depth <= 6:
+    if depth <= 6:
         # Intermediate level: moderate variety
         return 0.2 + (depth - 4) * 0.033  # 0.2-0.3
-    elif depth <= 9:
+    if depth <= 9:
         # Advanced level: low variety
         return 0.05 + (depth - 7) * 0.033  # 0.05-0.15
-    else:
-        # Expert level: minimal variety
-        return max(0.0, 0.05 - (depth - 10) * 0.01)  # 0.05-0.0
+    # Expert level: minimal variety
+    return max(0.0, 0.05 - (depth - 10) * 0.01)  # 0.05-0.0
 
 
 @dataclass
