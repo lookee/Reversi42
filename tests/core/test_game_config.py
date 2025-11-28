@@ -46,7 +46,11 @@ class TestGameConfigLoader:
     def test_load_from_file(self):
         """Test loading configuration from file."""
         loader = GameConfigLoader()
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        # Create temp file within project root to pass security checks
+        project_root = loader.project_root
+        temp_file = project_root / "test_config_temp.yaml"
+
+        try:
             config_dict = {
                 "game": {"title": "Test Game", "board_size": 8},
                 "players": {
@@ -54,14 +58,14 @@ class TestGameConfigLoader:
                     "white": {"type": "ai", "name": "AI", "ai_player": "Apocalyptron"},
                 },
             }
-            yaml.dump(config_dict, f)
-            temp_path = f.name
+            with open(temp_file, "w") as f:
+                yaml.dump(config_dict, f)
 
-        try:
-            config = loader.load(temp_path)
+            config = loader.load(str(temp_file))
             assert isinstance(config, GameConfig)
         finally:
-            Path(temp_path).unlink()
+            if temp_file.exists():
+                temp_file.unlink()
 
     def test_find_project_root(self):
         """Test finding project root."""

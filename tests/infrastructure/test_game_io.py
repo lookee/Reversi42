@@ -129,14 +129,24 @@ class TestGameIO:
 
     def test_list_saved_games_empty_directory(self):
         """Test listing games in empty directory."""
-        # Use a temporary empty directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            games = GameIO.list_saved_games(temp_dir)
+        # Use saves directory (empty if no games saved)
+        saves_dir = GameIO.get_saves_directory()
+        # Create a temporary subdirectory within saves directory
+        temp_subdir = Path(saves_dir) / "test_empty_temp"
+        temp_subdir.mkdir(exist_ok=True)
+        try:
+            games = GameIO.list_saved_games(str(temp_subdir))
             assert games == []
+        finally:
+            if temp_subdir.exists():
+                temp_subdir.rmdir()
 
     def test_list_saved_games_nonexistent_directory(self):
         """Test listing games in nonexistent directory."""
-        games = GameIO.list_saved_games("/nonexistent/directory")
+        # Use a path within saves directory that doesn't exist
+        saves_dir = GameIO.get_saves_directory()
+        nonexistent_path = Path(saves_dir) / "nonexistent_subdirectory"
+        games = GameIO.list_saved_games(str(nonexistent_path))
         assert games == []
 
     def test_save_game_metadata(self):
