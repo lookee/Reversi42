@@ -149,7 +149,9 @@ class AlphaBetaSearchComplete(SearchAlgorithm):
 
             # Sort moves by value descending
             moves_with_values.sort(key=lambda x: x[1], reverse=True)
-            best_move = apply_temperature_selection(moves_with_values, self.temperature)
+            # Convert values to float for type compatibility
+            moves_with_float_values = [(move, float(value)) for move, value in moves_with_values]
+            best_move = apply_temperature_selection(moves_with_float_values, self.temperature)
 
         return best_move
 

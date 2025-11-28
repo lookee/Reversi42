@@ -372,7 +372,9 @@ class ParallelSearch:
 
             # Sort moves by value descending
             moves_with_values.sort(key=lambda x: x[1], reverse=True)
-            best_move = apply_temperature_selection(moves_with_values, temperature)
+            # Convert values to float for type compatibility
+            moves_with_float_values = [(move, float(value)) for move, value in moves_with_values]
+            best_move = apply_temperature_selection(moves_with_float_values, temperature)
 
         parallel_time = time.perf_counter() - parallel_start
         time_total = time.perf_counter() - time_start
