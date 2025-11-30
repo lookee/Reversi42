@@ -37,7 +37,7 @@ class ResNetReversi(nn.Module):
     ResNet architecture for Reversi with Policy and Value heads.
     
     Architecture:
-    - Input: [batch, channels, 8, 8] (channels = 2 or 7)
+    - Input: [batch, channels, 8, 8] (channels = 2, 7, or 8)
     - Convolutional block
     - N residual blocks
     - Policy head: outputs move probabilities [batch, 65] (64 positions + pass)
@@ -56,7 +56,7 @@ class ResNetReversi(nn.Module):
         Initialize ResNet for Reversi.
         
         Args:
-            input_channels: Number of input channels (2 or 7)
+            input_channels: Number of input channels (2, 7, or 8)
             num_residual_blocks: Number of residual blocks
             channels: Number of channels in residual blocks
             policy_head_channels: Channels in policy head convolution
@@ -182,4 +182,3 @@ def create_resnet_model(
         channels=channels,
         **kwargs
     )
-
