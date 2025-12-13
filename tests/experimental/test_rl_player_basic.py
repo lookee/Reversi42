@@ -30,16 +30,30 @@ def test_state_encoder_basic():
 
 
 def test_state_encoder_advanced():
-    """Test advanced state encoding (7 channels)."""
+    """Test advanced state encoding (8 channels with book)."""
     game = BitboardGame()
+    # Default is use_opening_book=True, so expect 8 channels
     state = encode_state(game, player_color="B", use_advanced_features=True)
     
-    assert state.shape == (7, 8, 8), f"Expected shape (7, 8, 8), got {state.shape}"
+    # Check if opening book is available
+    from experimental.rl_player.utils.state_encoder import get_opening_book
+    book = get_opening_book()
+    expected_channels = 8 if book is not None else 7
+    
+    assert state.shape == (expected_channels, 8, 8), f"Expected shape ({expected_channels}, 8, 8), got {state.shape}"
     assert isinstance(state, torch.Tensor)
     
     # Check channel values are in [0, 1]
     assert state.min() >= 0.0, "State values should be >= 0"
     assert state.max() <= 1.0, "State values should be <= 1"
+
+
+def test_state_encoder_no_book():
+    """Test advanced state encoding without opening book (7 channels)."""
+    game = BitboardGame()
+    state = encode_state(game, player_color="B", use_advanced_features=True, use_opening_book=False)
+    
+    assert state.shape == (7, 8, 8), f"Expected shape (7, 8, 8), got {state.shape}"
 
 
 def test_state_encoder_batch():
@@ -49,13 +63,18 @@ def test_state_encoder_batch():
     
     batch = encode_batch(games, player_colors, use_advanced_features=True)
     
-    assert batch.shape == (4, 7, 8, 8), f"Expected shape (4, 7, 8, 8), got {batch.shape}"
+    # Check if opening book is available to determine channels
+    from experimental.rl_player.utils.state_encoder import get_opening_book
+    book = get_opening_book()
+    expected_channels = 8 if book is not None else 7
+    
+    assert batch.shape == (4, expected_channels, 8, 8), f"Expected shape (4, {expected_channels}, 8, 8), got {batch.shape}"
 
 
 def test_resnet_model_creation():
     """Test ResNet model creation."""
     model = ResNetReversi(
-        input_channels=7,
+        input_channels=8, # Default to 8
         num_residual_blocks=19,
         channels=256
     )
@@ -63,16 +82,17 @@ def test_resnet_model_creation():
     assert model is not None
     param_count = model.count_parameters()
     assert param_count > 0, "Model should have parameters"
-    assert 3_000_000 < param_count < 6_000_000, f"Expected ~4-5M parameters, got {param_count}"
+    assert 20_000_000 < param_count < 25_000_000, f"Expected ~22M parameters, got {param_count}"
 
 
 def test_resnet_forward():
     """Test ResNet forward pass."""
-    model = ResNetReversi(input_channels=7, num_residual_blocks=19, channels=256)
+    # Use 8 channels
+    model = ResNetReversi(input_channels=8, num_residual_blocks=19, channels=256)
     model.eval()
     
-    # Create dummy input
-    x = torch.randn(2, 7, 8, 8)
+    # Create dummy input with 8 channels
+    x = torch.randn(2, 8, 8, 8)
     
     policy_logits, value = model(x)
     
@@ -83,14 +103,20 @@ def test_resnet_forward():
 
 def test_neural_network_wrapper():
     """Test NeuralNetwork wrapper."""
-    nn_wrapper = NeuralNetwork(input_channels=7, num_residual_blocks=19, channels=256)
+    # Initialize with 8 channels to be safe, or check what the encoder produces
+    game = BitboardGame()
+    # We need to know what the encoder will produce to initialize the network correctly
+    # For testing simpler: disable opening book to ensure 7 channels, OR use 8
+    
+    # Let's test with explicit opening book disabled to be deterministic about channels
+    state = encode_state(game, player_color="B", use_advanced_features=True, use_opening_book=False)
+    channels = state.shape[0] # Should be 7
+    
+    nn_wrapper = NeuralNetwork(input_channels=channels, num_residual_blocks=19, channels=256)
     
     assert nn_wrapper.device is not None
     assert nn_wrapper.model is not None
     
-    # Test forward pass
-    game = BitboardGame()
-    state = encode_state(game, player_color="B", use_advanced_features=True)
     state_batch = state.unsqueeze(0)  # Add batch dimension
     
     policy_logits, value = nn_wrapper.forward(state_batch)
@@ -101,10 +127,13 @@ def test_neural_network_wrapper():
 
 def test_neural_network_policy():
     """Test policy extraction with temperature."""
-    nn_wrapper = NeuralNetwork(input_channels=7, num_residual_blocks=19, channels=256)
-    
+    # Force 7 channels for deterministic test
     game = BitboardGame()
-    state = encode_state(game, player_color="B", use_advanced_features=True)
+    state = encode_state(game, player_color="B", use_advanced_features=True, use_opening_book=False)
+    channels = state.shape[0]
+    
+    nn_wrapper = NeuralNetwork(input_channels=channels, num_residual_blocks=19, channels=256)
+    
     state_batch = state.unsqueeze(0)
     
     policy = nn_wrapper.get_policy(state_batch, temperature=1.0)
@@ -116,10 +145,13 @@ def test_neural_network_policy():
 
 def test_neural_network_value():
     """Test value extraction."""
-    nn_wrapper = NeuralNetwork(input_channels=7, num_residual_blocks=19, channels=256)
-    
+    # Force 7 channels
     game = BitboardGame()
-    state = encode_state(game, player_color="B", use_advanced_features=True)
+    state = encode_state(game, player_color="B", use_advanced_features=True, use_opening_book=False)
+    channels = state.shape[0]
+
+    nn_wrapper = NeuralNetwork(input_channels=channels, num_residual_blocks=19, channels=256)
+    
     state_batch = state.unsqueeze(0)
     
     value = nn_wrapper.get_value(state_batch)

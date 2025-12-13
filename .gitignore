@@ -160,3 +160,6 @@ logs/*.log
 
 # Performance calibration files (machine-specific)
 tests/_performance/.performance_baseline.json
+
+# Local environments (custom)
+.venv-mps/
