@@ -197,11 +197,38 @@ def main():
     )
     
     # Create self-play engine
-    self_play = SelfPlay(
-        neural_network=model,
-        mcts=mcts,
-        temperature=config.get('self_play.temperature', 1.0),
-    )
+    from experimental.rl_player.core.parallel_self_play import ParallelSelfPlay
+
+    use_parallel = config.get('self_play.parallel', True)
+    num_workers = config.get('self_play.num_workers', None)  # None = auto-detect
+    use_symmetries = config.get('self_play.use_symmetries', True)
+    max_moves = config.get('self_play.max_moves', 100)
+
+    
+    if use_parallel:
+        print(f"\nInitializing Parallel Self-Play...")
+        print(f"Workers: {'Auto-detect' if num_workers is None else num_workers}")
+        print(f"Data Augmentation (Symmetries): {use_symmetries}")
+        
+        self_play = ParallelSelfPlay(
+            neural_network=model,
+            mcts_config=config.get('mcts', {}),
+            temperature=config.get('self_play.temperature', 1.0),
+            num_workers=num_workers,
+            use_mps_workers=False,  # Safer on M1 to run workers on CPU
+            use_symmetries=use_symmetries,
+            max_moves=max_moves
+        )
+    else:
+        print("\nInitializing Sequential Self-Play...")
+        print(f"Data Augmentation (Symmetries): {use_symmetries}")
+        self_play = SelfPlay(
+            neural_network=model,
+            mcts=mcts,
+            temperature=config.get('self_play.temperature', 1.0),
+            use_symmetries=use_symmetries,
+            max_moves=max_moves
+        )
     
     # Create trainer
     trainer = Trainer(
@@ -237,6 +264,12 @@ def main():
             saved_state = json.load(f)
             training_state.update(saved_state)
             training_state['iteration'] = saved_state.get('iteration', 0)
+    
+    # Load replay buffer if exists
+    buffer_path = checkpoints_dir / "replay_buffer.pkl"
+    if buffer_path.exists():
+        print(f"Loading replay buffer from {buffer_path}...")
+        replay_buffer.load(str(buffer_path))
     
     # Save initial training state
     training_state['start_time'] = time.time() if 'start_time' not in training_state else training_state['start_time']
@@ -304,6 +337,11 @@ def main():
                 training_state['checkpoint_path'] = str(checkpoint_path)
                 with open(state_path, 'w') as f:
                     json.dump(training_state, f, indent=2)
+                    
+                # Save replay buffer periodically
+                buffer_checkpoint_path = checkpoints_dir / f"replay_buffer_{iteration + 1:06d}.pkl"
+                # Don't save buffer every time if it's huge, but save 'latest' buffer
+                replay_buffer.save(str(checkpoints_dir / "replay_buffer.pkl"))
             
             # Always save latest.pth after each iteration (for recovery)
             latest_path = checkpoints_dir / "latest.pth"
@@ -333,6 +371,11 @@ def main():
         print("\n\nTraining interrupted by user.")
         print("Saving checkpoint...")
         model.save(str(checkpoints_dir / "latest.pth"))
+        
+        # Save replay buffer
+        print("Saving replay buffer...")
+        replay_buffer.save(str(checkpoints_dir / "replay_buffer.pkl"))
+        
         with open(state_path, 'w') as f:
             json.dump(training_state, f, indent=2)
         print("Checkpoint saved.")

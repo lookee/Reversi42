@@ -1,8 +1,8 @@
 # RL Player Training Configuration - M1 Optimized
-# Ottimizzazioni per velocizzare training su M1 MacBook Pro
+# Optimizations to speed up training on M1 MacBook Pro
 
 training:
-  batch_size: 4096              # Aumentato per M1 (può gestire batch più grandi)
+  batch_size: 4096              # Increased for M1 (can handle larger batches)
   learning_rate: 0.001
   weight_decay: 1e-4
   optimizer: "AdamW"
@@ -10,28 +10,31 @@ training:
   max_iterations: 1000000
   
 mcts:
-  simulations: 400               # RIDOTTO da 800 (2x più veloce, qualità ancora buona)
+  simulations: 400               # REDUCED from 800 (2x faster, quality still good)
   c_puct: 1.0
   dirichlet_alpha: 0.3
   dirichlet_epsilon: 0.25
   
 self_play:
-  games_per_iteration: 50       # RIDOTTO da 100 (2x più veloce per iterazione)
+  use_parallel: true
+  num_workers: null             # null = auto-detect
+  use_symmetries: true          # Data Augmentation (D8)
+  games_per_iteration: 50       # REDUCED from 100 (2x faster per iteration)
+  max_moves: 100                # Max moves per game (safety limit)
   temperature: 1.0
   temperature_decay: 0.99
   
 replay_buffer:
   capacity: 1000000
-  min_size: 5000                # RIDOTTO da 10000 (inizia training prima)
+  min_size: 5000                # REDUCED from 10000 (starts training sooner)
   
 evaluation:
-  eval_frequency: 50            # RIDOTTO da 100 (valuta più spesso ma veloce)
-  eval_games: 10                # RIDOTTO da 20 (valutazione più veloce)
+  eval_frequency: 50            # REDUCED from 100 (evaluates more often but faster)
+  eval_games: 10                # REDUCED from 20 (faster evaluation)
   win_threshold: 0.55
   
 checkpoint:
-  save_frequency: 10             # Ogni 10 iterazioni
+  save_frequency: 10             # Every 10 iterations
   keep_last_n: 5
   config_save_frequency: 10
   save_config_with_checkpoint: true
-

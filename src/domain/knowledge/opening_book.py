@@ -732,7 +732,10 @@ class OpeningBook:
 
 
 def get_default_opening_book(
-    advantage_weight=0.2, variety_weight=0.1, only_evaluated_openings=True
+    advantage_weight=0.2, 
+    variety_weight=0.1, 
+    only_evaluated_openings=True,
+    verbose: bool = True
 ):
     """
     Get the default opening book instance.
@@ -752,6 +755,7 @@ def get_default_opening_book(
         advantage_weight: Weight for advantage evaluation (default: 0.2)
         variety_weight: Weight for variety bonus (default: 0.1)
         only_evaluated_openings: If True, only use openings with advantage data (default: True)
+        verbose: Whether to print loading details (default: True)
 
     Returns:
         OpeningBook instance with all books combined
@@ -774,13 +778,15 @@ def get_default_opening_book(
     book_files.sort()  # Alphabetical order
 
     if not book_files:
-        print(f"⚠️  Warning: No opening book files found in {books_dir}")
+        if verbose:
+            print(f"⚠️  Warning: No opening book files found in {books_dir}")
         return OpeningBook()
 
     # Display header
-    print("\n" + "=" * 80)
-    print("📚 LOADING OPENING BOOKS")
-    print("=" * 80)
+    if verbose:
+        print("\n" + "=" * 80)
+        print("📚 LOADING OPENING BOOKS")
+        print("=" * 80)
 
     total_files = 0
     file_stats = []
@@ -826,19 +832,20 @@ def get_default_opening_book(
         total_files += 1
 
     # Display detailed log
-    print(f"\n📖 Loaded {total_files} opening book file(s):\n")
+    if verbose:
+        print(f"\n📖 Loaded {total_files} opening book file(s):\n")
 
-    for i, stat in enumerate(file_stats, 1):
-        advantages_val = stat["advantages"]
-        advantages = int(advantages_val) if isinstance(advantages_val, (int, float)) else 0
-        advantage_info = f", {advantages} with evaluations" if advantages > 0 else ""
-        print(f"  {i}. {stat['filename']:<35} {stat['openings']:>4} openings{advantage_info}")
+        for i, stat in enumerate(file_stats, 1):
+            advantages_val = stat["advantages"]
+            advantages = int(advantages_val) if isinstance(advantages_val, (int, float)) else 0
+            advantage_info = f", {advantages} with evaluations" if advantages > 0 else ""
+            print(f"  {i}. {stat['filename']:<35} {stat['openings']:>4} openings{advantage_info}")
 
-    print(f"\n{'─'*80}")
-    print(
-        f"📊 TOTAL: {combined_book.lines_loaded} openings, "
-        f"{len(combined_book.opening_advantages)} with positional evaluations"
-    )
-    print("=" * 80 + "\n")
+        print(f"\n{'─'*80}")
+        print(
+            f"📊 TOTAL: {combined_book.lines_loaded} openings, "
+            f"{len(combined_book.opening_advantages)} with positional evaluations"
+        )
+        print("=" * 80 + "\n")
 
     return combined_book

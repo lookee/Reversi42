@@ -29,6 +29,9 @@ class SelfPlay:
         neural_network: NeuralNetwork,
         mcts: MCTS,
         temperature: float = 1.0,
+        use_symmetries: bool = True,
+        opening_book: Optional[object] = None,
+        max_moves: int = 100
     ):
         """
         Initialize self-play engine.
@@ -37,17 +40,71 @@ class SelfPlay:
             neural_network: Neural network to use for play
             mcts: MCTS instance
             temperature: Temperature for move selection during self-play
+            use_symmetries: Whether to use data augmentation (D8 symmetries)
+            opening_book: Optional opening book instance
+            max_moves: Maximum moves per game (safety limit)
         """
         self.neural_network = neural_network
         self.mcts = mcts
         self.temperature = temperature
-    
-    def play_game(self, verbose: bool = False) -> List[Tuple]:
+        self.temperature = temperature
+        self.use_symmetries = use_symmetries
+        self.opening_book = opening_book
+        self.max_moves = max_moves
+
+    def generate_symmetries(self, state: torch.Tensor, policy: torch.Tensor, value: float) -> List[Tuple]:
+        """
+        Generate D8 symmetries (rotations + flips) for a training sample.
+        
+        Args:
+            state: Tensor [channels, 8, 8]
+            policy: Tensor [65] (64 positions + pass)
+            value: Float value
+            
+        Returns:
+            List of (state, policy, value) tuples
+        """
+        symmetries = []
+        
+        # Reshape policy (exclude pass move at index 64)
+        policy_board = policy[:64].view(8, 8)
+        policy_pass = policy[64]
+        
+        # 1. Original
+        symmetries.append((state, policy, value))
+        
+        # 2. Rotations (90, 180, 270)
+        for k in [1, 2, 3]:
+            rot_state = torch.rot90(state, k, [1, 2])
+            rot_policy_board = torch.rot90(policy_board, k, [0, 1])
+            
+            # Flatten and append pass
+            rot_policy = torch.cat([rot_policy_board.flatten(), policy_pass.unsqueeze(0)])
+            symmetries.append((rot_state, rot_policy, value))
+            
+        # 3. Horizontal Flip
+        flip_state = torch.flip(state, [2])
+        flip_policy_board = torch.flip(policy_board, [1])
+        flip_policy = torch.cat([flip_policy_board.flatten(), policy_pass.unsqueeze(0)])
+        symmetries.append((flip_state, flip_policy, value))
+        
+        # 4. Flip + Rotations
+        for k in [1, 2, 3]:
+            rot_flip_state = torch.rot90(flip_state, k, [1, 2])
+            rot_flip_policy_board = torch.rot90(flip_policy_board, k, [0, 1])
+            
+            rot_flip_policy = torch.cat([rot_flip_policy_board.flatten(), policy_pass.unsqueeze(0)])
+            symmetries.append((rot_flip_state, rot_flip_policy, value))
+            
+        return symmetries
+
+    def play_game(self, verbose: bool = False, progress_callback: Optional[callable] = None) -> List[Tuple]:
         """
         Play a single game and return training data.
         
         Args:
             verbose: Whether to print game progress
+            progress_callback: Optional callback(move_count) called during game
             
         Returns:
             List of (state, policy, value) tuples for training
@@ -59,15 +116,20 @@ class SelfPlay:
         current_player = "B"
         move_count = 0
         
-        max_moves = 100  # Safety limit
+        max_moves = self.max_moves  # Use configured limit
         start_time = time.time()
         
         while move_count < max_moves and not game.is_finish():
+            # Progress callback (every move for better feedback)
+            if progress_callback:
+                progress_callback(move_count)
+
             legal_moves = game.get_move_list()
             
             if len(legal_moves) == 0:
                 # No legal moves - pass turn
-                print(f"Move {move_count}: {current_player} passes")
+                if verbose:
+                    print(f"Move {move_count}: {current_player} passes")
                 game.pass_turn()
                 current_player = game.turn
                 move_count += 1
@@ -75,12 +137,14 @@ class SelfPlay:
             
             # Perform MCTS search (this can take time - 800 simulations per move)
             move_start_time = time.time()
-            print(f"\nMove {move_count + 1}: {current_player} thinking... (MCTS: {self.mcts.num_simulations} simulations)")
+            if verbose:
+                print(f"\nMove {move_count + 1}: {current_player} thinking... (MCTS: {self.mcts.num_simulations} simulations)")
             
-            root = self.mcts.search(game, current_player, add_noise=True)
+            root = self.mcts.search(game, current_player, add_noise=True, verbose=verbose)
             
             move_time = time.time() - move_start_time
-            print(f"  ✓ Move {move_count + 1} completed in {move_time:.1f}s")
+            if verbose:
+                print(f"  ✓ Move {move_count + 1} completed in {move_time:.1f}s")
             
             # Get visit distribution
             visit_dist = root.get_visit_distribution(temperature=self.temperature)
@@ -112,7 +176,9 @@ class SelfPlay:
                 policy_array[idx] = prob
             
             # Store training data (value will be set at end of game)
-            training_data.append((state, policy_array, None))
+            # IMPORTANT: Clone state to avoid issues if game mutates (though encode_state returns new tensor)
+            # Move to CPU to save GPU memory during game
+            training_data.append((state.cpu(), policy_array.cpu(), None))
             move_history.append((current_player, selected_move))
             
             # Make move
@@ -121,7 +187,7 @@ class SelfPlay:
             move_count += 1
             
             # Show board state every 10 moves
-            if move_count % 10 == 0:
+            if verbose and move_count % 10 == 0:
                 black_count = bin(game.black).count('1')
                 white_count = bin(game.white).count('1')
                 print(f"  Board state: Black={black_count}, White={white_count}, Moves={move_count}")
@@ -144,19 +210,29 @@ class SelfPlay:
             final_value_white = 0.0
             winner = "Draw"
         
-        print(f"\n🏁 Game finished!")
-        print(f"  Winner: {winner} (Black: {black_count}, White: {white_count})")
-        print(f"  Total moves: {move_count}")
-        print(f"  Total time: {total_time:.1f}s ({total_time/60:.1f} minutes)")
-        print(f"  Training positions: {len(training_data)}")
+        if verbose:
+            print(f"\n🏁 Game finished!")
+            print(f"  Winner: {winner} (Black: {black_count}, White: {white_count})")
+            print(f"  Total moves: {move_count}")
+            print(f"  Total time: {total_time:.1f}s ({total_time/60:.1f} minutes)")
+            print(f"  Training positions: {len(training_data)}")
         
-        # Assign values to training data
+        # Assign values and apply symmetries
         result_data = []
         for i, (state, policy, _) in enumerate(training_data):
             player_color = move_history[i][0]
             value = final_value_black if player_color == "B" else final_value_white
-            result_data.append((state, policy, value))
+            
+            if self.use_symmetries:
+                # Generate 8 symmetries
+                sym_samples = self.generate_symmetries(state, policy, value)
+                result_data.extend(sym_samples)
+            else:
+                result_data.append((state, policy, value))
         
+        if verbose and self.use_symmetries:
+             print(f"  Augmented positions: {len(result_data)} (x8 symmetries)")
+
         return result_data
     
     def generate_games(

@@ -198,6 +198,7 @@ class MCTS:
         num_simulations: int = 800,
         dirichlet_alpha: float = 0.3,
         dirichlet_epsilon: float = 0.25,
+        opening_book: Optional[object] = None
     ):
         """
         Initialize MCTS.
@@ -208,14 +209,16 @@ class MCTS:
             num_simulations: Number of MCTS simulations per move
             dirichlet_alpha: Dirichlet noise parameter
             dirichlet_epsilon: Weight of Dirichlet noise
+            opening_book: Optional opening book instance
         """
         self.neural_network = neural_network
         self.c_puct = c_puct
         self.num_simulations = num_simulations
         self.dirichlet_alpha = dirichlet_alpha
         self.dirichlet_epsilon = dirichlet_epsilon
+        self.opening_book = opening_book
     
-    def search(self, game: BitboardGame, player_color: str, add_noise: bool = True) -> MCTSNode:
+    def search(self, game: BitboardGame, player_color: str, add_noise: bool = True, verbose: bool = False) -> MCTSNode:
         """
         Perform MCTS search from given game state.
         
@@ -223,6 +226,7 @@ class MCTS:
             game: Current game state
             player_color: "B" or "W" - current player
             add_noise: Whether to add Dirichlet noise to root (for training)
+            verbose: Whether to print progress
             
         Returns:
             Root node with search results
@@ -233,7 +237,14 @@ class MCTS:
         root = MCTSNode(game)
         
         # Get initial policy and value from neural network
-        state = encode_state(game, player_color, use_advanced_features=True, use_opening_book=True, device=self.neural_network.device)
+        state = encode_state(
+            game, 
+            player_color, 
+            use_advanced_features=True, 
+            use_opening_book=True, 
+            device=self.neural_network.device,
+            opening_book=self.opening_book
+        )
         state_batch = state.unsqueeze(0)
         
         policy_logits, value = self.neural_network.forward(state_batch)
@@ -299,7 +310,8 @@ class MCTS:
                     current_player,
                     use_advanced_features=True,
                     use_opening_book=True,
-                    device=self.neural_network.device
+                    device=self.neural_network.device,
+                    opening_book=self.opening_book
                 )
                 state_batch = state.unsqueeze(0)
                 
@@ -343,12 +355,13 @@ class MCTS:
             node.backup(node.value_estimate)
             
             # Log progress
-            if (sim_idx + 1) % log_interval == 0:
+            if verbose and (sim_idx + 1) % log_interval == 0:
                 progress = (sim_idx + 1) / self.num_simulations * 100
                 print(f"  MCTS progress: {sim_idx + 1}/{self.num_simulations} simulations ({progress:.0f}%)", end='\r')
         
         # Clear progress line
-        print(" " * 60, end='\r')
+        if verbose:
+            print(" " * 60, end='\r')
         
         return root
     

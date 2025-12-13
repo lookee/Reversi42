@@ -40,7 +40,7 @@ def get_opening_book():
     if _opening_book is None:
         try:
             from domain.knowledge import get_default_opening_book
-            _opening_book = get_default_opening_book()
+            _opening_book = get_default_opening_book(verbose=False)
         except ImportError:
             # Opening book not available, return None
             _opening_book = None
@@ -139,7 +139,8 @@ def encode_state(
     player_color: str,
     use_advanced_features: bool = True,
     use_opening_book: bool = True,
-    device: Optional[torch.device] = None
+    device: Optional[torch.device] = None,
+    opening_book: Optional[object] = None
 ) -> torch.Tensor:
     """
     Encode BitboardGame state to PyTorch tensor.
@@ -150,6 +151,7 @@ def encode_state(
         use_advanced_features: If True, includes advanced feature channels
         use_opening_book: If True, includes opening book channel (requires advanced features)
         device: PyTorch device (if None, uses CPU)
+        opening_book: Optional pre-loaded opening book instance
         
     Returns:
         Tensor of shape [channels, 8, 8]
@@ -208,16 +210,17 @@ def encode_state(
         # Channel 7: Opening book moves
         if use_opening_book:
             book_array = np.zeros((8, 8), dtype=np.float32)
-            opening_book = get_opening_book()
+            # Use provided book or lazy load
+            current_book = opening_book if opening_book is not None else get_opening_book()
             
-            if opening_book is not None:
+            if current_book is not None:
                 # Get game history from BitboardGame
                 game_history = game.history if hasattr(game, 'history') else ""
                 
                 # Check if current position is in book
-                if opening_book.is_in_book(game_history):
+                if current_book.is_in_book(game_history):
                     # Get book moves for current position
-                    book_moves = opening_book.get_book_moves(game_history)
+                    book_moves = current_book.get_book_moves(game_history)
                     
                     # Mark book moves on the board
                     for move in book_moves:
