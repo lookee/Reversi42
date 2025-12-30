@@ -16,6 +16,8 @@ from Reversi.Game import Move
 from ..core.mcts import MCTS
 from ..core.neural_network import NeuralNetwork
 from ..utils.state_encoder import encode_state
+from ..utils.reward_shaping import calculate_intermediate_reward, calculate_position_value
+from ..utils.game_transform import apply_symmetry_transform, get_symmetry_transforms
 from ..data.replay_buffer import ReplayBuffer
 
 
@@ -30,6 +32,7 @@ class SelfPlay:
         mcts: MCTS,
         temperature: float = 1.0,
         use_symmetries: bool = True,
+        use_reward_shaping: bool = True,
         opening_book: Optional[object] = None,
         max_moves: int = 100
     ):
@@ -41,6 +44,7 @@ class SelfPlay:
             mcts: MCTS instance
             temperature: Temperature for move selection during self-play
             use_symmetries: Whether to use data augmentation (D8 symmetries)
+            use_reward_shaping: Whether to use intermediate rewards (corners, bad squares, mobility, stability)
             opening_book: Optional opening book instance
             max_moves: Maximum moves per game (safety limit)
         """
@@ -49,17 +53,37 @@ class SelfPlay:
         self.temperature = temperature
         self.temperature = temperature
         self.use_symmetries = use_symmetries
+        self.use_reward_shaping = use_reward_shaping
         self.opening_book = opening_book
         self.max_moves = max_moves
 
-    def generate_symmetries(self, state: torch.Tensor, policy: torch.Tensor, value: float) -> List[Tuple]:
+    def generate_symmetries(
+        self, 
+        state: torch.Tensor, 
+        policy: torch.Tensor, 
+        value: float,
+        game_state_before: Optional[BitboardGame] = None,
+        game_state_after: Optional[BitboardGame] = None,
+        player_color: Optional[str] = None,
+        final_outcome: Optional[float] = None,
+        intermediate_rewards: Optional[List[float]] = None,
+        move_index: Optional[int] = None
+    ) -> List[Tuple]:
         """
         Generate D8 symmetries (rotations + flips) for a training sample.
+        
+        If reward shaping is enabled and game_state is provided, recalculates rewards
+        for each symmetry to ensure correct learning.
         
         Args:
             state: Tensor [channels, 8, 8]
             policy: Tensor [65] (64 positions + pass)
-            value: Float value
+            value: Float value (original, will be recalculated for symmetries if game_state provided)
+            game_state: Optional BitboardGame state (for reward recalculation)
+            player_color: Optional player color "B" or "W"
+            final_outcome: Optional final game outcome
+            intermediate_rewards: Optional list of intermediate rewards
+            move_index: Optional move index for reward calculation
             
         Returns:
             List of (state, policy, value) tuples
@@ -70,32 +94,94 @@ class SelfPlay:
         policy_board = policy[:64].view(8, 8)
         policy_pass = policy[64]
         
-        # 1. Original
-        symmetries.append((state, policy, value))
+        # Define symmetry transformations (matching the order in generate_symmetries)
+        transforms = [
+            'identity',      # 0: Original
+            'rot90',         # 1: Rotate 90
+            'rot180',        # 2: Rotate 180
+            'rot270',        # 3: Rotate 270
+            'flip_h',        # 4: Horizontal flip
+            'flip_h_rot90',  # 5: Flip then rotate 90
+            'flip_h_rot180', # 6: Flip then rotate 180
+            'flip_h_rot270', # 7: Flip then rotate 270
+        ]
         
-        # 2. Rotations (90, 180, 270)
-        for k in [1, 2, 3]:
-            rot_state = torch.rot90(state, k, [1, 2])
-            rot_policy_board = torch.rot90(policy_board, k, [0, 1])
+        # Apply each transformation
+        for transform_type in transforms:
+            if transform_type == 'identity':
+                transformed_state = state
+                transformed_policy_board = policy_board
+            elif transform_type == 'rot90':
+                transformed_state = torch.rot90(state, 1, [1, 2])
+                transformed_policy_board = torch.rot90(policy_board, 1, [0, 1])
+            elif transform_type == 'rot180':
+                transformed_state = torch.rot90(state, 2, [1, 2])
+                transformed_policy_board = torch.rot90(policy_board, 2, [0, 1])
+            elif transform_type == 'rot270':
+                transformed_state = torch.rot90(state, 3, [1, 2])
+                transformed_policy_board = torch.rot90(policy_board, 3, [0, 1])
+            elif transform_type == 'flip_h':
+                transformed_state = torch.flip(state, [2])
+                transformed_policy_board = torch.flip(policy_board, [1])
+            elif transform_type == 'flip_h_rot90':
+                flip_state = torch.flip(state, [2])
+                flip_policy_board = torch.flip(policy_board, [1])
+                transformed_state = torch.rot90(flip_state, 1, [1, 2])
+                transformed_policy_board = torch.rot90(flip_policy_board, 1, [0, 1])
+            elif transform_type == 'flip_h_rot180':
+                flip_state = torch.flip(state, [2])
+                flip_policy_board = torch.flip(policy_board, [1])
+                transformed_state = torch.rot90(flip_state, 2, [1, 2])
+                transformed_policy_board = torch.rot90(flip_policy_board, 2, [0, 1])
+            elif transform_type == 'flip_h_rot270':
+                flip_state = torch.flip(state, [2])
+                flip_policy_board = torch.flip(policy_board, [1])
+                transformed_state = torch.rot90(flip_state, 3, [1, 2])
+                transformed_policy_board = torch.rot90(flip_policy_board, 3, [0, 1])
             
-            # Flatten and append pass
-            rot_policy = torch.cat([rot_policy_board.flatten(), policy_pass.unsqueeze(0)])
-            symmetries.append((rot_state, rot_policy, value))
+            # Flatten policy and append pass
+            transformed_policy = torch.cat([transformed_policy_board.flatten(), policy_pass.unsqueeze(0)])
             
-        # 3. Horizontal Flip
-        flip_state = torch.flip(state, [2])
-        flip_policy_board = torch.flip(policy_board, [1])
-        flip_policy = torch.cat([flip_policy_board.flatten(), policy_pass.unsqueeze(0)])
-        symmetries.append((flip_state, flip_policy, value))
+            # Calculate value for this symmetry
+            if (self.use_reward_shaping and game_state_before is not None and 
+                game_state_after is not None and player_color is not None and 
+                final_outcome is not None and intermediate_rewards is not None and 
+                move_index is not None):
+                # Transform game states
+                transformed_game_before = apply_symmetry_transform(game_state_before, transform_type)
+                transformed_game_after = apply_symmetry_transform(game_state_after, transform_type)
+                
+                # Recalculate intermediate reward for transformed state
+                transformed_reward = calculate_intermediate_reward(
+                    transformed_game_after,
+                    player_color,
+                    transformed_game_before,
+                    player_color
+                )
+                
+                # For future rewards, we approximate by using original rewards
+                # (full recalculation would require transforming entire game history)
+                # This is a reasonable approximation since the relative value of positions
+                # should be similar after transformation
+                transformed_intermediate_rewards = [transformed_reward]
+                if move_index + 1 < len(intermediate_rewards):
+                    # Use original rewards for future moves (approximation)
+                    transformed_intermediate_rewards.extend(intermediate_rewards[move_index + 1:])
+                
+                # Calculate value with transformed rewards
+                transformed_value = calculate_position_value(
+                    transformed_game_after,
+                    player_color,
+                    final_outcome,
+                    transformed_intermediate_rewards,
+                    0  # Start from beginning of transformed rewards
+                )
+            else:
+                # No reward shaping or missing data - use original value
+                transformed_value = value
+            
+            symmetries.append((transformed_state, transformed_policy, transformed_value))
         
-        # 4. Flip + Rotations
-        for k in [1, 2, 3]:
-            rot_flip_state = torch.rot90(flip_state, k, [1, 2])
-            rot_flip_policy_board = torch.rot90(flip_policy_board, k, [0, 1])
-            
-            rot_flip_policy = torch.cat([rot_flip_policy_board.flatten(), policy_pass.unsqueeze(0)])
-            symmetries.append((rot_flip_state, rot_flip_policy, value))
-            
         return symmetries
 
     def play_game(self, verbose: bool = False, progress_callback: Optional[callable] = None) -> List[Tuple]:
@@ -112,6 +198,11 @@ class SelfPlay:
         game = BitboardGame()
         training_data = []
         move_history = []
+        game_states_before = []  # Store game state BEFORE each move (for reward recalculation on symmetries)
+        game_states_after = []  # Store game state AFTER each move (for reward recalculation on symmetries)
+        intermediate_rewards = []  # Track intermediate rewards for reward shaping
+        previous_game_state = None  # Track previous state for reward calculation
+        previous_player_color = None
         
         current_player = "B"
         move_count = 0
@@ -181,8 +272,36 @@ class SelfPlay:
             training_data.append((state.cpu(), policy_array.cpu(), None))
             move_history.append((current_player, selected_move))
             
+            # Store game state BEFORE move (for reward recalculation on symmetries)
+            if self.use_reward_shaping:
+                game_states_before.append(copy.deepcopy(game))
+            
+            # Store previous state BEFORE making the move (for reward calculation)
+            previous_game_state = copy.deepcopy(game) if self.use_reward_shaping else None
+            previous_player_color = current_player if self.use_reward_shaping else None
+            
             # Make move
             game.move(selected_move)
+            
+            # Store game state AFTER move (for reward recalculation on symmetries)
+            if self.use_reward_shaping:
+                game_states_after.append(copy.deepcopy(game))
+            
+            # Calculate intermediate reward AFTER the move
+            if self.use_reward_shaping and previous_game_state is not None:
+                intermediate_reward = calculate_intermediate_reward(
+                    game,  # Current state after move
+                    current_player,  # Player who just moved
+                    previous_game_state,  # State before move
+                    previous_player_color  # Player who moved
+                )
+                intermediate_rewards.append(intermediate_reward)
+                
+                if verbose and abs(intermediate_reward) > 0.01:
+                    print(f"  Intermediate reward: {intermediate_reward:.4f}")
+            else:
+                intermediate_rewards.append(0.0)
+            
             current_player = game.turn
             move_count += 1
             
@@ -221,11 +340,40 @@ class SelfPlay:
         result_data = []
         for i, (state, policy, _) in enumerate(training_data):
             player_color = move_history[i][0]
-            value = final_value_black if player_color == "B" else final_value_white
+            final_value = final_value_black if player_color == "B" else final_value_white
+            
+            # Combine final outcome with intermediate rewards if reward shaping is enabled
+            if self.use_reward_shaping:
+                value = calculate_position_value(
+                    game,  # Final game state
+                    player_color,
+                    final_value,
+                    intermediate_rewards,
+                    i
+                )
+            else:
+                value = final_value
             
             if self.use_symmetries:
-                # Generate 8 symmetries
-                sym_samples = self.generate_symmetries(state, policy, value)
+                # Generate 8 symmetries with reward recalculation if reward shaping is enabled
+                if self.use_reward_shaping and i < len(game_states_before) and i < len(game_states_after):
+                    # Get game states for this position (before and after move)
+                    game_state_before = game_states_before[i]
+                    game_state_after = game_states_after[i]
+                    sym_samples = self.generate_symmetries(
+                        state, 
+                        policy, 
+                        value,
+                        game_state_before=game_state_before,
+                        game_state_after=game_state_after,
+                        player_color=player_color,
+                        final_outcome=final_value,
+                        intermediate_rewards=intermediate_rewards,
+                        move_index=i
+                    )
+                else:
+                    # No reward shaping or missing game state - use original value for all symmetries
+                    sym_samples = self.generate_symmetries(state, policy, value)
                 result_data.extend(sym_samples)
             else:
                 result_data.append((state, policy, value))

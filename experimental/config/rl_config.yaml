@@ -19,6 +19,7 @@ self_play:
   use_parallel: true
   num_workers: null             # null = auto-detect
   use_symmetries: true          # Data Augmentation (D8)
+  use_reward_shaping: true      # Intermediate rewards (corners, bad squares, mobility, stability)
   games_per_iteration: 50       # REDUCED from 100 (2x faster per iteration)
   max_moves: 100                # Max moves per game (safety limit)
   temperature: 1.0

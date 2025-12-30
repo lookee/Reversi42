@@ -30,6 +30,7 @@ def worker_play_game(
     mcts_config: Dict, 
     temperature: float,
     use_symmetries: bool,
+    use_reward_shaping: bool,
     device_str: str,
     result_queue: mp.Queue,
     num_games: int,
@@ -87,6 +88,7 @@ def worker_play_game(
             mcts=mcts,
             temperature=temperature,
             use_symmetries=use_symmetries,
+            use_reward_shaping=use_reward_shaping,
             opening_book=opening_book,
             max_moves=max_moves
         )
@@ -133,6 +135,7 @@ class ParallelSelfPlay:
         num_workers: Optional[int] = None,
         use_mps_workers: bool = False,
         use_symmetries: bool = True,
+        use_reward_shaping: bool = True,
         max_moves: int = 100
     ):
         """
@@ -151,6 +154,7 @@ class ParallelSelfPlay:
         self.mcts_config = mcts_config
         self.temperature = temperature
         self.use_symmetries = use_symmetries
+        self.use_reward_shaping = use_reward_shaping
         self.max_moves = max_moves
         
         # Load opening book ONCE in master process
@@ -219,6 +223,7 @@ class ParallelSelfPlay:
             print(f"Starting {len(active_workers)} workers for {num_games} games...")
             print(f"Worker device: {worker_device}")
             print(f"Symmetries enabled: {self.use_symmetries}")
+            print(f"Reward shaping enabled: {self.use_reward_shaping}")
         
         # Queue for results
         ctx = mp.get_context('spawn')
@@ -236,6 +241,7 @@ class ParallelSelfPlay:
                     self.mcts_config,
                     self.temperature,
                     self.use_symmetries,
+                    self.use_reward_shaping,
                     worker_device,
                     result_queue,
                     count,

@@ -202,6 +202,7 @@ def main():
     use_parallel = config.get('self_play.parallel', True)
     num_workers = config.get('self_play.num_workers', None)  # None = auto-detect
     use_symmetries = config.get('self_play.use_symmetries', True)
+    use_reward_shaping = config.get('self_play.use_reward_shaping', True)
     max_moves = config.get('self_play.max_moves', 100)
 
     
@@ -209,6 +210,7 @@ def main():
         print(f"\nInitializing Parallel Self-Play...")
         print(f"Workers: {'Auto-detect' if num_workers is None else num_workers}")
         print(f"Data Augmentation (Symmetries): {use_symmetries}")
+        print(f"Reward Shaping: {use_reward_shaping}")
         
         self_play = ParallelSelfPlay(
             neural_network=model,
@@ -217,16 +219,19 @@ def main():
             num_workers=num_workers,
             use_mps_workers=False,  # Safer on M1 to run workers on CPU
             use_symmetries=use_symmetries,
+            use_reward_shaping=use_reward_shaping,
             max_moves=max_moves
         )
     else:
         print("\nInitializing Sequential Self-Play...")
         print(f"Data Augmentation (Symmetries): {use_symmetries}")
+        print(f"Reward Shaping: {use_reward_shaping}")
         self_play = SelfPlay(
             neural_network=model,
             mcts=mcts,
             temperature=config.get('self_play.temperature', 1.0),
             use_symmetries=use_symmetries,
+            use_reward_shaping=use_reward_shaping,
             max_moves=max_moves
         )
     
