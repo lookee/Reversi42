@@ -51,7 +51,7 @@ jobs:
         ls -lh dist/
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v7
       with:
         name: python-package
         path: dist/
@@ -164,7 +164,7 @@ jobs:
         ls -lh dist/
     
     - name: Upload executable artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v7
       with:
         name: executable-${{ matrix.platform }}-${{ matrix.arch }}
         path: |
